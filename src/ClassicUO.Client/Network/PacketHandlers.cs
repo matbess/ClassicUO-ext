@@ -111,6 +111,7 @@ namespace ClassicUO.Network
                     // only what the server sent, not packets injected by plugins
                     if (allowPlugins)
                     {
+                        EffectRecorder.Record(world, packetBuffer.AsSpan(0, packetlength));
                         world.BuffTracker.OnPacket(packetBuffer.AsSpan(0, packetlength));
                     }
 

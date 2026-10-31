@@ -111,6 +111,9 @@ namespace ClassicUO.Game.UI.Gumps
         private Checkbox _trackBuffs;
         private Checkbox _buffBarFrame;
 
+        // effect recorder
+        private Checkbox _recordEffects;
+
         // combat & spells
         private ClickableColorBox _innocentColorPickerBox, _friendColorPickerBox, _crimialColorPickerBox, _canAttackColorPickerBox, _enemyColorPickerBox, _murdererColorPickerBox, _neutralColorPickerBox, _beneficColorPickerBox, _harmfulColorPickerBox;
         private HSliderBar _lightBar;
@@ -3264,6 +3267,17 @@ namespace ClassicUO.Game.UI.Gumps
             startX = 5;
             startY += 10;
 
+            _recordEffects = AddCheckBox
+            (
+                rightArea,
+                "Record spell effect log (Logs\\Effects)",
+                _currentProfile.RecordEffects,
+                startX,
+                startY
+            );
+
+            startY += _recordEffects.Height + 10;
+
             NiceButton reloadArt = new NiceButton
             (
                 startX,
@@ -3901,6 +3915,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _disableTabBtn.IsChecked = false;
                     _disableCtrlQWBtn.IsChecked = false;
                     _disableAutoMove.IsChecked = false;
+                    _recordEffects.IsChecked = false;
 
                     break;
             }
@@ -4355,6 +4370,7 @@ namespace ClassicUO.Game.UI.Gumps
             _currentProfile.DisableTabBtn = _disableTabBtn.IsChecked;
             _currentProfile.DisableCtrlQWBtn = _disableCtrlQWBtn.IsChecked;
             _currentProfile.DisableAutoMove = _disableAutoMove.IsChecked;
+            _currentProfile.RecordEffects = _recordEffects.IsChecked;
             _currentProfile.AutoOpenDoors = _autoOpenDoors.IsChecked;
             _currentProfile.SmoothDoors = _smoothDoors.IsChecked;
             _currentProfile.AutoOpenCorpses = _autoOpenCorpse.IsChecked;
