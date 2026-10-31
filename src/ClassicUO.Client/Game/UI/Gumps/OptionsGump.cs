@@ -105,6 +105,7 @@ namespace ClassicUO.Game.UI.Gumps
         // infobar
         private List<InfoBarBuilderControl> _infoBarBuilderControls;
         private Combobox _infoBarHighlightType;
+        private Checkbox _infoBarVertical;
 
         // combat & spells
         private ClickableColorBox _innocentColorPickerBox, _friendColorPickerBox, _crimialColorPickerBox, _canAttackColorPickerBox, _enemyColorPickerBox, _murdererColorPickerBox, _neutralColorPickerBox, _beneficColorPickerBox, _harmfulColorPickerBox;
@@ -3315,8 +3316,19 @@ namespace ClassicUO.Game.UI.Gumps
                 150
             );
 
-            startX = 5;
             startY += _infoBarHighlightType.Height + 5;
+
+            _infoBarVertical = AddCheckBox
+            (
+                rightArea,
+                "Show each item on its own line",
+                _currentProfile.InfoBarVertical,
+                text.X,
+                startY
+            );
+
+            startX = 5;
+            startY += _infoBarVertical.Height + 5;
 
             NiceButton nb = new NiceButton
             (
@@ -4371,6 +4383,7 @@ namespace ClassicUO.Game.UI.Gumps
             // infobar
             _currentProfile.ShowInfoBar = _showInfoBar.IsChecked;
             _currentProfile.InfoBarHighlightType = _infoBarHighlightType.SelectedIndex;
+            _currentProfile.InfoBarVertical = _infoBarVertical.IsChecked;
 
             World.InfoBars.Clear();
 

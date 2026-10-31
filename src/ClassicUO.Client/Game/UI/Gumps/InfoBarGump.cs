@@ -7,8 +7,8 @@ using ClassicUO.Game.Scenes;
 using ClassicUO.Game.UI.Controls;
 using ClassicUO.Renderer;
 using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Xml;
 
 namespace ClassicUO.Game.UI.Gumps
@@ -103,25 +103,59 @@ namespace ClassicUO.Game.UI.Gumps
             {
                 _refreshTime = (long)Time.Ticks + 125;
 
-                int x = 5;
-
-                foreach (InfoBarControl c in _infobarControls)
+                if (ProfileManager.CurrentProfile.InfoBarVertical)
                 {
-                    c.X = x;
-                    x += c.Width + 5;
+                    // One item per line, with the values lined up in a column after the longest label
+                    int labelWidth = 0;
+
+                    foreach (InfoBarControl c in _infobarControls)
+                    {
+                        labelWidth = Math.Max(labelWidth, c.LabelWidth);
+                    }
+
+                    int y = 0;
+
+                    foreach (InfoBarControl c in _infobarControls)
+                    {
+                        c.X = 5;
+                        c.Y = y;
+                        c.DataX = labelWidth;
+                        y += c.Height;
+                    }
+                }
+                else
+                {
+                    int x = 5;
+
+                    foreach (InfoBarControl c in _infobarControls)
+                    {
+                        c.X = x;
+                        c.Y = 0;
+                        c.DataX = c.LabelWidth;
+                        x += c.Width + 5;
+                    }
                 }
             }
 
             base.Update();
 
-            Control last = Children.LastOrDefault();
-
-            if (last != null)
+            if (_infobarControls.Count != 0)
             {
-                Width = last.Bounds.Right;
+                int width = 0;
+                int height = 0;
+
+                foreach (InfoBarControl c in _infobarControls)
+                {
+                    width = Math.Max(width, c.Bounds.Right);
+                    height = Math.Max(height, c.Bounds.Bottom);
+                }
+
+                Width = width;
+                Height = height;
             }
 
             _background.Width = Width;
+            _background.Height = Height;
         }
     }
 
@@ -150,6 +184,14 @@ namespace ClassicUO.Game.UI.Gumps
 
         public string Text => _label.Text;
         public InfoBarVars Var { get; }
+
+        public int LabelWidth => _label.Width;
+
+        public int DataX
+        {
+            get => _data.X;
+            set => _data.X = value;
+        }
 
         public ushort Hue => _label.Hue;
         protected long _refreshTime;
@@ -217,7 +259,7 @@ namespace ClassicUO.Game.UI.Gumps
                             new Rectangle
                             (
                                 _data.ScreenCoordinateX,
-                                _data.ScreenCoordinateY + Parent.Height - 2,
+                                _data.ScreenCoordinateY + Height - 2,
                                 _data.Width,
                                 2
                             ),

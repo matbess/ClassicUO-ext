@@ -221,6 +221,7 @@ namespace ClassicUO.Configuration
 
         public bool ShowInfoBar { get; set; }
         public int InfoBarHighlightType { get; set; } // 0 = text colour changes, 1 = underline
+        public bool InfoBarVertical { get; set; } // one item per line instead of a single row
 
         public bool CounterBarEnabled { get; set; }
         public bool CounterBarHighlightOnChange { get; set; } = true;
