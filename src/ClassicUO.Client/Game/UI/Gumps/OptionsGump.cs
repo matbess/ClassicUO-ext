@@ -109,6 +109,7 @@ namespace ClassicUO.Game.UI.Gumps
 
         // buffs
         private Checkbox _trackBuffs;
+        private Checkbox _buffBarFrame;
 
         // combat & spells
         private ClickableColorBox _innocentColorPickerBox, _friendColorPickerBox, _crimialColorPickerBox, _canAttackColorPickerBox, _enemyColorPickerBox, _murdererColorPickerBox, _neutralColorPickerBox, _beneficColorPickerBox, _harmfulColorPickerBox;
@@ -2893,6 +2894,17 @@ namespace ClassicUO.Game.UI.Gumps
 
             startY += _buffBarTime.Height + 2;
 
+            _buffBarFrame = AddCheckBox
+            (
+                rightArea,
+                "Show the frame around the buff bar (needed to rotate it)",
+                _currentProfile.BuffBarFrame,
+                startX,
+                startY
+            );
+
+            startY += _buffBarFrame.Height + 2;
+
             _trackBuffs = AddCheckBox
             (
                 rightArea,
@@ -3838,6 +3850,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _queryBeforeBeneficialCheckbox.IsChecked = false;
                     _uiButtonsSingleClick.IsChecked = false;
                     _buffBarTime.IsChecked = false;
+                    _buffBarFrame.IsChecked = true;
                     _trackBuffs.IsChecked = true;
                     _enableFastSpellsAssign.IsChecked = false;
                     _beneficColorPickerBox.Hue = 0x0059;
@@ -4251,6 +4264,13 @@ namespace ClassicUO.Game.UI.Gumps
             _currentProfile.EnabledBeneficialCriminalActionQuery = _queryBeforeBeneficialCheckbox.IsChecked;
             _currentProfile.CastSpellsByOneClick = _uiButtonsSingleClick.IsChecked;
             _currentProfile.BuffBarTime = _buffBarTime.IsChecked;
+
+            if (_currentProfile.BuffBarFrame != _buffBarFrame.IsChecked)
+            {
+                _currentProfile.BuffBarFrame = _buffBarFrame.IsChecked;
+                UIManager.GetGump<BuffGump>()?.RequestUpdateContents();
+            }
+
             _currentProfile.TrackBuffs = _trackBuffs.IsChecked;
             _currentProfile.FastSpellsAssign = _enableFastSpellsAssign.IsChecked;
 

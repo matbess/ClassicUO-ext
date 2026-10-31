@@ -59,12 +59,15 @@ namespace ClassicUO.Game.UI.Gumps
 
             Clear();
 
-            Add(_background = new GumpPic(0, 0, _graphic, 0) { LocalSerial = 1 });
+            bool showFrame = ProfileManager.CurrentProfile?.BuffBarFrame ?? true;
+
+            Add(_background = new GumpPic(0, 0, _graphic, 0) { LocalSerial = 1, IsVisible = showFrame });
 
             Add(
                 _button = new Button(0, 0x7585, 0x7589, 0x7589)
                 {
-                    ButtonAction = ButtonAction.Activate
+                    ButtonAction = ButtonAction.Activate,
+                    IsVisible = showFrame
                 }
             );
 
@@ -137,6 +140,17 @@ namespace ClassicUO.Game.UI.Gumps
         protected override void UpdateContents()
         {
             BuildGump();
+        }
+
+        public override bool Contains(int x, int y)
+        {
+            // without the frame only the icons catch the mouse, so clicks around them reach the game
+            if (_background == null || _background.IsVisible)
+            {
+                return base.Contains(x, y);
+            }
+
+            return _box != null && _box.Contains(x - _box.X, y - _box.Y);
         }
 
         private void UpdateElements()

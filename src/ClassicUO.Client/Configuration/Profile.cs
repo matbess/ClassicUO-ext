@@ -185,6 +185,7 @@ namespace ClassicUO.Configuration
         // Experimental
         public bool CastSpellsByOneClick { get; set; }
         public bool BuffBarTime { get; set; }
+        public bool BuffBarFrame { get; set; } = true; // frame and rotate button around the buff icons
         public bool TrackBuffs { get; set; } = true; // work out buffs from spell effects when the server sends no buff packets
         public bool FastSpellsAssign { get; set; }
         public bool AutoOpenDoors { get; set; }
