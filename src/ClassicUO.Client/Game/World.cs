@@ -48,6 +48,7 @@ namespace ClassicUO.Game
             CommandManager = new CommandManager(this);
             Weather = new Weather(this);
             InfoBars = new InfoBarManager(this);
+            BuffTracker = new BuffTracker(this);
         }
 
         public Point RangeSize;
@@ -99,6 +100,8 @@ namespace ClassicUO.Game
         public Weather Weather { get; }
 
         public InfoBarManager InfoBars { get; }
+
+        public BuffTracker BuffTracker { get; }
 
         public Dictionary<uint, Item> Items { get; } = new Dictionary<uint, Item>();
 
@@ -390,6 +393,7 @@ namespace ClassicUO.Game
                 _effectManager.Update();
                 WorldTextManager.Update();
                 WMapManager.RemoveUnupdatedWEntity();
+                BuffTracker.Update();
             }
         }
 

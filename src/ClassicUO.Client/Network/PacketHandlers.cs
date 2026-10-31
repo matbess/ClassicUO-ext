@@ -108,6 +108,12 @@ namespace ClassicUO.Network
 
                     PacketLogger.Default?.Log(packetBuffer.AsSpan(0, packetlength), false);
 
+                    // only what the server sent, not packets injected by plugins
+                    if (allowPlugins)
+                    {
+                        world.BuffTracker.OnPacket(packetBuffer.AsSpan(0, packetlength));
+                    }
+
                     // TODO: the pluging function should allow Span<byte> or unsafe type only.
                     // The current one is a bad style decision.
                     // It will be fixed once the new plugin system is done.

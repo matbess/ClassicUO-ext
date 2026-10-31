@@ -107,6 +107,9 @@ namespace ClassicUO.Game.UI.Gumps
         private Combobox _infoBarHighlightType;
         private Checkbox _infoBarVertical;
 
+        // buffs
+        private Checkbox _trackBuffs;
+
         // combat & spells
         private ClickableColorBox _innocentColorPickerBox, _friendColorPickerBox, _crimialColorPickerBox, _canAttackColorPickerBox, _enemyColorPickerBox, _murdererColorPickerBox, _neutralColorPickerBox, _beneficColorPickerBox, _harmfulColorPickerBox;
         private HSliderBar _lightBar;
@@ -2890,6 +2893,17 @@ namespace ClassicUO.Game.UI.Gumps
 
             startY += _buffBarTime.Height + 2;
 
+            _trackBuffs = AddCheckBox
+            (
+                rightArea,
+                "Work out buffs and debuffs when the server doesn't send them",
+                _currentProfile.TrackBuffs,
+                startX,
+                startY
+            );
+
+            startY += _trackBuffs.Height + 2;
+
             _enableFastSpellsAssign = AddCheckBox
             (
                 rightArea,
@@ -3824,6 +3838,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _queryBeforeBeneficialCheckbox.IsChecked = false;
                     _uiButtonsSingleClick.IsChecked = false;
                     _buffBarTime.IsChecked = false;
+                    _trackBuffs.IsChecked = true;
                     _enableFastSpellsAssign.IsChecked = false;
                     _beneficColorPickerBox.Hue = 0x0059;
                     _harmfulColorPickerBox.Hue = 0x0020;
@@ -4236,6 +4251,7 @@ namespace ClassicUO.Game.UI.Gumps
             _currentProfile.EnabledBeneficialCriminalActionQuery = _queryBeforeBeneficialCheckbox.IsChecked;
             _currentProfile.CastSpellsByOneClick = _uiButtonsSingleClick.IsChecked;
             _currentProfile.BuffBarTime = _buffBarTime.IsChecked;
+            _currentProfile.TrackBuffs = _trackBuffs.IsChecked;
             _currentProfile.FastSpellsAssign = _enableFastSpellsAssign.IsChecked;
 
             _currentProfile.BeneficHue = _beneficColorPickerBox.Hue;
