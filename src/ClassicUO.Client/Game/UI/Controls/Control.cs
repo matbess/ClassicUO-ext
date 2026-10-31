@@ -406,8 +406,15 @@ namespace ClassicUO.Game.UI.Controls
 
             int parentX = ParentX;
             int parentY = ParentY;
+            Rectangle bounds = Bounds;
+            int margin = HitTestMargin;
 
-            if (Bounds.Contains(x - parentX - _offset.X, y - parentY - _offset.Y))
+            if (margin > 0)
+            {
+                bounds.Inflate(margin, margin);
+            }
+
+            if (bounds.Contains(x - parentX - _offset.X, y - parentY - _offset.Y))
             {
                 if (Contains(x - X - parentX, y - Y - parentY))
                 {
@@ -437,6 +444,9 @@ namespace ClassicUO.Game.UI.Controls
         {
             HitTest(position.X, position.Y, ref res);
         }
+
+        // Extra pixels around Bounds where Contains() is still asked about the mouse.
+        protected virtual int HitTestMargin => 0;
 
         public virtual void OnHitTestSuccess(int x, int y, ref Control res)
         {

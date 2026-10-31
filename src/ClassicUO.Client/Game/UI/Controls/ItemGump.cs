@@ -168,6 +168,105 @@ namespace ClassicUO.Game.UI.Controls
 
         public override bool Contains(int x, int y)
         {
+            if (ContainsExact(x, y))
+            {
+                return true;
+            }
+
+            int range = ForgivingRange;
+
+            if (range <= 0)
+            {
+                return false;
+            }
+
+            int distance = NearDistance(x, y, range);
+
+            if (distance < 0 || Parent == null)
+            {
+                return distance >= 0;
+            }
+
+            // An item that is exactly under the mouse, or closer to it, keeps priority.
+            foreach (Control c in Parent.Children)
+            {
+                if (c != this && c is ItemGump other && other.IsVisible && !other.IsDisposed)
+                {
+                    int otherX = x + X - other.X;
+                    int otherY = y + Y - other.Y;
+
+                    if (other.ContainsExact(otherX, otherY))
+                    {
+                        return false;
+                    }
+
+                    int otherDistance = other.NearDistance(otherX, otherY, range);
+
+                    if (otherDistance >= 0 && otherDistance < distance)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        // Forgiving pick-up only applies to items lying in containers and trade windows.
+        private int ForgivingRange =>
+            _gump is ContainerGump || _gump is TradingGump
+                ? Math.Min(ProfileManager.CurrentProfile?.ForgivingPickUpRange ?? 0, Constants.MAX_FORGIVING_PICKUP_RANGE)
+                : 0;
+
+        protected override int HitTestMargin
+        {
+            get
+            {
+                int range = ForgivingRange;
+
+                if (range > 0 && ProfileManager.CurrentProfile.ScaleItemsInsideContainers)
+                {
+                    range = (int)Math.Ceiling(range * UIManager.ContainerScale);
+                }
+
+                return range;
+            }
+        }
+
+        private int NearDistance(int x, int y, int range)
+        {
+            x -= Offset.X;
+            y -= Offset.Y;
+
+            if (ProfileManager.CurrentProfile.ScaleItemsInsideContainers)
+            {
+                float scale = UIManager.ContainerScale;
+
+                x = (int)(x / scale);
+                y = (int)(y / scale);
+            }
+
+            int distance = _is_gump
+                ? Client.Game.UO.Gumps.PixelDistance(Graphic, x, y, range)
+                : Client.Game.UO.Arts.PixelDistance(Graphic, x, y, range);
+
+            if (distance < 0)
+            {
+                Item item = _gump.World.Items.Get(LocalSerial);
+
+                if (item != null && !item.IsCoin && item.Amount > 1 && item.ItemData.IsStackable)
+                {
+                    distance = _is_gump
+                        ? Client.Game.UO.Gumps.PixelDistance(Graphic, x - 5, y - 5, range)
+                        : Client.Game.UO.Arts.PixelDistance(Graphic, x - 5, y - 5, range);
+                }
+            }
+
+            return distance;
+        }
+
+        private bool ContainsExact(int x, int y)
+        {
             ref readonly var spriteInfo = ref _is_gump
                 ? ref Client.Game.UO.Gumps.GetGump(Graphic)
                 : ref Client.Game.UO.Arts.GetArt(Graphic);

@@ -16,6 +16,10 @@ namespace ClassicUO.Game
         public static Item SelectedContainer;
         public static Item CorpseObject;
 
+        // Forgiving pick-up: the closest item the mouse missed by only a few pixels this frame.
+        public static Item NearItem;
+        private static int _nearItemDistance;
+
         private static readonly bool[,] _InternalArea = new bool[44, 44];
 
         static SelectedObject()
@@ -34,6 +38,49 @@ namespace ClassicUO.Game
             }
         }
 
+
+        public static void OfferNearItem(Item item, int distance)
+        {
+            if (
+                NearItem == null
+                || distance < _nearItemDistance
+                || distance == _nearItemDistance && item.CalculateDepthZ() >= NearItem.CalculateDepthZ()
+            )
+            {
+                NearItem = item;
+                _nearItemDistance = distance;
+            }
+        }
+
+        // A near miss only wins over what the item is lying on (ground, statics, house parts,
+        // furniture). Mobiles, corpses and items hit exactly keep the selection, and so does
+        // anything drawn in front of the item.
+        public static void ApplyNearItem()
+        {
+            Item near = NearItem;
+            NearItem = null;
+
+            if (near == null)
+            {
+                return;
+            }
+
+            if (Object is GameObject obj)
+            {
+                bool background = obj is Land || obj is Static || obj is Multi || obj is Item item && item.IsLocked && !item.IsCorpse;
+
+                if (!background || obj.CalculateDepthZ() > near.CalculateDepthZ())
+                {
+                    return;
+                }
+            }
+            else if (Object != null)
+            {
+                return;
+            }
+
+            Object = near;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsPointInLand(int x, int y)

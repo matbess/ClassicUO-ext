@@ -518,6 +518,25 @@ namespace ClassicUO.Game.GameObjects
                             return true;
                         }
                     }
+
+                    int range = Math.Min(ProfileManager.CurrentProfile.ForgivingPickUpRange, Constants.MAX_FORGIVING_PICKUP_RANGE);
+
+                    if (range > 0 && !IsMulti && !IsLocked)
+                    {
+                        int x = SelectedObject.TranslatedMousePositionByViewport.X - position.X;
+                        int y = SelectedObject.TranslatedMousePositionByViewport.Y - position.Y;
+                        int distance = Client.Game.UO.Arts.PixelDistance(graphic, x, y, range);
+
+                        if (distance < 0 && !IsCoin && Amount > 1 && ItemData.IsStackable)
+                        {
+                            distance = Client.Game.UO.Arts.PixelDistance(graphic, x + 5, y + 5, range);
+                        }
+
+                        if (distance >= 0)
+                        {
+                            SelectedObject.OfferNearItem(this, distance);
+                        }
+                    }
                 }
             }
             else

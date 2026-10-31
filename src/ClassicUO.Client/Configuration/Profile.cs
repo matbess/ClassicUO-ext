@@ -263,6 +263,7 @@ namespace ClassicUO.Configuration
         public bool OverrideAllFontsIsUnicode { get; set; } = true;
 
         public bool SallosEasyGrab { get; set; }
+        public int ForgivingPickUpRange { get; set; }
 
         public bool JournalDarkMode { get; set; }
 

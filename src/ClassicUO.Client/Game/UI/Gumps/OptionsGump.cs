@@ -140,6 +140,7 @@ namespace ClassicUO.Game.UI.Gumps
         private ClickableColorBox _tooltip_font_hue;
         private FontSelector _tooltip_font_selector;
         private HSliderBar _dragSelectStartX, _dragSelectStartY;
+        private HSliderBar _forgivingPickUpRange;
         private Checkbox _dragSelectAsAnchor;
         private NiceButton _setAsNewDefault;
 
@@ -649,6 +650,22 @@ namespace ClassicUO.Game.UI.Gumps
                     _currentProfile.SallosEasyGrab,
                     startX,
                     startY
+                )
+            );
+
+            section.Add(AddLabel(null, "Forgiving item pick-up (pixels, 0 = off)", startX, startY));
+
+            section.AddRight
+            (
+                _forgivingPickUpRange = AddHSlider
+                (
+                    null,
+                    0,
+                    Constants.MAX_FORGIVING_PICKUP_RANGE,
+                    _currentProfile.ForgivingPickUpRange,
+                    startX,
+                    startY,
+                    80
                 )
             );
 
@@ -3658,6 +3675,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _showMobileNameIncoming.IsChecked = true;
                     _gridLoot.SelectedIndex = 0;
                     _sallosEasyGrab.IsChecked = false;
+                    _forgivingPickUpRange.Value = 0;
                     _partyInviteGump.IsChecked = false;
                     _showHouseContent.IsChecked = false;
                     _objectsFading.IsChecked = true;
@@ -3955,6 +3973,7 @@ namespace ClassicUO.Game.UI.Gumps
             _currentProfile.ShowNewCorpseNameIncoming = _showCorpseNameIncoming.IsChecked;
             _currentProfile.GridLootType = _gridLoot.SelectedIndex;
             _currentProfile.SallosEasyGrab = _sallosEasyGrab.IsChecked;
+            _currentProfile.ForgivingPickUpRange = _forgivingPickUpRange.Value;
             _currentProfile.PartyInviteGump = _partyInviteGump.IsChecked;
             _currentProfile.UseObjectsFading = _objectsFading.IsChecked;
             _currentProfile.TextFading = _textFading.IsChecked;

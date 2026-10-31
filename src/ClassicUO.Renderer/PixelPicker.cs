@@ -62,6 +62,59 @@ namespace ClassicUO.Renderer
             return false;
         }
 
+        // Returns how many pixels away (0..range) the nearest opaque pixel is from (x, y),
+        // measured as square rings around the point, or -1 if there is none within range.
+        public int GetDistance(ulong textureID, int x, int y, int range)
+        {
+            int index;
+            if (!m_IDs.TryGetValue(textureID, out index))
+            {
+                return -1;
+            }
+            int width = ReadIntegerFromData(ref index);
+            int height = ReadIntegerFromData(ref index);
+            if (x < -range || y < -range || x >= width + range || y >= height + range)
+            {
+                return -1;
+            }
+            for (int r = 0; r <= range; r++)
+            {
+                for (int dy = -r; dy <= r; dy++)
+                {
+                    // top and bottom rows of the ring are full, the rows between only have their two ends
+                    int step = dy == -r || dy == r ? 1 : 2 * r;
+                    for (int dx = -r; dx <= r; dx += step)
+                    {
+                        if (IsOpaque(index, width, height, x + dx, y + dy))
+                        {
+                            return r;
+                        }
+                    }
+                }
+            }
+            return -1;
+        }
+
+        bool IsOpaque(int index, int width, int height, int x, int y)
+        {
+            if (x < 0 || x >= width || y < 0 || y >= height)
+            {
+                return false;
+            }
+            int current = 0;
+            int target = x + y * width;
+            bool inTransparentSpan = true;
+            while (true)
+            {
+                current += ReadIntegerFromData(ref index);
+                if (target < current)
+                {
+                    return !inTransparentSpan;
+                }
+                inTransparentSpan = !inTransparentSpan;
+            }
+        }
+
         public void GetDimensions(ulong textureID, out int width, out int height)
         {
             int index;

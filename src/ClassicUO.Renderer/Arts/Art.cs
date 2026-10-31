@@ -225,5 +225,7 @@ namespace ClassicUO.Renderer.Arts
                 : _realArtBounds[idx];
 
         public bool PixelCheck(uint idx, int x, int y) => _picker.Get(idx, x, y);
+
+        public int PixelDistance(uint idx, int x, int y, int range) => _picker.GetDistance(idx, x, y, range);
     }
 }

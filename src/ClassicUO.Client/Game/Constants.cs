@@ -71,6 +71,8 @@ namespace ClassicUO.Game
         public const int MIN_CIRCLE_OF_TRANSPARENCY_RADIUS = 50;
         public const int MAX_CIRCLE_OF_TRANSPARENCY_RADIUS = 200;
 
+        public const int MAX_FORGIVING_PICKUP_RANGE = 4;
+
         public const int MAX_ABILITIES_COUNT = 32;
 
         public const int DRAG_ITEMS_DISTANCE = 3;

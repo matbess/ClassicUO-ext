@@ -954,8 +954,10 @@ namespace ClassicUO.Game.Scenes
         {
             batcher.GraphicsDevice.SetRenderTarget(renderTargets.WorldRenderTarget);
             SelectedObject.Object = null;
+            SelectedObject.NearItem = null;
             Profiler.EnterContext(Profiler.ProfilerContext.RENDER_FRAME_WORLD_PREPARE);
             FillGameObjectList();
+            SelectedObject.ApplyNearItem();
 
             // Restore previous highlight's original hue before applying new one
             if (_prevMeshHighlight != null
