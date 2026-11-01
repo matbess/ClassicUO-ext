@@ -19,7 +19,8 @@ SPEC says where the gear goes (decided per batch from the keep rules in the uo-s
 
 Stackables are sorted without being listed: reagents, gems (inside the gem bag) and gold merge onto their piles; scrolls go into their
 circle's bag at the spell's place; potions go into their crate; empty bottles and cut leather or cloth go to supplies;
-gold goes to needs your decision and iron ore to smelting (both left in loot bags by accident).
+gold goes to needs your decision and iron ore to smelting (both left in loot bags by accident); hides are cut into
+leather.
 Existing piles are found by looking in the containers. Containers are opened first so the client knows them.
 New bags get a label ("bag: KIND (CHEST chest)"), and every chest opened is recorded in layout.json at the end.
 Waits while someone is in the room and out world saves; stops at the first problem and says where.
@@ -47,6 +48,7 @@ REAGENTS = ['0x0F7A', '0x0F7B', '0x0F84', '0x0F85', '0x0F86', '0x0F88', '0x0F8D'
 GEMS = ['0x0F25', '0x0F16', '0x0F15', '0x0F26', '0x0F10', '0x0F13', '0x0F19', '0x0F21', '0x0F2D']  # amber .. tourmaline
 GOLD = {'0x0EED', '0x0EEE', '0x0EEF'}
 ORE = {'0x19B7', '0x19B8', '0x19B9', '0x19BA'}  # iron ore piles, left in the loot by accident: to smelting
+HIDES = {'0x1078', '0x1079'}  # piles of hides: cut into leather like the leather armour
 SUPPLIES = {'0x0F0E', '0x1067', '0x1068', '0x1081', '0x1082', '0x1766', '0x1767', '0x0EF3', '0x14FC',
             '0x0F3F', '0x1BFB', '0x0E21', '0x0EE9'}  # bottles, leather, cloth, blank scrolls, lockpicks, arrows, bolts, bandages
 SET_PIECES = {'ringmail gloves': 'gloves', 'ringmail sleeves': 'sleeves', 'chainmail leggings': 'leggings',
@@ -374,6 +376,7 @@ def main():
         set(plan.get('sets', [])) | set(plan.get('smelt', []))
 
     # ---- stackables ----
+    hides = []
     for serial, item in inv.items():
         if serial in done:
             continue
@@ -405,6 +408,8 @@ def main():
             c = chest('needs your decision')
             learn(c)
             say(f"gold x{item.get('amount', 1)} -> needs your decision ({stack(item, c)})")
+        elif g in HIDES:
+            hides.append(serial)
         elif g in ORE:
             c = room_in('smelting')
             say(f"iron ore x{item.get('amount', 1)} -> {labels().get(c)} ({stack(item, c)})")
@@ -426,7 +431,7 @@ def main():
             say(f"left in the loot (not in the plan): {names.get(serial, item['type'])} {serial}")
 
     # ---- cut leather and cloth; results to supplies ----
-    cut_up(plan.get('cut', []), inv)
+    cut_up(plan.get('cut', []) + hides, inv)
 
     # ---- emptied loot bags back to the crate ----
     for l in loot:
