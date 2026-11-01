@@ -20,6 +20,7 @@
   uo cancel                    cancel a target cursor
   uo rules                     show Agent/rules.json as the bridge sees it
   uo resume                    carry on after the bridge stopped because the server went quiet
+  uo actions                   what the bridge sent and when, next to the server's "You must wait"
   uo clear                     is anyone else in the agent's area? (exit code 0 when clear)
   uo waitclear [--every SECS]  check every minute until the area is clear
 
@@ -145,6 +146,23 @@ def move(info, serial, to, x=None, y=None, amount=None):
     elif target:
         walk_near(info, to)
     return call(info, 'POST', '/move', serial=serial, to=to, x=x, y=y, amount=amount)
+
+
+def wait_out_world_save(info, error):
+    """If the bridge stopped because a world save froze the server, wait for the save to finish, resume and return
+    True. Any other stop returns False and stays stopped for the user to look at."""
+    if error.code != 423:
+        return False
+    texts = [m['text'].lower() for m in call(info, 'GET', '/messages')['messages'][-15:]]
+    if not any('world will save' in t or 'world save' in t for t in texts):
+        return False
+    for _ in range(60):  # saves take seconds; give up after five minutes
+        texts = [m['text'].lower() for m in call(info, 'GET', '/messages')['messages'][-15:]]
+        if any('world save complete' in t for t in texts):
+            call(info, 'POST', '/resume')
+            return True
+        time.sleep(5)
+    return False
 
 
 def is_alive(info):
@@ -299,6 +317,7 @@ def main():
     sub.add_parser('rules')
     sub.add_parser('clear')
     sub.add_parser('resume')
+    sub.add_parser('actions')
     sub.add_parser('waitclear').add_argument('--every', type=int, default=60)
     args = parser.parse_args()
 
@@ -363,6 +382,13 @@ def main():
         result = call(info, 'GET', '/rules')
     elif c == 'resume':
         result = call(info, 'POST', '/resume')
+    elif c == 'actions':
+        sent = call(info, 'GET', '/actions')
+        waits = [m for m in call(info, 'GET', '/messages')['messages'] if 'must wait' in m['text'].lower()]
+        events = [(a['time'], f"sent {a['what']} {a['serial']}") for a in sent] + [(m['time'], '  SERVER: ' + m['text']) for m in waits]
+        for t, text in sorted(events):
+            print(t, text)
+        return
     else:
         result = call(info, 'GET', '/messages', after=args.after)
 

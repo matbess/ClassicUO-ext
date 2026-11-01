@@ -52,6 +52,15 @@ def main():
             except uo.BridgeError as e:
                 if e.code == 409 and 'paused' in e.message:
                     continue
+                if uo.wait_out_world_save(info, e):
+                    say('world save finished; carrying on')
+                    # the move may have gone through during the save
+                    found = uo.call(info, 'GET', '/item', serial=serial)
+                    inside = found['insideOf'][0]['serial'] if found['insideOf'] else None
+                    if inside == to or found['item']['serial'] == to:
+                        result = {'moved': True, 'messages': []}
+                        break
+                    continue
                 say(f'STOPPED at move {number} of {len(plan)} ({what} -> {where}): {e}')
                 sys.exit(1)
             break
