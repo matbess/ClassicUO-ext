@@ -39,21 +39,36 @@ def wait_until_clear(info):
         time.sleep(60)
 
 
+def name_of(item):
+    # after a client restart the bridge has forgotten names; names.json remembers them
+    return item.get('name') or uo.load_names().get(item['serial'], '')
+
+
 def wand_in_hand(info):
     for item in uo.call(info, 'GET', '/status')['hands']:
-        if 'identification' in (item.get('name') or ''):
-            return item['serial'], charges(item['name'])
+        if 'identification' in name_of(item):
+            return item['serial'], charges(name_of(item))
     return None, 0
 
 
 def spares(info):
     """ID tools in the spares pouch with charges left, fewest charges first. Opens the pouch if its contents aren't known."""
-    contents = uo.call(info, 'GET', '/contents', serial=SPARES)
+    try:
+        contents = uo.call(info, 'GET', '/contents', serial=SPARES)
+    except uo.BridgeError as e:
+        if e.code != 404:
+            raise
+        # the client doesn't know the pouch yet: open the chest it's in
+        chest = uo.resolve('supplies')
+        uo.walk_near(info, chest)
+        uo.call(info, 'POST', '/open', serial=chest)
+        uo.call(info, 'POST', '/close', serial=chest)
+        contents = uo.call(info, 'GET', '/contents', serial=SPARES)
     if contents['container'].get('knownItems', 0) == 0:
         uo.walk_near(info, SPARES)
         contents = uo.call(info, 'POST', '/open', serial=SPARES)['contents']
         uo.call(info, 'POST', '/close', serial=SPARES)
-    tools = [(charges(i.get('name')), i['serial']) for i in contents['items'] if 'identification' in (i.get('name') or '')]
+    tools = [(charges(name_of(i)), i['serial']) for i in contents['items'] if 'identification' in name_of(i)]
     return sorted(t for t in tools if t[0])
 
 
@@ -100,6 +115,9 @@ def main():
                     continue
                 if e.code == 409 and 'too far' in e.message:
                     uo.walk_near(info, target)
+                    continue
+                if uo.wait_out_world_save(info, e):
+                    say('world save finished; carrying on')
                     continue
                 raise
             texts = [m['text'] for m in result['messages']]

@@ -35,5 +35,8 @@ Run `./uo --help` for the list. Highlights:
 - `uo clear` / `uo waitclear`: is anyone else in the area / wait until nobody is
 - `uo resume`: carry on after the bridge stopped because the server went quiet
 - `idall.py SERIAL...`: identify items in a batch, swapping in a spare ID wand when one runs out
+- `sortbatch.py SPEC.json`: sort a batch of loot into the chests, from a spec saying where the gear goes
+- `survey.py`: open every chest once and record its bags, markers and piles in `layout.json`; `layout.py` prints that map
 
-`labels.json` and the `TRASH` and `SPARES` serials at the top of `idall.py` describe one particular house; change them for any other.
+`labels.json`, `layout.json` and the serials at the top of `idall.py` and `sortbatch.py` describe one particular house;
+change them for any other.

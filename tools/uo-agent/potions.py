@@ -89,6 +89,9 @@ def main():
             except uo.BridgeError as e:
                 if e.code == 409 and 'paused' in e.message:
                     continue
+                if uo.wait_out_world_save(info, e):
+                    say('world save finished; carrying on')
+                    continue
                 say(f'STOPPED at {name}: {e}')
                 sys.exit(1)
             break

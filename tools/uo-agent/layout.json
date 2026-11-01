@@ -1,0 +1,808 @@
+{
+ "0x404ABD74": {
+  "bags": [
+   {
+    "kind": "leather tunics",
+    "known": 0,
+    "marker": {
+     "name": "a durable leather tunic of hardening",
+     "serial": "0x4072FF47",
+     "x": 18,
+     "y": 128
+    },
+    "serial": "0x409397D1",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "items": 2,
+  "label": "chest: leather + caps (col 3 2nd)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x4080C375": {
+  "bags": [
+   {
+    "kind": "circle 3 scrolls",
+    "known": 0,
+    "marker": {
+     "name": "Unlock Scroll",
+     "serial": "0x40888CB7",
+     "x": 44,
+     "y": 128
+    },
+    "serial": "0x4092B7CC",
+    "x": 40,
+    "y": 105
+   },
+   {
+    "kind": "circle 4 scrolls",
+    "known": 0,
+    "marker": {
+     "name": "Recall",
+     "serial": "0x4097351D",
+     "x": 59,
+     "y": 128
+    },
+    "serial": "0x4092B7D2",
+    "x": 54,
+    "y": 105
+   },
+   {
+    "kind": "circle 5 scrolls",
+    "known": 0,
+    "marker": {
+     "name": "Paralyze Scroll",
+     "serial": "0x40885A02",
+     "x": 68,
+     "y": 128
+    },
+    "serial": "0x4092B7BF",
+    "x": 68,
+    "y": 105
+   },
+   {
+    "kind": "circle 6 scrolls",
+    "known": 0,
+    "marker": {
+     "name": "Explosion Scroll",
+     "serial": "0x406FFA2C",
+     "x": 86,
+     "y": 128
+    },
+    "serial": "0x4092B7BB",
+    "x": 83,
+    "y": 105
+   },
+   {
+    "kind": "circle 7 scrolls",
+    "known": 0,
+    "marker": {
+     "name": "Energy Fied Scroll",
+     "serial": "0x406FFAB1",
+     "x": 99,
+     "y": 128
+    },
+    "serial": "0x407B195C",
+    "x": 104,
+    "y": 105
+   },
+   {
+    "kind": "circle 1 scrolls",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F6B",
+    "x": 18,
+    "y": 105
+   },
+   {
+    "kind": "circle 2 scrolls",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4086BE0E",
+    "x": 31,
+    "y": 105
+   },
+   {
+    "kind": "circle 8 scrolls",
+    "known": 0,
+    "marker": {
+     "name": "Energy Vortex Scro",
+     "serial": "0x406DBEEF",
+     "x": 113,
+     "y": 128
+    },
+    "serial": "0x4087FCC6",
+    "x": 118,
+    "y": 105
+   }
+  ],
+  "items": 14,
+  "label": "chest: scrolls (col 5 top)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FB1E0": {
+  "bags": [],
+  "items": 0,
+  "label": "chest: jewellery (col 4 top)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FB713": {
+  "bags": [],
+  "items": 0,
+  "label": "chest: fencing (col 2 top)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FB8BC": {
+  "bags": [],
+  "items": 8,
+  "label": "chest: reagents (col 5 3rd)",
+  "loose": [
+   {
+    "amount": 51,
+    "name": "Black Pearls",
+    "serial": "0x406FF9B5",
+    "x": 18,
+    "y": 107
+   },
+   {
+    "amount": 1074,
+    "name": "Blood Moss",
+    "serial": "0x408EAC3B",
+    "x": 43,
+    "y": 107
+   },
+   {
+    "amount": 1044,
+    "name": "Garlic",
+    "serial": "0x408EAE32",
+    "x": 79,
+    "y": 107
+   },
+   {
+    "amount": 1096,
+    "name": "Ginseng",
+    "serial": "0x408EB03C",
+    "x": 97,
+    "y": 107
+   },
+   {
+    "amount": 67,
+    "name": "Nightshade",
+    "serial": "0x406FF9B4",
+    "x": 42,
+    "y": 133
+   },
+   {
+    "amount": 75,
+    "name": "Spider's Silk",
+    "serial": "0x406FF9B6",
+    "x": 72,
+    "y": 133
+   },
+   {
+    "amount": 77,
+    "name": "Sulfurous Ash",
+    "serial": "0x406FF9C6",
+    "x": 95,
+    "y": 133
+   },
+   {
+    "amount": 37,
+    "name": "Mandrake Roots",
+    "serial": "0x4072FED1",
+    "x": 18,
+    "y": 132
+   }
+  ],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FBF7C": {
+  "bags": [
+   {
+    "kind": "tunics & shirts",
+    "known": 0,
+    "marker": {
+     "name": "tunic of spell reflection (34 charges)",
+     "serial": "0x4073BA09",
+     "x": 29,
+     "y": 105
+    },
+    "serial": "0x409397C4",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "items": 2,
+  "label": "chest: magic clothing (col 4 3rd)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FC111": {
+  "bags": [],
+  "items": 0,
+  "label": "chest: for cutting - leather & cloth (col 4 bottom)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FC781": {
+  "bags": [
+   {
+    "kind": "attack wands",
+    "known": 0,
+    "marker": {
+     "name": "a wand of lightning (9 charges)",
+     "serial": "0x402C2735",
+     "x": 26,
+     "y": 129
+    },
+    "serial": "0x409397C1",
+    "x": 22,
+    "y": 106
+   },
+   {
+    "kind": "healing wands",
+    "known": 0,
+    "marker": {
+     "name": "a wand of greater healing (4 charges)",
+     "serial": "0x40717795",
+     "x": 50,
+     "y": 129
+    },
+    "serial": "0x409397CF",
+    "x": 45,
+    "y": 106
+   }
+  ],
+  "items": 4,
+  "label": "chest: magic wands (col 2 2nd)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FD0C7": {
+  "bags": [
+   {
+    "kind": "knives",
+    "known": 0,
+    "marker": {
+     "name": "a surpassingly accurate butcher knife of vanquishing",
+     "serial": "0x407AB988",
+     "x": 20,
+     "y": 128
+    },
+    "serial": "0x409397C9",
+    "x": 24,
+    "y": 106
+   }
+  ],
+  "items": 2,
+  "label": "chest: swords (col 1 top)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FD7CF": {
+  "bags": [
+   {
+    "kind": "plate gloves",
+    "known": 0,
+    "marker": {
+     "name": "platemail gloves of guarding",
+     "serial": "0x407E710E",
+     "x": 25,
+     "y": 129
+    },
+    "serial": "0x409397B8",
+    "x": 20,
+    "y": 106
+   },
+   {
+    "kind": "helms",
+    "known": 0,
+    "marker": {
+     "name": "an orc helm of guarding",
+     "serial": "0x406FFBE2",
+     "x": 41,
+     "y": 129
+    },
+    "serial": "0x409397CE",
+    "x": 47,
+    "y": 106
+   },
+   {
+    "kind": "plate tunics",
+    "known": 0,
+    "marker": {
+     "name": "a platemail tunic of invulnerability",
+     "serial": "0x4073B9ED",
+     "x": 75,
+     "y": 129
+    },
+    "serial": "0x409397BD",
+    "x": 66,
+    "y": 105
+   },
+   {
+    "kind": "plate gorgets",
+    "known": 0,
+    "marker": {
+     "name": "a platemail gorget of guarding",
+     "serial": "0x4073B9FC",
+     "x": 106,
+     "y": 105
+    },
+    "serial": "0x409397C8",
+    "x": 84,
+    "y": 105
+   }
+  ],
+  "items": 8,
+  "label": "chest: plate + helms (col 3 top)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FDB4F": {
+  "bags": [],
+  "items": 0,
+  "label": "chest: archery (col 2 3rd)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FE0E7": {
+  "bags": [
+   {
+    "kind": "studded tunics",
+    "known": 0,
+    "marker": {
+     "name": "a studded tunic of guarding",
+     "serial": "0x4072FF38",
+     "x": 18,
+     "y": 128
+    },
+    "serial": "0x409397AE",
+    "x": 18,
+    "y": 105
+   },
+   {
+    "kind": "studded gloves",
+    "known": 0,
+    "marker": {
+     "name": "studded gloves of guarding",
+     "serial": "0x4074F873",
+     "x": 58,
+     "y": 105
+    },
+    "serial": "0x409397BB",
+    "x": 36,
+    "y": 105
+   }
+  ],
+  "items": 4,
+  "label": "chest: studded (col 3 bottom)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FE3A0": {
+  "bags": [],
+  "items": 9,
+  "label": "chest: gems (col 5 bottom)",
+  "loose": [
+   {
+    "amount": 23,
+    "name": "pieces of amber",
+    "serial": "0x40888CBE",
+    "x": 18,
+    "y": 106
+   },
+   {
+    "amount": 25,
+    "name": "amethysts",
+    "serial": "0x40887AB3",
+    "x": 34,
+    "y": 106
+   },
+   {
+    "amount": 36,
+    "name": "citrines",
+    "serial": "0x406FF9EF",
+    "x": 44,
+    "y": 106
+   },
+   {
+    "amount": 38,
+    "name": "diamonds",
+    "serial": "0x406FFA04",
+    "x": 68,
+    "y": 106
+   },
+   {
+    "amount": 24,
+    "name": "emeralds",
+    "serial": "0x406FFA12",
+    "x": 95,
+    "y": 106
+   },
+   {
+    "amount": 28,
+    "name": "rubies",
+    "serial": "0x406FF9FC",
+    "x": 108,
+    "y": 106
+   },
+   {
+    "amount": 35,
+    "name": "star sapphires",
+    "serial": "0x406FF9EE",
+    "x": 118,
+    "y": 106
+   },
+   {
+    "amount": 23,
+    "name": "sapphires",
+    "serial": "0x4072FEFA",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "amount": 31,
+    "name": "tourmalines",
+    "serial": "0x406B725F",
+    "x": 24,
+    "y": 129
+   }
+  ],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FF16B": {
+  "bags": [
+   {
+    "kind": "chain tunics",
+    "known": 0,
+    "marker": {
+     "name": "a chainmail tunic of guarding",
+     "serial": "0x40889A70",
+     "x": 23,
+     "y": 129
+    },
+    "serial": "0x409397B1",
+    "x": 20,
+    "y": 106
+   },
+   {
+    "kind": "coifs",
+    "known": 0,
+    "marker": {
+     "name": "a chainmail coif of guarding",
+     "serial": "0x409A5345",
+     "x": 51,
+     "y": 129
+    },
+    "serial": "0x409397BE",
+    "x": 57,
+    "y": 106
+   }
+  ],
+  "items": 4,
+  "label": "chest: chain & ring + coifs (col 3 3rd)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FF313": {
+  "bags": [],
+  "items": 0,
+  "label": "chest: axes (col 1 3rd)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FF6C4": {
+  "bags": [],
+  "items": 0,
+  "label": "chest: maces & staves (col 1 2nd)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FF84A": {
+  "bags": [],
+  "items": 0,
+  "label": "chest: gold (col 5 2nd)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FF9AB": {
+  "bags": [
+   {
+    "kind": "shields",
+    "known": 0,
+    "marker": {
+     "name": "a wooden shield of guarding",
+     "serial": "0x4073B9E1",
+     "x": 18,
+     "y": 128
+    },
+    "serial": "0x409397A3",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "items": 2,
+  "label": "chest: shields (col 4 2nd)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x408FFDD1": {
+  "bags": [],
+  "items": 14,
+  "label": "chest: for smelting - Icepick (col 2 bottom)",
+  "loose": [
+   {
+    "amount": 1,
+    "name": "a substantial, surpassingly accurate butcher knife",
+    "serial": "0x406FFB13",
+    "x": 18,
+    "y": 106
+   },
+   {
+    "amount": 1,
+    "name": "an exceedingly accurate pickaxe",
+    "serial": "0x406FFB56",
+    "x": 39,
+    "y": 106
+   },
+   {
+    "amount": 1,
+    "name": "a silver dagger of might",
+    "serial": "0x406FFC79",
+    "x": 78,
+    "y": 106
+   },
+   {
+    "amount": 1,
+    "name": "a surpassingly accurate viking sword of ruin",
+    "serial": "0x4072FF57",
+    "x": 81,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "a massive, exceedingly accurate war axe",
+    "serial": "0x4072FF40",
+    "x": 111,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "a durable, exceedingly accurate executioner's axe",
+    "serial": "0x4072FF30",
+    "x": 60,
+    "y": 132
+   },
+   {
+    "amount": 1,
+    "name": "an accurate large battle axe",
+    "serial": "0x4072FF2B",
+    "x": 99,
+    "y": 132
+   },
+   {
+    "amount": 1,
+    "name": "a broadsword of ruin",
+    "serial": "0x4072FF36",
+    "x": 18,
+    "y": 135
+   },
+   {
+    "amount": 1,
+    "name": "an eminently accurate broadsword of ruin",
+    "serial": "0x4073B9F7",
+    "x": 26,
+    "y": 146
+   },
+   {
+    "amount": 1,
+    "name": "an exceedingly accurate cutlass of might",
+    "serial": "0x4072FF3D",
+    "x": 45,
+    "y": 135
+   },
+   {
+    "amount": 1,
+    "name": "a scimitar of might",
+    "serial": "0x4073B9F9",
+    "x": 43,
+    "y": 138
+   },
+   {
+    "amount": 1,
+    "name": "a durable, surpassingly accurate butcher knife",
+    "serial": "0x40806D8D",
+    "x": 63,
+    "y": 117
+   },
+   {
+    "amount": 1,
+    "name": "a spear of might",
+    "serial": "0x4063F9F8",
+    "x": 37,
+    "y": 114
+   },
+   {
+    "amount": 1,
+    "name": "a massive cleaver of burning (38 charges)",
+    "serial": "0x407DA687",
+    "x": 18,
+    "y": 120
+   }
+  ],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x40900029": {
+  "bags": [],
+  "items": 0,
+  "label": "chest: polearms (col 1 bottom)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x40901BDA": {
+  "bags": [
+   {
+    "kind": "plate",
+    "known": 0,
+    "marker": {
+     "name": "an orc helm of defense",
+     "serial": "0x40889A6F",
+     "x": 20,
+     "y": 129
+    },
+    "serial": "0x409397A4",
+    "x": 26,
+    "y": 106
+   },
+   {
+    "kind": "chain & ring",
+    "known": 0,
+    "marker": {
+     "name": "a chainmail coif of defense",
+     "serial": "0x4087E8C7",
+     "x": 41,
+     "y": 129
+    },
+    "serial": "0x409397BC",
+    "x": 47,
+    "y": 106
+   },
+   {
+    "kind": "leather",
+    "known": 0,
+    "marker": {
+     "name": "a leather skirt of defense",
+     "serial": "0x40949BF3",
+     "x": 69,
+     "y": 129
+    },
+    "serial": "0x409397CC",
+    "x": 67,
+    "y": 106
+   },
+   {
+    "kind": "studded",
+    "known": 0,
+    "marker": {
+     "name": "studded gloves of defense",
+     "serial": "0x406FFC67",
+     "x": 94,
+     "y": 129
+    },
+    "serial": "0x409397B5",
+    "x": 90,
+    "y": 106
+   },
+   {
+    "kind": "shields",
+    "known": 0,
+    "marker": {
+     "name": "a buckler of defense",
+     "serial": "0x406FFC84",
+     "x": 118,
+     "y": 129
+    },
+    "serial": "0x409397C6",
+    "x": 118,
+    "y": 106
+   }
+  ],
+  "items": 10,
+  "label": "chest: plain gear (col 6 bottom)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x40901EDF": {
+  "bags": [
+   {
+    "kind": "ID wands & staves (spares)",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4049D6B8",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "items": 7,
+  "label": "chest: supplies & ID wands (col 6 2nd)",
+  "loose": [
+   {
+    "amount": 1964,
+    "name": "lockpicks",
+    "serial": "0x406C74B0",
+    "x": 45,
+    "y": 106
+   },
+   {
+    "amount": 12,
+    "name": "empty bottles",
+    "serial": "0x408A846F",
+    "x": 63,
+    "y": 106
+   },
+   {
+    "amount": 1,
+    "name": "blank scroll",
+    "serial": "0x408D19BF",
+    "x": 81,
+    "y": 106
+   },
+   {
+    "amount": 2,
+    "name": "cut up leather",
+    "serial": "0x40988462",
+    "x": 50,
+    "y": 129
+   },
+   {
+    "amount": 11,
+    "name": "cut cloth",
+    "serial": "0x40988811",
+    "x": 98,
+    "y": 129
+   },
+   {
+    "amount": 20,
+    "name": "arrow",
+    "serial": "0x407004A7",
+    "x": 105,
+    "y": 105
+   }
+  ],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x409020EB": {
+  "bags": [],
+  "items": 2,
+  "label": "chest: needs your decision (col 6 3rd)",
+  "loose": [
+   {
+    "amount": 1,
+    "name": "bracelet of blessings (24 charges)",
+    "serial": "0x4073B9F1",
+    "x": 18,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "boots of blessings (29 charges)",
+    "serial": "0x4073BA06",
+    "x": 33,
+    "y": 105
+   }
+  ],
+  "recorded": "2026-11-01 10:35"
+ },
+ "0x40902338": {
+  "bags": [],
+  "items": 0,
+  "label": "chest: treasure maps (col 6 top)",
+  "loose": [],
+  "recorded": "2026-11-01 10:35"
+ }
+}

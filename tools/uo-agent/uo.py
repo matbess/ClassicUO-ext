@@ -145,6 +145,13 @@ def move(info, serial, to, x=None, y=None, amount=None):
             walk_near(info, to)
     elif target:
         walk_near(info, to)
+    # the server only tells us about a drop into a container we've opened since logging in; without that the
+    # bridge hears nothing back and stops, so open one the client knows nothing about first
+    dest = call(info, 'GET', '/item', serial=to)['item']
+    if dest.get('container') and not dest.get('open') and not dest.get('knownItems'):
+        walk_near(info, to)
+        call(info, 'POST', '/open', serial=to)
+        call(info, 'POST', '/close', serial=to)
     return call(info, 'POST', '/move', serial=serial, to=to, x=x, y=y, amount=amount)
 
 
@@ -240,6 +247,13 @@ def load_labels():
         return {}
 
 
+def save_label(serial, text):
+    labels = load_labels()
+    labels['0x' + serial[2:].upper().zfill(8)] = text
+    with open(LABELS, 'w', encoding='utf-8') as fh:
+        json.dump(labels, fh, indent=2, sort_keys=True)
+
+
 def describe(item, indent=''):
     if not item.get('name') and load_names().get(item['serial']):
         item = dict(item, name=load_names()[item['serial']])
@@ -322,12 +336,10 @@ def main():
     args = parser.parse_args()
 
     if args.command in ('label', 'labels'):
-        labels = load_labels()
         if args.command == 'label':
-            serial = args.serial if args.serial.lower().startswith('0x') else f'0x{int(args.serial):08X}'
-            labels['0x' + serial[2:].upper().zfill(8)] = ' '.join(args.text)
-            with open(LABELS, 'w', encoding='utf-8') as fh:
-                json.dump(labels, fh, indent=2, sort_keys=True)
+            save_label(args.serial if args.serial.lower().startswith('0x') else f'0x{int(args.serial):08X}',
+                       ' '.join(args.text))
+        labels = load_labels()
         for serial, text in sorted(labels.items(), key=lambda kv: kv[1]):
             print(f'{serial}  {text}')
         return
