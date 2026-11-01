@@ -49,6 +49,7 @@ namespace ClassicUO.Game
             Weather = new Weather(this);
             InfoBars = new InfoBarManager(this);
             BuffTracker = new BuffTracker(this);
+            AgentBridge = new AgentBridge(this);
         }
 
         public Point RangeSize;
@@ -102,6 +103,8 @@ namespace ClassicUO.Game
         public InfoBarManager InfoBars { get; }
 
         public BuffTracker BuffTracker { get; }
+
+        public AgentBridge AgentBridge { get; }
 
         public Dictionary<uint, Item> Items { get; } = new Dictionary<uint, Item>();
 
@@ -394,6 +397,7 @@ namespace ClassicUO.Game
                 WorldTextManager.Update();
                 WMapManager.RemoveUnupdatedWEntity();
                 BuffTracker.Update();
+                AgentBridge.Update();
             }
         }
 
@@ -781,6 +785,8 @@ namespace ClassicUO.Game
 
         public void Clear()
         {
+            AgentBridge.Stop();
+
             foreach (Mobile mobile in Mobiles.Values)
             {
                 RemoveMobile(mobile);

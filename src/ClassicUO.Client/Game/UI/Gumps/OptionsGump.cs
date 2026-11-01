@@ -114,6 +114,9 @@ namespace ClassicUO.Game.UI.Gumps
         // effect recorder
         private Checkbox _recordEffects;
 
+        // agent bridge
+        private Checkbox _agentBridge;
+
         // combat & spells
         private ClickableColorBox _innocentColorPickerBox, _friendColorPickerBox, _crimialColorPickerBox, _canAttackColorPickerBox, _enemyColorPickerBox, _murdererColorPickerBox, _neutralColorPickerBox, _beneficColorPickerBox, _harmfulColorPickerBox;
         private HSliderBar _lightBar;
@@ -3278,6 +3281,17 @@ namespace ClassicUO.Game.UI.Gumps
 
             startY += _recordEffects.Height + 10;
 
+            _agentBridge = AddCheckBox
+            (
+                rightArea,
+                "Agent bridge: let Claude use this character (this computer only)",
+                _currentProfile.AgentBridge,
+                startX,
+                startY
+            );
+
+            startY += _agentBridge.Height + 10;
+
             NiceButton reloadArt = new NiceButton
             (
                 startX,
@@ -3916,6 +3930,7 @@ namespace ClassicUO.Game.UI.Gumps
                     _disableCtrlQWBtn.IsChecked = false;
                     _disableAutoMove.IsChecked = false;
                     _recordEffects.IsChecked = false;
+                    _agentBridge.IsChecked = false;
 
                     break;
             }
@@ -4371,6 +4386,7 @@ namespace ClassicUO.Game.UI.Gumps
             _currentProfile.DisableCtrlQWBtn = _disableCtrlQWBtn.IsChecked;
             _currentProfile.DisableAutoMove = _disableAutoMove.IsChecked;
             _currentProfile.RecordEffects = _recordEffects.IsChecked;
+            _currentProfile.AgentBridge = _agentBridge.IsChecked;
             _currentProfile.AutoOpenDoors = _autoOpenDoors.IsChecked;
             _currentProfile.SmoothDoors = _smoothDoors.IsChecked;
             _currentProfile.AutoOpenCorpses = _autoOpenCorpse.IsChecked;
