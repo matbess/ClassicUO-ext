@@ -12,7 +12,9 @@
   uo labels                    list the remembered labels
   uo close SERIAL              close a container's window on screen
   uo walk X Y | --to SERIAL [--distance N]
-  uo move SERIAL TO [--at X Y] move an item into a container, or onto a stack of the same kind
+  uo move SERIAL TO [--at X Y] [--amount N]
+                               move an item into a container, or onto a stack of the same kind;
+                               with --amount, only that many from a stack (the rest stays as a new item)
   uo equip SERIAL              put an item on (into the hands for a wand)
   uo use SERIAL TARGET         use an item held in the hands (a wand) on a target
   uo cancel                    cancel a target cursor
@@ -36,6 +38,8 @@ import urllib.parse
 import urllib.request
 
 LABELS = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'labels.json')
+# names the server gave items (identified names survive client restarts here; serials never change)
+NAMES = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'names.json')
 AGENT_DIR = os.path.expanduser(
     '~/Applications/Sikarugir/ClassicUO-Wine10.app/Contents/SharedSupport/prefix/drive_c/ClassicUO/Agent')
 
@@ -114,21 +118,33 @@ def walk_near(info, serial, reach=1):
         raise BridgeError(0, f"Couldn't get within reach of {spot['serial']} ({spot['distance']} tiles away)")
 
 
-def move(info, serial, to, x=None, y=None):
+def move(info, serial, to, x=None, y=None, amount=None):
     """Move an item, carrying it in the backpack when the item and its destination are too far apart to reach both."""
     source, target = on_floor(info, serial), on_floor(info, to)
-    if source:
+    if source and target and max(abs(source['x'] - target['x']), abs(source['y'] - target['y'])) <= 4 \
+            and (source['distance'] > 2 or target['distance'] > 2):
+        # close enough together: try to stand where both are within reach
+        try:
+            call(info, 'POST', '/walk', x=(source['x'] + target['x']) // 2, y=(source['y'] + target['y']) // 2, distance=1)
+        except BridgeError as e:
+            if e.code != 409 or 'paused' in e.message:
+                raise
+        source, target = on_floor(info, serial), on_floor(info, to)
+    if source and target and source['distance'] <= 2 and target['distance'] <= 2:
+        pass
+    elif source:
         walk_near(info, serial)
         target = on_floor(info, to)
         if target and target['distance'] > 2:
             backpack = call(info, 'GET', '/status')['backpack']['serial']
-            carried = call(info, 'POST', '/move', serial=serial, to=backpack)
+            carried = call(info, 'POST', '/move', serial=serial, to=backpack, amount=amount)
             if not carried['moved']:
                 return carried
+            amount = None  # the part carried is now an item of its own
             walk_near(info, to)
     elif target:
         walk_near(info, to)
-    return call(info, 'POST', '/move', serial=serial, to=to, x=x, y=y)
+    return call(info, 'POST', '/move', serial=serial, to=to, x=x, y=y, amount=amount)
 
 
 def is_alive(info):
@@ -148,7 +164,9 @@ def call(info, method, path, **params):
     try:
         # paced actions are slow (a dozen names take half a minute), so allow plenty of time
         with urllib.request.urlopen(request, timeout=600) as response:
-            return json.load(response)
+            result = json.load(response)
+            remember_names(result)
+            return result
     except urllib.error.HTTPError as e:
         try:
             message = json.load(e).get('error', e.reason)
@@ -163,6 +181,39 @@ def call(info, method, path, **params):
         raise BridgeError(0, f"Can't reach the bridge for {info['character']} ({e.reason}). Is that client still logged in?")
 
 
+def load_names():
+    try:
+        with open(NAMES, encoding='utf-8') as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return {}
+
+
+def remember_names(result):
+    """Keep every item name seen in a bridge answer."""
+    found = {}
+
+    def walk(o):
+        if isinstance(o, dict):
+            if 'serial' in o and 'graphic' in o and o.get('name'):
+                found[o['serial']] = o['name']
+            if 'serial' in o and o.get('answered') and o.get('lines'):
+                found[o['serial']] = ' / '.join(o['lines'])
+            for v in o.values():
+                walk(v)
+        elif isinstance(o, list):
+            for v in o:
+                walk(v)
+
+    walk(result)
+    if found:
+        names = load_names()
+        if any(names.get(k) != v for k, v in found.items()):
+            names.update(found)
+            with open(NAMES, 'w', encoding='utf-8') as fh:
+                json.dump(names, fh, indent=1, sort_keys=True)
+
+
 def load_labels():
     try:
         with open(LABELS, encoding='utf-8') as fh:
@@ -172,6 +223,8 @@ def load_labels():
 
 
 def describe(item, indent=''):
+    if not item.get('name') and load_names().get(item['serial']):
+        item = dict(item, name=load_names()[item['serial']])
     text = f"{indent}{item['serial']}  {item.get('name') or item['type']}"
     label = load_labels().get(item['serial'])
     if label:
@@ -237,6 +290,7 @@ def main():
     p.add_argument('serial')
     p.add_argument('to')
     p.add_argument('--at', nargs=2, type=int, metavar=('X', 'Y'))
+    p.add_argument('--amount', type=int)
     sub.add_parser('equip').add_argument('serial')
     p = sub.add_parser('use')
     p.add_argument('serial')
@@ -298,7 +352,7 @@ def main():
         result = call(info, 'POST', '/walk', x=args.x, y=args.y, to=args.to, distance=args.distance)
     elif c == 'move':
         x, y = args.at if args.at else (None, None)
-        result = move(info, args.serial, args.to, x, y)
+        result = move(info, args.serial, args.to, x, y, args.amount)
     elif c == 'equip':
         result = call(info, 'POST', '/equip', serial=args.serial)
     elif c == 'use':
