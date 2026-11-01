@@ -3,9 +3,10 @@
 
   idall.py TARGET [TARGET...]
 
+Wands and staves are identified first: any ID ones among them join the spares, so their charges go on the rest.
 Uses the ID wand or staff in Johnny's hand first. When it's out of charges it goes into the wand trash crate,
-and the spare with the fewest charges comes out of the spares pouch. Waits while anyone else is in the room
-(checking once a minute), and stops on anything it doesn't understand, or when the bridge halts.
+and the spare with the fewest charges (from the spares pouch or found in this batch) comes out. Waits while anyone
+else is in the room (checking once a minute), and stops on anything it doesn't understand, or when the bridge halts.
 """
 import importlib.util
 import os
@@ -19,6 +20,9 @@ spec.loader.exec_module(uo)
 
 TRASH = '0x408AD7D5'   # the trash crate by the door; empty ID wands and staves go here
 SPARES = '0x4049D6B8'  # pouch of spare ID wands and staves, in the supplies chest
+WANDS = {'0x0DF2', '0x0DF3', '0x0DF4', '0x0DF5',             # wands
+         '0x0DF0', '0x0DF1', '0x13F8', '0x13F9', '0x0E89', '0x0E8A'}  # black, gnarled and quarter staves
+FOUND = {}  # ID wands and staves found in this batch: serial -> charges
 
 
 def say(text):
@@ -80,12 +84,13 @@ def swap(info, wand):
             raise uo.BridgeError(0, f'could not put the empty wand {wand} in the trash crate')
         say(f'{wand} is empty; put it in the trash crate')
     while True:
-        tools = spares(info)
+        tools = sorted(spares(info) + [(left, serial) for serial, left in FOUND.items()])
         if tools:
             break
         say('no spare ID wands left; checking the spares pouch again in a minute')
         time.sleep(60)
     left, serial = tools[0]
+    FOUND.pop(serial, None)
     wait_until_clear(info)
     uo.walk_near(info, serial)
     result = uo.call(info, 'POST', '/equip', serial=serial)
@@ -98,6 +103,7 @@ def swap(info, wand):
 def main():
     info = uo.find_bridge(None)
     targets = [uo.resolve(t) for t in sys.argv[1:]]
+    targets.sort(key=lambda t: uo.call(info, 'GET', '/item', serial=t)['item']['graphic'] not in WANDS)
     wand, left = wand_in_hand(info)
     if left is None:
         left = 1  # charges unknown; use it until it says it's empty
@@ -126,6 +132,8 @@ def main():
                 done += 1
                 name = result.get('target', {}).get('name') or ' / '.join(texts) or '(no name shown)'
                 say(f'{target}  {name}')
+                if 'identification' in name and charges(name):
+                    FOUND[target] = charges(name)
                 break
             if any('charges' in t.lower() for t in texts):
                 left = 0  # out of charges: swap and try again
