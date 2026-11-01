@@ -113,6 +113,7 @@ namespace ClassicUO.Network
                     {
                         EffectRecorder.Record(world, packetBuffer.AsSpan(0, packetlength));
                         world.BuffTracker.OnPacket(packetBuffer.AsSpan(0, packetlength));
+                        world.AgentBridge.OnPacket(packetBuffer.AsSpan(0, packetlength));
                     }
 
                     // TODO: the pluging function should allow Span<byte> or unsafe type only.

@@ -9,6 +9,7 @@ using ClassicUO.Utility.Logging;
 using Microsoft.Xna.Framework;
 using System;
 using System.Buffers;
+using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -60,6 +61,8 @@ namespace ClassicUO.Game.Managers
         private readonly Queue<Message> _messages = new Queue<Message>();
         private readonly Dictionary<uint, Label> _labels = new Dictionary<uint, Label>();
         private readonly Dictionary<uint, ushort> _containerGumps = new Dictionary<uint, ushort>(); // which gump the server showed for a container
+        private readonly Dictionary<uint, long> _containerAnswers = new Dictionary<uint, long>(); // last time the server showed a container or sent its contents
+        private long _packetCount;
         private long _lastMessageId;
         private TcpListener _listener;
         private string _infoPath;
@@ -106,6 +109,41 @@ namespace ClassicUO.Game.Managers
             }
         }
 
+        // server packets, on the game thread: note when a container is shown (0x24) or its contents arrive (0x3C).
+        // Opening a container the server still counts as open (closing a window isn't sent to the server)
+        // can bring only its contents, so either one answers an open.
+        public void OnPacket(ReadOnlySpan<byte> data)
+        {
+            if (_listener == null || data.Length < 5)
+            {
+                return;
+            }
+
+            switch (data[0])
+            {
+                case 0x24:
+                    _containerAnswers[BinaryPrimitives.ReadUInt32BigEndian(data.Slice(1))] = ++_packetCount;
+
+                    break;
+
+                case 0x3C:
+                    int count = BinaryPrimitives.ReadUInt16BigEndian(data.Slice(3));
+
+                    if (count > 0 && (data.Length - 5) % count == 0)
+                    {
+                        // each entry ends with the container serial and a hue
+                        int size = (data.Length - 5) / count;
+
+                        for (int i = 0; i < count; i++)
+                        {
+                            _containerAnswers[BinaryPrimitives.ReadUInt32BigEndian(data.Slice(5 + i * size + size - 6))] = ++_packetCount;
+                        }
+                    }
+
+                    break;
+            }
+        }
+
         public void Stop()
         {
             if (_listener == null)
@@ -127,6 +165,7 @@ namespace ClassicUO.Game.Managers
             _messages.Clear();
             _labels.Clear();
             _containerGumps.Clear();
+            _containerAnswers.Clear();
             DeleteInfoFile();
             Log.Info("Agent bridge stopped");
         }
@@ -478,7 +517,7 @@ namespace ClassicUO.Game.Managers
                     RequireMethod(method, "POST");
                     CheckNotHalted();
 
-                    return Move(GetSerial(query), GetSerial(query, "to"), GetInt(query, "x", 0xFFFF), GetInt(query, "y", 0xFFFF));
+                    return Move(GetSerial(query), GetSerial(query, "to"), GetInt(query, "x", 0xFFFF), GetInt(query, "y", 0xFFFF), GetInt(query, "amount", 0));
 
                 case "/equip":
                     RequireMethod(method, "POST");
@@ -500,6 +539,7 @@ namespace ClassicUO.Game.Managers
         private byte[] Open(uint serial)
         {
             long before = 0;
+            long packetsBefore = 0;
             bool wasOpen = false;
             bool opened = false;
 
@@ -507,7 +547,7 @@ namespace ClassicUO.Game.Managers
             {
                 WaitForActionSlot();
 
-                (before, wasOpen) = OnGame
+                (before, wasOpen, packetsBefore) = OnGame
                 (
                     () =>
                     {
@@ -529,12 +569,12 @@ namespace ClassicUO.Game.Managers
                         bool open = item.Opened && UIManager.GetGump<ContainerGump>(serial) != null;
                         GameActions.DoubleClick(_world, serial);
 
-                        return (_lastMessageId, open);
+                        return (_lastMessageId, open, _packetCount);
                     }
                 );
 
-                opened = wasOpen || WaitFor(() => _world.Items.Get(serial)?.Opened == true || SawMessage(before, MUST_WAIT), OPEN_TIMEOUT)
-                    && OnGame(() => _world.Items.Get(serial)?.Opened == true);
+                opened = wasOpen || WaitFor(() => ContainerAnswered(serial, packetsBefore) || SawMessage(before, MUST_WAIT), OPEN_TIMEOUT)
+                    && OnGame(() => ContainerAnswered(serial, packetsBefore));
 
                 if (!opened && !OnGame(() => SawMessage(before, MUST_WAIT)))
                 {
@@ -719,8 +759,10 @@ namespace ClassicUO.Game.Managers
             );
         }
 
-        // picks an item up and drops it into a container (at x, y in its gump) or onto a stack of the same kind
-        private byte[] Move(uint serial, uint to, int x, int y)
+        // picks an item up and drops it into a container (at x, y in its gump) or onto a stack of the same kind;
+        // with an amount, only that many are taken from a stack: the part moved keeps the serial and the rest
+        // stays behind as a new item
+        private byte[] Move(uint serial, uint to, int x, int y, int amount)
         {
             Rules rules = RequireRules();
 
@@ -735,7 +777,7 @@ namespace ClassicUO.Game.Managers
                 }
             );
 
-            long before = Lift(serial, rules, item => CheckDropTarget(item, _world.Items.Get(to), rules));
+            long before = Lift(serial, rules, item => CheckDropTarget(item, _world.Items.Get(to), rules), amount);
 
             OnGame
             (
@@ -746,6 +788,9 @@ namespace ClassicUO.Game.Managers
                     return true;
                 }
             );
+
+            // the server counts its one action a second from the drop too
+            PaceFromNow();
 
             bool answered = WaitFor(() => _world.Items.Get(serial) != null || ontoStack && (_world.Items.Get(to)?.Amount ?? 0) > targetAmount, MOVE_TIMEOUT);
             Thread.Sleep(SETTLE_TIME);
@@ -819,7 +864,8 @@ namespace ClassicUO.Game.Managers
                     }
 
                     layer = (Layer)item.ItemData.Layer;
-                }
+                },
+                0
             );
 
             OnGame
@@ -831,6 +877,8 @@ namespace ClassicUO.Game.Managers
                     return true;
                 }
             );
+
+            PaceFromNow();
 
             bool answered = WaitFor(() => _world.Items.Get(serial) != null, MOVE_TIMEOUT);
             Thread.Sleep(SETTLE_TIME);
@@ -983,7 +1031,7 @@ namespace ClassicUO.Game.Managers
         }
 
         // lifts an item after the checks pass, retrying once if the server asks to wait; returns the message id before the lift
-        private long Lift(uint serial, Rules rules, Action<Item> check)
+        private long Lift(uint serial, Rules rules, Action<Item> check, int amount)
         {
             for (int attempt = 0; ; attempt++)
             {
@@ -1004,7 +1052,19 @@ namespace ClassicUO.Game.Managers
                         CheckInReach(CheckReachable(item, rules, "pick up"), REACH);
                         check(item);
 
-                        if (!GameActions.PickUp(_world, serial, 0, 0, Math.Max(1, (int)item.Amount)))
+                        int lift = Math.Max(1, (int)item.Amount);
+
+                        if (amount > 0 && amount < lift)
+                        {
+                            if (!item.ItemData.IsStackable)
+                            {
+                                throw new BridgeException(400, "only a stack can be split");
+                            }
+
+                            lift = amount;
+                        }
+
+                        if (!GameActions.PickUp(_world, serial, 0, 0, lift))
                         {
                             throw new BridgeException(409, "the client would not pick it up (too far away?)");
                         }
@@ -1244,6 +1304,18 @@ namespace ClassicUO.Game.Managers
             _nextAction = DateTime.UtcNow.AddMilliseconds(gap);
         }
 
+        // on the listener thread: the next action waits a full gap from now
+        private void PaceFromNow()
+        {
+            Rules pacing = TryRules() ?? Rules.Defaults;
+            DateTime next = DateTime.UtcNow.AddMilliseconds(_random.Next(pacing.GapMin, pacing.GapMax + 1));
+
+            if (next > _nextAction)
+            {
+                _nextAction = next;
+            }
+        }
+
         // on the listener thread
         private void CheckNotHalted()
         {
@@ -1318,6 +1390,8 @@ namespace ClassicUO.Game.Managers
         }
 
         private bool HasMessageAfter(long after) => _lastMessageId > after;
+
+        private bool ContainerAnswered(uint serial, long after) => _containerAnswers.TryGetValue(serial, out long at) && at > after;
 
         private bool HasMessageFrom(uint serial, long after)
         {
