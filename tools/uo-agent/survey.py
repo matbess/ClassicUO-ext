@@ -6,7 +6,8 @@
                         knows nothing in (after a restart) keep what was recorded before.
 
 Walks along the wall column by column. Waits while someone is in the room and out world saves; stops at the first
-problem and says where.
+problem and says where. First it checks every chest label's "(col N, ROW)" against where the chest really is
+(columns left to right by x, rows from the top by height) and warns about any that disagree.
 """
 import importlib.util
 import os
@@ -43,6 +44,24 @@ def open_once(info, serial):
             raise
 
 
+def place(spots):
+    """serial -> (column, row) worked out from where each chest stands: columns left to right, rows from the top."""
+    columns = sorted({(s['x'], s['y']) for s in spots.values()})
+    out = {}
+    for serial, s in spots.items():
+        stack = sorted((o['z'] for o in spots.values() if (o['x'], o['y']) == (s['x'], s['y'])), reverse=True)
+        out[serial] = (columns.index((s['x'], s['y'])) + 1, stack.index(s['z']), len(stack))
+    return out
+
+
+def check_positions(spots, labels):
+    for serial, (column, row, rows) in place(spots).items():
+        want = 'top' if row == 0 else 'bottom' if row == rows - 1 else ('2nd', '3rd', '4th', '5th')[row - 1] + ' from top'
+        text = labels.get(serial, '')
+        if f'(col {column}, {want})' not in text:
+            yield serial, f'is really col {column}, {want}'
+
+
 def main():
     info = uo.find_bridge(None)
     known = '--known' in sys.argv
@@ -55,6 +74,8 @@ def main():
         sys.exit('not in sight: ' + ', '.join(f'{s} {labels.get(s, "")}' for s in missing))
     # along the wall, top to bottom in each column
     chests.sort(key=lambda s: (spots[s]['x'], spots[s]['y'], -spots[s]['z']))
+    for serial, problem in check_positions(spots, labels):
+        say(f'LABEL CHECK: {labels.get(serial)} {problem}')
 
     for serial in chests:
         if known:
