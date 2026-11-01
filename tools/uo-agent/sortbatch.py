@@ -6,9 +6,12 @@
 SPEC says where the gear goes (decided per batch from the keep rules in the uo-sort skill):
   loot:           containers on the floor holding the batch
   new_slots:      [[chest label part, marker serial, kind], ...]  new bag (from the backpacks crate) with its marker
-  into:           [[serial, bag serial], ...]                      keepers and plain gear into existing bags
+  into:           [[serial, bag], ...]                             keepers and plain gear into bags, by serial or label
   place_in:       [[serial, chest label part], ...]                smelting, needs your decision, ...
-  spares, trash, cut: [serial, ...]                                ID tools, trash crate, cut with the scissors
+  spares, cut:    [serial, ...]                                    ID tools, cut with the scissors
+  trash, smelt:   [serial, ...]                                    carried in loads to the trash crates, or to the
+                                                                   smelting chest and then the smelting crates; each
+                                                                   takes up to 125 items before the next one is used
   sets:           [serial, ...]                                    GM armour set pieces: each goes into the first set
                                                                    bag in the GM chest missing that piece, or a new one
   scroll_markers: {"circle": serial, ...}                          markers for circles that have none yet
@@ -23,6 +26,7 @@ Waits while someone is in the room and out world saves; stops at the first probl
 import importlib.util
 import json
 import os
+import re
 import sys
 import time
 
@@ -101,6 +105,8 @@ def chest(part):
 
 CONTENTS, AREA, OCCUPIED = {}, {}, {}
 TAKEN = set()  # bags already taken from the backpacks crate in this run
+LIMIT = 125    # items a container holds, counting everything inside
+FULL = set()   # containers the server said can't hold more
 
 
 def rect(item, x=None, y=None):
@@ -147,6 +153,46 @@ def empty_bags(n):
     if len(bags) < n:
         sys.exit('not enough empty bags in the backpacks crate')
     return bags
+
+
+def room_in(name):
+    """The first smelting or trash container with room: the smelting chest first, then the numbered crates."""
+    crates = sorted((text, serial) for serial, text in labels().items() if re.match(rf'{name} \d', text))
+    for c in ([chest('for smelting')] if name == 'smelting' else []) + [serial for _, serial in crates]:
+        if c not in FULL and len(learn(c)) < LIMIT:
+            return c
+    sys.exit(f'every {name} container is full')
+
+
+def deliver(serials, name, inv):
+    """Carry items to the smelting or trash containers in loads, as much as Johnny can carry at a time."""
+    pending = list(serials)
+    while pending:
+        load = []
+        carried = {i['serial']: i for i in call('GET', '/contents', serial=BACKPACK)['items']}
+        inv = dict(carried, **inv)
+        while pending and len(load) < 30:
+            status = call('GET', '/status')
+            if status['weight'] + 20 > status['weightMax']:
+                break
+            serial = pending.pop(0)
+            if serial not in carried:  # already in the backpack when a run picks up where another stopped
+                move(serial, BACKPACK)
+            load.append(serial)
+        if not load:
+            sys.exit('Johnny is carrying too much to pick anything up')
+        for serial in load:
+            while True:
+                c = room_in(name)
+                try:
+                    put(inv[serial], c)
+                    break
+                except uo.BridgeError as e:
+                    if 'cannot hold' not in e.message.lower():
+                        raise
+                    say(f'{labels().get(c, c)} is full')
+                    FULL.add(c)
+            say(f"{names.get(serial, inv[serial]['type'])} -> {labels().get(c, c)}")
 
 
 def set_piece(item):
@@ -214,6 +260,11 @@ def main():
             c = chest(part)
             learn(c)
             bx, by = free_spot(c, bag['art'], ys=[105, 106])
+            if bx is None:  # top row full: any free spot, or overlap at the right edge as a last resort
+                bx, by = free_spot(c, bag['art'])
+            if bx is None:
+                say(f"{labels().get(c)} is out of room; the new bag overlaps others")
+                bx, by = AREA[c][2] - bag['art']['w'], AREA[c][1]
             put(bag, c, bx, by)
             CONTENTS[bag['serial']], AREA[bag['serial']], OCCUPIED[bag['serial']] = [], [44, 65, 186, 159], []
             m = inv[marker]
@@ -229,6 +280,7 @@ def main():
 
     # ---- gear into existing bags and chests ----
     for serial, bag in plan.get('into', []):
+        bag = uo.resolve(bag)  # a serial, or the label of a bag made above ("bag: plate legs")
         learn(bag)
         x, y = free_spot(bag, inv[serial]['art'])
         put(inv[serial], bag, x, y)
@@ -277,11 +329,8 @@ def main():
             move(serial, SPARES)
             say(f'{names.get(serial)} -> ID spares pouch')
     trash = plan.get('trash', [])
-    for serial in trash:
-        move(serial, BACKPACK)
-    for serial in trash:
-        move(serial, uo.resolve('trash'))
-        say(f"{names.get(serial, inv[serial]['type'])} -> trash")
+    deliver(trash, 'trash', inv)
+    deliver(plan.get('smelt', []), 'smelting', inv)
 
     # ---- scroll markers for circles that have none ----
     for circle, serial in plan.get('scroll_markers', {}).items():
@@ -293,7 +342,8 @@ def main():
         put(item, c, x, y)
         say(f"{item['type']} -> marker for circle {circle}")
     done = {s for s, _ in plan.get('into', [])} | {s for s, _ in plan.get('place_in', [])} | set(plan.get('spares', [])) | \
-        set(trash) | set(plan.get('scroll_markers', {}).values()) | {m for _, m, _ in plan.get('new_slots', [])} | set(plan.get('cut', []))
+        set(trash) | set(plan.get('scroll_markers', {}).values()) | {m for _, m, _ in plan.get('new_slots', [])} | set(plan.get('cut', [])) | \
+        set(plan.get('sets', [])) | set(plan.get('smelt', []))
 
     # ---- stackables ----
     for serial, item in inv.items():
@@ -331,7 +381,7 @@ def main():
             say(f"{item['type']} x{item.get('amount', 1)} -> supplies ({stack(item, c)})")
         elif t.endswith('potion') and t.split(' potion')[0].split()[-1] in POTIONS:
             kind = POTIONS[t.split(' potion')[0].split()[-1]]
-            target = uo.resolve(f'potions: {kind}') if kind else uo.resolve('trash')
+            target = uo.resolve(f'potions: {kind}') if kind else room_in('trash')
             if kind:
                 learn(target)
                 x1, y1, x2, y2 = AREA[target]
@@ -343,12 +393,14 @@ def main():
             say(f"left in the loot (not in the plan): {names.get(serial, item['type'])} {serial}")
 
     # ---- cut leather and cloth; results to supplies ----
-    if plan.get('cut'):
+    cut = list(plan.get('cut', []))
+    while cut:  # 15 at a time, so the cuttings never weigh Johnny down
         before = {i['serial'] for i in uo.call(info, 'GET', '/contents', serial=BACKPACK)['items']}
-        for serial in plan['cut']:
+        for serial in cut[:15]:
             move(serial, BACKPACK)
             call('POST', '/use', serial=SCISSORS, target=serial)
             say(f"cut {names.get(serial, inv[serial]['type'])}")
+        cut = cut[15:]
         c = chest('supplies')
         learn(c)
         for item in uo.call(info, 'GET', '/contents', serial=BACKPACK)['items']:

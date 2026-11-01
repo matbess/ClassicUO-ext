@@ -121,12 +121,20 @@ def walk_near(info, serial, reach=1):
 
 def move(info, serial, to, x=None, y=None, amount=None):
     """Move an item, carrying it in the backpack when the item and its destination are too far apart to reach both."""
+    # the server only tells us about a drop into a container we've opened since logging in; without that the
+    # bridge hears nothing back and stops, so open one the client knows nothing about
+    # first (before standing where both ends are in reach)
+    dest = call(info, 'GET', '/item', serial=to)['item']
+    if dest.get('container') and not dest.get('open') and not dest.get('knownItems'):
+        walk_near(info, to)
+        call(info, 'POST', '/open', serial=to)
+        call(info, 'POST', '/close', serial=to)
     source, target = on_floor(info, serial), on_floor(info, to)
     if source and target and max(abs(source['x'] - target['x']), abs(source['y'] - target['y'])) <= 4 \
             and (source['distance'] > 2 or target['distance'] > 2):
         # close enough together: try to stand where both are within reach
         try:
-            call(info, 'POST', '/walk', x=(source['x'] + target['x']) // 2, y=(source['y'] + target['y']) // 2, distance=1)
+            call(info, 'POST', '/walk', x=(source['x'] + target['x']) // 2, y=(source['y'] + target['y']) // 2, distance=0)
         except BridgeError as e:
             if e.code != 409 or 'paused' in e.message:
                 raise
@@ -145,13 +153,6 @@ def move(info, serial, to, x=None, y=None, amount=None):
             walk_near(info, to)
     elif target:
         walk_near(info, to)
-    # the server only tells us about a drop into a container we've opened since logging in; without that the
-    # bridge hears nothing back and stops, so open one the client knows nothing about first
-    dest = call(info, 'GET', '/item', serial=to)['item']
-    if dest.get('container') and not dest.get('open') and not dest.get('knownItems'):
-        walk_near(info, to)
-        call(info, 'POST', '/open', serial=to)
-        call(info, 'POST', '/close', serial=to)
     return call(info, 'POST', '/move', serial=serial, to=to, x=x, y=y, amount=amount)
 
 

@@ -3,7 +3,7 @@
   "bags": [
    {
     "kind": "leather tunics",
-    "known": 0,
+    "known": 1,
     "marker": {
      "name": "a durable leather tunic of hardening",
      "serial": "0x4072FF47",
@@ -13,12 +13,25 @@
     "serial": "0x409397D1",
     "x": 18,
     "y": 105
+   },
+   {
+    "kind": "leather armour",
+    "known": 8,
+    "marker": {
+     "name": "a leather cap of guarding",
+     "serial": "0x40921645",
+     "x": 53,
+     "y": 105
+    },
+    "serial": "0x4098CD05",
+    "x": 36,
+    "y": 105
    }
   ],
-  "items": 2,
+  "items": 4,
   "label": "chest: leather + caps (col 3 2nd)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x4080C375": {
   "bags": [
@@ -130,11 +143,25 @@
   "recorded": "2026-11-01 10:35"
  },
  "0x408FB713": {
-  "bags": [],
-  "items": 0,
+  "bags": [
+   {
+    "kind": "fencing",
+    "known": 1,
+    "marker": {
+     "name": "a surpassingly accurate kryss of ghoul's touch (14 charges)",
+     "serial": "0x40616228",
+     "x": 18,
+     "y": 128
+    },
+    "serial": "0x4098CCD0",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "items": 2,
   "label": "chest: fencing (col 2 top)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x408FB8BC": {
   "bags": [],
@@ -219,20 +246,34 @@
   "items": 2,
   "label": "chest: magic clothing (col 4 3rd)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x408FC111": {
-  "bags": [],
-  "items": 0,
-  "label": "chest: for cutting - leather & cloth (col 4 bottom)",
+  "bags": [
+   {
+    "kind": "helms",
+    "known": 0,
+    "marker": {
+     "name": "an orc helm of guarding",
+     "serial": "0x406FFBE2",
+     "x": 18,
+     "y": 128
+    },
+    "serial": "0x409397CE",
+    "x": 24,
+    "y": 105
+   }
+  ],
+  "items": 2,
+  "label": "chest: helms (col 4 bottom)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x408FC781": {
   "bags": [
    {
     "kind": "attack wands",
-    "known": 0,
+    "known": 19,
     "marker": {
      "name": "a wand of lightning (9 charges)",
      "serial": "0x402C2735",
@@ -245,7 +286,7 @@
    },
    {
     "kind": "healing wands",
-    "known": 0,
+    "known": 1,
     "marker": {
      "name": "a wand of greater healing (4 charges)",
      "serial": "0x40717795",
@@ -260,7 +301,7 @@
   "items": 4,
   "label": "chest: magic wands (col 2 2nd)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x408FD0C7": {
   "bags": [
@@ -276,52 +317,78 @@
     "serial": "0x409397C9",
     "x": 24,
     "y": 106
+   },
+   {
+    "kind": "swords",
+    "known": 2,
+    "marker": {
+     "name": "a broadsword of thunder (23 charges)",
+     "serial": "0x406590E4",
+     "x": 32,
+     "y": 128
+    },
+    "serial": "0x4098CCE9",
+    "x": 42,
+    "y": 105
    }
   ],
-  "items": 2,
+  "items": 4,
   "label": "chest: swords (col 1 top)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x408FD7CF": {
   "bags": [
-   {
-    "kind": "plate gloves",
-    "known": 0,
-    "marker": {
-     "name": "platemail gloves of guarding",
-     "serial": "0x407E710E",
-     "x": 25,
-     "y": 129
-    },
-    "serial": "0x409397B8",
-    "x": 20,
-    "y": 106
-   },
-   {
-    "kind": "helms",
-    "known": 0,
-    "marker": {
-     "name": "an orc helm of guarding",
-     "serial": "0x406FFBE2",
-     "x": 41,
-     "y": 129
-    },
-    "serial": "0x409397CE",
-    "x": 47,
-    "y": 106
-   },
    {
     "kind": "plate tunics",
     "known": 0,
     "marker": {
      "name": "a platemail tunic of invulnerability",
      "serial": "0x4073B9ED",
-     "x": 75,
+     "x": 18,
      "y": 129
     },
     "serial": "0x409397BD",
-    "x": 66,
+    "x": 18,
+    "y": 105
+   },
+   {
+    "kind": "plate arms",
+    "known": 0,
+    "marker": {
+     "name": "durable platemail arms of guarding",
+     "serial": "0x406E5B90",
+     "x": 47,
+     "y": 128
+    },
+    "serial": "0x4098CCED",
+    "x": 48,
+    "y": 105
+   },
+   {
+    "kind": "plate gloves",
+    "known": 0,
+    "marker": {
+     "name": "platemail gloves of guarding",
+     "serial": "0x407E710E",
+     "x": 74,
+     "y": 128
+    },
+    "serial": "0x409397B8",
+    "x": 73,
+    "y": 105
+   },
+   {
+    "kind": "plate legs",
+    "known": 0,
+    "marker": {
+     "name": "durable platemail legs of guarding",
+     "serial": "0x40624230",
+     "x": 98,
+     "y": 128
+    },
+    "serial": "0x409397D0",
+    "x": 102,
     "y": 105
    },
    {
@@ -330,31 +397,45 @@
     "marker": {
      "name": "a platemail gorget of guarding",
      "serial": "0x4073B9FC",
-     "x": 106,
-     "y": 105
+     "x": 131,
+     "y": 128
     },
     "serial": "0x409397C8",
-    "x": 84,
+    "x": 118,
     "y": 105
    }
   ],
-  "items": 8,
-  "label": "chest: plate + helms (col 3 top)",
+  "items": 10,
+  "label": "chest: plate (col 3 top)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x408FDB4F": {
-  "bags": [],
-  "items": 0,
+  "bags": [
+   {
+    "kind": "crossbows",
+    "known": 1,
+    "marker": {
+     "name": "a heavy crossbow of daemon's breath (41 charges)",
+     "serial": "0x408D644D",
+     "x": 18,
+     "y": 128
+    },
+    "serial": "0x4098CCEF",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "items": 2,
   "label": "chest: archery (col 2 3rd)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x408FE0E7": {
   "bags": [
    {
     "kind": "studded tunics",
-    "known": 0,
+    "known": 1,
     "marker": {
      "name": "a studded tunic of guarding",
      "serial": "0x4072FF38",
@@ -377,12 +458,25 @@
     "serial": "0x409397BB",
     "x": 36,
     "y": 105
+   },
+   {
+    "kind": "studded armour",
+    "known": 3,
+    "marker": {
+     "name": "a studded gorget of guarding",
+     "serial": "0x40264CDB",
+     "x": 86,
+     "y": 128
+    },
+    "serial": "0x4098CD08",
+    "x": 81,
+    "y": 105
    }
   ],
-  "items": 4,
+  "items": 6,
   "label": "chest: studded (col 3 bottom)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x408FE3A0": {
   "bags": [],
@@ -463,12 +557,38 @@
     "marker": {
      "name": "a chainmail tunic of guarding",
      "serial": "0x40889A70",
-     "x": 23,
-     "y": 129
+     "x": 18,
+     "y": 128
     },
     "serial": "0x409397B1",
-    "x": 20,
-    "y": 106
+    "x": 24,
+    "y": 105
+   },
+   {
+    "kind": "ringmail",
+    "known": 0,
+    "marker": {
+     "name": "ringmail leggings of guarding",
+     "serial": "0x409199EE",
+     "x": 50,
+     "y": 128
+    },
+    "serial": "0x4098CCD4",
+    "x": 60,
+    "y": 105
+   },
+   {
+    "kind": "chain leggings",
+    "known": 0,
+    "marker": {
+     "name": "chainmail leggings of guarding",
+     "serial": "0x40624234",
+     "x": 99,
+     "y": 128
+    },
+    "serial": "0x4098CD06",
+    "x": 97,
+    "y": 105
    },
    {
     "kind": "coifs",
@@ -476,32 +596,60 @@
     "marker": {
      "name": "a chainmail coif of guarding",
      "serial": "0x409A5345",
-     "x": 51,
-     "y": 129
+     "x": 117,
+     "y": 128
     },
     "serial": "0x409397BE",
-    "x": 57,
-    "y": 106
+    "x": 118,
+    "y": 105
    }
   ],
-  "items": 4,
+  "items": 8,
   "label": "chest: chain & ring + coifs (col 3 3rd)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x408FF313": {
-  "bags": [],
-  "items": 0,
+  "bags": [
+   {
+    "kind": "axes",
+    "known": 4,
+    "marker": {
+     "name": "a substantial large battle axe of ghoul's touch (18 charges)",
+     "serial": "0x408ED885",
+     "x": 18,
+     "y": 128
+    },
+    "serial": "0x4098CCF0",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "items": 2,
   "label": "chest: axes (col 1 3rd)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x408FF6C4": {
-  "bags": [],
-  "items": 0,
+  "bags": [
+   {
+    "kind": "maces & staves",
+    "known": 1,
+    "marker": {
+     "name": "a substantial mace of daemon's breath (21 charges)",
+     "serial": "0x40921683",
+     "x": 18,
+     "y": 129
+    },
+    "serial": "0x4098F2D8",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "items": 2,
   "label": "chest: maces & staves (col 1 2nd)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x408FF84A": {
   "bags": [],
@@ -514,7 +662,7 @@
   "bags": [
    {
     "kind": "shields",
-    "known": 0,
+    "known": 7,
     "marker": {
      "name": "a wooden shield of guarding",
      "serial": "0x4073B9E1",
@@ -529,11 +677,11 @@
   "items": 2,
   "label": "chest: shields (col 4 2nd)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x408FFDD1": {
   "bags": [],
-  "items": 14,
+  "items": 125,
   "label": "chest: for smelting - Icepick (col 2 bottom)",
   "loose": [
    {
@@ -633,22 +781,813 @@
     "serial": "0x407DA687",
     "x": 18,
     "y": 120
+   },
+   {
+    "amount": 1,
+    "name": "an accurate skinning knife",
+    "serial": "0x408E5DCF",
+    "x": 73,
+    "y": 149
+   },
+   {
+    "amount": 1,
+    "name": "a massive halberd of ruin",
+    "serial": "0x4092F6F7",
+    "x": 31,
+    "y": 108
+   },
+   {
+    "amount": 1,
+    "name": "a surpassingly accurate war fork",
+    "serial": "0x4092F6E0",
+    "x": 83,
+    "y": 122
+   },
+   {
+    "amount": 1,
+    "name": "an eminently accurate dagger of ruin",
+    "serial": "0x4092F6F2",
+    "x": 17,
+    "y": 153
+   },
+   {
+    "amount": 1,
+    "name": "a silver substantial, eminently accurate skinning knife of burning and might (18 charges)",
+    "serial": "0x4092F6F6",
+    "x": 32,
+    "y": 135
+   },
+   {
+    "amount": 1,
+    "name": "an exceedingly accurate war hammer",
+    "serial": "0x40904735",
+    "x": 65,
+    "y": 127
+   },
+   {
+    "amount": 1,
+    "name": "an eminently accurate pitchfork",
+    "serial": "0x409123B6",
+    "x": 44,
+    "y": 107
+   },
+   {
+    "amount": 1,
+    "name": "a durable hatchet of evil and might (21 charges)",
+    "serial": "0x409123AF",
+    "x": 9,
+    "y": 137
+   },
+   {
+    "amount": 1,
+    "name": "a durable, surpassingly accurate skinning knife of might",
+    "serial": "0x409123AB",
+    "x": 73,
+    "y": 137
+   },
+   {
+    "amount": 1,
+    "name": "a silver substantial, accurate butcher knife of ruin",
+    "serial": "0x409123BB",
+    "x": 80,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "a durable war hammer",
+    "serial": "0x408F1EAD",
+    "x": 80,
+    "y": 148
+   },
+   {
+    "amount": 1,
+    "name": "a pickaxe of clumsiness and might (55 charges)",
+    "serial": "0x408F1E73",
+    "x": 67,
+    "y": 138
+   },
+   {
+    "amount": 1,
+    "name": "a battle axe of might",
+    "serial": "0x40903F2E",
+    "x": 12,
+    "y": 151
+   },
+   {
+    "amount": 1,
+    "name": "a fortified, surpassingly accurate longsword",
+    "serial": "0x40903F25",
+    "x": 63,
+    "y": 134
+   },
+   {
+    "amount": 1,
+    "name": "a durable executioner's axe of might",
+    "serial": "0x40903F4E",
+    "x": 10,
+    "y": 126
+   },
+   {
+    "amount": 1,
+    "name": "a silver war axe",
+    "serial": "0x40903F35",
+    "x": 43,
+    "y": 128
+   },
+   {
+    "amount": 1,
+    "name": "an accurate kryss",
+    "serial": "0x40903F42",
+    "x": 5,
+    "y": 127
+   },
+   {
+    "amount": 1,
+    "name": "a durable cleaver of burning (18 charges)",
+    "serial": "0x40903F40",
+    "x": 34,
+    "y": 142
+   },
+   {
+    "amount": 1,
+    "name": "a silver durable, accurate scimitar",
+    "serial": "0x40636067",
+    "x": 70,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "a surpassingly accurate war fork of ruin",
+    "serial": "0x40630330",
+    "x": 36,
+    "y": 116
+   },
+   {
+    "amount": 1,
+    "name": "a silver durable pitchfork",
+    "serial": "0x408ED893",
+    "x": 11,
+    "y": 118
+   },
+   {
+    "amount": 1,
+    "name": "an accurate longsword",
+    "serial": "0x404632D1",
+    "x": 62,
+    "y": 141
+   },
+   {
+    "amount": 1,
+    "name": "a durable, exceedingly accurate katana",
+    "serial": "0x408D4C4F",
+    "x": 56,
+    "y": 114
+   },
+   {
+    "amount": 1,
+    "name": "a fortified, eminently accurate viking sword",
+    "serial": "0x408D6453",
+    "x": 111,
+    "y": 123
+   },
+   {
+    "amount": 1,
+    "name": "a substantial hatchet of wounding (20 charges)",
+    "serial": "0x408E6058",
+    "x": 78,
+    "y": 113
+   },
+   {
+    "amount": 1,
+    "name": "a durable, accurate battle axe",
+    "serial": "0x4096BFDD",
+    "x": 18,
+    "y": 141
+   },
+   {
+    "amount": 1,
+    "name": "an accurate war fork",
+    "serial": "0x40986007",
+    "x": 31,
+    "y": 146
+   },
+   {
+    "amount": 1,
+    "name": "a broadsword of clumsiness (32 charges)",
+    "serial": "0x40665A10",
+    "x": 89,
+    "y": 137
+   },
+   {
+    "amount": 1,
+    "name": "a durable, eminently accurate broadsword",
+    "serial": "0x4067D226",
+    "x": 46,
+    "y": 127
+   },
+   {
+    "amount": 1,
+    "name": "a fortified broadsword",
+    "serial": "0x40428BF4",
+    "x": 72,
+    "y": 142
+   },
+   {
+    "amount": 1,
+    "name": "a broadsword",
+    "serial": "0x40654BA4",
+    "x": 66,
+    "y": 138
+   },
+   {
+    "amount": 1,
+    "name": "a broadsword",
+    "serial": "0x408BDAB2",
+    "x": 0,
+    "y": 116
+   },
+   {
+    "amount": 1,
+    "name": "an accurate halberd",
+    "serial": "0x405ADDE2",
+    "x": 58,
+    "y": 120
+   },
+   {
+    "amount": 1,
+    "name": "a durable, eminently accurate broadsword",
+    "serial": "0x40467395",
+    "x": 76,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "a massive, eminently accurate hammer pick of ruin",
+    "serial": "0x40624238",
+    "x": 23,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "a massive short spear of feeblemindedness (23 charges)",
+    "serial": "0x402590C0",
+    "x": 83,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "an accurate viking sword of might",
+    "serial": "0x4062423D",
+    "x": 114,
+    "y": 107
+   },
+   {
+    "amount": 1,
+    "name": "an eminently accurate broadsword of wounding and might (45 charges)",
+    "serial": "0x40686A8B",
+    "x": 68,
+    "y": 142
+   },
+   {
+    "amount": 1,
+    "name": "a fortified, surpassingly accurate large battle axe of burning and might (50 charges)",
+    "serial": "0x405E8E38",
+    "x": 71,
+    "y": 123
+   },
+   {
+    "amount": 1,
+    "name": "a silver two handed axe",
+    "serial": "0x40464BCA",
+    "x": 36,
+    "y": 146
+   },
+   {
+    "amount": 1,
+    "name": "a maul of ruin",
+    "serial": "0x40932D8B",
+    "x": 54,
+    "y": 124
+   },
+   {
+    "amount": 1,
+    "name": "a butcher knife of ruin",
+    "serial": "0x40624247",
+    "x": 95,
+    "y": 140
+   },
+   {
+    "amount": 1,
+    "name": "a substantial, surpassingly accurate dagger of force",
+    "serial": "0x406242FC",
+    "x": 130,
+    "y": 141
+   },
+   {
+    "amount": 1,
+    "name": "a durable executioner's axe",
+    "serial": "0x4064BFEC",
+    "x": 87,
+    "y": 135
+   },
+   {
+    "amount": 1,
+    "name": "a double axe of ruin",
+    "serial": "0x40828DDD",
+    "x": 92,
+    "y": 106
+   },
+   {
+    "amount": 1,
+    "name": "a dagger of mage's bane (8 charges)",
+    "serial": "0x408E328B",
+    "x": 37,
+    "y": 144
+   },
+   {
+    "amount": 1,
+    "name": "a double axe of ruin",
+    "serial": "0x407F32B3",
+    "x": 86,
+    "y": 120
+   },
+   {
+    "amount": 1,
+    "name": "a durable, accurate broadsword of might",
+    "serial": "0x4069B680",
+    "x": 103,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "an accurate maul",
+    "serial": "0x4069F888",
+    "x": 104,
+    "y": 126
+   },
+   {
+    "amount": 1,
+    "name": "an accurate war hammer",
+    "serial": "0x4069B682",
+    "x": 76,
+    "y": 153
+   },
+   {
+    "amount": 1,
+    "name": "a surpassingly accurate two handed axe of feeblemindedness (32 charges)",
+    "serial": "0x406E0FB3",
+    "x": 24,
+    "y": 147
+   },
+   {
+    "amount": 1,
+    "name": "a durable pickaxe",
+    "serial": "0x406D5A6B",
+    "x": 108,
+    "y": 143
+   },
+   {
+    "amount": 1,
+    "name": "a large battle axe of ruin",
+    "serial": "0x4074B8A6",
+    "x": 87,
+    "y": 142
+   },
+   {
+    "amount": 1,
+    "name": "an accurate bardiche",
+    "serial": "0x4073FE36",
+    "x": 60,
+    "y": 135
+   },
+   {
+    "amount": 1,
+    "name": "an accurate war axe",
+    "serial": "0x4073FC65",
+    "x": 3,
+    "y": 120
+   },
+   {
+    "amount": 1,
+    "name": "a surpassingly accurate halberd of ruin",
+    "serial": "0x40742238",
+    "x": 92,
+    "y": 123
+   },
+   {
+    "amount": 1,
+    "name": "a surpassingly accurate war hammer",
+    "serial": "0x40774E14",
+    "x": 123,
+    "y": 140
+   },
+   {
+    "amount": 1,
+    "name": "an accurate bardiche",
+    "serial": "0x40774E29",
+    "x": 50,
+    "y": 135
+   },
+   {
+    "amount": 1,
+    "name": "a durable, surpassingly accurate executioner's axe",
+    "serial": "0x40774E0F",
+    "x": 22,
+    "y": 135
+   },
+   {
+    "amount": 1,
+    "name": "a war hammer",
+    "serial": "0x407805F0",
+    "x": 4,
+    "y": 153
+   },
+   {
+    "amount": 1,
+    "name": "a large battle axe",
+    "serial": "0x408E0675",
+    "x": 86,
+    "y": 132
+   },
+   {
+    "amount": 1,
+    "name": "a durable tear kite shield",
+    "serial": "0x40882898",
+    "x": 95,
+    "y": 108
+   },
+   {
+    "amount": 1,
+    "name": "a durable spear",
+    "serial": "0x40890BCF",
+    "x": 53,
+    "y": 117
+   },
+   {
+    "amount": 1,
+    "name": "a durable axe",
+    "serial": "0x4050A352",
+    "x": 75,
+    "y": 119
+   },
+   {
+    "amount": 1,
+    "name": "a large battle axe of ruin",
+    "serial": "0x408A31CD",
+    "x": 62,
+    "y": 107
+   },
+   {
+    "amount": 1,
+    "name": "a war mace of ruin",
+    "serial": "0x4088802D",
+    "x": 117,
+    "y": 148
+   },
+   {
+    "amount": 1,
+    "name": "a durable, accurate skinning knife",
+    "serial": "0x40882BBB",
+    "x": 0,
+    "y": 120
+   },
+   {
+    "amount": 1,
+    "name": "a war fork of ruin",
+    "serial": "0x408D96FE",
+    "x": 10,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "a broadsword",
+    "serial": "0x4066DC8D",
+    "x": 60,
+    "y": 112
+   },
+   {
+    "amount": 1,
+    "name": "an executioner's axe of might",
+    "serial": "0x408EF88B",
+    "x": 7,
+    "y": 132
+   },
+   {
+    "amount": 1,
+    "name": "a substantial, accurate short spear",
+    "serial": "0x408E6BC9",
+    "x": 28,
+    "y": 130
+   },
+   {
+    "amount": 1,
+    "name": "a katana of might",
+    "serial": "0x408FBFA5",
+    "x": 0,
+    "y": 115
+   },
+   {
+    "amount": 1,
+    "name": "a hatchet of wounding (19 charges)",
+    "serial": "0x407FB490",
+    "x": 86,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "an accurate maul of ruin",
+    "serial": "0x407F7509",
+    "x": 39,
+    "y": 127
+   },
+   {
+    "amount": 1,
+    "name": "a surpassingly accurate short spear",
+    "serial": "0x407F7D07",
+    "x": 84,
+    "y": 109
+   },
+   {
+    "amount": 1,
+    "name": "an eminently accurate broadsword",
+    "serial": "0x409CF5E8",
+    "x": 104,
+    "y": 121
+   },
+   {
+    "amount": 1,
+    "name": "a war hammer of might",
+    "serial": "0x4084AD88",
+    "x": 13,
+    "y": 106
+   },
+   {
+    "amount": 1,
+    "name": "a pickaxe of wounding (13 charges)",
+    "serial": "0x4082C537",
+    "x": 111,
+    "y": 114
+   },
+   {
+    "amount": 1,
+    "name": "a mace of ruin",
+    "serial": "0x408FEC6F",
+    "x": 45,
+    "y": 122
+   },
+   {
+    "amount": 1,
+    "name": "a surpassingly accurate hammer pick of feeblemindedness (12 charges)",
+    "serial": "0x408756C0",
+    "x": 82,
+    "y": 124
+   },
+   {
+    "amount": 1,
+    "name": "a battle axe of wounding and ruin (34 charges)",
+    "serial": "0x4092163A",
+    "x": 68,
+    "y": 118
+   },
+   {
+    "amount": 1,
+    "name": "a war fork of wounding (36 charges)",
+    "serial": "0x40921675",
+    "x": 8,
+    "y": 114
+   },
+   {
+    "amount": 1,
+    "name": "a longsword of feeblemindedness (35 charges)",
+    "serial": "0x40921673",
+    "x": 3,
+    "y": 109
+   },
+   {
+    "amount": 1,
+    "name": "an accurate large battle axe",
+    "serial": "0x4090662A",
+    "x": 28,
+    "y": 116
+   },
+   {
+    "amount": 1,
+    "name": "a surpassingly accurate double axe of weakness (26 charges)",
+    "serial": "0x40906628",
+    "x": 41,
+    "y": 128
+   },
+   {
+    "amount": 1,
+    "name": "a fortified bascinet",
+    "serial": "0x408FD551",
+    "x": 39,
+    "y": 152
+   },
+   {
+    "amount": 1,
+    "name": "a broadsword of clumsiness (16 charges)",
+    "serial": "0x408E64F2",
+    "x": 0,
+    "y": 135
+   },
+   {
+    "amount": 1,
+    "name": "a maul of ruin",
+    "serial": "0x4083268A",
+    "x": 47,
+    "y": 146
+   },
+   {
+    "amount": 1,
+    "name": "a substantial two handed axe",
+    "serial": "0x408D9FE4",
+    "x": 19,
+    "y": 114
+   },
+   {
+    "amount": 1,
+    "name": "a cleaver of force",
+    "serial": "0x408D9FF1",
+    "x": 41,
+    "y": 145
+   },
+   {
+    "amount": 1,
+    "name": "a massive buckler of defense",
+    "serial": "0x4080D41C",
+    "x": 28,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "a durable buckler of defense",
+    "serial": "0x408F1E5A",
+    "x": 6,
+    "y": 108
+   },
+   {
+    "amount": 1,
+    "name": "a durable buckler of defense",
+    "serial": "0x40904F9C",
+    "x": 73,
+    "y": 123
+   },
+   {
+    "amount": 1,
+    "name": "a buckler of defense",
+    "serial": "0x408FE177",
+    "x": 39,
+    "y": 157
+   },
+   {
+    "amount": 1,
+    "name": "a massive close helmet of guarding",
+    "serial": "0x4063C715",
+    "x": 103,
+    "y": 116
+   },
+   {
+    "amount": 1,
+    "name": "a durable bascinet of guarding",
+    "serial": "0x408D9FE7",
+    "x": 76,
+    "y": 114
+   },
+   {
+    "amount": 1,
+    "name": "a durable bascinet of guarding",
+    "serial": "0x408D9FEB",
+    "x": 91,
+    "y": 108
+   },
+   {
+    "amount": 1,
+    "name": "a norse helm of guarding",
+    "serial": "0x409123B8",
+    "x": 14,
+    "y": 146
+   },
+   {
+    "amount": 1,
+    "name": "an orc helm of guarding",
+    "serial": "0x408B3F95",
+    "x": 2,
+    "y": 119
+   },
+   {
+    "amount": 1,
+    "name": "a plate helm of guarding",
+    "serial": "0x40911325",
+    "x": 68,
+    "y": 134
+   },
+   {
+    "amount": 1,
+    "name": "a norse helm of guarding",
+    "serial": "0x408F0274",
+    "x": 99,
+    "y": 143
+   },
+   {
+    "amount": 1,
+    "name": "a norse helm of guarding",
+    "serial": "0x40921639",
+    "x": 74,
+    "y": 146
+   },
+   {
+    "amount": 1,
+    "name": "a norse helm of guarding",
+    "serial": "0x40918E23",
+    "x": 99,
+    "y": 120
+   },
+   {
+    "amount": 1,
+    "name": "a helmet of guarding",
+    "serial": "0x40913327",
+    "x": 105,
+    "y": 138
+   },
+   {
+    "amount": 1,
+    "name": "a platemail tunic of defense",
+    "serial": "0x408F1E5C",
+    "x": 73,
+    "y": 108
+   },
+   {
+    "amount": 1,
+    "name": "a metal shield of guarding",
+    "serial": "0x407FEDC6",
+    "x": 112,
+    "y": 154
+   },
+   {
+    "amount": 1,
+    "name": "a metal shield of guarding",
+    "serial": "0x40921651",
+    "x": 20,
+    "y": 148
+   },
+   {
+    "amount": 1,
+    "name": "a substantial tear kite shield of defense",
+    "serial": "0x4092163D",
+    "x": 56,
+    "y": 109
+   },
+   {
+    "amount": 1,
+    "name": "a tear kite shield of defense",
+    "serial": "0x40903F43",
+    "x": 114,
+    "y": 104
+   },
+   {
+    "amount": 1,
+    "name": "a metal kite shield of defense",
+    "serial": "0x40571F01",
+    "x": 11,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "a metal kite shield of defense",
+    "serial": "0x4090302C",
+    "x": 83,
+    "y": 122
    }
   ],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x40900029": {
-  "bags": [],
-  "items": 0,
+  "bags": [
+   {
+    "kind": "polearms",
+    "known": 0,
+    "marker": {
+     "name": "a substantial, accurate bardiche of power",
+     "serial": "0x407ECD46",
+     "x": 18,
+     "y": 105
+    },
+    "serial": "0x4098CD02",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "items": 2,
   "label": "chest: polearms (col 1 bottom)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x40901BDA": {
   "bags": [
    {
     "kind": "plate",
-    "known": 0,
+    "known": 14,
     "marker": {
      "name": "an orc helm of defense",
      "serial": "0x40889A6F",
@@ -661,7 +1600,7 @@
    },
    {
     "kind": "chain & ring",
-    "known": 0,
+    "known": 9,
     "marker": {
      "name": "a chainmail coif of defense",
      "serial": "0x4087E8C7",
@@ -674,7 +1613,7 @@
    },
    {
     "kind": "leather",
-    "known": 0,
+    "known": 10,
     "marker": {
      "name": "a leather skirt of defense",
      "serial": "0x40949BF3",
@@ -687,7 +1626,7 @@
    },
    {
     "kind": "studded",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "studded gloves of defense",
      "serial": "0x406FFC67",
@@ -700,7 +1639,7 @@
    },
    {
     "kind": "shields",
-    "known": 0,
+    "known": 7,
     "marker": {
      "name": "a buckler of defense",
      "serial": "0x406FFC84",
@@ -715,13 +1654,13 @@
   "items": 10,
   "label": "chest: plain gear (col 6 bottom)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x40901EDF": {
   "bags": [
    {
     "kind": "ID wands & staves (spares)",
-    "known": 0,
+    "known": 2,
     "marker": null,
     "serial": "0x4049D6B8",
     "x": 18,
@@ -739,13 +1678,6 @@
     "y": 106
    },
    {
-    "amount": 12,
-    "name": "empty bottles",
-    "serial": "0x408A846F",
-    "x": 63,
-    "y": 106
-   },
-   {
     "amount": 1,
     "name": "blank scroll",
     "serial": "0x408D19BF",
@@ -753,32 +1685,39 @@
     "y": 106
    },
    {
-    "amount": 2,
-    "name": "cut up leather",
-    "serial": "0x40988462",
-    "x": 50,
-    "y": 129
+    "amount": 20,
+    "name": "arrow",
+    "serial": "0x407004A7",
+    "x": 105,
+    "y": 105
    },
    {
-    "amount": 11,
+    "amount": 21,
+    "name": "empty bottles",
+    "serial": "0x408A846F",
+    "x": 63,
+    "y": 106
+   },
+   {
+    "amount": 191,
     "name": "cut cloth",
     "serial": "0x40988811",
     "x": 98,
     "y": 129
    },
    {
-    "amount": 20,
-    "name": "arrow",
-    "serial": "0x407004A7",
-    "x": 105,
-    "y": 105
+    "amount": 81,
+    "name": "cut up leather",
+    "serial": "0x40988462",
+    "x": 50,
+    "y": 129
    }
   ],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x409020EB": {
   "bags": [],
-  "items": 2,
+  "items": 13,
   "label": "chest: needs your decision (col 6 3rd)",
   "loose": [
    {
@@ -794,9 +1733,86 @@
     "serial": "0x4073BA06",
     "x": 33,
     "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "a tear kite shield of fortification",
+    "serial": "0x40936861",
+    "x": 66,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "a fortified buckler of fortification",
+    "serial": "0x4068A81B",
+    "x": 84,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "tall straw hat of protection (16 charges)",
+    "serial": "0x40828DE7",
+    "x": 105,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "skirt of blessings (15 charges)",
+    "serial": "0x408A8A8E",
+    "x": 87,
+    "y": 129
+   },
+   {
+    "amount": 1,
+    "name": "straw hat of protection (8 charges)",
+    "serial": "0x40640957",
+    "x": 18,
+    "y": 132
+   },
+   {
+    "amount": 1,
+    "name": "feathered hat of blessings (13 charges)",
+    "serial": "0x406BDDA2",
+    "x": 39,
+    "y": 135
+   },
+   {
+    "amount": 1,
+    "name": "tall straw hat of blessings (9 charges)",
+    "serial": "0x40774E12",
+    "x": 60,
+    "y": 135
+   },
+   {
+    "amount": 1,
+    "name": "a buckler of fortification",
+    "serial": "0x405D37D2",
+    "x": 59,
+    "y": 104
+   },
+   {
+    "amount": 1,
+    "name": "durable leather leggings of fortification",
+    "serial": "0x40833AE1",
+    "x": 49,
+    "y": 118
+   },
+   {
+    "amount": 1,
+    "name": "a massive studded armor of fortification",
+    "serial": "0x4080B522",
+    "x": 46,
+    "y": 127
+   },
+   {
+    "amount": 1,
+    "name": "studded sleeves of fortification",
+    "serial": "0x40921644",
+    "x": 68,
+    "y": 143
    }
   ],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 14:31"
  },
  "0x40902338": {
   "bags": [],
