@@ -17,7 +17,7 @@ SPEC says where the gear goes (decided per batch from the keep rules in the uo-s
   scroll_markers: {"circle": serial, ...}                          markers for circles that have none yet
   learn_first:    [chest label part, ...]                          chests to open first, so the bags inside are known
 
-Stackables are sorted without being listed: reagents, gems and gold merge onto their piles; scrolls go into their
+Stackables are sorted without being listed: reagents, gems (inside the gem bag) and gold merge onto their piles; scrolls go into their
 circle's bag at the spell's place; potions go into their crate; empty bottles and cut leather or cloth go to supplies.
 Existing piles are found by looking in the containers. Containers are opened first so the client knows them.
 New bags get a label ("bag: KIND (CHEST chest)"), and every chest opened is recorded in layout.json at the end.
@@ -365,12 +365,14 @@ def main():
             i = REAGENTS.index(g)
             how = stack(item, c, slot=(30 + (i % 4) * 30, 108 + (i // 4) * 26))
             say(f"{item['type']} x{item.get('amount', 1)} -> reagents ({how})")
-        elif g in GEMS:
-            c = chest('gems')
-            learn(c)
+        elif g in GEMS:  # one bag holding every gem pile, so the user can grab it to sell
+            learn(chest('gems'))
+            bag = uo.resolve('bag: gems')
+            learn(bag)
             i = GEMS.index(g)
-            how = stack(item, c, slot=(30 + i * 14, 107) if i < 8 else (30, 130))
-            say(f"{item['type']} x{item.get('amount', 1)} -> gems ({how})")
+            x1, y1 = AREA[bag][:2]
+            how = stack(item, bag, slot=(x1 + 6 + (i % 5) * 26, y1 + 6 + (i // 5) * 30))
+            say(f"{item['type']} x{item.get('amount', 1)} -> gem bag ({how})")
         elif g in GOLD:
             c = chest('gold')
             learn(c)

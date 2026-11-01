@@ -29,9 +29,9 @@
    }
   ],
   "items": 4,
-  "label": "chest: leather + caps (col 3 2nd)",
+  "label": "chest: leather + caps (col 3, 3rd from top)",
   "loose": [],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 14:40"
  },
  "0x4080C375": {
   "bags": [
@@ -159,9 +159,9 @@
    }
   ],
   "items": 2,
-  "label": "chest: fencing (col 2 top)",
+  "label": "chest: fencing (col 2, top)",
   "loose": [],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 14:40"
  },
  "0x408FB8BC": {
   "bags": [],
@@ -244,9 +244,9 @@
    }
   ],
   "items": 2,
-  "label": "chest: magic clothing (col 4 3rd)",
+  "label": "chest: magic clothing (col 4, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 14:40"
  },
  "0x408FC111": {
   "bags": [
@@ -265,9 +265,9 @@
    }
   ],
   "items": 2,
-  "label": "chest: helms (col 4 bottom)",
+  "label": "chest: helms (col 4, bottom)",
   "loose": [],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 14:40"
  },
  "0x408FC781": {
   "bags": [
@@ -299,9 +299,9 @@
    }
   ],
   "items": 4,
-  "label": "chest: magic wands (col 2 2nd)",
+  "label": "chest: magic wands (col 2, 3rd from top)",
   "loose": [],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 14:40"
  },
  "0x408FD0C7": {
   "bags": [
@@ -333,9 +333,9 @@
    }
   ],
   "items": 4,
-  "label": "chest: swords (col 1 top)",
+  "label": "chest: swords (col 1, top)",
   "loose": [],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 14:40"
  },
  "0x408FD7CF": {
   "bags": [
@@ -406,9 +406,9 @@
    }
   ],
   "items": 10,
-  "label": "chest: plate (col 3 top)",
+  "label": "chest: plate (col 3, top)",
   "loose": [],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 14:40"
  },
  "0x408FDB4F": {
   "bags": [
@@ -427,9 +427,9 @@
    }
   ],
   "items": 2,
-  "label": "chest: archery (col 2 3rd)",
+  "label": "chest: archery (col 2, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 14:40"
  },
  "0x408FE0E7": {
   "bags": [
@@ -474,80 +474,30 @@
    }
   ],
   "items": 6,
-  "label": "chest: studded (col 3 bottom)",
+  "label": "chest: studded (col 3, bottom)",
   "loose": [],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 14:40"
  },
  "0x408FE3A0": {
-  "bags": [],
-  "items": 9,
-  "label": "chest: gems (col 5 bottom)",
-  "loose": [
+  "bags": [
    {
-    "amount": 23,
-    "name": "pieces of amber",
-    "serial": "0x40888CBE",
+    "kind": "gems",
+    "known": 9,
+    "marker": {
+     "name": "tourmaline",
+     "serial": "0x406B725F",
+     "x": 30,
+     "y": 128
+    },
+    "serial": "0x4098CD0A",
     "x": 18,
-    "y": 106
-   },
-   {
-    "amount": 25,
-    "name": "amethysts",
-    "serial": "0x40887AB3",
-    "x": 34,
-    "y": 106
-   },
-   {
-    "amount": 36,
-    "name": "citrines",
-    "serial": "0x406FF9EF",
-    "x": 44,
-    "y": 106
-   },
-   {
-    "amount": 38,
-    "name": "diamonds",
-    "serial": "0x406FFA04",
-    "x": 68,
-    "y": 106
-   },
-   {
-    "amount": 24,
-    "name": "emeralds",
-    "serial": "0x406FFA12",
-    "x": 95,
-    "y": 106
-   },
-   {
-    "amount": 28,
-    "name": "rubies",
-    "serial": "0x406FF9FC",
-    "x": 108,
-    "y": 106
-   },
-   {
-    "amount": 35,
-    "name": "star sapphires",
-    "serial": "0x406FF9EE",
-    "x": 118,
-    "y": 106
-   },
-   {
-    "amount": 23,
-    "name": "sapphires",
-    "serial": "0x4072FEFA",
-    "x": 118,
     "y": 105
-   },
-   {
-    "amount": 31,
-    "name": "tourmalines",
-    "serial": "0x406B725F",
-    "x": 24,
-    "y": 129
    }
   ],
-  "recorded": "2026-11-01 10:35"
+  "items": 2,
+  "label": "chest: gems (col 5, bottom)",
+  "loose": [],
+  "recorded": "2026-11-01 15:35"
  },
  "0x408FF16B": {
   "bags": [
@@ -605,9 +555,9 @@
    }
   ],
   "items": 8,
-  "label": "chest: chain & ring + coifs (col 3 3rd)",
+  "label": "chest: chain & ring + coifs (col 3, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 14:40"
  },
  "0x408FF313": {
   "bags": [
@@ -626,9 +576,9 @@
    }
   ],
   "items": 2,
-  "label": "chest: axes (col 1 3rd)",
+  "label": "chest: axes (col 1, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 14:40"
  },
  "0x408FF6C4": {
   "bags": [
@@ -647,9 +597,9 @@
    }
   ],
   "items": 2,
-  "label": "chest: maces & staves (col 1 2nd)",
+  "label": "chest: maces & staves (col 1, 3rd from top)",
   "loose": [],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 14:40"
  },
  "0x408FF84A": {
   "bags": [],
@@ -659,30 +609,16 @@
   "recorded": "2026-11-01 10:35"
  },
  "0x408FF9AB": {
-  "bags": [
-   {
-    "kind": "shields",
-    "known": 7,
-    "marker": {
-     "name": "a wooden shield of guarding",
-     "serial": "0x4073B9E1",
-     "x": 18,
-     "y": 128
-    },
-    "serial": "0x409397A3",
-    "x": 18,
-    "y": 105
-   }
-  ],
-  "items": 2,
-  "label": "chest: shields (col 4 2nd)",
+  "bags": [],
+  "items": 0,
+  "label": "chest: shields (col 4, 3rd from top)",
   "loose": [],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 15:34"
  },
  "0x408FFDD1": {
   "bags": [],
   "items": 125,
-  "label": "chest: for smelting - Icepick (col 2 bottom)",
+  "label": "chest: for smelting - Icepick (col 2, bottom)",
   "loose": [
    {
     "amount": 1,
@@ -1560,7 +1496,7 @@
     "y": 122
    }
   ],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 14:40"
  },
  "0x40900029": {
   "bags": [
@@ -1579,15 +1515,15 @@
    }
   ],
   "items": 2,
-  "label": "chest: polearms (col 1 bottom)",
+  "label": "chest: polearms (col 1, bottom)",
   "loose": [],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 14:40"
  },
  "0x40901BDA": {
   "bags": [
    {
     "kind": "plate",
-    "known": 14,
+    "known": 0,
     "marker": {
      "name": "an orc helm of defense",
      "serial": "0x40889A6F",
@@ -1600,7 +1536,7 @@
    },
    {
     "kind": "chain & ring",
-    "known": 9,
+    "known": 0,
     "marker": {
      "name": "a chainmail coif of defense",
      "serial": "0x4087E8C7",
@@ -1613,7 +1549,7 @@
    },
    {
     "kind": "leather",
-    "known": 10,
+    "known": 0,
     "marker": {
      "name": "a leather skirt of defense",
      "serial": "0x40949BF3",
@@ -1626,7 +1562,7 @@
    },
    {
     "kind": "studded",
-    "known": 8,
+    "known": 0,
     "marker": {
      "name": "studded gloves of defense",
      "serial": "0x406FFC67",
@@ -1636,25 +1572,12 @@
     "serial": "0x409397B5",
     "x": 90,
     "y": 106
-   },
-   {
-    "kind": "shields",
-    "known": 7,
-    "marker": {
-     "name": "a buckler of defense",
-     "serial": "0x406FFC84",
-     "x": 118,
-     "y": 129
-    },
-    "serial": "0x409397C6",
-    "x": 118,
-    "y": 106
    }
   ],
-  "items": 10,
-  "label": "chest: plain gear (col 6 bottom)",
+  "items": 8,
+  "label": "chest: plain gear (col 6, bottom)",
   "loose": [],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 15:34"
  },
  "0x40901EDF": {
   "bags": [
@@ -1668,13 +1591,20 @@
    }
   ],
   "items": 7,
-  "label": "chest: supplies & ID wands (col 6 2nd)",
+  "label": "chest: supplies & ID wands (col 6, 3rd from top)",
   "loose": [
    {
     "amount": 1964,
     "name": "lockpicks",
     "serial": "0x406C74B0",
     "x": 45,
+    "y": 106
+   },
+   {
+    "amount": 21,
+    "name": "empty bottles",
+    "serial": "0x408A846F",
+    "x": 63,
     "y": 106
    },
    {
@@ -1685,134 +1615,35 @@
     "y": 106
    },
    {
-    "amount": 20,
-    "name": "arrow",
-    "serial": "0x407004A7",
-    "x": 105,
-    "y": 105
-   },
-   {
-    "amount": 21,
-    "name": "empty bottles",
-    "serial": "0x408A846F",
-    "x": 63,
-    "y": 106
+    "amount": 81,
+    "name": "81 pieces of leather",
+    "serial": "0x40988462",
+    "x": 50,
+    "y": 129
    },
    {
     "amount": 191,
-    "name": "cut cloth",
+    "name": "cut cloth (191 yards)",
     "serial": "0x40988811",
     "x": 98,
     "y": 129
    },
    {
-    "amount": 81,
-    "name": "cut up leather",
-    "serial": "0x40988462",
-    "x": 50,
-    "y": 129
+    "amount": 20,
+    "name": "arrow",
+    "serial": "0x407004A7",
+    "x": 105,
+    "y": 105
    }
   ],
-  "recorded": "2026-11-01 14:31"
+  "recorded": "2026-11-01 14:40"
  },
  "0x409020EB": {
   "bags": [],
-  "items": 13,
-  "label": "chest: needs your decision (col 6 3rd)",
-  "loose": [
-   {
-    "amount": 1,
-    "name": "bracelet of blessings (24 charges)",
-    "serial": "0x4073B9F1",
-    "x": 18,
-    "y": 105
-   },
-   {
-    "amount": 1,
-    "name": "boots of blessings (29 charges)",
-    "serial": "0x4073BA06",
-    "x": 33,
-    "y": 105
-   },
-   {
-    "amount": 1,
-    "name": "a tear kite shield of fortification",
-    "serial": "0x40936861",
-    "x": 66,
-    "y": 105
-   },
-   {
-    "amount": 1,
-    "name": "a fortified buckler of fortification",
-    "serial": "0x4068A81B",
-    "x": 84,
-    "y": 105
-   },
-   {
-    "amount": 1,
-    "name": "tall straw hat of protection (16 charges)",
-    "serial": "0x40828DE7",
-    "x": 105,
-    "y": 105
-   },
-   {
-    "amount": 1,
-    "name": "skirt of blessings (15 charges)",
-    "serial": "0x408A8A8E",
-    "x": 87,
-    "y": 129
-   },
-   {
-    "amount": 1,
-    "name": "straw hat of protection (8 charges)",
-    "serial": "0x40640957",
-    "x": 18,
-    "y": 132
-   },
-   {
-    "amount": 1,
-    "name": "feathered hat of blessings (13 charges)",
-    "serial": "0x406BDDA2",
-    "x": 39,
-    "y": 135
-   },
-   {
-    "amount": 1,
-    "name": "tall straw hat of blessings (9 charges)",
-    "serial": "0x40774E12",
-    "x": 60,
-    "y": 135
-   },
-   {
-    "amount": 1,
-    "name": "a buckler of fortification",
-    "serial": "0x405D37D2",
-    "x": 59,
-    "y": 104
-   },
-   {
-    "amount": 1,
-    "name": "durable leather leggings of fortification",
-    "serial": "0x40833AE1",
-    "x": 49,
-    "y": 118
-   },
-   {
-    "amount": 1,
-    "name": "a massive studded armor of fortification",
-    "serial": "0x4080B522",
-    "x": 46,
-    "y": 127
-   },
-   {
-    "amount": 1,
-    "name": "studded sleeves of fortification",
-    "serial": "0x40921644",
-    "x": 68,
-    "y": 143
-   }
-  ],
-  "recorded": "2026-11-01 14:31"
+  "items": 0,
+  "label": "chest: needs your decision (col 6, 2nd from top)",
+  "loose": [],
+  "recorded": "2026-11-01 15:34"
  },
  "0x40902338": {
   "bags": [],
