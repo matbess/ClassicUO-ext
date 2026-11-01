@@ -47,7 +47,9 @@ namespace ClassicUO.Game.Managers
         private const int MAX_DEPTH = 4;
         private const int REACH = 2; // the server silently ignores a double-click or lift from further away
         private const int TARGET_REACH = 12;
-        private const int LIFT_WAIT = 250; // time for the server to refuse a lift before the drop is sent
+        private const int LIFT_WAIT = 1000; // between picking up and dropping: this server holds a drop that comes sooner and carries it out late
+        private const int SAVE_LIMIT = 5;   // minutes: a world save that never says it's complete stops holding actions after this
+        private const int ACTION_LOG = 300;
         private const int MOVE_TIMEOUT = 3000;
         private const int TARGET_TIMEOUT = 3000;
         private const int USE_RESULT_TIMEOUT = 2000;
@@ -64,6 +66,8 @@ namespace ClassicUO.Game.Managers
         private readonly Dictionary<uint, long> _containerAnswers = new Dictionary<uint, long>(); // last time the server showed a container or sent its contents
         private long _packetCount;
         private long _lastMessageId;
+        private bool _saving; // the server is in a world save: it answers nothing until "world save complete"
+        private DateTime _saveStarted;
         private TcpListener _listener;
         private string _infoPath;
         private uint _playerSerial;
@@ -74,6 +78,7 @@ namespace ClassicUO.Game.Managers
         private DateTime _nextAction;
         private int _burstCount;
         private string _halted;
+        private readonly Queue<(DateTime Time, string What, uint Serial)> _actions = new Queue<(DateTime, string, uint)>();
         private Rules _rules;
         private DateTime _rulesTime;
 
@@ -308,6 +313,21 @@ namespace ClassicUO.Game.Managers
                 _messages.Dequeue();
             }
 
+            if (serial == 0)
+            {
+                string text = e.Text.ToLowerInvariant();
+
+                if (text.Contains("world save has been initiated") || text.Contains("world is saving"))
+                {
+                    _saving = true;
+                    _saveStarted = now;
+                }
+                else if (text.Contains("world save complete"))
+                {
+                    _saving = false;
+                }
+            }
+
             // a single click can answer with several lines, such as a name and then its charges
             if (e.Type == MessageType.Label && e.Parent is Item)
             {
@@ -493,6 +513,28 @@ namespace ClassicUO.Game.Managers
 
                     return OnGame(() => Json(w => WriteDone(w, CancelTarget())));
 
+                case "/actions":
+                    RequireMethod(method, "GET");
+
+                    return Json
+                    (
+                        w =>
+                        {
+                            w.WriteStartArray();
+
+                            foreach ((DateTime time, string what, uint serial) in _actions)
+                            {
+                                w.WriteStartObject();
+                                w.WriteString("time", time.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture));
+                                w.WriteString("what", what);
+                                w.WriteString("serial", Hex(serial));
+                                w.WriteEndObject();
+                            }
+
+                            w.WriteEndArray();
+                        }
+                    );
+
                 case "/resume":
                     RequireMethod(method, "POST");
                     bool wasHalted = _halted != null;
@@ -567,6 +609,7 @@ namespace ClassicUO.Game.Managers
                         CheckInReach(GroundRoot(item), REACH);
 
                         bool open = item.Opened && UIManager.GetGump<ContainerGump>(serial) != null;
+                        LogAction("open (double-click)", serial);
                         GameActions.DoubleClick(_world, serial);
 
                         return (_lastMessageId, open, _packetCount);
@@ -631,6 +674,7 @@ namespace ClassicUO.Game.Managers
                         }
 
                         _labels.Remove(serial);
+                        LogAction("name (single-click)", serial);
                         GameActions.SingleClick(_world, serial);
 
                         return _lastMessageId;
@@ -783,6 +827,7 @@ namespace ClassicUO.Game.Managers
             (
                 () =>
                 {
+                    LogAction("drop", serial);
                     GameActions.DropItem(serial, x, y, 0, to);
 
                     return true;
@@ -872,6 +917,7 @@ namespace ClassicUO.Game.Managers
             (
                 () =>
                 {
+                    LogAction("equip", serial);
                     GameActions.Equip(_world);
 
                     return true;
@@ -947,9 +993,12 @@ namespace ClassicUO.Game.Managers
                         Item item = _world.Items.Get(serial) ?? throw new BridgeException(404, "no such item nearby");
 
                         // nothing else is ever double-clicked, so a potion can't be drunk by mistake
-                        if (item.Container != _world.Player.Serial || item.Layer != Layer.OneHanded && item.Layer != Layer.TwoHanded)
+                        bool inHands = item.Container == _world.Player.Serial && (item.Layer == Layer.OneHanded || item.Layer == Layer.TwoHanded);
+                        bool allowedTool = rules.UseFromBackpack.Contains(item.Graphic) && IsCarried(item);
+
+                        if (!inHands && !allowedTool)
                         {
-                            throw new BridgeException(403, "only an item in the character's hands can be used");
+                            throw new BridgeException(403, "only an item in the character's hands, or a tool rules.json allows from the backpack, can be used");
                         }
 
                         Item aim = _world.Items.Get(target) ?? throw new BridgeException(404, "no such target nearby");
@@ -960,6 +1009,7 @@ namespace ClassicUO.Game.Managers
                             _world.TargetManager.CancelTarget();
                         }
 
+                        LogAction("use (double-click)", serial);
                         GameActions.DoubleClick(_world, serial);
 
                         return _lastMessageId;
@@ -986,13 +1036,15 @@ namespace ClassicUO.Game.Managers
                 (
                     () =>
                     {
+                        LogAction("target", target);
                         _world.TargetManager.Target(target);
 
                         return _lastMessageId;
                     }
                 );
 
-                if (WaitFor(() => HasMessageFrom(target, aimed) || HasSystemMessageAfter(aimed), USE_RESULT_TIMEOUT))
+                // a tool like scissors answers by using the target up (it disappears) rather than with a message
+                if (WaitFor(() => HasMessageFrom(target, aimed) || HasSystemMessageAfter(aimed) || _world.Items.Get(target) == null, USE_RESULT_TIMEOUT))
                 {
                     Thread.Sleep(SETTLE_TIME);
                 }
@@ -1064,6 +1116,7 @@ namespace ClassicUO.Game.Managers
                             lift = amount;
                         }
 
+                        LogAction("pick up", serial);
                         if (!GameActions.PickUp(_world, serial, 0, 0, lift))
                         {
                             throw new BridgeException(409, "the client would not pick it up (too far away?)");
@@ -1136,9 +1189,10 @@ namespace ClassicUO.Game.Managers
         // returns the item's outermost container on the ground, or null when the character carries it
         private Item CheckReachable(Item item, Rules rules, string what)
         {
-            if (rules.NeverTouch.Contains(item.Graphic))
+            // never-touch kinds are decoration lying on the floor; the same kind in a container is fair game
+            if (item.OnGround && rules.NeverTouch.Contains(item.Graphic))
             {
-                throw new BridgeException(403, $"the agent may never {what} that kind of item");
+                throw new BridgeException(403, $"the agent may never {what} that kind of item on the floor");
             }
 
             Item current = item;
@@ -1203,6 +1257,26 @@ namespace ClassicUO.Game.Managers
             {
                 CheckInReach(root, REACH);
             }
+        }
+
+        private bool IsCarried(Item item)
+        {
+            for (uint parent = item.Container; SerialHelper.IsValid(parent);)
+            {
+                if (parent == _world.Player.Serial)
+                {
+                    return true;
+                }
+
+                if (_world.Get(parent) is not Item container)
+                {
+                    return false;
+                }
+
+                parent = container.Container;
+            }
+
+            return false;
         }
 
         // the outermost container on the ground, or null when the character carries it (or it can't be told)
@@ -1290,6 +1364,11 @@ namespace ClassicUO.Game.Managers
             if (wait > 0)
             {
                 Thread.Sleep(wait);
+            }
+
+            while (OnGame(IsSaving))
+            {
+                Thread.Sleep(500);
             }
 
             Rules pacing = TryRules() ?? Rules.Defaults;
@@ -1406,23 +1485,44 @@ namespace ClassicUO.Game.Managers
             return false;
         }
 
+        // waits for an answer; while the world saves the server answers nothing, so the clock restarts until it's done
         private bool WaitFor(Func<bool> condition, int timeout)
         {
             DateTime end = DateTime.UtcNow.AddMilliseconds(timeout);
 
             while (true)
             {
-                if (OnGame(condition))
+                (bool met, bool saving) = OnGame(() => (condition(), IsSaving()));
+
+                if (met)
                 {
                     return true;
                 }
 
-                if (DateTime.UtcNow >= end)
+                if (saving)
+                {
+                    end = DateTime.UtcNow.AddMilliseconds(timeout);
+                }
+                else if (DateTime.UtcNow >= end)
                 {
                     return false;
                 }
 
                 Thread.Sleep(POLL_INTERVAL);
+            }
+        }
+
+        // on the game thread
+        private bool IsSaving() => _saving && (DateTime.Now - _saveStarted).TotalMinutes < SAVE_LIMIT;
+
+        // on the listener thread: what was sent and when, to line up with the server's "You must wait"
+        private void LogAction(string what, uint serial)
+        {
+            _actions.Enqueue((DateTime.Now, what, serial));
+
+            while (_actions.Count > ACTION_LOG)
+            {
+                _actions.Dequeue();
             }
         }
 
@@ -2058,6 +2158,7 @@ namespace ClassicUO.Game.Managers
             public readonly HashSet<uint> OffLimits = new HashSet<uint>();
             public readonly HashSet<ushort> NeverTouch = new HashSet<ushort>();
             public readonly HashSet<string> IgnorePeople = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            public readonly HashSet<ushort> UseFromBackpack = new HashSet<ushort>(); // tools that may be used without holding them (scissors)
 
             // a random gap between actions, and a longer break after every Burst actions (milliseconds)
             public int GapMin = 1200, GapMax = 2000, Burst = 5, BreakMin = 3000, BreakMax = 5000;
@@ -2140,6 +2241,14 @@ namespace ClassicUO.Game.Managers
                     }
                 }
 
+                if (root.TryGetProperty("useFromBackpack", out JsonElement tools))
+                {
+                    foreach (JsonElement e in tools.EnumerateArray())
+                    {
+                        rules.UseFromBackpack.Add((ushort)ParseNumber(e.GetString()));
+                    }
+                }
+
                 if (root.TryGetProperty("ignorePeople", out JsonElement people))
                 {
                     foreach (JsonElement e in people.EnumerateArray())
@@ -2186,6 +2295,14 @@ namespace ClassicUO.Game.Managers
                 foreach (string name in IgnorePeople)
                 {
                     w.WriteStringValue(name);
+                }
+
+                w.WriteEndArray();
+                w.WriteStartArray("useFromBackpack");
+
+                foreach (ushort graphic in UseFromBackpack)
+                {
+                    w.WriteStringValue(Hex(graphic));
                 }
 
                 w.WriteEndArray();
