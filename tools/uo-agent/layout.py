@@ -95,8 +95,9 @@ def record(chest, items):
 
 if __name__ == '__main__':
     # print the map: python3 layout.py
-    for chest, e in sorted(load().items(), key=lambda kv: kv[1]['label']):
-        print(f"{e['label'] or chest}  ({e['items']} items, recorded {e['recorded']})")
+    labels = _read(os.path.join(HERE, 'labels.json'))
+    for chest, e in sorted(load().items(), key=lambda kv: labels.get(kv[0], kv[1]['label'])):
+        print(f"{labels.get(chest, e['label']) or chest}  ({e['items']} items, recorded {e['recorded']})")
         for b in e['bags']:
             m = b['marker']
             print(f"  bag {b['serial']}  {b['kind']}" + (f"  - marker: {m['name']}" if m else '  - no marker yet'))

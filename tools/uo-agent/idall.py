@@ -3,6 +3,8 @@
 
   idall.py TARGET [TARGET...]
 
+Each target is named first (one single-click, unless its name is already known), and only the ones the server calls
+"magic X" get a charge. Identified, plain and GM-crafted ("exceptional ... crafted by") items are skipped.
 Wands and staves are identified first: any ID ones among them join the spares, so their charges go on the rest.
 Uses the ID wand or staff in Johnny's hand first. When it's out of charges it goes into the wand trash crate,
 and the spare with the fewest charges (from the spares pouch or found in this batch) comes out. Waits while anyone
@@ -23,6 +25,7 @@ SPARES = '0x4049D6B8'  # pouch of spare ID wands and staves, in the supplies che
 WANDS = {'0x0DF2', '0x0DF3', '0x0DF4', '0x0DF5',             # wands
          '0x0DF0', '0x0DF1', '0x13F8', '0x13F9', '0x0E89', '0x0E8A'}  # black, gnarled and quarter staves
 FOUND = {}  # ID wands and staves found in this batch: serial -> charges
+UNIDENTIFIED = re.compile(r'^(an? )?magic ', re.I)  # how the server names magic items nobody has identified yet
 
 
 def say(text):
@@ -100,9 +103,36 @@ def swap(info, wand):
     return serial, left
 
 
+def needing_id(info, targets):
+    """The targets still to identify. Names not known yet are asked for in one paced request per ten."""
+    unknown = [t for t in targets if t not in uo.load_names()]
+    for i in range(0, len(unknown), 10):
+        while True:
+            wait_until_clear(info)
+            try:
+                uo.call(info, 'POST', '/name', serial=','.join(unknown[i:i + 10]))  # names go into names.json
+                break
+            except uo.BridgeError as e:
+                if e.code == 409 and 'paused' in e.message:
+                    continue
+                if uo.wait_out_world_save(info, e):
+                    say('world save finished; carrying on')
+                    continue
+                raise
+    names = uo.load_names()
+    left = []
+    for t in targets:
+        name = names.get(t, '').split(' / ')[0]
+        if UNIDENTIFIED.match(name):
+            left.append(t)
+        else:
+            say(f'{t}  {name or "(no name)"}: no charge needed')
+    return left
+
+
 def main():
     info = uo.find_bridge(None)
-    targets = [uo.resolve(t) for t in sys.argv[1:]]
+    targets = needing_id(info, [uo.resolve(t) for t in sys.argv[1:]])
     targets.sort(key=lambda t: uo.call(info, 'GET', '/item', serial=t)['item']['graphic'] not in WANDS)
     wand, left = wand_in_hand(info)
     if left is None:

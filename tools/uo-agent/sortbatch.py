@@ -9,6 +9,8 @@ SPEC says where the gear goes (decided per batch from the keep rules in the uo-s
   into:           [[serial, bag serial], ...]                      keepers and plain gear into existing bags
   place_in:       [[serial, chest label part], ...]                smelting, needs your decision, ...
   spares, trash, cut: [serial, ...]                                ID tools, trash crate, cut with the scissors
+  sets:           [serial, ...]                                    GM armour set pieces: each goes into the first set
+                                                                   bag in the GM chest missing that piece, or a new one
   scroll_markers: {"circle": serial, ...}                          markers for circles that have none yet
   learn_first:    [chest label part, ...]                          chests to open first, so the bags inside are known
 
@@ -41,6 +43,10 @@ GEMS = ['0x0F25', '0x0F16', '0x0F15', '0x0F26', '0x0F10', '0x0F13', '0x0F19', '0
 GOLD = {'0x0EED', '0x0EEE', '0x0EEF'}
 SUPPLIES = {'0x0F0E', '0x1067', '0x1068', '0x1081', '0x1082', '0x1766', '0x1767', '0x0EF3', '0x14FC',
             '0x0F3F', '0x1BFB', '0x0E21', '0x0EE9'}  # bottles, leather, cloth, blank scrolls, lockpicks, arrows, bolts, bandages
+SET_PIECES = {'ringmail gloves': 'gloves', 'ringmail sleeves': 'sleeves', 'chainmail leggings': 'leggings',
+              'chainmail tunic': 'tunic', 'platemail gorget': 'gorget',
+              'plate helm': 'helm', 'close helmet': 'helm', 'close helm': 'helm', 'helmet': 'helm',
+              'nose helm': 'helm'}  # item types as the client's tiledata names them; "nose helm" is the norse helm
 POTIONS = {'yellow': 'heal', 'orange': 'cure', 'red': 'refresh', 'blue': 'agility', 'white': 'strength',
            'green': 'poison', 'purple': 'explosion', 'black': None}
 
@@ -94,6 +100,7 @@ def chest(part):
 
 
 CONTENTS, AREA, OCCUPIED = {}, {}, {}
+TAKEN = set()  # bags already taken from the backpacks crate in this run
 
 
 def rect(item, x=None, y=None):
@@ -120,6 +127,30 @@ def learn(serial):
     AREA[serial] = c.get('area') or [18, 105, 162, 178]
     OCCUPIED[serial] = [rect(i) for i in c['items'] if 'art' in i]
     return c['items']
+
+
+def empty_bags(n):
+    """n empty bags from the backpacks crate. A bag holding anything goes to needs your decision."""
+    bags = []
+    for item in learn(uo.resolve('new backpacks')):
+        if len(bags) == n:
+            break
+        if item['type'] not in ('backpack', 'bag', 'pouch') or item['serial'] in TAKEN:
+            continue
+        if learn(item['serial']):
+            say(f"{item['serial']} in the backpacks crate isn't empty; moving it to needs your decision")
+            move(item['serial'], chest('needs your decision'))
+            TAKEN.add(item['serial'])
+            continue
+        bags.append(item)
+        TAKEN.add(item['serial'])
+    if len(bags) < n:
+        sys.exit('not enough empty bags in the backpacks crate')
+    return bags
+
+
+def set_piece(item):
+    return SET_PIECES.get(' '.join(item['type'].split()))
 
 
 def free_spot(container, art, ys=None, xs=None):
@@ -178,20 +209,7 @@ def main():
 
     # ---- new bags and their markers ----
     if plan.get('new_slots'):
-        crate = uo.resolve('new backpacks')
-        bags = []
-        for item in learn(crate):
-            if len(bags) == len(plan['new_slots']):
-                break
-            if item['type'] not in ('backpack', 'bag', 'pouch'):
-                continue
-            if learn(item['serial']):
-                say(f"{item['serial']} in the backpacks crate isn't empty; moving it to needs your decision")
-                move(item['serial'], chest('needs your decision'))
-                continue
-            bags.append(item)
-        if len(bags) < len(plan['new_slots']):
-            sys.exit('not enough empty bags in the backpacks crate')
+        bags = empty_bags(len(plan['new_slots']))
         for (part, marker, kind), bag in zip(plan['new_slots'], bags):
             c = chest(part)
             learn(c)
@@ -221,6 +239,38 @@ def main():
         x, y = free_spot(c, inv[serial]['art'])
         put(inv[serial], c, x, y)
         say(f"{names.get(serial, inv[serial]['type'])} -> {labels().get(c)}")
+
+    # ---- GM armour sets: one bag per set, no markers; each piece fills the first set missing it ----
+    if plan.get('sets'):
+        c = chest('GM armour sets')
+        sets = [[b, {set_piece(i) for i in learn(b['serial'])}]
+                for b in sorted((i for i in learn(c) if i.get('container')), key=lambda i: (i['y'], i['x']))]
+        missing = [s for s in plan['sets'] if not set_piece(inv[s])]
+        if missing:
+            sys.exit('not GM set pieces: ' + ', '.join(f"{s} {inv[s]['type']}" for s in missing))
+        needed, have = 0, [set(k) for _, k in sets]  # how many new set bags this batch needs
+        for serial in plan['sets']:
+            kinds = next((k for k in have if set_piece(inv[serial]) not in k), None)
+            if kinds is None:
+                kinds = set()
+                have.append(kinds)
+                needed += 1
+            kinds.add(set_piece(inv[serial]))
+        for bag in empty_bags(needed):
+            bx, by = free_spot(c, bag['art'])
+            put(bag, c, bx, by)
+            CONTENTS[bag['serial']], AREA[bag['serial']], OCCUPIED[bag['serial']] = [], [44, 65, 186, 159], []
+            uo.save_label(bag['serial'], f'bag: GM set {len(sets) + 1} (GM armour sets chest)')
+            say(f'new set bag {len(sets) + 1} in the GM chest')
+            sets.append([bag, set()])
+        for serial in plan['sets']:
+            kind = set_piece(inv[serial])
+            bag, kinds = next(s for s in sets if kind not in s[1])
+            x, y = free_spot(bag['serial'], inv[serial]['art'])
+            put(inv[serial], bag['serial'], x, y)
+            kinds.add(kind)
+            say(f"{names.get(serial, inv[serial]['type'])} -> {labels().get(bag['serial'], bag['serial'])}")
+
     if plan.get('spares'):
         learn(chest('supplies'))
         for serial in plan['spares']:
