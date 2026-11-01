@@ -173,6 +173,19 @@ def wait_out_world_save(info, error):
     return False
 
 
+def resume_after_barrel_emptied(info, error):
+    """The 50th item in the trash barrel makes it empty itself, deleting the item just dropped. The barrel says so
+    itself ("The trash is full! Emptying!"), not as a system message, so the bridge takes it for silence and stops.
+    If that's what happened, resume and return True: the item is gone, as it was meant to be."""
+    if error.code != 423:
+        return False
+    said = [m['text'].lower() for m in call(info, 'GET', '/messages')['messages'][-3:]]
+    if not any('trash is full' in t for t in said):
+        return False
+    call(info, 'POST', '/resume')
+    return True
+
+
 def is_alive(info):
     request = urllib.request.Request(f"http://127.0.0.1:{info['port']}/status",
                                      headers={'Authorization': f"Bearer {info['token']}"})

@@ -6,7 +6,7 @@
 Each target is named first (one single-click, unless its name is already known), and only the ones the server calls
 "magic X" get a charge. Identified, plain and GM-crafted ("exceptional ... crafted by") items are skipped.
 Wands and staves are identified first: any ID ones among them join the spares, so their charges go on the rest.
-Uses the ID wand or staff in Johnny's hand first. When it's out of charges it goes into the wand trash crate,
+Uses the ID wand or staff in Johnny's hand first. When it's out of charges it goes into the trash barrel,
 and the spare with the fewest charges (from the spares pouch or found in this batch) comes out. Waits while anyone
 else is in the room (checking once a minute), and stops on anything it doesn't understand, or when the bridge halts.
 """
@@ -20,7 +20,7 @@ spec = importlib.util.spec_from_file_location('uo', os.path.join(os.path.dirname
 uo = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(uo)
 
-TRASH = '0x408AD7D5'   # the trash crate by the door; empty ID wands and staves go here
+TRASH = '0x4068E2BB'   # the trash barrel by the door; empty ID wands and staves go here
 SPARES = '0x4049D6B8'  # pouch of spare ID wands and staves, in the supplies chest
 WANDS = {'0x0DF2', '0x0DF3', '0x0DF4', '0x0DF5',             # wands
          '0x0DF0', '0x0DF1', '0x13F8', '0x13F9', '0x0E89', '0x0E8A'}  # black, gnarled and quarter staves
@@ -82,10 +82,15 @@ def spares(info):
 def swap(info, wand):
     if wand:
         wait_until_clear(info)
-        result = uo.move(info, wand, TRASH)
+        try:
+            result = uo.move(info, wand, TRASH)
+        except uo.BridgeError as e:
+            if not uo.resume_after_barrel_emptied(info, e):
+                raise
+            result = {'moved': True}
         if not result['moved']:
-            raise uo.BridgeError(0, f'could not put the empty wand {wand} in the trash crate')
-        say(f'{wand} is empty; put it in the trash crate')
+            raise uo.BridgeError(0, f'could not put the empty wand {wand} in the trash barrel')
+        say(f'{wand} is empty; put it in the trash barrel')
     while True:
         tools = sorted(spares(info) + [(left, serial) for serial, left in FOUND.items()])
         if tools:

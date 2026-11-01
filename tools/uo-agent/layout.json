@@ -1,37 +1,10 @@
 {
  "0x404ABD74": {
-  "bags": [
-   {
-    "kind": "leather tunics",
-    "known": 1,
-    "marker": {
-     "name": "a durable leather tunic of hardening",
-     "serial": "0x4072FF47",
-     "x": 18,
-     "y": 128
-    },
-    "serial": "0x409397D1",
-    "x": 18,
-    "y": 105
-   },
-   {
-    "kind": "leather armour",
-    "known": 8,
-    "marker": {
-     "name": "a leather cap of guarding",
-     "serial": "0x40921645",
-     "x": 53,
-     "y": 105
-    },
-    "serial": "0x4098CD05",
-    "x": 36,
-    "y": 105
-   }
-  ],
-  "items": 4,
+  "bags": [],
+  "items": 0,
   "label": "chest: leather + caps (col 3, 3rd from top)",
   "loose": [],
-  "recorded": "2026-11-01 14:40"
+  "recorded": "2026-11-01 15:43"
  },
  "0x4080C375": {
   "bags": [
@@ -161,7 +134,7 @@
   "items": 2,
   "label": "chest: fencing (col 2, top)",
   "loose": [],
-  "recorded": "2026-11-01 14:40"
+  "recorded": "2026-11-01 15:43"
  },
  "0x408FB8BC": {
   "bags": [],
@@ -246,7 +219,7 @@
   "items": 2,
   "label": "chest: magic clothing (col 4, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-01 14:40"
+  "recorded": "2026-11-01 15:43"
  },
  "0x408FC111": {
   "bags": [
@@ -267,7 +240,7 @@
   "items": 2,
   "label": "chest: helms (col 4, bottom)",
   "loose": [],
-  "recorded": "2026-11-01 14:40"
+  "recorded": "2026-11-01 15:43"
  },
  "0x408FC781": {
   "bags": [
@@ -301,7 +274,7 @@
   "items": 4,
   "label": "chest: magic wands (col 2, 3rd from top)",
   "loose": [],
-  "recorded": "2026-11-01 14:40"
+  "recorded": "2026-11-01 15:43"
  },
  "0x408FD0C7": {
   "bags": [
@@ -335,7 +308,7 @@
   "items": 4,
   "label": "chest: swords (col 1, top)",
   "loose": [],
-  "recorded": "2026-11-01 14:40"
+  "recorded": "2026-11-01 15:43"
  },
  "0x408FD7CF": {
   "bags": [
@@ -408,7 +381,7 @@
   "items": 10,
   "label": "chest: plate (col 3, top)",
   "loose": [],
-  "recorded": "2026-11-01 14:40"
+  "recorded": "2026-11-01 15:43"
  },
  "0x408FDB4F": {
   "bags": [
@@ -429,54 +402,14 @@
   "items": 2,
   "label": "chest: archery (col 2, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-01 14:40"
+  "recorded": "2026-11-01 15:43"
  },
  "0x408FE0E7": {
-  "bags": [
-   {
-    "kind": "studded tunics",
-    "known": 1,
-    "marker": {
-     "name": "a studded tunic of guarding",
-     "serial": "0x4072FF38",
-     "x": 18,
-     "y": 128
-    },
-    "serial": "0x409397AE",
-    "x": 18,
-    "y": 105
-   },
-   {
-    "kind": "studded gloves",
-    "known": 0,
-    "marker": {
-     "name": "studded gloves of guarding",
-     "serial": "0x4074F873",
-     "x": 58,
-     "y": 105
-    },
-    "serial": "0x409397BB",
-    "x": 36,
-    "y": 105
-   },
-   {
-    "kind": "studded armour",
-    "known": 3,
-    "marker": {
-     "name": "a studded gorget of guarding",
-     "serial": "0x40264CDB",
-     "x": 86,
-     "y": 128
-    },
-    "serial": "0x4098CD08",
-    "x": 81,
-    "y": 105
-   }
-  ],
-  "items": 6,
+  "bags": [],
+  "items": 0,
   "label": "chest: studded (col 3, bottom)",
   "loose": [],
-  "recorded": "2026-11-01 14:40"
+  "recorded": "2026-11-01 15:43"
  },
  "0x408FE3A0": {
   "bags": [
@@ -497,7 +430,7 @@
   "items": 2,
   "label": "chest: gems (col 5, bottom)",
   "loose": [],
-  "recorded": "2026-11-01 15:35"
+  "recorded": "2026-11-01 15:43"
  },
  "0x408FF16B": {
   "bags": [
@@ -557,7 +490,7 @@
   "items": 8,
   "label": "chest: chain & ring + coifs (col 3, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-01 14:40"
+  "recorded": "2026-11-01 15:43"
  },
  "0x408FF313": {
   "bags": [
@@ -578,7 +511,7 @@
   "items": 2,
   "label": "chest: axes (col 1, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-01 14:40"
+  "recorded": "2026-11-01 15:43"
  },
  "0x408FF6C4": {
   "bags": [
@@ -599,7 +532,7 @@
   "items": 2,
   "label": "chest: maces & staves (col 1, 3rd from top)",
   "loose": [],
-  "recorded": "2026-11-01 14:40"
+  "recorded": "2026-11-01 15:43"
  },
  "0x408FF84A": {
   "bags": [],
@@ -743,8 +676,8 @@
     "amount": 1,
     "name": "an eminently accurate dagger of ruin",
     "serial": "0x4092F6F2",
-    "x": 17,
-    "y": 153
+    "x": 18,
+    "y": 152
    },
    {
     "amount": 1,
@@ -771,7 +704,7 @@
     "amount": 1,
     "name": "a durable hatchet of evil and might (21 charges)",
     "serial": "0x409123AF",
-    "x": 9,
+    "x": 18,
     "y": 137
    },
    {
@@ -793,7 +726,7 @@
     "name": "a durable war hammer",
     "serial": "0x408F1EAD",
     "x": 80,
-    "y": 148
+    "y": 145
    },
    {
     "amount": 1,
@@ -806,21 +739,21 @@
     "amount": 1,
     "name": "a battle axe of might",
     "serial": "0x40903F2E",
-    "x": 12,
-    "y": 151
+    "x": 18,
+    "y": 148
    },
    {
     "amount": 1,
     "name": "a fortified, surpassingly accurate longsword",
     "serial": "0x40903F25",
     "x": 63,
-    "y": 134
+    "y": 132
    },
    {
     "amount": 1,
     "name": "a durable executioner's axe of might",
     "serial": "0x40903F4E",
-    "x": 10,
+    "x": 18,
     "y": 126
    },
    {
@@ -834,7 +767,7 @@
     "amount": 1,
     "name": "an accurate kryss",
     "serial": "0x40903F42",
-    "x": 5,
+    "x": 18,
     "y": 127
    },
    {
@@ -862,7 +795,7 @@
     "amount": 1,
     "name": "a silver durable pitchfork",
     "serial": "0x408ED893",
-    "x": 11,
+    "x": 18,
     "y": 118
    },
    {
@@ -870,7 +803,7 @@
     "name": "an accurate longsword",
     "serial": "0x404632D1",
     "x": 62,
-    "y": 141
+    "y": 132
    },
    {
     "amount": 1,
@@ -905,7 +838,7 @@
     "name": "an accurate war fork",
     "serial": "0x40986007",
     "x": 31,
-    "y": 146
+    "y": 135
    },
    {
     "amount": 1,
@@ -939,14 +872,14 @@
     "amount": 1,
     "name": "a broadsword",
     "serial": "0x408BDAB2",
-    "x": 0,
+    "x": 18,
     "y": 116
    },
    {
     "amount": 1,
     "name": "an accurate halberd",
     "serial": "0x405ADDE2",
-    "x": 58,
+    "x": 48,
     "y": 120
    },
    {
@@ -968,7 +901,7 @@
     "name": "a massive short spear of feeblemindedness (23 charges)",
     "serial": "0x402590C0",
     "x": 83,
-    "y": 131
+    "y": 128
    },
    {
     "amount": 1,
@@ -996,7 +929,7 @@
     "name": "a silver two handed axe",
     "serial": "0x40464BCA",
     "x": 36,
-    "y": 146
+    "y": 140
    },
    {
     "amount": 1,
@@ -1066,14 +999,14 @@
     "name": "an accurate war hammer",
     "serial": "0x4069B682",
     "x": 76,
-    "y": 153
+    "y": 145
    },
    {
     "amount": 1,
     "name": "a surpassingly accurate two handed axe of feeblemindedness (32 charges)",
     "serial": "0x406E0FB3",
     "x": 24,
-    "y": 147
+    "y": 140
    },
    {
     "amount": 1,
@@ -1087,34 +1020,34 @@
     "name": "a large battle axe of ruin",
     "serial": "0x4074B8A6",
     "x": 87,
-    "y": 142
+    "y": 137
    },
    {
     "amount": 1,
     "name": "an accurate bardiche",
     "serial": "0x4073FE36",
     "x": 60,
-    "y": 135
+    "y": 128
    },
    {
     "amount": 1,
     "name": "an accurate war axe",
     "serial": "0x4073FC65",
-    "x": 3,
+    "x": 18,
     "y": 120
    },
    {
     "amount": 1,
     "name": "a surpassingly accurate halberd of ruin",
     "serial": "0x40742238",
-    "x": 92,
+    "x": 48,
     "y": 123
    },
    {
     "amount": 1,
     "name": "a surpassingly accurate war hammer",
     "serial": "0x40774E14",
-    "x": 123,
+    "x": 118,
     "y": 140
    },
    {
@@ -1122,7 +1055,7 @@
     "name": "an accurate bardiche",
     "serial": "0x40774E29",
     "x": 50,
-    "y": 135
+    "y": 128
    },
    {
     "amount": 1,
@@ -1135,8 +1068,8 @@
     "amount": 1,
     "name": "a war hammer",
     "serial": "0x407805F0",
-    "x": 4,
-    "y": 153
+    "x": 18,
+    "y": 145
    },
    {
     "amount": 1,
@@ -1156,8 +1089,8 @@
     "amount": 1,
     "name": "a durable spear",
     "serial": "0x40890BCF",
-    "x": 53,
-    "y": 117
+    "x": 48,
+    "y": 114
    },
    {
     "amount": 1,
@@ -1178,20 +1111,20 @@
     "name": "a war mace of ruin",
     "serial": "0x4088802D",
     "x": 117,
-    "y": 148
+    "y": 147
    },
    {
     "amount": 1,
     "name": "a durable, accurate skinning knife",
     "serial": "0x40882BBB",
-    "x": 0,
+    "x": 18,
     "y": 120
    },
    {
     "amount": 1,
     "name": "a war fork of ruin",
     "serial": "0x408D96FE",
-    "x": 10,
+    "x": 18,
     "y": 105
    },
    {
@@ -1205,7 +1138,7 @@
     "amount": 1,
     "name": "an executioner's axe of might",
     "serial": "0x408EF88B",
-    "x": 7,
+    "x": 18,
     "y": 132
    },
    {
@@ -1213,13 +1146,13 @@
     "name": "a substantial, accurate short spear",
     "serial": "0x408E6BC9",
     "x": 28,
-    "y": 130
+    "y": 128
    },
    {
     "amount": 1,
     "name": "a katana of might",
     "serial": "0x408FBFA5",
-    "x": 0,
+    "x": 18,
     "y": 115
    },
    {
@@ -1254,7 +1187,7 @@
     "amount": 1,
     "name": "a war hammer of might",
     "serial": "0x4084AD88",
-    "x": 13,
+    "x": 18,
     "y": 106
    },
    {
@@ -1289,14 +1222,14 @@
     "amount": 1,
     "name": "a war fork of wounding (36 charges)",
     "serial": "0x40921675",
-    "x": 8,
+    "x": 18,
     "y": 114
    },
    {
     "amount": 1,
     "name": "a longsword of feeblemindedness (35 charges)",
     "serial": "0x40921673",
-    "x": 3,
+    "x": 18,
     "y": 109
    },
    {
@@ -1318,13 +1251,13 @@
     "name": "a fortified bascinet",
     "serial": "0x408FD551",
     "x": 39,
-    "y": 152
+    "y": 138
    },
    {
     "amount": 1,
     "name": "a broadsword of clumsiness (16 charges)",
     "serial": "0x408E64F2",
-    "x": 0,
+    "x": 18,
     "y": 135
    },
    {
@@ -1332,7 +1265,7 @@
     "name": "a maul of ruin",
     "serial": "0x4083268A",
     "x": 47,
-    "y": 146
+    "y": 136
    },
    {
     "amount": 1,
@@ -1359,7 +1292,7 @@
     "amount": 1,
     "name": "a durable buckler of defense",
     "serial": "0x408F1E5A",
-    "x": 6,
+    "x": 18,
     "y": 108
    },
    {
@@ -1374,7 +1307,7 @@
     "name": "a buckler of defense",
     "serial": "0x408FE177",
     "x": 39,
-    "y": 157
+    "y": 147
    },
    {
     "amount": 1,
@@ -1401,14 +1334,14 @@
     "amount": 1,
     "name": "a norse helm of guarding",
     "serial": "0x409123B8",
-    "x": 14,
-    "y": 146
+    "x": 18,
+    "y": 140
    },
    {
     "amount": 1,
     "name": "an orc helm of guarding",
     "serial": "0x408B3F95",
-    "x": 2,
+    "x": 18,
     "y": 119
    },
    {
@@ -1423,14 +1356,14 @@
     "name": "a norse helm of guarding",
     "serial": "0x408F0274",
     "x": 99,
-    "y": 143
+    "y": 140
    },
    {
     "amount": 1,
     "name": "a norse helm of guarding",
     "serial": "0x40921639",
     "x": 74,
-    "y": 146
+    "y": 140
    },
    {
     "amount": 1,
@@ -1458,14 +1391,14 @@
     "name": "a metal shield of guarding",
     "serial": "0x407FEDC6",
     "x": 112,
-    "y": 154
+    "y": 144
    },
    {
     "amount": 1,
     "name": "a metal shield of guarding",
     "serial": "0x40921651",
     "x": 20,
-    "y": 148
+    "y": 144
    },
    {
     "amount": 1,
@@ -1479,14 +1412,14 @@
     "name": "a tear kite shield of defense",
     "serial": "0x40903F43",
     "x": 114,
-    "y": 104
+    "y": 105
    },
    {
     "amount": 1,
     "name": "a metal kite shield of defense",
     "serial": "0x40571F01",
-    "x": 11,
-    "y": 131
+    "x": 18,
+    "y": 130
    },
    {
     "amount": 1,
@@ -1496,7 +1429,7 @@
     "y": 122
    }
   ],
-  "recorded": "2026-11-01 14:40"
+  "recorded": "2026-11-01 15:43"
  },
  "0x40900029": {
   "bags": [
@@ -1517,7 +1450,7 @@
   "items": 2,
   "label": "chest: polearms (col 1, bottom)",
   "loose": [],
-  "recorded": "2026-11-01 14:40"
+  "recorded": "2026-11-01 15:43"
  },
  "0x40901BDA": {
   "bags": [
@@ -1546,44 +1479,18 @@
     "serial": "0x409397BC",
     "x": 47,
     "y": 106
-   },
-   {
-    "kind": "leather",
-    "known": 0,
-    "marker": {
-     "name": "a leather skirt of defense",
-     "serial": "0x40949BF3",
-     "x": 69,
-     "y": 129
-    },
-    "serial": "0x409397CC",
-    "x": 67,
-    "y": 106
-   },
-   {
-    "kind": "studded",
-    "known": 0,
-    "marker": {
-     "name": "studded gloves of defense",
-     "serial": "0x406FFC67",
-     "x": 94,
-     "y": 129
-    },
-    "serial": "0x409397B5",
-    "x": 90,
-    "y": 106
    }
   ],
-  "items": 8,
+  "items": 4,
   "label": "chest: plain gear (col 6, bottom)",
   "loose": [],
-  "recorded": "2026-11-01 15:34"
+  "recorded": "2026-11-01 15:43"
  },
  "0x40901EDF": {
   "bags": [
    {
     "kind": "ID wands & staves (spares)",
-    "known": 2,
+    "known": 0,
     "marker": null,
     "serial": "0x4049D6B8",
     "x": 18,
@@ -1615,14 +1522,7 @@
     "y": 106
    },
    {
-    "amount": 81,
-    "name": "81 pieces of leather",
-    "serial": "0x40988462",
-    "x": 50,
-    "y": 129
-   },
-   {
-    "amount": 191,
+    "amount": 201,
     "name": "cut cloth (191 yards)",
     "serial": "0x40988811",
     "x": 98,
@@ -1634,9 +1534,16 @@
     "serial": "0x407004A7",
     "x": 105,
     "y": 105
+   },
+   {
+    "amount": 140,
+    "name": "81 pieces of leather",
+    "serial": "0x40988462",
+    "x": 50,
+    "y": 129
    }
   ],
-  "recorded": "2026-11-01 14:40"
+  "recorded": "2026-11-01 15:43"
  },
  "0x409020EB": {
   "bags": [],

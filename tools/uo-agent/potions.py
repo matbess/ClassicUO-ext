@@ -68,7 +68,7 @@ def main():
         kind = KINDS[p['type'].lower().split(' potion')[0]]
         name = names.get(p['serial'], p['type'])
         if kind is None:
-            target, x, y = uo.resolve('trash 1'), None, None
+            target, x, y = uo.resolve('trash barrel'), None, None
         else:
             target = crates[kind]
             if target not in piles:

@@ -9,16 +9,17 @@ SPEC says where the gear goes (decided per batch from the keep rules in the uo-s
   into:           [[serial, bag], ...]                             keepers and plain gear into bags, by serial or label
   place_in:       [[serial, chest label part], ...]                smelting, needs your decision, ...
   spares, cut:    [serial, ...]                                    ID tools, cut with the scissors
-  trash, smelt:   [serial, ...]                                    carried in loads to the trash crates, or to the
-                                                                   smelting chest and then the smelting crates; each
-                                                                   takes up to 125 items before the next one is used
+  trash, smelt:   [serial, ...]                                    carried in loads to the trash barrel, or to the
+                                                                   smelting chest and then the smelting crates (each
+                                                                   takes up to 125 items before the next one is used)
   sets:           [serial, ...]                                    GM armour set pieces: each goes into the first set
                                                                    bag in the GM chest missing that piece, or a new one
   scroll_markers: {"circle": serial, ...}                          markers for circles that have none yet
   learn_first:    [chest label part, ...]                          chests to open first, so the bags inside are known
 
 Stackables are sorted without being listed: reagents, gems (inside the gem bag) and gold merge onto their piles; scrolls go into their
-circle's bag at the spell's place; potions go into their crate; empty bottles and cut leather or cloth go to supplies.
+circle's bag at the spell's place; potions go into their crate; empty bottles and cut leather or cloth go to supplies;
+gold goes to needs your decision and iron ore to smelting (both left in loot bags by accident).
 Existing piles are found by looking in the containers. Containers are opened first so the client knows them.
 New bags get a label ("bag: KIND (CHEST chest)"), and every chest opened is recorded in layout.json at the end.
 Waits while someone is in the room and out world saves; stops at the first problem and says where.
@@ -45,6 +46,7 @@ SCROLL_MARKER_SPOTS = {1: (18, 128), 2: (31, 128), 3: (45, 128), 4: (59, 128), 5
 REAGENTS = ['0x0F7A', '0x0F7B', '0x0F84', '0x0F85', '0x0F86', '0x0F88', '0x0F8D', '0x0F8C']   # two rows of four, in order
 GEMS = ['0x0F25', '0x0F16', '0x0F15', '0x0F26', '0x0F10', '0x0F13', '0x0F19', '0x0F21', '0x0F2D']  # amber .. tourmaline
 GOLD = {'0x0EED', '0x0EEE', '0x0EEF'}
+ORE = {'0x19B7', '0x19B8', '0x19B9', '0x19BA'}  # iron ore piles, left in the loot by accident: to smelting
 SUPPLIES = {'0x0F0E', '0x1067', '0x1068', '0x1081', '0x1082', '0x1766', '0x1767', '0x0EF3', '0x14FC',
             '0x0F3F', '0x1BFB', '0x0E21', '0x0EE9'}  # bottles, leather, cloth, blank scrolls, lockpicks, arrows, bolts, bandages
 SET_PIECES = {'ringmail gloves': 'gloves', 'ringmail sleeves': 'sleeves', 'chainmail leggings': 'leggings',
@@ -93,6 +95,9 @@ def move(serial, to, x=None, y=None):
             if uo.wait_out_world_save(info, e):
                 say('world save finished; carrying on')
                 continue
+            if uo.resume_after_barrel_emptied(info, e):
+                say('the trash barrel was full and emptied itself; carrying on')
+                return {'moved': True, 'messages': []}
             raise
         if not result['moved']:
             raise uo.BridgeError(0, f'{serial} did not go into {to}: ' + '; '.join(m['text'] for m in result['messages']))
@@ -156,7 +161,12 @@ def empty_bags(n):
 
 
 def room_in(name):
-    """The first smelting or trash container with room: the smelting chest first, then the numbered crates."""
+    """Where trash or smelting goes: trash into the trash barrel (the user's rule, 2026-11-01), smelting into the
+    smelting chest first, then the numbered crates, whichever has room."""
+    if name == 'trash':
+        barrel = uo.resolve('trash barrel')
+        learn(barrel)
+        return barrel
     crates = sorted((text, serial) for serial, text in labels().items() if re.match(rf'{name} \d', text))
     for c in ([chest('for smelting')] if name == 'smelting' else []) + [serial for _, serial in crates]:
         if c not in FULL and len(learn(c)) < LIMIT:
@@ -193,6 +203,24 @@ def deliver(serials, name, inv):
                     say(f'{labels().get(c, c)} is full')
                     FULL.add(c)
             say(f"{names.get(serial, inv[serial]['type'])} -> {labels().get(c, c)}")
+
+
+def cut_up(serials, inv):
+    """Cut leather and cloth with the scissors in Johnny's backpack, 15 at a time so the cuttings never weigh him
+    down, and pile the cut leather and cloth in the supplies chest."""
+    pending = list(serials)
+    while pending:
+        before = {i['serial'] for i in call('GET', '/contents', serial=BACKPACK)['items']}
+        for serial in pending[:15]:
+            move(serial, BACKPACK)
+            call('POST', '/use', serial=SCISSORS, target=serial)
+            say(f"cut {names.get(serial, inv[serial]['type'])}")
+        pending = pending[15:]
+        c = chest('supplies')
+        learn(c)
+        for item in call('GET', '/contents', serial=BACKPACK)['items']:
+            if item['serial'] not in before and item['serial'] != SCISSORS:
+                say(f"{item['type']} x{item.get('amount', 1)} -> supplies ({stack(item, c)})")
 
 
 def set_piece(item):
@@ -373,17 +401,20 @@ def main():
             x1, y1 = AREA[bag][:2]
             how = stack(item, bag, slot=(x1 + 6 + (i % 5) * 26, y1 + 6 + (i // 5) * 30))
             say(f"{item['type']} x{item.get('amount', 1)} -> gem bag ({how})")
-        elif g in GOLD:
-            c = chest('gold')
+        elif g in GOLD:  # gold left in the loot by accident: the user wants to see it (2026-11-01)
+            c = chest('needs your decision')
             learn(c)
-            say(f"gold x{item.get('amount', 1)} -> gold ({stack(item, c, slot=(30, 108))})")
+            say(f"gold x{item.get('amount', 1)} -> needs your decision ({stack(item, c)})")
+        elif g in ORE:
+            c = room_in('smelting')
+            say(f"iron ore x{item.get('amount', 1)} -> {labels().get(c)} ({stack(item, c)})")
         elif g in SUPPLIES:
             c = chest('supplies')
             learn(c)
             say(f"{item['type']} x{item.get('amount', 1)} -> supplies ({stack(item, c)})")
         elif t.endswith('potion') and t.split(' potion')[0].split()[-1] in POTIONS:
             kind = POTIONS[t.split(' potion')[0].split()[-1]]
-            target = uo.resolve(f'potions: {kind}') if kind else room_in('trash')
+            target = uo.resolve(f'potions: {kind}') if kind else room_in('trash')  # Night Sight: the barrel
             if kind:
                 learn(target)
                 x1, y1, x2, y2 = AREA[target]
@@ -395,19 +426,7 @@ def main():
             say(f"left in the loot (not in the plan): {names.get(serial, item['type'])} {serial}")
 
     # ---- cut leather and cloth; results to supplies ----
-    cut = list(plan.get('cut', []))
-    while cut:  # 15 at a time, so the cuttings never weigh Johnny down
-        before = {i['serial'] for i in uo.call(info, 'GET', '/contents', serial=BACKPACK)['items']}
-        for serial in cut[:15]:
-            move(serial, BACKPACK)
-            call('POST', '/use', serial=SCISSORS, target=serial)
-            say(f"cut {names.get(serial, inv[serial]['type'])}")
-        cut = cut[15:]
-        c = chest('supplies')
-        learn(c)
-        for item in uo.call(info, 'GET', '/contents', serial=BACKPACK)['items']:
-            if item['serial'] not in before and item['serial'] != SCISSORS:
-                say(f"{item['type']} x{item.get('amount', 1)} -> supplies ({stack(item, c)})")
+    cut_up(plan.get('cut', []), inv)
 
     # ---- emptied loot bags back to the crate ----
     for l in loot:
