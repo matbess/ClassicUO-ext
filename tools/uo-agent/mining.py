@@ -3,6 +3,7 @@
 
   python3 mining.py where             where Icepick is on the route
   python3 mining.py walk INDEX|forge  walk Icepick along the route to a waypoint (or the forge)
+  python3 mining.py plan              the ore blocks along the route and where Icepick digs each
   python3 mining.py dig X Y Z [MAX]   dig one rock until it's empty (Icepick must be on foot, within 2 tiles)
 """
 import json
@@ -88,6 +89,102 @@ def walk_route(info, points, target, stop=None, reach=15):
             raise uo.BridgeError(0, f"couldn't walk on from {x},{y} towards waypoint {target} {points[target]}")
 
 
+def load_rules(name='Icepick'):
+    """A rules file from rules/ (JSON with // comment lines)."""
+    with open(os.path.join(HERE, 'rules', f'rules-{name}.json'), encoding='utf-8') as fh:
+        return json.loads(''.join(line for line in fh if not line.lstrip().startswith('//')))
+
+
+def in_areas(areas, x, y):
+    return any(a['box'][0] <= x <= a['box'][2] and a['box'][1] <= y <= a['box'][3] for a in areas)
+
+
+_MAP = None
+
+
+def game_map():
+    global _MAP
+    if _MAP is None:
+        import uomap
+        _MAP = uomap.Map()
+    return _MAP
+
+
+def walkable(x, y):
+    """Whether the map shows a tile one can stand on (no rock, water, tree or wall); houses and other items
+    the map doesn't hold are the path finder's business."""
+    m = game_map()
+    tile, z = m.land(x, y)
+    if m.impassable_land(tile) or m.land_name(tile) == 'rock':
+        return False
+    return not any(m.impassable_static(t) and sz + m.static_heights[t] > z for t, sz, _ in m.statics(x, y))
+
+
+def plan(points=None, reach=2):
+    """The ore blocks along the route, in the order Icepick reaches them. Ore is shared by an 8x8 block, so any rock
+    in a block will do. For each block: the waypoint where it first comes within reach (for the order), and every
+    (rock, place to stand) pair that works: rocks inside Icepick's corridor, standing on a waypoint or on a walkable
+    tile one step off one, within reach of the rock. choose() picks one of them at random for each pass."""
+    import uomap
+    m = uomap.Map()
+    points = points or route()
+    # dig only from the mining corridor, not the open town Icepick may run into to get away
+    areas = [a for a in load_rules()['areas'] if a['name'] != 'getting away']
+    on_route = set(points)
+
+    def walkable(x, y):
+        if (x, y) in on_route:
+            return True
+        tile, z = m.land(x, y)
+        if m.impassable_land(tile) or not in_areas(areas, x, y):
+            return False
+        return not any(m.impassable_static(t) and sz + m.static_heights[t] > z for t, sz, _ in m.statics(x, y))
+
+    stands = set()
+    for x, y in points:
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                if walkable(x + dx, y + dy):
+                    stands.add((x + dx, y + dy))
+
+    rocks_by_block = {}
+    for x, y in points:
+        for dx in range(-reach, reach + 1):
+            for dy in range(-reach, reach + 1):
+                rx, ry = x + dx, y + dy
+                tile, z = m.land(rx, ry)
+                if m.land_name(tile) == 'rock' and in_areas(areas, rx, ry):
+                    rocks_by_block.setdefault((rx // 8, ry // 8), set()).add((rx, ry, z))
+
+    targets, seen = [], set()
+    for i, (x, y) in enumerate(points):
+        reached = [b for b, rocks in rocks_by_block.items()
+                   if b not in seen and any(max(abs(rx - x), abs(ry - y)) <= reach for rx, ry, _ in rocks)]
+        for block in sorted(reached):
+            seen.add(block)
+            pairs = []
+            for rx, ry, z in sorted(rocks_by_block[block]):
+                for sx, sy in stands:
+                    if max(abs(rx - sx), abs(ry - sy)) <= reach and (sx, sy) != (rx, ry):
+                        pairs.append(((rx, ry, z), (sx, sy)))
+            targets.append({'block': block, 'index': i, 'stand': (x, y), 'pairs': pairs,
+                            'rocks': sorted(rocks_by_block[block], key=lambda r: (max(abs(r[0] - x), abs(r[1] - y)), abs(r[2])))})
+    return targets
+
+
+def choose(target, rng=random):
+    """A random rock of the block and a random place to stand within reach of it (the user, 2026-11-01: don't dig
+    from exactly the same spot every time). Rocks nearer the ground are a little more likely (the server must be
+    able to see them). Returns (rock, stand, the block's other rocks in random order to try next)."""
+    rocks = sorted({r for r, _ in target['pairs']})
+    weights = [1.0 / (1 + abs(r[2]) / 10) for r in rocks]
+    rock = rng.choices(rocks, weights)[0]
+    stand = rng.choice([st for r, st in target['pairs'] if r == rock])
+    others = [r for r in rocks if r != rock]
+    rng.shuffle(others)
+    return rock, stand, others
+
+
 def shovels(info):
     """Icepick's shovels, as serials."""
     pack = uo.call(info, 'GET', '/status')['backpack']['serial']
@@ -131,6 +228,13 @@ def main():
     if sys.argv[1] == 'where':
         i = nearest(points, s['x'], s['y'])
         print(f"Icepick at {s['x']},{s['y']}: waypoint {i} of {len(points)} {points[i]}")
+    elif sys.argv[1] == 'plan':
+        targets = plan(points)
+        for n, t in enumerate(targets):
+            rock, stand, _ = choose(t)
+            print(f"{n:3} block {t['block']} (waypoint {t['index']}): {len(t['pairs'])} rock/stand pairs;"
+                  f" this time rock {rock} from {stand}")
+        print(f'{len(targets)} ore blocks')
     elif sys.argv[1] == 'dig':
         x, y, z = (int(v) for v in sys.argv[2:5])
         why, ore, misses = dig(info, x, y, z, max_digs=int(sys.argv[5]) if len(sys.argv) > 5 else 40)

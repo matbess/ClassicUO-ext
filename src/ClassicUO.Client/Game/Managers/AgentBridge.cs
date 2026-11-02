@@ -557,7 +557,7 @@ namespace ClassicUO.Game.Managers
                 case "/name":
                     RequireMethod(method, "POST");
                     CheckNotHalted();
-                    CheckNoAlarm();
+                    CheckNoStaff(); // a single click only asks for a name: allowed while getting away (to check a rune)
 
                     return Name(GetSerials(query));
 
@@ -1891,12 +1891,37 @@ namespace ClassicUO.Game.Managers
                     _threat.Seen = now;
                 }
 
-                // nobody is getting the character away (the agent's script isn't running): hide where he stands
+                // nobody is getting the character away (the agent's script isn't running): hide where he stands,
+                // on his horse first if it's beside him (a riderless horse next to a hidden man gives him away)
                 if (!_evading && !_alarmStaff && now >= _nextAutoHide && !p.IsHidden && rules.Skills.Contains(HIDING))
                 {
-                    _nextAutoHide = now.AddSeconds(11);
-                    Log.Warn("Agent bridge guard: nobody is getting the character away; hiding");
-                    GameActions.UseSkill(HIDING);
+                    Mobile horse = null;
+
+                    if (p.FindItemByLayer(Layer.Mount) == null)
+                    {
+                        foreach (uint serial in rules.Mounts)
+                        {
+                            Mobile m = _world.Mobiles.Get(serial);
+
+                            if (m != null && !m.IsDestroyed && m.Distance <= REACH)
+                            {
+                                horse = m;
+                            }
+                        }
+                    }
+
+                    if (horse != null)
+                    {
+                        _nextAutoHide = now.AddSeconds(3);
+                        Log.Warn("Agent bridge guard: nobody is getting the character away; mounting to hide");
+                        GameActions.DoubleClick(_world, horse.Serial);
+                    }
+                    else
+                    {
+                        _nextAutoHide = now.AddSeconds(11);
+                        Log.Warn("Agent bridge guard: nobody is getting the character away; hiding");
+                        GameActions.UseSkill(HIDING);
+                    }
                 }
             }
 

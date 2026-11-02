@@ -4,6 +4,8 @@ Claude sorts the user's Ultima Online loot by playing one of their characters th
 into their ClassicUO (`src/ClassicUO.Client/Game/Managers/AgentBridge.cs`). This folder holds the tools Claude drives
 it with, the house's labels and chest map, and the procedure.
 
+**Mining** (Icepick and Burgers, from 2026-11-01): read `MINING.md` first; the loop is `mine.py`.
+
 **To sort loot, follow `skills/uo-sort/SKILL.md`.** It has the procedure, the safety rules, everything learned about
 the server, and the user's keep rules. It's installed as the user-level skill `uo-sort` through a symlink
 (`~/.claude/skills/uo-sort/SKILL.md` -> this repo's `tools/uo-agent/skills/uo-sort/SKILL.md`), so edit it here and
@@ -85,8 +87,9 @@ column 4, gold (loot gold goes to needs your decision); the gems chest is mostly
 
 ## Open items (2026-11-01)
 
-- **Mining, then smelting** are the user's next projects (Icepick is their miner/blacksmith). Icepick smelting at the
-  downstairs forge would need the bridge to allow a second area and crafting menus.
+- **Mining** is under way (MINING.md): the bridge now has per-character rules files (`rules/rules-<name>.json`,
+  copied into the client's Agent folder), several areas, trades, casting, Hiding, mounts and the guard. Sorting
+  scripts that call `uo.find_bridge(None)` need `--char Johnny` style selection when Icepick and Burgers are on too.
 - **Bridge fix for the next client build**: in `Move`, count any message from the drop target as an answer (the
   barrel's "The trash is full! Emptying!" is spoken by the barrel, not a system message, so it causes a false stop
   that the scripts resume with `uo.resume_after_barrel_emptied`).

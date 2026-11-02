@@ -15,7 +15,7 @@
   "mounts": [],
   // the guard stops work and the agent gets the character away and hides (the user, 2026-11-01); the bridge hides
   // him itself if nobody has started within hideAfter seconds
-  "guard": { "onAlarm": "hide", "hideAfter": 5, "talk": true, "loiter": [3, 10], "attack": true,
+  "guard": { "onAlarm": "hide", "hideAfter": 5, "talk": true, "loiter": [3, 3], "attack": true,
              "watchItems": ["0x406EDA8E", "0x406EBB72", "0x406EDA9E", "0x406EC754"],
              // the Ocllo bankers
              "npcs": ["0x0001EFC6", "0x0000D57D"] },

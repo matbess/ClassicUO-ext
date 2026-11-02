@@ -1,7 +1,22 @@
 # Mining with Icepick: the plan and the user's rules
 
-Started 2026-11-01. This is the next project after sorting (see AGENTS.md). Nothing here is built yet; this file
-records what the user asked for so any session can pick it up.
+Started 2026-11-01. This file records what the user asked for, what was tested and what was decided, so any session
+can pick it up. The newest decisions are near the bottom; where an earlier note disagrees, the later one wins.
+
+## Status (2026-11-01, end of the evening)
+
+- Built and tested: the bridge (installed build cuo-agent12), the rules files (`rules/rules-Icepick.json`,
+  `rules/rules-Burgers.json`, copied into the client's `Agent/` folder), the route (`routes/route1.jsonl`), the
+  planner (`mining.py plan`: 92 ore blocks), and the loop (`mine.py`). Tested in the game with the user watching:
+  digging, smelting, trades both ways, Recall, the bank trip, Gate Travel, Hiding, the horse, and the guard
+  (talk, loitering, getting away straight and past the stranger in the canyon, waiting until they've gone).
+- Not yet run: a whole pass top to bottom, the gate inside the loop, the tired-horse trick inside the loop, the
+  wait between passes, and anything unattended. Run the first whole pass with the user around.
+- How to run: `python3 mine.py --passes 1` (from where the last run stopped; `--from N --to M` for a stretch;
+  `--bank` for a bank trip only), as a background task. It logs to `~/claude/uo-agent-work/mining/mine.log` and
+  stops on anything that needs the user (staff, a stolen rune, a lost horse, a bridge gone). Before starting: both
+  characters logged in with the Agent bridge option ticked, Icepick near McGee, Burgers by the forge with his four
+  runes.
 
 ## The job
 
@@ -59,6 +74,9 @@ records what the user asked for so any session can pick it up.
   (to the forge, back to the route, getting away).
 - **The bank** (the user, 2026-11-01): Burgers' bank box holds a bag with 59 shovels (take shovels from it) and a bag
   for the ingots (put ingots into it). Serials still to be read on the next bank visit.
+- **Mount before hiding, always** (the user, 2026-11-01 21:37, with a screenshot of McGee standing next to a hidden
+  Icepick): a riderless horse gives the hidden rider away. Every hide in the loop goes through Miner.hide(), which
+  gets Icepick back on McGee first; the bridge's fallback hide mounts a horse from the rules first (cuo-agent12).
 - **Tired mount.** On this server a tired mount gets its stamina back like this: dismount, say "all follow me",
   wait a second, mount again (double-click the horse). The user has it on F4 as a macro.
 - **Small ore piles.** Sometimes a pile has too little ore to smelt. That's fine: leave it; it may combine with
@@ -74,7 +92,7 @@ records what the user asked for so any session can pick it up.
    stay away; change it later if needed). Town NPCs (vendors, guards, bankers) talk too: learn the local ones first
    and leave them out.
 2. **Loitering.** A player who stands near either character instead of walking or running past may be snooping or
-   stealing. Starting numbers: within 3 tiles for more than 10 seconds.
+   stealing: within 3 tiles for more than **3 seconds** (the user, 2026-11-01 21:36; first 10).
 3. **Missing rune.** Either of Burgers' runes disappears from his backpack: someone stole it.
 4. **Attack.** Anyone attacks either character. Also a trade window opened by anyone but the partner.
 
@@ -104,7 +122,7 @@ the second through Agent/alarm.json; neither client reconnected by itself.
 
 There are now a couple of other players on the server (2026-11-01), besides the user's brother.
 
-## What has to be built
+## What was built (first plan, kept for the record)
 
 - Bridge: rules per character (Icepick: the mountain range and the forge; Burgers: the forge spot and the bank),
   mining (use the pickaxe on a rock or mountain tile), smelting (use ore on the forge), trade (drop on a character,
@@ -173,3 +191,37 @@ files further: they apply at once, without a new build.
 - Every dig that finds ore adds 12 stones (one ore). Mixed iron, bronze and now and then golden.
 - **Digging strokes can be fast** (the user, 2026-11-01): only the other actions need the slow pace. Repeat digs on
   the same rock get a short gap from build cuo-agent11 on.
+- **Random spots** (the user, 2026-11-01: "don't always dig in the exact same spot"): mining.plan() lists, for each
+  of the 92 ore blocks along the route (in route order), every rock in the block inside the corridor and every
+  walkable place within reach of it (route waypoints, or a tile one step off one that the map shows walkable).
+  mining.choose() picks a random rock (rocks nearer the ground a little more often, so the server can see them)
+  and a random place to stand for each pass; the block's other rocks are tried if the server won't dig the first.
+
+## Loop decisions (the user, 2026-11-01 night)
+
+- **Small ore piles:** a small pile (0x19B7) holding 1 ore can't be smelted; the loop skips it, and combines two
+  small piles of the same metal (hue) first. Larger pile graphics smelt even with 1.
+- **Banking:** Burgers banks when he holds about 300 ingots (they weigh next to nothing: 80 ingots didn't change
+  his 143 stones), when he's down to fewer than 5 spare shovels, and at the end of every pass (waiting for 22 mana).
+- First loop test, blocks 69-72 by the forge (21:12-21:17): 24 ore, 4 misses, 2 forge visits, 80 ingots to Burgers,
+  Icepick topped up to 5 shovels; McGee fell behind once on a walk and the loop went back and rode; block 142,232
+  (emptied 20:58) was still empty at 21:15; one rock up the slope gave "Target cannot be seen" (another was tried).
+
+## Guard tests and changes (2026-11-01 21:20-21:40)
+
+- 21:24 and 21:27: Clem said "hi" next to Icepick; his guard tripped at once, Burgers' followed through the alarm
+  file, Icepick rode off and hid about 30 tiles away. The first version rode along the route and snagged once, so
+  (the user) **he now rides straight away from the person**, to an open walkable spot ~30 tiles off inside his
+  areas, trying the directions closest to straight away first. His rules got a "getting away" area: the open town
+  east of the mountain, x 1100-1215, y 1550-1897, minus the canyon past halfway. If "You have left the protection"
+  shows while running, he goes straight back and tries another direction.
+- **Canyon** (the user): with the stranger at the mouth, run back towards town past them (deeper in is off limits);
+  the direction search goes all the way round.
+- **Burgers gets away by recalling to the Mining Start rune** (his area is only the forge), hides there and recalls
+  back to the forge once the stranger has gone. Twice (21:29, 21:31, 21:34) Clem stood by the forge and Burgers
+  recalled away each time he came back: correct, but costly, so the wait doubles for the same person each time
+  (3, 6, 12 minutes). At start-up the loop recalls Burgers back to the forge if he isn't there.
+- **Check the rune before using it** (the user, after thinking Burgers used the wrong one; he hadn't: his get-away
+  goes to Mining Start on purpose): every recall and gate first single-clicks the rune and checks its name
+  ("Ocllo Bank", "Mining Start", "Mining Forge", "Mining gate location"); a mismatch makes the loop look for the
+  right rune by name, or stop. The bridge allows single clicks during an alarm from cuo-agent12 on.

@@ -10,8 +10,10 @@ This is the user's fork of ClassicUO (github.com/matbess/ClassicUO-ext). All of 
   The client lives in its Wine prefix at `drive_c/ClassicUO`, with Razor CE (`~/Games/Razor`); `Play.bat` starts several
   clients sharing one `settings.json`.
 - The server is a private one based on the UOSA (Second Age, T2A-era) server code, hosted elsewhere by someone who no
-  longer plays. The only other player is the user's brother, who cooperates. Shard automation rules don't apply; don't
-  raise them.
+  longer plays. Besides the user's brother (who cooperates) there are now a couple of other players (2026-11-01).
+  There's no moderation now, but the user wants to be safe if old rules come back: everything the agent does is
+  paced slower than a person would bother to be (see MINING.md, "Pacing"), and staff talking to a character makes
+  everything stop and stand still while the user is told.
 - `UOSecondAge.app` is the original UOSA launcher: leave it untouched. Game data files: `~/Games/UOSA-data`.
 - "Crashes" have turned out to be server-side disconnects before; check the macOS log (tcp_connection_summary) before
   assuming the client crashed. Razor.exe is IL-patched for a runebook gump crash; WINEDEBUG is `fixme-all`.
@@ -38,8 +40,9 @@ This is the user's fork of ClassicUO (github.com/matbess/ClassicUO-ext). All of 
 | Effect recorder for studying buff signals (logs to `Logs/Effects`); can be dropped once the tracker is settled | `record_effects` | `Network/EffectRecorder.cs` |
 | **Agent bridge**: a local HTTP API that lets an agent such as Claude see the game and act as one character | `agent_bridge` (Options > Experimental) | `Game/Managers/AgentBridge.cs`, hooks in `World.cs` and `Network/PacketHandlers.cs` |
 
-The agent bridge and its tools are how Claude sorts the user's loot. Everything about that lives in
-**`tools/uo-agent/AGENTS.md`**; start there for any sorting work.
+The agent bridge and its tools are how Claude sorts the user's loot (as Johnny) and mines (as Icepick, with
+Burgers banking). Everything about the bridge and sorting lives in **`tools/uo-agent/AGENTS.md`**; mining is in
+**`tools/uo-agent/MINING.md`** (the user's rules, the route, the guard, everything tested) and `mine.py`.
 
 ## Other tools in this repository
 
@@ -50,5 +53,5 @@ The agent bridge and its tools are how Claude sorts the user's loot. Everything 
 ## Building and installing
 
 See **`tools/build/README.md`**: `build.sh NAME`, `smoke.sh NAME`, `install.sh NAME BACKUP_NAME`. The installed build
-is the latest `cuo-agentN` in `~/claude/builds` (cuo-agent7 as of 2026-11-01); backups of every earlier install are in
+is the latest `cuo-agentN` in `~/claude/builds` (cuo-agent12 as of 2026-11-01 night); backups of every earlier install are in
 `~/Games/backups/classicuo-1.1.0.347-*`.
