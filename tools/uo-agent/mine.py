@@ -241,6 +241,15 @@ class Miner:
             return {'next': 0, 'emptied': {}, 'bags': {}}
 
     def save_state(self):
+        # incidents marked reviewed from the command line (mine.py --reviewed) while this loop runs stay reviewed
+        try:
+            with open(STATE, encoding='utf-8') as fh:
+                theirs = json.load(fh).get('reviewed') or []
+        except (OSError, ValueError):
+            theirs = []
+        if len(theirs) > len(self.state.get('reviewed') or []):
+            self.state['reviewed'] = theirs
+            self.state['unreviewed'] = [i for i in self.state.get('unreviewed', []) if i['time'] > theirs[-1]['time']]
         with open(STATE, 'w', encoding='utf-8') as fh:
             json.dump(self.state, fh, indent=1)
 
