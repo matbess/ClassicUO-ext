@@ -653,6 +653,11 @@ namespace ClassicUO.Game.Managers
                     CheckNotHalted();
                     CheckNoAlarm();
 
+                    if (GetInt(query, "ground", 0) == 1)
+                    {
+                        return DropAtFeet(GetSerial(query), GetInt(query, "amount", 0));
+                    }
+
                     return Move(GetSerial(query), GetSerial(query, "to"), GetInt(query, "x", 0xFFFF), GetInt(query, "y", 0xFFFF), GetInt(query, "amount", 0));
 
                 case "/equip":
@@ -1295,6 +1300,103 @@ namespace ClassicUO.Game.Managers
                             {
                                 w.WriteBoolean("mergedIntoStack", true);
                             }
+
+                            if (item != null)
+                            {
+                                w.WritePropertyName("item");
+                                WriteItem(w, item);
+                            }
+
+                            WriteMessagesSince(w, before, 0);
+                            w.WriteEndObject();
+                        }
+                    );
+                }
+            );
+        }
+
+        // puts a carried item (or part of a stack) down on the character's own tile; only kinds the rules list under
+        // "dropOnGround" (ore: a dig that overloads the miner leaves him too tired to ride, the user, 2026-11-02)
+        private byte[] DropAtFeet(uint serial, int amount)
+        {
+            Rules rules = RequireRules();
+            int x = 0, y = 0, z = 0;
+
+            long before = Lift
+            (
+                serial,
+                rules,
+                item =>
+                {
+                    if (!rules.DropOnGround.Contains(item.Graphic))
+                    {
+                        throw new BridgeException(403, "the rules don't allow putting that on the ground (dropOnGround)");
+                    }
+
+                    if (!IsCarried(item))
+                    {
+                        throw new BridgeException(403, "only something carried can be put down");
+                    }
+
+                    PlayerMobile p = _world.Player;
+
+                    if (!rules.Contains(_world.MapIndex, p.X, p.Y, p.Z))
+                    {
+                        throw new BridgeException(403, "the character is outside the agent's area");
+                    }
+
+                    (x, y, z) = (p.X, p.Y, p.Z);
+                },
+                amount
+            );
+
+            OnGame
+            (
+                () =>
+                {
+                    LogAction("drop on the ground", serial);
+                    GameActions.DropItem(serial, x, y, z, 0xFFFF_FFFF);
+
+                    return true;
+                }
+            );
+
+            PaceFromNow();
+
+            bool answered = WaitFor(() => _world.Items.Get(serial)?.OnGround ?? false, MOVE_TIMEOUT);
+            Thread.Sleep(SETTLE_TIME);
+
+            if (!answered && !OnGame(() => HasSystemMessageAfter(before)))
+            {
+                OnGame
+                (
+                    () =>
+                    {
+                        ReleaseHeldItem();
+
+                        return true;
+                    }
+                );
+
+                Halt($"no answer after putting {Hex(serial)} down");
+            }
+
+            return OnGame
+            (
+                () =>
+                {
+                    Item item = _world.Items.Get(serial);
+                    bool down = item != null && item.OnGround;
+
+                    ReleaseHeldItem();
+
+                    return Json
+                    (
+                        w =>
+                        {
+                            w.WriteStartObject();
+                            w.WriteBoolean("moved", down);
+                            w.WriteNumber("weight", _world.Player.Weight);
 
                             if (item != null)
                             {
@@ -4022,6 +4124,7 @@ namespace ClassicUO.Game.Managers
             public readonly HashSet<string> IgnorePeople = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             public readonly HashSet<string> Partners = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // the user's own characters: trades go only to them, and the guard ignores them
             public readonly HashSet<ushort> UseFromBackpack = new HashSet<ushort>(); // tools that may be used without holding them (scissors)
+            public readonly HashSet<ushort> DropOnGround = new HashSet<ushort>(); // carried kinds that may be put down at the character's feet (ore, when a dig overloads the miner)
             public readonly HashSet<string> Say = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // the only words the character may say ("bank")
             public readonly HashSet<int> Spells = new HashSet<int>(); // the only spells it may cast (32 is Recall)
             public readonly HashSet<int> Skills = new HashSet<int>(); // the only skills it may use (21 is Hiding)
@@ -4110,6 +4213,7 @@ namespace ClassicUO.Game.Managers
                 ReadNumbers(root, "offLimits", n => rules.OffLimits.Add(n));
                 ReadNumbers(root, "neverTouch", n => rules.NeverTouch.Add((ushort)n));
                 ReadNumbers(root, "useFromBackpack", n => rules.UseFromBackpack.Add((ushort)n));
+                ReadNumbers(root, "dropOnGround", n => rules.DropOnGround.Add((ushort)n));
                 ReadStrings(root, "ignorePeople", rules.IgnorePeople);
                 ReadStrings(root, "partners", rules.Partners);
                 ReadStrings(root, "say", rules.Say);
@@ -4282,6 +4386,7 @@ namespace ClassicUO.Game.Managers
                 WriteList(w, "ignorePeople", IgnorePeople, s => s);
                 WriteList(w, "partners", Partners, s => s);
                 WriteList(w, "useFromBackpack", UseFromBackpack, g => Hex(g));
+                WriteList(w, "dropOnGround", DropOnGround, g => Hex(g));
                 WriteList(w, "say", Say, s => s);
                 w.WriteStartArray("spells");
 

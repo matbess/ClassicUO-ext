@@ -5,7 +5,7 @@
     { "name": "forge", "box": [1142, 1851, 1153, 1863], "z": [-10, 20] }
   ],
   "pauseForPeople": false,
-  "partners": ["Icepick", "0x00040F4D"],
+  "partners": ["Icepick", "0x00040F4D", "Clem", "0x0004344A"],  // Clem: the user's own character (2026-11-02)
   "say": ["bank", "all follow me"],
   // 32 Recall, 52 Gate Travel
   "spells": [32, 52],

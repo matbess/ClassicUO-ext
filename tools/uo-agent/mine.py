@@ -32,8 +32,9 @@ LOG = os.path.join(WORK, 'mine.log')
 INCIDENTS = os.path.join(WORK, 'incidents.jsonl')
 STATE = os.path.join(WORK, 'state.json')
 
-HEAVY = 380                 # go to the forge only once the pack weighs more than this (the user, 2026-11-01): a dig
-                            # adds 12, so he digs at 380 or less and never goes past 392 (the user's limit is 393)
+HEAVY = 380                 # go to the forge only once the pack weighs more than this (the user, 2026-11-01)
+LIMIT = 393                 # never go past this (the user, 2026-11-02): over it every step tires Icepick out. A dig
+BIGGEST_DIG = 24            # usually adds 12 but can bring two ore, so he stops digging once the next dig could pass it
 SHOVELS_WANTED = 3          # Icepick carries this many (the user: 5 at first, then 2, then 3 after he ran out, 2026-11-02)
 BURGERS_SPARES = 20         # Burgers keeps this many in his pack, from the shovel bag in his bank (the user, 2026-11-01)
 BANK_AT_INGOTS = 300        # Burgers banks when he holds this many ingots (the user, 2026-11-01; ingots weigh
@@ -218,6 +219,7 @@ class Miner:
                       'bank trips': 0, 'gates': 0, 'incidents': 0}
         self.state = self.load_state()
         self.fatigue_seen = self.ice.status()['lastMessageId']
+        self.biggest_dig = BIGGEST_DIG
         self.runes = dict(mining.RUNES)   # checked by name at the start and before every use
 
     # ---- state ----
@@ -479,7 +481,25 @@ class Miner:
         if new:
             self.fatigue_seen = max(m['id'] for m in new)
         # "Your mount is very fatigued." (a warning) or "Your mount is too fatigued to move." (it has stopped)
-        if any('fatigued' in m['text'].lower() for m in new) and self.ice.status()['mounted']:
+        s = self.ice.status()
+        if s['stamina'] < s['staminaMax'] // 4:
+            # Icepick himself is worn out (overloaded, every step costs him stamina): the horse trick doesn't help;
+            # rest hidden on the horse until he's fresh
+            log(f"Icepick is worn out (stamina {s['stamina']}/{s['staminaMax']}, weight {s['weight']}/"
+                f"{s['weightMax']}); resting hidden until he's fresh")
+            self.hide(self.ice)
+            for _ in range(60):
+                self.check_guard()
+                time.sleep(5)
+                s = self.ice.status()
+                if s['stamina'] >= s['staminaMax']:
+                    break
+            # the horse's complaints from before the rest are old news
+            later = self.ice.call('GET', '/messages', after=self.fatigue_seen)['messages']
+            if later:
+                self.fatigue_seen = max(m['id'] for m in later)
+            return
+        if any('fatigued' in m['text'].lower() for m in new) and s['mounted']:
             log('McGee is tired: dismount, "all follow me", mount again')
             self.ice.call('POST', '/dismount')
             self.ice.call('POST', '/say', text='all follow me')
@@ -680,8 +700,11 @@ class Miner:
     def shovels(self):
         return [i['serial'] for i in self.ice.pack() if i.get('graphic') in mining.SHOVELS]
 
+    def too_heavy_to_dig(self, weight):
+        return weight > HEAVY or weight + self.biggest_dig > LIMIT
+
     def heavy(self):
-        return self.ice.status()['weight'] > HEAVY
+        return self.too_heavy_to_dig(self.ice.status()['weight'])
 
     def dig_block(self, n):
         t = self.targets[n]
@@ -729,6 +752,7 @@ class Miner:
         tools = self.shovels()
         first = True
         quiet = 0
+        before = self.ice.status()['weight']
         while True:
             if not tools:
                 return 'no shovels'
@@ -773,7 +797,22 @@ class Miner:
                 log(f'dig {x},{y}: {answers[0]}')
                 return 'refused'
             first = False
-            if r['weight'] > HEAVY:
+            weight = r['weight']
+            if 'you dig some' in low and weight <= before:
+                # the weight update can come a moment after the dig's answer; deciding on the old weight let one
+                # more dig take him to 404, overloaded, and every step then tired him out (2026-11-02 13:58)
+                for _ in range(10):
+                    time.sleep(0.2)
+                    weight = self.ice.status()['weight']
+                    if weight > before:
+                        break
+            if weight - before > self.biggest_dig:
+                self.biggest_dig = weight - before
+                log(f'a dig added {self.biggest_dig} stones; digging stops {self.biggest_dig} below {LIMIT} from now on')
+            before = weight
+            if weight > LIMIT:
+                log(f'over the weight limit: {weight}/{LIMIT}')
+            if self.too_heavy_to_dig(weight):
                 return 'heavy'
 
     # ---- the forge ----

@@ -309,3 +309,23 @@ files further: they apply at once, without a new build.
   find the save point before trusting the totals.
 - **The shovel bag ran out** (Burgers "took 0 shovels from the bank" at 03:56): about 59 shovels in a night, roughly
   one per forge trip. Burgers had 15 spares and Icepick 2 at 04:21; the user needs to restock the bank bag.
+- **Never over the weight limit** (the user, 2026-11-02 14:20). At 13:58 one more dig took Icepick to 404/390.
+  Overloaded, every step costs him stamina (7/46 after a few tiles). The horse trick doesn't help, and the ride
+  stalled 45 tiles short of the forge. The cause was the weight update arriving a moment after the dig's answer: the
+  loop decided on the old weight and dug once more. Now:
+  - After every "You dig some", the loop waits for the new weight.
+  - He stops digging once the next dig could pass **393** (a dig usually adds 12, but allow 24 for two ore; the
+    allowance grows if a bigger dig is ever seen). So forge trips start at about 370.
+  - If his own stamina is under a quarter on a ride, he hides on McGee until he's fresh, then rides on. That got
+    him from 404 to the forge in three legs.
+  - The user's rule for when he does go over: **drop an ore on the ground** at his feet and leave it (or pick it up
+    on coming back). The bridge can't put things on the ground yet: `/move?serial=&ground=1&amount=` with a
+    `dropOnGround` rule (ore graphics) is written in AgentBridge.cs for the next build, not built or installed (the
+    user can't install now). The loop's side (drop, note where, pick it up after the forge) is still to write.
+- **The new shovel bag** (the user, 2026-11-02 13:55): the loop had remembered the old empty bag's serial, so
+  `bags.shovels` was cleared from the state and the next bank trip found the new bag (Burgers took 20).
+- **Clem is a partner of Burgers** (2026-11-02): the user trades with Burgers as Clem; Clem standing by Burgers set off
+  the loiter guard and kept re-hiding him. Take Clem out of `rules-Burgers.json` if Clem is wanted as a test stranger.
+- **Guild tags look like speech**: twice (Ironhold 05:39, Nickie Deuxyeux 09:22) the talk alarm went off on a
+  player's guild tag ("[title, ABBR]"), which the server sends as ordinary speech. Ignoring that shape is offered to
+  the user, not done.
