@@ -65,18 +65,18 @@ Labels say "(col N, ROW)" with rows counted from the top.
 | top | swords | fencing | plate | jewellery | scrolls | GM armour sets |
 | 2nd | axes | archery | chain & ring + coifs | magic clothing | reagents | needs your decision |
 | 3rd | maces & staves | magic wands | leather + caps | spare + invulnerability shields | gold (spare) | supplies & ID wands |
-| bottom | polearms | spare | studded | helms | gems | plain gear |
+| bottom | polearms | bone armour | studded | helms | gems | plain gear |
 
 Every chest and every bag inside one is labelled in `labels.json`; `python3 layout.py` prints what each chest holds.
 Each bag has a marker item under it showing its kind (except GM set bags). Empty as of 2026-11-01: leather + caps
-and studded (they'll take invulnerability leather and studded, the only kind kept now), both spares, gold (loot gold
-goes to needs your decision); the gems chest is mostly free.
+and studded (they'll take invulnerability leather and studded, the only kind kept now), bone armour, the spare in
+column 4, gold (loot gold goes to needs your decision); the gems chest is mostly free.
 
 **Crates and the rest:**
 - Potion crates: a stack of six at 1758,1404 (z 26 up: heal, cure, refresh, agility, strength, poison) and
   explosion at 1758,1405. One mixed pile each (strengths are hidden).
 - By the door, a stack of six at 1758,1411: smelting 6 (bottom), 5, 1, 2, 3, 4 (top). They hold about 400 stones
-  each (not locked down), roughly 55-75 metal pieces.
+  each (not locked down; the user won't lock them, since the metal gets smelted soon), roughly 55-75 metal pieces.
 - Trash barrel at 1758,1410: deletes after 3 minutes, or at once on the 50th item.
 - New backpacks crate at 1763,1405: empty bags for sorting, and where emptied loot bags go.
 - Spares pouch for ID wands and staves inside the supplies chest (top left). 220 charges on 2026-11-01.
@@ -85,9 +85,6 @@ goes to needs your decision); the gems chest is mostly free.
 
 ## Open items (2026-11-01)
 
-- **Bone armour rule**: not settled. Proposed: treat it like plate (hardening and up; up to 2 per piece at guarding
-  or hardening; always keep daemon bone). Until the user answers, `plan.py` sends magic bone to needs your decision.
-- **Lock down the smelting crates?** The user may; locked down they'd hold 125 items each, with no weight limit.
 - **Mining, then smelting** are the user's next projects (Icepick is their miner/blacksmith). Icepick smelting at the
   downstairs forge would need the bridge to allow a second area and crafting menus.
 - **Bridge fix for the next client build**: in `Move`, count any message from the drop target as an answer (the

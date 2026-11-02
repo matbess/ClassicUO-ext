@@ -69,7 +69,8 @@ TYPE_BAG = {('plate', 'gloves'): ('plate gloves', 'plate'), ('plate', 'helm'): (
             ('chain', 'legs'): ('chain leggings', 'chain & ring')}
 MATERIAL_BAG = {'ring': ('ringmail', 'chain & ring'), 'chain': ('chain armour', 'chain & ring'),
                 'plate': ('plate armour', 'plate'), 'leather': ('leather armour', 'leather + caps'),
-                'studded': ('studded armour', 'studded'), 'shield': ('shields', 'spare + invulnerability shields')}
+                'studded': ('studded armour', 'studded'), 'shield': ('shields', 'spare + invulnerability shields'),
+                'bone': ('bone armour', 'bone armour')}
 PLAIN_BAG = {'plate': ('plate (defense)', 'plain gear'), 'chain': ('chain & ring (defense)', 'plain gear'),
              'ring': ('chain & ring (defense)', 'plain gear')}
 GM_CHEST = {'plate': 'plate', 'chain': 'chain & ring', 'ring': 'chain & ring', 'leather': 'leather + caps',
@@ -167,10 +168,10 @@ def decide(item, name):
         return ('trash' if t in WOOD else 'smelt'), 'weapon'
     if m:
         p = level(n, PROTECTION)
-        if m == 'bone':  # no bone rule yet (proposed: like plate); rare daemon bone is almost surely a keeper
-            if 'daemon' in t or p >= 0:
-                return 'decide', 'bone armour: the user has not settled a rule yet'
-            return 'trash', 'plain bone armour'
+        if m == 'bone':  # only really good bone: like plate's keepers (the user, 2026-11-01); can't be smelted or cut
+            if 'daemon' in t or p >= PROTECTION.index('hardening'):
+                return 'keep', ('armour', m)
+            return 'trash', 'bone below hardening'
         if p < 0:
             if ' of ' in n:
                 return 'decide', 'armour with a property the rules do not cover'
