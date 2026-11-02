@@ -51,6 +51,9 @@ namespace ClassicUO.Game.Managers
         private const int MOUNT_TIMEOUT = 3000;
         private const int HIDING = 21;
         private const int REPEAT_WINDOW = 15000; // a stroke counts as a repeat within this long of the last one
+        private const int TRAVEL_TIMEOUT = 180000;  // the longest ride /travel will make
+        private const int TRAVEL_STUCK = 6000;      // no progress for this long ends a ride
+        private const int TRAVEL_HANDOVER = 3;      // tiles before a stretch's end where the next one starts
         private const int GAME_THREAD_TIMEOUT = 5000;
         private const int POLL_INTERVAL = 50;
         private const int OPEN_TIMEOUT = 3000;
@@ -620,6 +623,13 @@ namespace ClassicUO.Game.Managers
 
                     return Walk(query);
 
+                case "/travel":
+                    RequireMethod(method, "POST");
+                    CheckNotHalted();
+                    CheckNoAlarm();
+
+                    return Travel(query.TryGetValue("path", out string pathText) ? pathText : "");
+
                 case "/move":
                     RequireMethod(method, "POST");
                     CheckNotHalted();
@@ -1003,6 +1013,194 @@ namespace ClassicUO.Game.Managers
                         w.WriteNumber("y", p.Y);
                         w.WriteNumber("z", p.Z);
                         w.WriteNumber("tilesLeft", left);
+                        w.WriteEndObject();
+                    }
+                )
+            );
+        }
+
+        // rides a path planned in advance ("x,y;x,y;..." waypoints, each a stretch the client's path finder can see)
+        // in one go: the next stretch starts a few tiles before the current one ends, so he keeps moving. Stops when
+        // an alarm goes off, a step leaves the agent's areas, or he makes no progress. The whole ride is one action.
+        private byte[] Travel(string pathText)
+        {
+            Rules rules = RequireRules();
+            var points = new List<(int X, int Y)>();
+
+            foreach (string pair in pathText.Split(';', StringSplitOptions.RemoveEmptyEntries))
+            {
+                string[] xy = pair.Split(',');
+
+                if (xy.Length != 2 || !int.TryParse(xy[0], out int px) || !int.TryParse(xy[1], out int py))
+                {
+                    throw new BridgeException(400, $"not a waypoint: {pair}");
+                }
+
+                points.Add((px, py));
+            }
+
+            if (points.Count == 0 || points.Count > 200)
+            {
+                throw new BridgeException(400, "give 1 to 200 waypoints as path=x,y;x,y;...");
+            }
+
+            OnGame
+            (
+                () =>
+                {
+                    foreach ((int px, int py) in points)
+                    {
+                        if (!rules.Contains(_world.MapIndex, px, py, _world.Player.Z))
+                        {
+                            throw new BridgeException(403, $"waypoint {px},{py} is outside the agent's area");
+                        }
+                    }
+
+                    return true;
+                }
+            );
+
+            WaitForActionSlot("travel");
+
+            int next = 0;
+            bool leftArea = false;
+            string stopped = null;
+            DateTime end = DateTime.UtcNow.AddMilliseconds(TRAVEL_TIMEOUT);
+            DateTime lastProgress = DateTime.UtcNow;
+            int best = int.MaxValue;
+            bool walking = false;
+
+            while (stopped == null)
+            {
+                if (_alarm != null)
+                {
+                    stopped = "alarm";
+
+                    break;
+                }
+
+                (int x, int y, bool auto, bool outside, bool started) = OnGame
+                (
+                    () =>
+                    {
+                        PlayerMobile p = _world.Player;
+                        bool isOutside = !rules.Contains(_world.MapIndex, p.X, p.Y, p.Z);
+                        bool start = false;
+
+                        if (isOutside)
+                        {
+                            p.Pathfinder.StopAutoWalk();
+                        }
+                        else if (next < points.Count)
+                        {
+                            int left = Math.Max(Math.Abs(p.X - points[next].X), Math.Abs(p.Y - points[next].Y));
+
+                            // close to this stretch's end (or it ended): hand over to the next one
+                            if (!walking || left <= TRAVEL_HANDOVER || !p.Pathfinder.AutoWalking)
+                            {
+                                int target = walking ? next + 1 : next;
+
+                                while (target < points.Count && !p.Pathfinder.WalkTo(points[target].X, points[target].Y, p.Z, target == points.Count - 1 ? 1 : 2))
+                                {
+                                    target++; // no way to that one from here: try the one after
+                                }
+
+                                if (target < points.Count)
+                                {
+                                    next = target;
+                                    start = true;
+                                }
+                            }
+                        }
+
+                        return (p.X, p.Y, p.Pathfinder.AutoWalking, isOutside, start);
+                    }
+                );
+
+                if (started)
+                {
+                    walking = true;
+                }
+
+                if (outside)
+                {
+                    leftArea = true;
+                    stopped = "left the area";
+
+                    break;
+                }
+
+                (int lastX, int lastY) = points[points.Count - 1];
+                int toEnd = Math.Max(Math.Abs(x - lastX), Math.Abs(y - lastY));
+
+                if (toEnd <= 1 && !auto)
+                {
+                    break;
+                }
+
+                if (toEnd < best)
+                {
+                    best = toEnd;
+                    lastProgress = DateTime.UtcNow;
+                }
+                else if ((DateTime.UtcNow - lastProgress).TotalMilliseconds > TRAVEL_STUCK)
+                {
+                    stopped = "no progress";
+
+                    break;
+                }
+
+                if (DateTime.UtcNow > end)
+                {
+                    stopped = "took too long";
+
+                    break;
+                }
+
+                Thread.Sleep(POLL_INTERVAL * 2);
+            }
+
+            if (stopped != null)
+            {
+                OnGame
+                (
+                    () =>
+                    {
+                        _world.Player.Pathfinder.StopAutoWalk();
+
+                        return true;
+                    }
+                );
+            }
+
+            PaceFromNow();
+
+            return OnGame
+            (
+                () => Json
+                (
+                    w =>
+                    {
+                        PlayerMobile p = _world.Player;
+                        (int lastX, int lastY) = points[points.Count - 1];
+
+                        w.WriteStartObject();
+                        w.WriteBoolean("arrived", Math.Max(Math.Abs(p.X - lastX), Math.Abs(p.Y - lastY)) <= 1);
+                        w.WriteNumber("x", p.X);
+                        w.WriteNumber("y", p.Y);
+                        w.WriteNumber("z", p.Z);
+                        w.WriteNumber("reached", next);
+
+                        if (stopped != null)
+                        {
+                            w.WriteString("stopped", stopped);
+                        }
+
+                        if (leftArea)
+                        {
+                            w.WriteBoolean("leftArea", true);
+                        }
+
                         w.WriteEndObject();
                     }
                 )
