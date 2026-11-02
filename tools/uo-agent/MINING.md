@@ -329,3 +329,14 @@ files further: they apply at once, without a new build.
 - **Guild tags look like speech**: twice (Ironhold 05:39, Nickie Deuxyeux 09:22) the talk alarm went off on a
   player's guild tag ("[title, ABBR]"), which the server sends as ordinary speech. Ignoring that shape is offered to
   the user, not done.
+- **Burgers stays hidden on an alarm** (the user, 2026-11-02 14:43): a Recall shows him, so when the alarm is his own
+  and he's hidden he stays put and waits it out. He recalls away (to the Mining Start rune, then back) only if he's in
+  plain sight when it starts, or is revealed while waiting (detect hidden, say). Icepick hides where he is meanwhile.
+- **Guild tags are not speech** (the user, 2026-11-02): an alarm whose reason is only `said "[...]"` is cleared at
+  once and not counted. Someone standing close still sets off the loiter alarm. The bridge source now ignores them
+  too (for the next build).
+- **Burgers waits 10 tiles from the forge** (the user, 2026-11-02: people use the forge), at **1140,1849** on the grass
+  at the foot of the mountain (his rules area is now [1136, 1844, 1153, 1863]). The forge rune still lands him by the
+  forge, so after every Recall back he walks there and hides. Icepick smelts at the forge, then rides up to
+  1141,1850 for the trade and the gate; Burgers steps beside him to show himself and goes back to his spot after.
+  Through the middle gate Icepick comes out at Burgers' spot and rides on to the forge.

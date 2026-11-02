@@ -2494,6 +2494,15 @@ namespace ClassicUO.Game.Managers
                         return;
                 }
 
+                // a guild tag ("[title, ABBR]") comes after the name when a player is single-clicked, as ordinary
+                // speech: not someone talking (the user, 2026-11-02, after two false alarms)
+                string text = e.Text ?? "";
+
+                if (text.Length > 1 && text[0] == '[' && text[text.Length - 1] == ']' && e.Type != MessageType.GmChat && !IsStaff(m))
+                {
+                    return;
+                }
+
                 if (g.Talk)
                 {
                     Alarm($"{Describe(m, m.Serial)} said \"{e.Text}\"", m, m.Serial, true, IsStaff(m) || e.Type == MessageType.GmChat);

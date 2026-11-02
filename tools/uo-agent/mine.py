@@ -20,6 +20,7 @@ import argparse
 import json
 import os
 import random
+import re
 import sys
 import time
 
@@ -57,8 +58,11 @@ START = (1130, 1544)        # where the "Mining Start" rune leads (the top of th
 GATE_ENDS = {'gate': GATE, 'start': START}
 MANA_WAIT = 240             # seconds to wait for Burgers' mana for a gate before riding instead
 GATE_SAVES = 40             # use the gate only if it saves at least this many waypoints of riding
-BURGERS_HIDE_SPOT = (1147, 1856)
-BURGERS_TRADE_SPOT = (1148, 1856)
+BURGERS_WAIT = (1140, 1849)  # where Burgers waits hidden: grass at the foot of the mountain 10 tiles from the forge,
+                             # which other players use too (the user, 2026-11-02); trades and gates happen here
+ICE_MEET = (1141, 1850)      # where Icepick comes up next to him
+NEXT_TO = ((1, 1), (0, 1), (1, 0), (-1, 1), (1, -1), (0, -1), (-1, 0), (-1, -1))
+GUILD_TAG = re.compile(r'said "\[[^"\]]*\]"$')  # a player's guild tag ("[title, ABBR]"): the server sends it like speech
 HIDING = 21
 RECALL, GATE_TRAVEL = 32, 52
 # what each rune's single-click name must say (the user, 2026-11-01: always check the rune before using it)
@@ -219,6 +223,7 @@ class Miner:
         self.gate_index = mining.nearest(self.points, *GATE)
         self.watch = {}          # serial -> until (time) for strangers seen in an incident
         self.repeats = {}        # serial -> how many incidents in a row with them (each doubles the wait)
+        self.burgers_away = False  # Burgers recalled away during an alarm (only when he was seen)
         self.stats = {'ore': 0, 'misses': 0, 'blocks': 0, 'empty': 0, 'forge visits': 0, 'ingots': 0,
                       'bank trips': 0, 'gates': 0, 'incidents': 0}
         self.state = self.load_state()
@@ -284,6 +289,14 @@ class Miner:
     def handle_alarm(self, why):
         si, sb = self.ice.status(), self.bur.status()
         ai, ab = (si.get('guard') or {}).get('alarm'), (sb.get('guard') or {}).get('alarm')
+        reasons = [a['reason'] for a in (ai, ab) if a]
+        if reasons and all(GUILD_TAG.search(r) and not a.get('staff') for r, a in zip(reasons, [a for a in (ai, ab) if a])):
+            # the guard took a guild tag over someone's name for speech (the user, 2026-11-02: ignore those); someone
+            # standing close still sets off the loiter alarm
+            log(f'(a guild tag, not speech; carrying on: {reasons[-1]})')
+            for c in (self.ice, self.bur):
+                c.call('POST', '/guard', on=1)
+            return
         log(f'ALARM {why}')
         staff = any(a and a.get('staff') for a in (ai, ab))
         if staff:
@@ -309,9 +322,14 @@ class Miner:
             self.repeats[serial] = self.repeats.get(serial, 0) + 1 if serial in self.watch else 1
             self.watch[serial] = time.time() + WATCH_AFTER
 
-        burgers_away = False
+        self.burgers_away = False
         if own_bur and not own_ice:
-            burgers_away = self.burgers_get_away()
+            # hidden, he stays where he is and waits it out: a Recall would show him (the user, 2026-11-02); he goes
+            # only if he's in plain sight (or is revealed while waiting, see wait_until_gone)
+            if sb['hidden']:
+                log('Burgers is hidden: he stays put and waits it out')
+            else:
+                self.burgers_away = self.burgers_get_away()
             self.hide(self.ice)
         elif own_ice:
             waiting_hidden = si['hidden'] and ai and 'stood within' in ai['reason']
@@ -319,8 +337,9 @@ class Miner:
                 self.icepick_get_away(threat)
             self.hide(self.bur)
         self.wait_until_gone(threat, GONE_AFTER * 2 ** (self.repeats.get(serial, 1) - 1))
-        if burgers_away:
+        if self.burgers_away:
             self.burgers_back()
+            self.burgers_away = False
         # clear the alarms, and make sure the runes are all still there
         for c in (self.ice, self.bur):
             c.call('POST', '/guard', on=1)
@@ -412,7 +431,36 @@ class Miner:
         while self.bur.status()['mana'] < 11:
             time.sleep(15)
         self.recall('forge')
+        self.burgers_to_wait()
+
+    def burgers_to_wait(self):
+        """Burgers to his waiting spot (the forge rune lands him by the forge), and hidden."""
+        b = self.bur.status()
+        if (b['x'], b['y']) != BURGERS_WAIT:
+            self.bur.walk(*BURGERS_WAIT, 0)
         self.hide(self.bur)
+
+    def to_burgers(self):
+        """Icepick up next to Burgers, for a trade or a gate."""
+        b = self.bur.status()
+        s = self.ice.status()
+        if cheb((s['x'], s['y']), (b['x'], b['y'])) <= 1 and (s['x'], s['y']) != (b['x'], b['y']):
+            return
+        spot = ICE_MEET if cheb(ICE_MEET, (b['x'], b['y'])) == 1 else next(
+            (b['x'] + dx, b['y'] + dy) for dx, dy in NEXT_TO if mining.walkable(b['x'] + dx, b['y'] + dy))
+        self.travel(spot)
+        self.ice.walk(*spot, 0)
+
+    def step_aside(self, c, avoid):
+        """One step for Burgers to a free tile next to him (off a gate, or to show himself for a trade)."""
+        s = c.status()
+        here = (s['x'], s['y'])
+        for dx, dy in NEXT_TO:
+            sp = (here[0] + dx, here[1] + dy)
+            if sp not in avoid and mining.walkable(*sp) and all(cheb(sp, a) <= 2 for a in avoid[:1]):
+                c.walk(*sp, 0)
+                return sp
+        return None
 
     def wait_until_gone(self, threat, gone_after=GONE_AFTER):
         log(f"waiting until {(threat or {}).get('name') or 'the stranger'} has been out of sight for {gone_after // 60} minutes")
@@ -432,7 +480,12 @@ class Miner:
                         if m['serial'] == serial:
                             seen = True
                 if not s['hidden']:
-                    self.hide(c, tries=1)
+                    if c is self.bur and not self.burgers_away and cheb((s['x'], s['y']), BURGERS_WAIT) <= 15:
+                        # revealed while waiting it out (detect hidden, say): now he goes
+                        log('Burgers has been revealed; he recalls away')
+                        self.burgers_away = self.burgers_get_away()
+                    else:
+                        self.hide(c, tries=1)
             if seen:
                 last_seen = time.time()
             if time.time() - last_seen >= gone_after:
@@ -620,7 +673,7 @@ class Miner:
                 return False
             self.check_guard()
             time.sleep(10)
-        self.travel(mining.FORGE_SPOT)
+        self.to_burgers()
         b = self.bur.status()
         gate_tile = (b['x'], b['y'])
         r = None
@@ -640,9 +693,8 @@ class Miner:
             return False
         self.stats['gates'] += 1
         # off the gate (it opens on his own tile), so Icepick can come through
-        off = next(sp for sp in (BURGERS_TRADE_SPOT, (1148, 1855), (1146, 1856), BURGERS_HIDE_SPOT)
-                   if sp != gate_tile and sp != mining.FORGE_SPOT)
-        self.bur.walk(*off, 0)
+        s = self.ice.status()
+        self.step_aside(self.bur, [(s['x'], s['y']), gate_tile])
         self.ice.walk(gate_tile[0], gate_tile[1], 0)
         # the jump through the gate lands a moment after the step onto it
         for _ in range(8):
@@ -664,7 +716,6 @@ class Miner:
         s = self.ice.status()
         if cheb((s['x'], s['y']), START) <= 4:
             return
-        self.travel(mining.FORGE_SPOT)
         if not self.gate_to('start'):
             self.travel(START)
 
@@ -688,7 +739,7 @@ class Miner:
             return
         if cheb(here, spot) > 15:
             # a long way (back from the forge, say): through a gate to the nearer end if Burgers can, else ride
-            if cheb(here, mining.FORGE_SPOT) <= 3:
+            if cheb(here, mining.FORGE_SPOT) <= 3 or cheb(here, BURGERS_WAIT) <= 3:
                 # the gate end nearest the spot on the map (the route winds too much to compare along it)
                 end = min(GATE_ENDS, key=lambda e: cheb(GATE_ENDS[e], spot))
                 b = self.bur.status()
@@ -906,18 +957,18 @@ class Miner:
         self.stats['gates'] += 1
         # off the gate (it opens on his own tile), so Icepick can come through
         b = self.bur.status()
-        off = next(sp for sp in (BURGERS_TRADE_SPOT, (1148, 1855), (1146, 1856), BURGERS_HIDE_SPOT)
-                   if sp != (b['x'], b['y']) and sp != mining.FORGE_SPOT)
-        self.bur.walk(*off, 0)
+        gate_tile = (b['x'], b['y'])
+        self.step_aside(self.bur, [gate_tile])
         self.ice.walk(*GATE, 0)
         for _ in range(8):
             s = self.ice.status()
-            if cheb((s['x'], s['y']), mining.FORGE_SPOT) <= 3:
+            if cheb((s['x'], s['y']), gate_tile) <= 3:
                 break
             time.sleep(0.5)
-        if cheb((s['x'], s['y']), mining.FORGE_SPOT) > 3:
+        self.hide(self.bur)
+        if cheb((s['x'], s['y']), gate_tile) > 3:
             log('didn\'t go through the gate; riding instead')
-            self.travel(mining.FORGE_SPOT)
+        self.travel(mining.FORGE_SPOT)
         self.ice.walk(*mining.FORGE_SPOT, 0)
 
     FORGE_AT = (1148, 1859)  # the forge item itself; smelting works from within 2 tiles
@@ -1017,16 +1068,15 @@ class Miner:
         spares = [i['serial'] for i in self.bur.pack() if i.get('graphic') in mining.SHOVELS][:need]
         if not bars and not spares:
             return
+        # Icepick rides up to Burgers' spot, away from the forge (the user, 2026-11-02)
+        self.to_burgers()
         # Burgers shows himself with one step next to Icepick, never onto a gate that may still be open
         b = self.bur.status()
         if b['hidden']:
-            gates = {(i['x'], i['y']) for i in self.bur.call('GET', '/nearby', range=4)['items']
-                     if 'moongate' in (i.get('type') or '')}
+            gates = [(i['x'], i['y']) for i in self.bur.call('GET', '/nearby', range=4)['items']
+                     if 'moongate' in (i.get('type') or '')]
             ice = self.ice.status()
-            spot = next(sp for sp in (BURGERS_TRADE_SPOT, BURGERS_HIDE_SPOT, (1146, 1856), (1148, 1857), (1146, 1857))
-                        if sp != (b['x'], b['y']) and sp not in gates and sp != (ice['x'], ice['y'])
-                        and cheb(sp, (ice['x'], ice['y'])) <= 2)
-            self.bur.walk(*spot, 0)
+            self.step_aside(self.bur, [(ice['x'], ice['y'])] + gates)
         # Icepick's client must see Burgers again, by name, before he can hand him anything
         bur_serial = self.bur.status()['serial']
         for _ in range(10):
@@ -1055,6 +1105,9 @@ class Miner:
         log(f'handed Burgers {n} ingots ({iron} iron)' + (f' and {len(extra)} small ore piles' if extra else '')
             + f"; gave Icepick {len(spares)} shovels. Total: {totals['ingots']} ingots, {totals['iron']} iron."
             + f" Run and hide: {len(self.state.get('unreviewed', []))} to review")
+        ice = self.ice.status()
+        if (ice['x'], ice['y']) != BURGERS_WAIT:
+            self.bur.walk(*BURGERS_WAIT, 0)
         self.hide(self.bur)
 
     def burgers_should_bank(self, end_of_pass=False, where=None):
@@ -1160,6 +1213,7 @@ class Miner:
             r = self.recall('forge')
             if not r['moved']:
                 raise Stop(f"Burgers' Recall back to the forge didn't work: {[m['text'] for m in r['messages']][-2:]}")
+            self.bur.walk(*BURGERS_WAIT, 0)
         finally:
             burgers_rules(bank=False)
             self.bur.call('POST', '/guard', on=1)
@@ -1205,11 +1259,11 @@ class Miner:
         for key in RUNE_NAMES:
             self.rune(key)
         log('runes checked: ' + ', '.join(f'{k} {v}' for k, v in self.runes.items()))
-        # Burgers belongs by the forge (an earlier run may have stopped while he was away)
-        if cheb((sb['x'], sb['y']), BURGERS_HIDE_SPOT) > 5:
+        # Burgers belongs at his spot by the forge (an earlier run may have stopped while he was away)
+        if cheb((sb['x'], sb['y']), BURGERS_WAIT) > 15:
             log(f"Burgers is at {sb['x']},{sb['y']}, not by the forge; recalling him back")
             self.burgers_back()
-        self.hide(self.bur)
+        self.burgers_to_wait()
 
     def run(self):
         os.makedirs(WORK, exist_ok=True)
