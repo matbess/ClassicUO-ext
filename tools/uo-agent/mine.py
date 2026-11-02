@@ -94,6 +94,10 @@ class Again(Exception):
     """A world save interrupted a step; run it again from the current state."""
 
 
+class NoWay(Exception):
+    """The client's path finder found no way to a spot to dig from (2026-11-02 14:29: "409: no path to there")."""
+
+
 class Fizzled(Exception):
     """A spell fizzled (the bridge before cuo-agent14 stops on it; the loop resumes it)."""
 
@@ -672,7 +676,7 @@ class Miner:
             return
         self.check_mount_fatigue()
         if not s['mounted'] and cheb(here, spot) <= FOOT_HOP:
-            r = self.ice.walk(spot[0], spot[1], 0)
+            self.walk_to(spot)
             h = self.mcgee()
             if h and h['distance'] > 2:
                 time.sleep(3)  # give him time to catch up (the user, 2026-11-01: 3 seconds; 5 was more than needed)
@@ -680,7 +684,7 @@ class Miner:
             if not h or h['distance'] > MCGEE_NEAR:
                 log('McGee fell behind; going back for him')
                 self.mount()
-                r = self.ice.walk(spot[0], spot[1], 0)
+                self.walk_to(spot)
             return
         if cheb(here, spot) > 15:
             # a long way (back from the forge, say): through a gate to the nearer end if Burgers can, else ride
@@ -693,7 +697,27 @@ class Miner:
             self.travel(spot)
         else:
             self.mount()
-        self.ice.walk(spot[0], spot[1], 0)
+        self.walk_to(spot)
+
+    def walk_to(self, spot):
+        try:
+            return self.ice.walk(spot[0], spot[1], 0)
+        except uo.BridgeError as e:
+            if e.code == 409 and 'no path' in e.message:
+                raise NoWay(spot)
+            raise
+
+    def go_to_any(self, t, rocks):
+        """The chosen spot can't be reached: try the block's other spots, nearest first. Returns the spot, or None."""
+        s = self.ice.status()
+        stands = sorted({st for r, st in t['pairs'] if r in rocks}, key=lambda st: cheb(st, (s['x'], s['y'])))
+        for st in stands[:4]:
+            try:
+                self.go_to(st)
+                return st
+            except NoWay:
+                continue
+        return None
 
     # ---- digging ----
 
@@ -714,7 +738,12 @@ class Miner:
             self.forge_visit('no shovels')
         rock, stand, others = mining.choose(t)
         rocks = [rock] + others
-        self.go_to(stand)
+        try:
+            self.go_to(stand)
+        except NoWay:
+            if self.go_to_any(t, rocks) is None:
+                log(f'block {t["block"]}: no way to any spot to dig it from; moving on')
+                return
         self.dismount()
         tried = 0
         for rock in rocks:
@@ -724,7 +753,10 @@ class Miner:
                 stands = [st for r, st in t['pairs'] if r == rock]
                 if not stands:
                     continue
-                self.go_to(min(stands, key=lambda st: cheb(st, (s['x'], s['y']))))
+                try:
+                    self.go_to(min(stands, key=lambda st: cheb(st, (s['x'], s['y']))))
+                except NoWay:
+                    continue
                 self.dismount()
             why = self.dig_rock(rock)
             tried += 1
