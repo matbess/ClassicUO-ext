@@ -1112,6 +1112,14 @@ class Miner:
 
     def preflight(self):
         burgers_rules(bank=False)  # in case a run stopped in the middle of a bank trip
+        # after a login (a server reboot, say) the client knows nothing inside bags until they're opened
+        for c in (self.ice, self.bur):
+            pack = c.status()['backpack']
+            if not pack.get('knownItems'):
+                c.call('POST', '/open', serial=pack['serial'])
+        for item in self.bur.pack():
+            if item.get('container') and not item.get('knownItems'):
+                self.bur.call('POST', '/open', serial=item['serial'])  # his reagent pouch
         si, sb = self.ice.status(), self.bur.status()
         log(f"Icepick at {si['x']},{si['y']} weight {si['weight']}/{si['weightMax']}, {len(self.shovels())} shovels; "
             f"Burgers at {sb['x']},{sb['y']} mana {sb['mana']}/{sb['manaMax']}, {self.burgers_spares()} spare shovels")
