@@ -1,0 +1,5 @@
+#!/bin/bash
+# Run the Wine 10 that ships inside the Sikarugir ClassicUO-Wine10 wrapper.
+A="$HOME/Applications/Sikarugir/ClassicUO-Wine10.app/Contents"
+export DYLD_FALLBACK_LIBRARY_PATH="$A/Frameworks:$A/SharedSupport/wine/lib:/usr/lib"
+exec "$A/SharedSupport/wine/bin/wine" "$@"

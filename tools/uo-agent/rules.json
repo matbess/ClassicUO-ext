@@ -1,0 +1,21 @@
+{
+  // where the agent may work: the chest room on the second floor of the house
+  "map": 0,
+  "area": [1758, 1402, 1763, 1412],
+  "z": [26, 45],
+
+  // containers the agent must leave alone
+  "offLimits": [],
+
+  // cut cloth on the floor is decoration
+  "neverTouch": ["0x1766", "0x1767"],
+
+  // tools that may be used from the backpack without holding them: scissors (both facings)
+  "useFromBackpack": ["0x0F9E", "0x0F9F"],
+
+  // characters that don't pause the agent when they're in the room
+  "ignorePeople": [],
+
+  // milliseconds: a random gap between actions, and a longer break after every few
+  "pacing": { "gap": [1500, 2000], "burst": 5, "break": [3000, 5000] }
+}

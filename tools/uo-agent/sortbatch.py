@@ -17,7 +17,7 @@ SPEC says where the gear goes (decided per batch from the keep rules in the uo-s
   scroll_markers: {"circle": serial, ...}                          markers for circles that have none yet
   learn_first:    [chest label part, ...]                          chests to open first, so the bags inside are known
 
-Stackables are sorted without being listed: reagents, gems (inside the gem bag) and gold merge onto their piles; scrolls go into their
+Stackables are sorted without being listed: reagents and gems (inside the gem bag) merge onto their piles; scrolls go into their
 circle's bag at the spell's place; potions go into their crate; empty bottles and cut leather or cloth go to supplies;
 gold goes to needs your decision and iron ore to smelting (both left in loot bags by accident); hides are cut into
 leather.
@@ -324,9 +324,15 @@ def main():
         say(f"{names.get(serial, inv[serial]['type'])} -> {labels().get(c)}")
 
     # ---- GM armour sets: one bag per set, no markers; each piece fills the first set missing it ----
+    # Only GM ("exceptional") pieces count, so a GM piece replaces a plain stand-in (sets 2 and 3 have plain
+    # gorgets); the plain piece it replaces goes to smelting.
     if plan.get('sets'):
         c = chest('GM armour sets')
-        sets = [[b, {set_piece(i) for i in learn(b['serial'])}]
+
+        def gm(serial):
+            return 'exceptional' in names.get(serial, '')
+
+        sets = [[b, {set_piece(i) for i in learn(b['serial']) if gm(i['serial'])}]
                 for b in sorted((i for i in learn(c) if i.get('container')), key=lambda i: (i['y'], i['x']))]
         missing = [s for s in plan['sets'] if not set_piece(inv[s])]
         if missing:
@@ -346,13 +352,21 @@ def main():
             uo.save_label(bag['serial'], f'bag: GM set {len(sets) + 1} (GM armour sets chest)')
             say(f'new set bag {len(sets) + 1} in the GM chest')
             sets.append([bag, set()])
+        replaced = []
         for serial in plan['sets']:
             kind = set_piece(inv[serial])
             bag, kinds = next(s for s in sets if kind not in s[1])
+            for i in CONTENTS[bag['serial']]:
+                if set_piece(i) == kind and not gm(i['serial']) and i['serial'] not in replaced:
+                    replaced.append(i['serial'])
+                    inv[i['serial']] = i
             x, y = free_spot(bag['serial'], inv[serial]['art'])
             put(inv[serial], bag['serial'], x, y)
             kinds.add(kind)
             say(f"{names.get(serial, inv[serial]['type'])} -> {labels().get(bag['serial'], bag['serial'])}")
+        if replaced:
+            say('plain pieces replaced by GM ones go to smelting: ' + ', '.join(names.get(r, inv[r]['type']) for r in replaced))
+            deliver(replaced, 'smelting', inv)
 
     if plan.get('spares'):
         learn(chest('supplies'))

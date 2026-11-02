@@ -1,0 +1,3 @@
+#!/bin/bash
+# The CppLinker for NativeAOT cross-builds: zig's lld-link, through lld-link-wrapper.py (kept in $BUILDTOOLS).
+exec /usr/bin/python3 -I "${BUILDTOOLS:-$HOME/claude/buildtools}/lld-link-wrapper.py" "$@"

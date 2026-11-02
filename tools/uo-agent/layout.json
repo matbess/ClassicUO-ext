@@ -163,7 +163,7 @@
  "0x408FB8BC": {
   "bags": [],
   "items": 8,
-  "label": "chest: reagents (col 5 3rd)",
+  "label": "chest: reagents (col 5, 2nd from top)",
   "loose": [
    {
     "amount": 51,
@@ -587,21 +587,21 @@
  "0x408FF84A": {
   "bags": [],
   "items": 0,
-  "label": "chest: gold (col 5 2nd)",
+  "label": "chest: gold (col 5, 3rd from top)",
   "loose": [],
   "recorded": "2026-11-01 10:35"
  },
  "0x408FF9AB": {
   "bags": [],
   "items": 0,
-  "label": "chest: shields (col 4, 3rd from top)",
+  "label": "chest: spare + invulnerability shields (col 4, 3rd from top)",
   "loose": [],
   "recorded": "2026-11-01 15:34"
  },
  "0x408FFDD1": {
   "bags": [],
   "items": 0,
-  "label": "chest: for smelting - Icepick (col 2, bottom)",
+  "label": "chest: spare (col 2, bottom)",
   "loose": [],
   "recorded": "2026-11-01 16:27"
  },
