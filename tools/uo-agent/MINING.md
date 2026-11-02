@@ -295,3 +295,7 @@ files further: they apply at once, without a new build.
   `python3 mine.py --incidents` lists them (when, who, what, where); `--reviewed` (only when the user says so) sets
   the count back to 0. The full record stays in incidents.jsonl and the bridge's alarms.log; all logs are on the
   Mac (~/claude/uo-agent-work/mining), so a server reboot doesn't lose them.
+- **Server lag** (2026-11-02 02:08): a dig's "Where do you wish to dig?" came 13 s late, so the bridge (which waits
+  3 s) stopped on "no answer". The server had answered, so it was lag, not a dead server: the loop now cancels the
+  cursor left behind, resumes and carries on when the answer turns up within half a minute of the stop, and stops
+  and tells the user if that happens three times in 10 minutes.

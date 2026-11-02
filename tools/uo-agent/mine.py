@@ -108,6 +108,34 @@ def cheb(a, b):
     return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
 
 
+LAG_STOPS = []  # times the bridge stopped on a late answer (server lag); three in 10 minutes means real trouble
+
+
+def answered_late(info, error):
+    """The bridge stops when the server doesn't answer within a few seconds. If an answer turned up afterwards
+    (2026-11-02 02:08: "Where do you wish to dig?" came 13 s late), it was lag: cancel the cursor it left, resume,
+    and return how late it was; None otherwise."""
+    if error.code != 423:
+        return None
+    import re
+    m = re.search(r'at (\d\d:\d\d:\d\d)\)', error.message or '')
+    if not m:
+        return None
+    stopped = m.group(1)
+    for _ in range(15):  # give it half a minute
+        # the server's own messages (name "System"), from the moment the bridge stopped on
+        late = [x for x in uo.call(info, 'GET', '/messages')['messages'][-10:]
+                if x['type'] != 'Label' and x['time'][:8] >= stopped and (x.get('name') or 'System') == 'System']
+        if late:
+            uo.call(info, 'POST', '/cancel')
+            uo.call(info, 'POST', '/resume')
+            h, mi, se = (int(v) for v in stopped.split(':'))
+            h2, m2, s2 = (int(v) for v in late[0]['time'][:8].split(':'))
+            return (h2 * 3600 + m2 * 60 + s2) - (h * 3600 + mi * 60 + se)
+        time.sleep(2)
+    return None
+
+
 class Char:
     def __init__(self, name):
         self.name = name
@@ -124,6 +152,15 @@ class Char:
             if e.code == 409 and (text.startswith('alarm') or text.startswith('staff')):
                 raise Alarm(f'{self.name}: {text}')
             if e.code == 423:
+                late = answered_late(self.info, e)
+                if late is not None:
+                    now = time.time()
+                    LAG_STOPS[:] = [t for t in LAG_STOPS if now - t < 600] + [now]
+                    if len(LAG_STOPS) >= 3:
+                        raise Stop(f'{self.name}: the server is lagging badly (three late answers in 10 minutes, the '
+                                   f'last {late} s late); stopped to be safe')
+                    log(f'{self.name}: the server answered {late} s late (lag); carrying on')
+                    raise Again()
                 if uo.resume_after_fizzle(self.info, e):
                     log(f'{self.name}: the spell fizzled')
                     raise Fizzled()
