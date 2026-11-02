@@ -47,6 +47,7 @@ namespace ClassicUO.Game.Managers
         private const int RECALL_TIMEOUT = 6000;
         private const int TRADE_TIMEOUT = 3000;
         private const int MAX_TILE_RANGE = 8;
+        private const int ANIMATION_LOG = 400;
         private const int SKILL_TIMEOUT = 3000;
         private const int MOUNT_TIMEOUT = 3000;
         private const int HIDING = 21;
@@ -109,6 +110,13 @@ namespace ClassicUO.Game.Managers
         private Threat _threat;
         private string _lastLogged;
         private volatile string _logoutRequest; // read by GameScene, which logs out at a safe point in its update
+
+        // NPCs tell themselves apart by fidgeting (the user, 2026-11-02: an idle twist players never do, which the
+        // server sends as an animation): recent animations, for learning which ones those are, and the characters
+        // seen fidgeting, kept in Agent/npcs-learned.json
+        private readonly Queue<(DateTime Time, uint Serial, string Name, ushort Action, int X, int Y)> _animations = new Queue<(DateTime, uint, string, ushort, int, int)>();
+        private readonly HashSet<uint> _npcLearned = new HashSet<uint>();
+        private bool _npcLoaded;
 
         // only touched on the listener thread
         private readonly Random _random = new Random();
@@ -182,6 +190,16 @@ namespace ClassicUO.Game.Managers
             {
                 case 0x24:
                     _containerAnswers[BinaryPrimitives.ReadUInt32BigEndian(data.Slice(1))] = ++_packetCount;
+
+                    break;
+
+                case 0x6E when data.Length >= 7: // character animation: serial, action
+                    NoteAnimation(BinaryPrimitives.ReadUInt32BigEndian(data.Slice(1)), BinaryPrimitives.ReadUInt16BigEndian(data.Slice(5)));
+
+                    break;
+
+                case 0xE2 when data.Length >= 9: // the newer animation packet: serial, type, action
+                    NoteAnimation(BinaryPrimitives.ReadUInt32BigEndian(data.Slice(1)), BinaryPrimitives.ReadUInt16BigEndian(data.Slice(7)));
 
                     break;
 
@@ -740,6 +758,11 @@ namespace ClassicUO.Game.Managers
                     }
 
                     return OnGame(() => Json(w => WriteGuard(w, SetGuard(on))));
+
+                case "/animations":
+                    RequireMethod(method, "GET");
+
+                    return OnGame(() => Json(WriteAnimations));
 
                 case "/tiles":
                     RequireMethod(method, "GET");
@@ -1435,8 +1458,9 @@ namespace ClassicUO.Game.Managers
                     }
                 );
 
-                // a tool like scissors answers by using the target up (it disappears) rather than with a message
-                if (WaitFor(() => HasMessageFrom(target, aimed) || HasSystemMessageAfter(aimed) || _world.Items.Get(target) == null, USE_RESULT_TIMEOUT))
+                // a tool like scissors answers by using the target up (it disappears) rather than with a message, and
+                // ore combined into another pile disappears itself without a word
+                if (WaitFor(() => HasMessageFrom(target, aimed) || HasSystemMessageAfter(aimed) || _world.Items.Get(target) == null || _world.Items.Get(serial) == null, USE_RESULT_TIMEOUT))
                 {
                     Thread.Sleep(SETTLE_TIME);
                 }
@@ -2023,6 +2047,126 @@ namespace ClassicUO.Game.Managers
             );
         }
 
+        // on the game thread: remember an animation, and mark anyone doing an NPC's idle fidget as an NPC
+        private void NoteAnimation(uint serial, ushort action)
+        {
+            Mobile m = _world.Mobiles.Get(serial);
+
+            if (m == null || m == _world.Player)
+            {
+                return;
+            }
+
+            _animations.Enqueue((DateTime.Now, serial, m.Name, action, m.X, m.Y));
+
+            while (_animations.Count > ANIMATION_LOG)
+            {
+                _animations.Dequeue();
+            }
+
+            Rules rules = _rules;
+            GuardRules g = rules?.Guard;
+
+            if (g != null && g.Fidgets.Contains(action) && !IsPartner(m, rules) && LoadLearnedNpcs().Add(serial))
+            {
+                Log.Info($"Agent bridge: {Describe(m, serial)} fidgets (animation {action}): an NPC");
+                SaveLearnedNpcs();
+            }
+        }
+
+        private static string LearnedNpcsPath() => Path.Combine(CUOEnviroment.ExecutablePath, "Agent", "npcs-learned.json");
+
+        private HashSet<uint> LoadLearnedNpcs()
+        {
+            if (!_npcLoaded)
+            {
+                _npcLoaded = true;
+
+                try
+                {
+                    if (File.Exists(LearnedNpcsPath()))
+                    {
+                        using JsonDocument doc = JsonDocument.Parse(File.ReadAllBytes(LearnedNpcsPath()));
+
+                        foreach (JsonElement e in doc.RootElement.EnumerateArray())
+                        {
+                            if (TryParseSerial(e.GetProperty("serial").GetString(), out uint serial))
+                            {
+                                _npcLearned.Add(serial);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warn($"Agent bridge: could not read the learned NPCs: {ex.Message}");
+                }
+            }
+
+            return _npcLearned;
+        }
+
+        private void SaveLearnedNpcs()
+        {
+            try
+            {
+                File.WriteAllBytes
+                (
+                    LearnedNpcsPath(),
+                    Json
+                    (
+                        w =>
+                        {
+                            w.WriteStartArray();
+
+                            foreach (uint serial in _npcLearned)
+                            {
+                                w.WriteStartObject();
+                                w.WriteString("serial", Hex(serial));
+                                w.WriteString("name", _world.Mobiles.Get(serial)?.Name);
+                                w.WriteEndObject();
+                            }
+
+                            w.WriteEndArray();
+                        }
+                    )
+                );
+            }
+            catch (Exception ex)
+            {
+                Log.Warn($"Agent bridge: could not save the learned NPCs: {ex.Message}");
+            }
+        }
+
+        private void WriteAnimations(Utf8JsonWriter w)
+        {
+            w.WriteStartObject();
+            w.WriteStartArray("animations");
+
+            foreach ((DateTime time, uint serial, string name, ushort action, int x, int y) in _animations)
+            {
+                w.WriteStartObject();
+                w.WriteString("time", time.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture));
+                w.WriteString("serial", Hex(serial));
+                w.WriteString("name", name);
+                w.WriteNumber("action", action);
+                w.WriteNumber("x", x);
+                w.WriteNumber("y", y);
+                w.WriteEndObject();
+            }
+
+            w.WriteEndArray();
+            w.WriteStartArray("npcsLearned");
+
+            foreach (uint serial in LoadLearnedNpcs())
+            {
+                w.WriteStringValue(Hex(serial));
+            }
+
+            w.WriteEndArray();
+            w.WriteEndObject();
+        }
+
         // ---- the guard, on the game thread ----
 
         // (re)starting the guard also clears an alarm: the agent calls it once the person has gone
@@ -2290,7 +2434,7 @@ namespace ClassicUO.Game.Managers
         {
             string name = m.Name ?? "";
 
-            return IsPartner(m, rules) || rules.Guard != null && (rules.Guard.NpcSerials.Contains(m.Serial) || rules.Guard.NpcNames.Contains(name));
+            return IsPartner(m, rules) || LoadLearnedNpcs().Contains(m.Serial) || rules.Guard != null && (rules.Guard.NpcSerials.Contains(m.Serial) || rules.Guard.NpcNames.Contains(name));
         }
 
         // staff: a GM body, a GM robe, or a staff title in the name. When in doubt it counts as staff, since all that
@@ -4066,6 +4210,14 @@ namespace ClassicUO.Game.Managers
 
                     ReadNumbers(guard, "watchItems", n => g.WatchItems.Add(n));
 
+                    if (guard.TryGetProperty("fidgets", out JsonElement fidgets))
+                    {
+                        foreach (JsonElement e in fidgets.EnumerateArray())
+                        {
+                            g.Fidgets.Add((ushort)e.GetInt32());
+                        }
+                    }
+
                     if (guard.TryGetProperty("npcs", out JsonElement npcs))
                     {
                         foreach (JsonElement e in npcs.EnumerateArray())
@@ -4288,6 +4440,7 @@ namespace ClassicUO.Game.Managers
             public readonly HashSet<uint> WatchItems = new HashSet<uint>(); // must stay in the backpack (runes)
             public readonly HashSet<uint> NpcSerials = new HashSet<uint>();  // townsfolk who talk and stand around
             public readonly HashSet<string> NpcNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            public readonly HashSet<ushort> Fidgets = new HashSet<ushort>(); // animations only NPCs do (idle fidgets)
         }
 
         // who set the guard off, and where they were last seen

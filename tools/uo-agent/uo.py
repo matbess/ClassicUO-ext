@@ -33,6 +33,8 @@
                                get off the horse / on one of the mounts named in the rules
   uo alarm                     the last guard alarm (Agent/alarm.json) and the alarm log
   uo logout                    log the character out now
+  uo animations                the animations the server sent for characters nearby (to tell NPCs by their idle
+                               fidgets), and the NPCs learned that way (Agent/npcs-learned.json)
   uo cancel                    cancel a target cursor
   uo rules                     show the rules as the bridge sees them (Agent/rules-NAME.json or rules.json)
   uo resume                    carry on after the bridge stopped because the server went quiet
@@ -414,6 +416,7 @@ def main():
     sub.add_parser('mount').add_argument('serial')
     sub.add_parser('alarm')
     sub.add_parser('logout')
+    sub.add_parser('animations')
     sub.add_parser('cancel')
     sub.add_parser('rules')
     sub.add_parser('clear')
@@ -506,6 +509,8 @@ def main():
         result = call(info, 'POST', '/guard', on=1 if args.on == 'on' else 0)
     elif c == 'logout':
         result = call(info, 'POST', '/logout')
+    elif c == 'animations':
+        result = call(info, 'GET', '/animations')
     elif c == 'skill':
         result = call(info, 'POST', '/skill', id=args.id)
     elif c == 'dismount':
@@ -617,6 +622,10 @@ def main():
         print_messages(result['messages'])
     elif c in ('say', 'guard', 'logout'):
         print(json.dumps(result))
+    elif c == 'animations':
+        for a in result['animations']:
+            print(f"{a['time']} {a['serial']} {a['name'] or '?'} action {a['action']} at {a['x']},{a['y']}")
+        print('learned NPCs:', ', '.join(result['npcsLearned']) or 'none')
     elif c in ('skill', 'dismount', 'mount'):
         print(', '.join(f'{k} {v}' for k, v in result.items() if k != 'messages'))
         print_messages(result['messages'])

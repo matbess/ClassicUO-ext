@@ -5,7 +5,7 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
 
 ## Status (2026-11-01, end of the evening)
 
-- Built and tested: the bridge (installed build cuo-agent12), the rules files (`rules/rules-Icepick.json`,
+- Built and tested: the bridge (installed build cuo-agent14), the rules files (`rules/rules-Icepick.json`,
   `rules/rules-Burgers.json`, copied into the client's `Agent/` folder), the route (`routes/route1.jsonl`), the
   planner (`mining.py plan`: 92 ore blocks), and the loop (`mine.py`). Tested in the game with the user watching:
   digging, smelting, trades both ways, Recall, the bank trip, Gate Travel, Hiding, the horse, and the guard
@@ -268,3 +268,13 @@ files further: they apply at once, without a new build.
   at 1143,1819), so only the client knows them. The loop records every building piece the client shows
   (`routes/obstacles.json`, before every ride) and the planner keeps a tile clear of them. The client opens doors
   you walk into, which is how he got in.
+- **NPCs look like players to the client.** 2026-11-01 23:57: Sacha (0x00023934, a townsperson wandering near the
+  route, the user says) stood next to Icepick and set the guard off; the client only knows her as "Sacha" (no title,
+  no "(invulnerable)"), so there's no telling NPCs from players by what the server sends. Known NPCs go in the
+  rules' `guard.npcs` list (serials): the Ocllo bankers, and Sacha. When the guard trips on someone the user says is
+  an NPC, add them.
+- **NPCs by their fidget** (the user, 2026-11-02: NPCs twist their upper body when standing still, players never
+  do): that's an idle animation the server sends. Build cuo-agent14 records every animation the server sends for
+  characters nearby (`uo animations`) and, once the rules' `guard.fidgets` lists the fidget animation numbers,
+  marks anyone doing one as an NPC for good (`Agent/npcs-learned.json`); the guard ignores them. To do: after the
+  install, watch Sacha (or another townsperson) fidget, read the numbers, put them in both rules files.

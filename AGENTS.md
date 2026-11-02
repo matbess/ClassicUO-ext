@@ -53,5 +53,5 @@ Burgers banking). Everything about the bridge and sorting lives in **`tools/uo-a
 ## Building and installing
 
 See **`tools/build/README.md`**: `build.sh NAME`, `smoke.sh NAME`, `install.sh NAME BACKUP_NAME`. The installed build
-is the latest `cuo-agentN` in `~/claude/builds` (cuo-agent12 as of 2026-11-01 night); backups of every earlier install are in
+is the latest `cuo-agentN` in `~/claude/builds` (cuo-agent14 as of 2026-11-02 00:05); backups of every earlier install are in
 `~/Games/backups/classicuo-1.1.0.347-*`.

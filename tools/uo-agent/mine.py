@@ -408,7 +408,11 @@ class Miner:
             raise Stop('McGee is nowhere in sight; Icepick is on foot')
         if h['distance'] > 1:
             self.ice.walk(h['x'], h['y'], 1)
-        self.ice.call('POST', '/mount', serial=mining.HORSE)
+        try:
+            self.ice.call('POST', '/mount', serial=mining.HORSE)
+        except uo.BridgeError as e:
+            if 'already riding' not in (e.message or ''):
+                raise
         if not self.ice.status()['mounted']:
             raise Stop("Icepick couldn't get back on McGee")
 
@@ -803,9 +807,18 @@ class Miner:
         for hue, group in small.items():
             while len(group) >= 2:
                 a, b = group.pop(), group.pop()
-                r = self.ice.call('POST', '/use', serial=a['serial'], target=b['serial'])
-                texts = [m['text'] for m in r['messages'] if 'select the forge' not in m['text'].lower()]
-                log(f"combine small piles {a['serial']} + {b['serial']} (hue {hue}): {texts[-1] if texts else 'done'}")
+                try:
+                    r = uo.call(self.ice.info, 'POST', '/use', serial=a['serial'], target=b['serial'])
+                    texts = [m['text'] for m in r['messages'] if 'select the forge' not in m['text'].lower()]
+                    answer = texts[-1] if texts else 'done'
+                except uo.BridgeError as e:
+                    # the server combines piles without a word, so the bridge (before cuo-agent14) takes it for
+                    # silence and stops: if the first pile has gone into the second, it worked
+                    if e.code != 423 or any(i['serial'] == a['serial'] for i in self.ice.pack()):
+                        raise
+                    uo.call(self.ice.info, 'POST', '/resume')
+                    answer = 'combined (no reply from the server)'
+                log(f"combine small piles {a['serial']} + {b['serial']} (hue {hue}): {answer}")
         for item in self.ice.pack():
             if item.get('graphic') not in mining.ORE:
                 continue
@@ -869,10 +882,17 @@ class Miner:
         time.sleep(1)
         if self.ice.status().get('trade') or self.bur.status().get('trade'):
             raise Stop('the trade between Icepick and Burgers did not finish')
-        n = sum(b.get('amount', 1) for b in bars if 'ingot' in (b.get('type') or ''))
+        given = [b for b in bars if 'ingot' in (b.get('type') or '')]
+        n = sum(b.get('amount', 1) for b in given)
+        iron = sum(b.get('amount', 1) for b in given if not b.get('hue'))
         self.stats['ingots'] += n
-        log(f'handed Burgers {n} ingots' + (f' and {len(extra)} small ore piles' if extra else '')
-            + f'; gave Icepick {len(spares)} shovels')
+        # running totals for the user (2026-11-01): all ingots, and iron (the uncoloured ones) on its own
+        totals = self.state.setdefault('totals', {'ingots': 0, 'iron': 0})
+        totals['ingots'] += n
+        totals['iron'] += iron
+        self.save_state()
+        log(f'handed Burgers {n} ingots ({iron} iron)' + (f' and {len(extra)} small ore piles' if extra else '')
+            + f"; gave Icepick {len(spares)} shovels. Total: {totals['ingots']} ingots, {totals['iron']} iron")
         self.hide(self.bur)
 
     def burgers_should_bank(self, end_of_pass=False, where=None):
@@ -998,8 +1018,13 @@ class Miner:
         first = self.args.start if self.args.start is not None else self.state.get('next', 0)
         last = self.args.end if self.args.end is not None else len(self.targets) - 1
         for p in range(self.args.passes):
-            pass_start = time.time()
-            log(f'pass {p + 1}: blocks {first} to {last}')
+            # when the pass began at the top, kept in the state so a restart in the middle doesn't reset it
+            if first == 0:
+                self.state['pass_started'] = time.time()
+                self.save_state()
+            pass_start = self.state.get('pass_started', time.time())
+            log(f'pass {p + 1}: blocks {first} to {last} (this pass began at the top at '
+                f"{time.strftime('%H:%M', time.localtime(pass_start))})")
             if first == 0:
                 self.safely(self.to_start)
             for n in range(first, last + 1):
