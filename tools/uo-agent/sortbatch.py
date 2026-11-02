@@ -50,7 +50,8 @@ GOLD = {'0x0EED', '0x0EEE', '0x0EEF'}
 ORE = {'0x19B7', '0x19B8', '0x19B9', '0x19BA'}  # iron ore piles, left in the loot by accident: to smelting
 HIDES = {'0x1078', '0x1079'}  # piles of hides: cut into leather like the leather armour
 SUPPLIES = {'0x0F0E', '0x1067', '0x1068', '0x1081', '0x1082', '0x1766', '0x1767', '0x0EF3', '0x14FC',
-            '0x0F3F', '0x1BFB', '0x0E21', '0x0EE9'}  # bottles, leather, cloth, blank scrolls, lockpicks, arrows, bolts, bandages
+            '0x0F3F', '0x1BFB', '0x0E21', '0x0EE9', '0x1BD1'}  # bottles, leather, cloth, blank scrolls, lockpicks, arrows,
+                                                                 # bolts, bandages, feathers
 SET_PIECES = {'ringmail gloves': 'gloves', 'ringmail sleeves': 'sleeves', 'chainmail leggings': 'leggings',
               'chainmail tunic': 'tunic', 'platemail gorget': 'gorget',
               'plate helm': 'helm', 'close helmet': 'helm', 'close helm': 'helm', 'helmet': 'helm',

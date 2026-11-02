@@ -10,7 +10,7 @@
   "bags": [
    {
     "kind": "circle 3 scrolls",
-    "known": 0,
+    "known": 7,
     "marker": {
      "name": "Unlock Scroll",
      "serial": "0x40888CB7",
@@ -23,7 +23,7 @@
    },
    {
     "kind": "circle 4 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Recall",
      "serial": "0x4097351D",
@@ -36,7 +36,7 @@
    },
    {
     "kind": "circle 5 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Paralyze Scroll",
      "serial": "0x40885A02",
@@ -49,7 +49,7 @@
    },
    {
     "kind": "circle 6 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Explosion Scroll",
      "serial": "0x406FFA2C",
@@ -62,7 +62,7 @@
    },
    {
     "kind": "circle 7 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Energy Fied Scroll",
      "serial": "0x406FFAB1",
@@ -75,23 +75,33 @@
    },
    {
     "kind": "circle 1 scrolls",
-    "known": 0,
-    "marker": null,
+    "known": 8,
+    "marker": {
+     "name": "Heal Scroll",
+     "serial": "0x406FF258",
+     "x": 23,
+     "y": 128
+    },
     "serial": "0x40832F6B",
     "x": 18,
     "y": 105
    },
    {
     "kind": "circle 2 scrolls",
-    "known": 0,
-    "marker": null,
+    "known": 4,
+    "marker": {
+     "name": "Agility Scroll",
+     "serial": "0x408BFD2C",
+     "x": 36,
+     "y": 128
+    },
     "serial": "0x4086BE0E",
     "x": 31,
     "y": 105
    },
    {
     "kind": "circle 8 scrolls",
-    "known": 0,
+    "known": 6,
     "marker": {
      "name": "Energy Vortex Scro",
      "serial": "0x406DBEEF",
@@ -103,17 +113,31 @@
     "y": 105
    }
   ],
-  "items": 14,
-  "label": "chest: scrolls (col 5 top)",
+  "items": 16,
+  "label": "chest: scrolls (col 5, top)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 16:12"
  },
  "0x408FB1E0": {
-  "bags": [],
-  "items": 0,
-  "label": "chest: jewellery (col 4 top)",
+  "bags": [
+   {
+    "kind": "rings",
+    "known": 0,
+    "marker": {
+     "name": "ring of teleporting (4 charges)",
+     "serial": "0x40869192",
+     "x": 18,
+     "y": 128
+    },
+    "serial": "0x4098CD0F",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "items": 2,
+  "label": "chest: jewellery (col 4, top)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 16:11"
  },
  "0x408FB713": {
   "bags": [
@@ -293,7 +317,7 @@
    },
    {
     "kind": "swords",
-    "known": 2,
+    "known": 0,
     "marker": {
      "name": "a broadsword of thunder (23 charges)",
      "serial": "0x406590E4",
@@ -303,12 +327,25 @@
     "serial": "0x4098CCE9",
     "x": 42,
     "y": 105
+   },
+   {
+    "kind": "exceptional swords",
+    "known": 0,
+    "marker": {
+     "name": "an exceptional katana crafted by the UOSA Mafia",
+     "serial": "0x406FB4C4",
+     "x": 56,
+     "y": 128
+    },
+    "serial": "0x4098CD0B",
+    "x": 60,
+    "y": 105
    }
   ],
-  "items": 4,
+  "items": 6,
   "label": "chest: swords (col 1, top)",
   "loose": [],
-  "recorded": "2026-11-01 15:43"
+  "recorded": "2026-11-01 16:11"
  },
  "0x408FD7CF": {
   "bags": [
@@ -340,7 +377,7 @@
    },
    {
     "kind": "plate gloves",
-    "known": 0,
+    "known": 1,
     "marker": {
      "name": "platemail gloves of guarding",
      "serial": "0x407E710E",
@@ -381,7 +418,7 @@
   "items": 10,
   "label": "chest: plate (col 3, top)",
   "loose": [],
-  "recorded": "2026-11-01 15:43"
+  "recorded": "2026-11-01 16:11"
  },
  "0x408FDB4F": {
   "bags": [
@@ -430,7 +467,7 @@
   "items": 2,
   "label": "chest: gems (col 5, bottom)",
   "loose": [],
-  "recorded": "2026-11-01 15:43"
+  "recorded": "2026-11-01 16:11"
  },
  "0x408FF16B": {
   "bags": [
@@ -496,7 +533,7 @@
   "bags": [
    {
     "kind": "axes",
-    "known": 4,
+    "known": 0,
     "marker": {
      "name": "a substantial large battle axe of ghoul's touch (18 charges)",
      "serial": "0x408ED885",
@@ -506,12 +543,25 @@
     "serial": "0x4098CCF0",
     "x": 18,
     "y": 105
+   },
+   {
+    "kind": "exceptional axes",
+    "known": 0,
+    "marker": {
+     "name": "an exceptional double axe crafted by Lady Brigid James",
+     "serial": "0x405CE821",
+     "x": 44,
+     "y": 128
+    },
+    "serial": "0x4098CD0E",
+    "x": 36,
+    "y": 105
    }
   ],
-  "items": 2,
+  "items": 4,
   "label": "chest: axes (col 1, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-01 15:43"
+  "recorded": "2026-11-01 16:11"
  },
  "0x408FF6C4": {
   "bags": [
@@ -1429,7 +1479,7 @@
     "y": 122
    }
   ],
-  "recorded": "2026-11-01 15:43"
+  "recorded": "2026-11-01 16:11"
  },
  "0x40900029": {
   "bags": [
@@ -1497,7 +1547,7 @@
     "y": 105
    }
   ],
-  "items": 7,
+  "items": 9,
   "label": "chest: supplies & ID wands (col 6, 3rd from top)",
   "loose": [
    {
@@ -1522,28 +1572,42 @@
     "y": 106
    },
    {
-    "amount": 201,
-    "name": "cut cloth (191 yards)",
-    "serial": "0x40988811",
-    "x": 98,
-    "y": 129
-   },
-   {
-    "amount": 20,
+    "amount": 1020,
     "name": "arrow",
     "serial": "0x407004A7",
     "x": 105,
     "y": 105
    },
    {
-    "amount": 140,
+    "amount": 47,
+    "name": "crossbow bolt",
+    "serial": "0x4095AFB1",
+    "x": 18,
+    "y": 123
+   },
+   {
+    "amount": 36,
+    "name": "feathers",
+    "serial": "0x4095AE52",
+    "x": 117,
+    "y": 105
+   },
+   {
+    "amount": 205,
+    "name": "cut cloth (191 yards)",
+    "serial": "0x40988811",
+    "x": 98,
+    "y": 129
+   },
+   {
+    "amount": 169,
     "name": "81 pieces of leather",
     "serial": "0x40988462",
     "x": 50,
     "y": 129
    }
   ],
-  "recorded": "2026-11-01 15:43"
+  "recorded": "2026-11-01 16:11"
  },
  "0x409020EB": {
   "bags": [],
@@ -1553,10 +1617,35 @@
   "recorded": "2026-11-01 15:34"
  },
  "0x40902338": {
-  "bags": [],
-  "items": 0,
-  "label": "chest: treasure maps (col 6 top)",
+  "bags": [
+   {
+    "kind": "GM set 1",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40687509",
+    "x": 18,
+    "y": 105
+   },
+   {
+    "kind": "GM set 2",
+    "known": 0,
+    "marker": null,
+    "serial": "0x404005BF",
+    "x": 68,
+    "y": 105
+   },
+   {
+    "kind": "GM set 3",
+    "known": 0,
+    "marker": null,
+    "serial": "0x403FBB5F",
+    "x": 118,
+    "y": 105
+   }
+  ],
+  "items": 3,
+  "label": "chest: GM armour sets (col 6, top)",
   "loose": [],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-01 16:04"
  }
 }

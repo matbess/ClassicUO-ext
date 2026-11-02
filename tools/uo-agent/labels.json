@@ -1,11 +1,14 @@
 {
+  "0x403FBB5F": "bag: GM set 3 (GM armour sets chest) - Lady Brigid James, plain gorget",
+  "0x404005BF": "bag: GM set 2 (GM armour sets chest) - Lady Brigid James, plain gorget",
   "0x4049D6B8": "ID wands & staves (spares)",
   "0x404ABD74": "chest: leather + caps (col 3, 3rd from top)",
   "0x4053812E": "smelting 1 (crate by the door, 3rd from bottom)",
-  "0x40538F75": "trash 2 (crate by the door, 2nd from bottom)",
+  "0x40538F75": "smelting 5 (crate by the door, 2nd from bottom)",
   "0x4053C008": "smelting 3 (crate by the door, 5th from bottom)",
   "0x4053CE6E": "smelting 4 (crate by the door, top)",
   "0x4053DA72": "smelting 2 (crate by the door, 4th from bottom)",
+  "0x40687509": "bag: GM set 1 (GM armour sets chest) - Lord Bruche, all exceptional",
   "0x4068E2BB": "trash barrel (by the door; deletes what goes in)",
   "0x407B195C": "bag: circle 7 scrolls (scrolls chest)",
   "0x4080C375": "chest: scrolls (col 5, top)",
@@ -14,7 +17,7 @@
   "0x4087FCC6": "bag: circle 8 scrolls (scrolls chest)",
   "0x408AC160": "potions: strength",
   "0x408ACDD9": "potions: cure",
-  "0x408AD7D5": "trash 1 (crate by the door, bottom; empty ID wands go here too)",
+  "0x408AD7D5": "smelting 6 (crate by the door, bottom)",
   "0x408ADF09": "potions: explosion",
   "0x408AE270": "new backpacks",
   "0x408AE557": "potions: refresh",
@@ -69,5 +72,8 @@
   "0x4098CD02": "bag: polearms (polearms chest)",
   "0x4098CD06": "bag: chain leggings (chain & ring + coifs chest)",
   "0x4098CD0A": "bag: gems (gems chest)",
+  "0x4098CD0B": "bag: exceptional swords (swords chest)",
+  "0x4098CD0E": "bag: exceptional axes (axes chest)",
+  "0x4098CD0F": "bag: rings (jewellery chest)",
   "0x4098F2D8": "bag: maces & staves (maces & staves chest)"
 }
