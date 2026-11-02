@@ -100,6 +100,40 @@ def in_areas(areas, x, y):
 
 
 _MAP = None
+OBSTACLES = os.path.join(HERE, 'routes', 'obstacles.json')
+BUILDING = ('wall', 'plank', 'floor', 'door', 'roof', 'fence', 'post', 'stair', 'gate')
+_obstacles = None
+
+
+def obstacles():
+    """Tiles the map files show as open ground but where the server has put a building made of items (the user,
+    2026-11-01: a building near 1133-1151,1793-1819 "looks like a field on the map"). Learned from what the client
+    sees (Miner.learn_obstacles), kept in routes/obstacles.json; the planner keeps one tile clear of them."""
+    global _obstacles
+    if _obstacles is None:
+        try:
+            with open(OBSTACLES, encoding='utf-8') as fh:
+                _obstacles = {tuple(t) for t in json.load(fh)}
+        except (OSError, ValueError):
+            _obstacles = set()
+    return _obstacles
+
+
+def add_obstacles(items):
+    """Record the building pieces among items seen by the client; returns how many tiles were new."""
+    known = obstacles()
+    new = {(i['x'], i['y']) for i in items if i.get('x') is not None and any(k in (i.get('type') or '') for k in BUILDING)}
+    new -= known
+    if new:
+        known |= new
+        with open(OBSTACLES, 'w', encoding='utf-8') as fh:
+            json.dump(sorted(known), fh)
+    return len(new)
+
+
+def near_obstacle(x, y):
+    known = obstacles()
+    return any((x + dx, y + dy) in known for dx in (-1, 0, 1) for dy in (-1, 0, 1))
 
 
 def game_map():
@@ -115,7 +149,7 @@ def walkable(x, y):
     the map doesn't hold are the path finder's business."""
     m = game_map()
     tile, z = m.land(x, y)
-    if m.impassable_land(tile) or m.land_name(tile) == 'rock':
+    if m.impassable_land(tile) or m.land_name(tile) == 'rock' or near_obstacle(x, y):
         return False
     return not any(m.impassable_static(t) and sz + m.static_heights[t] > z for t, sz, _ in m.statics(x, y))
 

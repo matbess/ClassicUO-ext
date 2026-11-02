@@ -202,6 +202,18 @@ def wait_out_world_save(info, error):
     return False
 
 
+def resume_after_fizzle(info, error):
+    """A spell that fizzles is said by the caster ("The spell fizzles."), not as a system message, so the bridge
+    (before cuo-agent14) takes it for silence and stops. If that's what happened, resume and return True."""
+    if error.code != 423:
+        return False
+    said = [m['text'].lower() for m in call(info, 'GET', '/messages')['messages'][-4:]]
+    if not any('fizzles' in t for t in said):
+        return False
+    call(info, 'POST', '/resume')
+    return True
+
+
 def resume_after_barrel_emptied(info, error):
     """The 50th item in the trash barrel makes it empty itself, deleting the item just dropped. The barrel says so
     itself ("The trash is full! Emptying!"), not as a system message, so the bridge takes it for silence and stops.
@@ -225,9 +237,10 @@ def is_alive(info):
         return False
 
 
-def call(info, method, path, **params):
+def call(info, method, endpoint, **params):
+    # (the endpoint isn't called "path": /travel takes a query parameter of that name)
     query = urllib.parse.urlencode({k: v for k, v in params.items() if v is not None})
-    url = f"http://127.0.0.1:{info['port']}{path}" + (f'?{query}' if query else '')
+    url = f"http://127.0.0.1:{info['port']}{endpoint}" + (f'?{query}' if query else '')
     request = urllib.request.Request(url, method=method, headers={'Authorization': f"Bearer {info['token']}"})
     try:
         # paced actions are slow (a dozen names take half a minute), so allow plenty of time

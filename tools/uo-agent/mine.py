@@ -30,14 +30,16 @@ LOG = os.path.join(WORK, 'mine.log')
 INCIDENTS = os.path.join(WORK, 'incidents.jsonl')
 STATE = os.path.join(WORK, 'state.json')
 
-WEIGHT_MARGIN = 30          # go to the forge this many stones short of full (a dig adds 12)
-SHOVELS_WANTED = 5          # Icepick carries this many (the user, 2026-11-01)
-BURGERS_SPARES = 10         # Burgers keeps this many in his pack, from the shovel bag in his bank
+HEAVY = 380                 # go to the forge only once the pack weighs more than this (the user, 2026-11-01): a dig
+                            # adds 12, so he digs at 380 or less and never goes past 392 (the user's limit is 393)
+SHOVELS_WANTED = 2          # Icepick carries this many (the user, 2026-11-01: 5 at first, then 2 is enough)
+BURGERS_SPARES = 20         # Burgers keeps this many in his pack, from the shovel bag in his bank (the user, 2026-11-01)
 BANK_AT_INGOTS = 300        # Burgers banks when he holds this many ingots (the user, 2026-11-01; ingots weigh
                             # next to nothing), when he's low on shovels, and at the end of every pass
 SMALL_ORE = '0x19B7'        # a small pile: one on its own is too little to smelt; two of a metal can be combined
 FOOT_HOP = 12               # between blocks closer than this, Icepick walks and McGee follows (the user, 2026-11-01)
-MCGEE_NEAR = 3              # McGee must stay this close, or Icepick goes back and rides
+MCGEE_NEAR = 8              # McGee must be this close a moment after a walk, or Icepick goes back and rides (the user: 8)
+                            # (3, checked at once, was too strict: a following horse is a few steps behind)
 FLEE = 30                   # tiles to put between Icepick and a stranger before hiding
 GONE_AFTER = 180            # seconds unseen before a stranger counts as gone
 GIVE_UP_WAITING = 1800      # seconds: still not gone after this, stop and tell the user
@@ -56,6 +58,22 @@ RUNE_NAMES = {'bank': 'ocllo bank', 'start': 'mining start', 'forge': 'mining fo
 RUNE_GRAPHICS = ('0x1F14', '0x1F15', '0x1F16', '0x1F17')
 
 
+AGENT_DIR = uo.AGENT_DIR
+BANK_PACING = '"pacing": { "gap": [1100, 1400], "burst": 50, "break": [1100, 1400] }'
+
+
+def burgers_rules(bank):
+    """Burgers' rules in the client's Agent folder: the normal ones, or with quick pacing for the bank (the user,
+    2026-11-01: the bank doesn't have to follow the slow pace). The bridge reloads the file when it changes."""
+    with open(os.path.join(mining.HERE, 'rules', 'rules-Burgers.json'), encoding='utf-8') as fh:
+        text = fh.read()
+    if bank:
+        import re
+        text = re.sub(r'"pacing": \{[^}]*\}', BANK_PACING, text)
+    with open(os.path.join(AGENT_DIR, 'rules-Burgers.json'), 'w', encoding='utf-8') as fh:
+        fh.write(text)
+
+
 class Stop(Exception):
     """Something the user must hear about now; the loop ends."""
 
@@ -66,6 +84,10 @@ class Alarm(Exception):
 
 class Again(Exception):
     """A world save interrupted a step; run it again from the current state."""
+
+
+class Fizzled(Exception):
+    """A spell fizzled (the bridge before cuo-agent14 stops on it; the loop resumes it)."""
 
 
 def log(text):
@@ -87,18 +109,30 @@ class Char:
         except SystemExit as e:
             raise Stop(f'{name}: {e}')
 
-    def call(self, method, path, **params):
+    def call(self, method, endpoint, **params):
         try:
-            return uo.call(self.info, method, path, **params)
+            return uo.call(self.info, method, endpoint, **params)
         except uo.BridgeError as e:
             text = e.message or ''
             if e.code == 409 and (text.startswith('alarm') or text.startswith('staff')):
                 raise Alarm(f'{self.name}: {text}')
             if e.code == 423:
+                if uo.resume_after_fizzle(self.info, e):
+                    log(f'{self.name}: the spell fizzled')
+                    raise Fizzled()
                 if uo.wait_out_world_save(self.info, e):
                     log(f'{self.name}: a world save interrupted; carrying on')
                     raise Again()
                 raise Stop(f'{self.name}: the bridge stopped because the server went quiet ({text})')
+            if e.code == 503 and 'not responding' in text:
+                # the game was busy for a few seconds (the bridge waits 5 s for it); if it answers again, carry on
+                time.sleep(3)
+                try:
+                    uo.call(self.info, 'GET', '/status')
+                except uo.BridgeError:
+                    raise Stop(f'{self.name}: {text}')
+                log(f'{self.name}: the game was slow to answer; carrying on')
+                raise Again()
             if e.code in (0, 503):
                 raise Stop(f'{self.name}: {text}')
             raise
@@ -298,7 +332,12 @@ class Miner:
 
     def recall(self, key):
         serial = self.rune(key)
-        return self.bur.call('POST', '/cast', spell=RECALL, target=serial)
+        for attempt in range(3):
+            try:
+                return self.bur.call('POST', '/cast', spell=RECALL, target=serial)
+            except Fizzled:
+                time.sleep(2)
+        raise Stop(f"Burgers' Recall ({RUNE_NAMES[key]}) fizzled three times")
 
     def burgers_get_away(self):
         s = self.bur.status()
@@ -414,6 +453,13 @@ class Miner:
             if not during_alarm:
                 self.check_mount_fatigue()
 
+    def learn_obstacles(self):
+        """Record any building made of items the client can see (the map files don't show them; the user,
+        2026-11-01, after Icepick rode into one): the planner then goes round it."""
+        new = mining.add_obstacles(self.ice.call('GET', '/nearby', range=18)['items'])
+        if new:
+            log(f'learned {new} more tiles of buildings the map doesn\'t show')
+
     def travel(self, spot):
         """Ride to a spot along a path planned in advance on the map (mining.plan_path), in one smooth ride by the
         bridge (/travel: the next stretch starts before the current one ends). The user, 2026-11-01: not along the
@@ -422,6 +468,7 @@ class Miner:
         self.mount()
         areas = mining.load_rules()['areas']
         for attempt in range(3):
+            self.learn_obstacles()
             s = self.ice.status()
             here = (s['x'], s['y'])
             if cheb(here, spot) <= 1:
@@ -493,7 +540,17 @@ class Miner:
         self.travel(mining.FORGE_SPOT)
         b = self.bur.status()
         gate_tile = (b['x'], b['y'])
-        r = self.bur.call('POST', '/cast', spell=GATE_TRAVEL, target=self.rune(end))
+        r = None
+        for attempt in range(2):
+            try:
+                r = self.bur.call('POST', '/cast', spell=GATE_TRAVEL, target=self.rune(end))
+                break
+            except Fizzled:
+                continue
+        if r is None:
+            log('the gate fizzled twice; riding instead')
+            self.hide(self.bur)
+            return False
         if not any('magical gate' in m['text'].lower() for m in r['messages']):
             log(f"the gate didn't open ({[m['text'] for m in r['messages']][-1:]})")
             self.hide(self.bur)
@@ -537,6 +594,9 @@ class Miner:
         if not s['mounted'] and cheb(here, spot) <= FOOT_HOP:
             r = self.ice.walk(spot[0], spot[1], 0)
             h = self.mcgee()
+            if h and h['distance'] > 2:
+                time.sleep(3)  # give him time to catch up (the user, 2026-11-01: 3 seconds; 5 was more than needed)
+                h = self.mcgee()
             if not h or h['distance'] > MCGEE_NEAR:
                 log('McGee fell behind; going back for him')
                 self.mount()
@@ -545,11 +605,10 @@ class Miner:
         if cheb(here, spot) > 15:
             # a long way (back from the forge, say): through a gate to the nearer end if Burgers can, else ride
             if cheb(here, mining.FORGE_SPOT) <= 3:
-                index = mining.nearest(self.points, *spot)
-                end = min(GATE_ENDS, key=lambda e: abs(mining.nearest(self.points, *GATE_ENDS[e]) - index))
+                # the gate end nearest the spot on the map (the route winds too much to compare along it)
+                end = min(GATE_ENDS, key=lambda e: cheb(GATE_ENDS[e], spot))
                 b = self.bur.status()
-                gain = mining.nearest(self.points, *GATE_ENDS[end])
-                if abs(index - gain) + 40 < abs(index - self.forge_index) and b['mana'] >= b['manaMax'] >= 40:
+                if cheb(GATE_ENDS[end], spot) + 40 < cheb(here, spot) and b['mana'] >= b['manaMax'] >= 40:
                     self.gate_to(end)
             self.travel(spot)
         else:
@@ -562,8 +621,7 @@ class Miner:
         return [i['serial'] for i in self.ice.pack() if i.get('graphic') in mining.SHOVELS]
 
     def heavy(self):
-        s = self.ice.status()
-        return s['weight'] >= s['weightMax'] - WEIGHT_MARGIN
+        return self.ice.status()['weight'] > HEAVY
 
     def dig_block(self, n):
         t = self.targets[n]
@@ -602,10 +660,15 @@ class Miner:
                 break
         log(f'block {t["block"]}: no rock the server would dig; moving on')
 
+    # what the server says to a dig; anything else (the weather, someone's name) is ignored
+    DIG_ANSWERS = ('you dig some', 'loosen some rocks', 'no metal here', 'worn out', 'riding', 'mine there',
+                   'cannot be seen', "can't mine", 'too far', "can't dig", 'you cannot', 'not able')
+
     def dig_rock(self, rock):
         x, y, z = rock
         tools = self.shovels()
         first = True
+        quiet = 0
         while True:
             if not tools:
                 return 'no shovels'
@@ -613,16 +676,27 @@ class Miner:
             try:
                 r = self.ice.call('POST', '/use', serial=tools[0], x=x, y=y, z=z, graphic=0)
             except uo.BridgeError as e:
+                if e.code == 404:
+                    tools = self.shovels()  # that shovel is gone (worn out while another message came first)
+                    continue
                 if e.code in (403, 409):
                     log(f'dig {x},{y}: {e.message}')
                     return 'refused'
                 raise
             texts = [m['text'] for m in r['messages'] if m['type'] != 'Label']
-            answer = next((t for t in texts if 'wish to dig' not in t.lower()), '(no answer)')
-            low = answer.lower()
+            answers = [t for t in texts if any(k in t.lower() for k in self.DIG_ANSWERS)]
             if any('worn out' in t.lower() for t in texts):
                 tools = self.shovels()
                 log(f'a shovel wore out; {len(tools)} left')
+            if not answers:
+                # only other messages ("It begins to rain."): the dig's own answer came later; dig on
+                quiet += 1
+                if quiet > 3:
+                    log(f'dig {x},{y}: no answer to the dig ({texts[-1:]}); moving on')
+                    return 'refused'
+                continue
+            quiet = 0
+            low = answers[0].lower()
             if 'you dig some' in low:
                 self.stats['ore'] += 1
             elif 'loosen some rocks' in low:
@@ -636,10 +710,10 @@ class Miner:
                 self.dismount()
                 continue
             elif 'worn out' not in low:
-                log(f'dig {x},{y}: {answer}')
+                log(f'dig {x},{y}: {answers[0]}')
                 return 'refused'
             first = False
-            if r['weight'] >= r['weightMax'] - WEIGHT_MARGIN:
+            if r['weight'] > HEAVY:
                 return 'heavy'
 
     # ---- the forge ----
@@ -674,7 +748,7 @@ class Miner:
             # everything goes to the bank at the end of a pass: wait for Burgers' mana if need be
             while self.bur.status()['mana'] < 22 and self.ingots(self.bur):
                 time.sleep(20)
-        if self.burgers_should_bank(end_of_pass):
+        if self.burgers_should_bank(end_of_pass, where=here):
             self.bank_trip()
         if not self.shovels():
             self.handoff()  # shovels fetched on that trip
@@ -691,7 +765,10 @@ class Miner:
         log('Burgers opens a gate; Icepick rides to the gate spot')
         self.travel((GATE[0] + 1, GATE[1] + 1))
         self.ice.walk(GATE[0] + 1, GATE[1] + 1, 0)
-        r = self.bur.call('POST', '/cast', spell=GATE_TRAVEL, target=self.rune('gate'))
+        try:
+            r = self.bur.call('POST', '/cast', spell=GATE_TRAVEL, target=self.rune('gate'))
+        except Fizzled:
+            r = {'messages': [{'text': 'The spell fizzles.'}]}
         if not any('magical gate' in m['text'].lower() for m in r['messages']):
             log(f'the gate didn\'t open ({[m["text"] for m in r["messages"]][-1:]}); riding instead')
             self.travel(mining.FORGE_SPOT)
@@ -735,15 +812,22 @@ class Miner:
             if item['graphic'] == SMALL_ORE and item.get('amount', 1) < 2:
                 continue  # too little on its own; kept for a later pile of the same metal
             answer = '?'
-            for _ in range(2):
+            for _ in range(5):
                 r = self.ice.call('POST', '/use', serial=item['serial'], target=mining.FORGE)
                 texts = [m['text'] for m in r['messages'] if 'select the forge' not in m['text'].lower()]
                 answer = texts[-1] if texts else '?'
                 if 'riding' in answer.lower():
                     self.dismount()
                     continue
-                break
-            log(f"smelt {item['serial']} (hue {item.get('hue')}, {item.get('amount', 1)}): {answer}")
+                log(f"smelt {item['serial']} (hue {item.get('hue')}, {item.get('amount', 1)}): {answer}")
+                # a failed smelt ("You burn away the impurities but are left with less useable metal", the harder
+                # metals like golden) leaves some ore: smelt what's left again (the user, 2026-11-01)
+                if 'burn away' not in answer.lower():
+                    break
+                left = next((i for i in self.ice.pack() if i['serial'] == item['serial']), None)
+                if not left or left['graphic'] == SMALL_ORE and left.get('amount', 1) < 2:
+                    break
+                item = left
 
     def ingots(self, char):
         return [i for i in char.pack() if 'ingot' in (i.get('type') or '')]
@@ -751,8 +835,10 @@ class Miner:
     def burgers_spares(self):
         return sum(1 for i in self.bur.pack() if i.get('graphic') in mining.SHOVELS)
 
-    def handoff(self):
-        bars = self.ingots(self.ice)
+    def handoff(self, extra=()):
+        # shovels beyond the ones he carries go back to Burgers too (the user cut Icepick's from 5 to 2)
+        surplus = [i for i in self.ice.pack() if i.get('graphic') in mining.SHOVELS][SHOVELS_WANTED:]
+        bars = self.ingots(self.ice) + list(extra) + surplus
         need = max(0, SHOVELS_WANTED - len(self.shovels()))
         spares = [i['serial'] for i in self.bur.pack() if i.get('graphic') in mining.SHOVELS][:need]
         if not bars and not spares:
@@ -767,6 +853,13 @@ class Miner:
                         if sp != (b['x'], b['y']) and sp not in gates and sp != (ice['x'], ice['y'])
                         and cheb(sp, (ice['x'], ice['y'])) <= 2)
             self.bur.walk(*spot, 0)
+        # Icepick's client must see Burgers again, by name, before he can hand him anything
+        bur_serial = self.bur.status()['serial']
+        for _ in range(10):
+            seen = [m for m in self.ice.call('GET', '/nearby', range=3)['mobiles'] if m['serial'] == bur_serial]
+            if seen and seen[0].get('name'):
+                break
+            time.sleep(0.5)
         for bar in bars:
             self.ice.call('POST', '/give', serial=bar['serial'], to=self.bur.status()['serial'])
         for shovel in spares:
@@ -776,16 +869,28 @@ class Miner:
         time.sleep(1)
         if self.ice.status().get('trade') or self.bur.status().get('trade'):
             raise Stop('the trade between Icepick and Burgers did not finish')
-        n = sum(b.get('amount', 1) for b in bars)
+        n = sum(b.get('amount', 1) for b in bars if 'ingot' in (b.get('type') or ''))
         self.stats['ingots'] += n
-        log(f'handed Burgers {n} ingots; gave Icepick {len(spares)} shovels')
+        log(f'handed Burgers {n} ingots' + (f' and {len(extra)} small ore piles' if extra else '')
+            + f'; gave Icepick {len(spares)} shovels')
         self.hide(self.bur)
 
-    def burgers_should_bank(self, end_of_pass=False):
-        if self.bur.status()['mana'] < 22:
+    def burgers_should_bank(self, end_of_pass=False, where=None):
+        """A bank trip costs Burgers 22 of his 40 mana, and a gate needs all 40 (the user, 2026-11-01: banking must
+        not cost Icepick a gate). So he banks in the south half of the route, where gates don't help, and at the
+        end of a pass; in the north half only when he must (almost out of spare shovels, or a nearly full pack)."""
+        b = self.bur.status()
+        if b['mana'] < 22:
             return False
         held = sum(i.get('amount', 1) for i in self.ingots(self.bur))
-        return held >= BANK_AT_INGOTS or self.burgers_spares() < SHOVELS_WANTED or end_of_pass and held > 0
+        spares = self.burgers_spares()
+        # shovels alone are only a reason to go once he has none left to give (the user, 2026-11-01); when he's
+        # at the bank anyway he tops up to BURGERS_SPARES
+        if end_of_pass:
+            return held > 0 or spares == 0
+        if where is not None and where >= self.gate_index:
+            return held >= BANK_AT_INGOTS or spares == 0
+        return spares == 0 or b['weight'] >= b['weightMax'] - 40
 
     def bank_bags(self, bank):
         bags = self.state.setdefault('bags', {})
@@ -813,6 +918,8 @@ class Miner:
         log('Burgers takes the ingots to the bank')
         self.bur.call('POST', '/guard', on=0)
         try:
+            burgers_rules(bank=True)
+            self.bur.call('GET', '/rules')  # the bridge reads the quick pacing now
             r = self.recall('bank')
             if not r['moved']:
                 raise Stop(f"Burgers' Recall to the bank didn't work: {[m['text'] for m in r['messages']][-2:]}")
@@ -826,6 +933,8 @@ class Miner:
             for bar in self.ingots(self.bur):
                 same = next((i for i in in_bag if i.get('graphic') == bar.get('graphic') and i.get('hue') == bar.get('hue')), None)
                 self.bur.call('POST', '/move', serial=bar['serial'], to=same['serial'] if same else bags['ingots'])
+            for pile in [i for i in self.bur.pack() if i.get('graphic') in mining.ORE]:
+                self.bur.call('POST', '/move', serial=pile['serial'], to=bank)
             want = BURGERS_SPARES - self.burgers_spares()
             if want > 0:
                 spare = [i['serial'] for i in self.bur.call('GET', '/contents', serial=bags['shovels'])['items']
@@ -834,10 +943,13 @@ class Miner:
                 for shovel in spare:
                     self.bur.call('POST', '/move', serial=shovel, to=pack)
                 log(f'Burgers took {len(spare)} shovels from the bank')
+            burgers_rules(bank=False)  # the slow pace again before he leaves the bank
+            self.bur.call('GET', '/rules')
             r = self.recall('forge')
             if not r['moved']:
                 raise Stop(f"Burgers' Recall back to the forge didn't work: {[m['text'] for m in r['messages']][-2:]}")
         finally:
+            burgers_rules(bank=False)
             self.bur.call('POST', '/guard', on=1)
         time.sleep(2)
         missing = [w['serial'] for w in self.bur.status()['guard'].get('watching', []) if not w['seen']]
@@ -845,9 +957,20 @@ class Miner:
             raise Stop(f"a rune is missing from Burgers' pack after the bank trip: {missing}")
         self.hide(self.bur)
 
+    def empty_pack(self):
+        """Icepick's pack emptied before a full test: smelt what can be smelted and hand Burgers the ingots. The
+        small one-ore piles stay with Icepick (the user: they may combine with more of the same metal later), and
+        Burgers banks on his usual rule (about 300 ingots, few shovels left, the end of a pass), not now."""
+        log("to the forge (emptying Icepick's pack)")
+        self.travel(mining.FORGE_SPOT)
+        self.ice.walk(*mining.FORGE_SPOT, 0)
+        self.smelt_all()
+        self.handoff()
+
     # ---- the pass ----
 
     def preflight(self):
+        burgers_rules(bank=False)  # in case a run stopped in the middle of a bank trip
         si, sb = self.ice.status(), self.bur.status()
         log(f"Icepick at {si['x']},{si['y']} weight {si['weight']}/{si['weightMax']}, {len(self.shovels())} shovels; "
             f"Burgers at {sb['x']},{sb['y']} mana {sb['mana']}/{sb['manaMax']}, {self.burgers_spares()} spare shovels")
@@ -874,10 +997,8 @@ class Miner:
         self.preflight()
         first = self.args.start if self.args.start is not None else self.state.get('next', 0)
         last = self.args.end if self.args.end is not None else len(self.targets) - 1
-        s = self.ice.status()
-        if s['weight'] >= s['weightMax'] // 2:
-            self.safely(self.forge_visit, 'a half-full pack at the start')
         for p in range(self.args.passes):
+            pass_start = time.time()
             log(f'pass {p + 1}: blocks {first} to {last}')
             if first == 0:
                 self.safely(self.to_start)
@@ -895,8 +1016,10 @@ class Miner:
             if p + 1 < self.args.passes and not self.args.no_wait:
                 self.safely(self.to_start)
                 self.hide(self.ice)
-                log(f'waiting {self.args.wait} minutes for the ore to come back')
-                end = time.time() + self.args.wait * 60
+                # the hour runs from when the pass started (the user, 2026-11-01): that's when the top was dug
+                end = pass_start + self.args.wait * 60
+                log(f"waiting until {time.strftime('%H:%M', time.localtime(end))} for the ore to come back"
+                    if end > time.time() else 'the ore at the top has had its time already; on we go')
                 while time.time() < end:
                     self.safely(lambda: None)
                     time.sleep(30)
@@ -915,15 +1038,16 @@ def main():
     p.add_argument('--from', dest='start', type=int, help='first block (default: where the last run stopped)')
     p.add_argument('--to', dest='end', type=int, help='last block')
     p.add_argument('--bank', action='store_true', help='only send Burgers on a bank trip, then stop')
+    p.add_argument('--empty', action='store_true', help="only empty Icepick's pack (smelt, hand over the ingots), then stop")
     args = p.parse_args()
     miner = None
     try:
         miner = Miner(args)
-        if args.bank:
+        if args.bank or args.empty:
             os.makedirs(WORK, exist_ok=True)
             start = time.time()
             miner.preflight()
-            miner.safely(miner.bank_trip)
+            miner.safely(miner.bank_trip if args.bank else miner.empty_pack)
             miner.report(start)
             return
         miner.run()

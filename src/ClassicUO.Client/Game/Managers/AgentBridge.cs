@@ -1062,7 +1062,8 @@ namespace ClassicUO.Game.Managers
 
             WaitForActionSlot("travel");
 
-            int next = 0;
+            int next = 0;     // the waypoint being ridden to
+            int tryIndex = 0; // the next waypoint to hand over to
             bool leftArea = false;
             string stopped = null;
             DateTime end = DateTime.UtcNow.AddMilliseconds(TRAVEL_TIMEOUT);
@@ -1079,48 +1080,39 @@ namespace ClassicUO.Game.Managers
                     break;
                 }
 
-                (int x, int y, bool auto, bool outside, bool started) = OnGame
+                (int x, int y, bool auto, bool outside) = OnGame
                 (
                     () =>
                     {
                         PlayerMobile p = _world.Player;
                         bool isOutside = !rules.Contains(_world.MapIndex, p.X, p.Y, p.Z);
-                        bool start = false;
 
                         if (isOutside)
                         {
                             p.Pathfinder.StopAutoWalk();
                         }
-                        else if (next < points.Count)
+                        else if (tryIndex < points.Count)
                         {
                             int left = Math.Max(Math.Abs(p.X - points[next].X), Math.Abs(p.Y - points[next].Y));
 
-                            // close to this stretch's end (or it ended): hand over to the next one
+                            // close to this stretch's end (or it ended): hand over to the next waypoint. One search
+                            // per check (a failed one can take a while, and this is the game's own update); if it
+                            // finds no way, the next check tries the waypoint after it.
                             if (!walking || left <= TRAVEL_HANDOVER || !p.Pathfinder.AutoWalking)
                             {
-                                int target = walking ? next + 1 : next;
-
-                                while (target < points.Count && !p.Pathfinder.WalkTo(points[target].X, points[target].Y, p.Z, target == points.Count - 1 ? 1 : 2))
+                                if (p.Pathfinder.WalkTo(points[tryIndex].X, points[tryIndex].Y, p.Z, tryIndex == points.Count - 1 ? 1 : 2))
                                 {
-                                    target++; // no way to that one from here: try the one after
+                                    next = tryIndex;
+                                    walking = true;
                                 }
 
-                                if (target < points.Count)
-                                {
-                                    next = target;
-                                    start = true;
-                                }
+                                tryIndex++;
                             }
                         }
 
-                        return (p.X, p.Y, p.Pathfinder.AutoWalking, isOutside, start);
+                        return (p.X, p.Y, p.Pathfinder.AutoWalking, isOutside);
                     }
                 );
-
-                if (started)
-                {
-                    walking = true;
-                }
 
                 if (outside)
                 {
@@ -1736,7 +1728,7 @@ namespace ClassicUO.Game.Managers
 
                     Mobile m = _world.Mobiles.Get(to) ?? throw new BridgeException(404, "no such character nearby");
 
-                    if (!rules.Partners.Contains(m.Name ?? ""))
+                    if (!IsPartner(m, rules))
                     {
                         throw new BridgeException(403, "things can only be given to a partner named in the rules");
                     }
@@ -1829,7 +1821,7 @@ namespace ClassicUO.Game.Managers
 
                     Mobile m = _world.Mobiles.Get(gump.LocalSerial);
 
-                    if (m == null || !rules.Partners.Contains(m.Name ?? ""))
+                    if (m == null || !IsPartner(m, rules))
                     {
                         throw new BridgeException(403, "trades are only accepted with a partner named in the rules");
                     }
@@ -1945,7 +1937,8 @@ namespace ClassicUO.Game.Managers
                     }
                 );
 
-                if (!WaitFor(() => _world.Player.X != x0 || _world.Player.Y != y0 || HasSystemMessageAfter(aimed), RECALL_TIMEOUT))
+                // "The spell fizzles." and "You open a magical gate" come from the caster or the server
+                if (!WaitFor(() => _world.Player.X != x0 || _world.Player.Y != y0 || HasSystemMessageAfter(aimed) || HasMessageFrom(_world.Player.Serial, aimed), RECALL_TIMEOUT))
                 {
                     OnGame(CancelTarget);
                     Halt($"no answer after targeting {Hex(target)} with spell {spell}");
@@ -2179,7 +2172,7 @@ namespace ClassicUO.Game.Managers
             {
                 Mobile who = _world.Mobiles.Get(trade.LocalSerial);
 
-                if (who == null || !rules.Partners.Contains(who.Name ?? ""))
+                if (who == null || !IsPartner(who, rules))
                 {
                     GameActions.CancelTrade(trade.ID1);
                     Alarm($"{Describe(who, trade.LocalSerial)} opened a trade", who, trade.LocalSerial, true);
@@ -2287,11 +2280,17 @@ namespace ClassicUO.Game.Managers
             }
         }
 
+        // a partner by name, or by serial (a mobile that has just come back into view may not have its name yet)
+        private static bool IsPartner(Mobile m, Rules rules)
+        {
+            return m != null && (rules.Partners.Contains(m.Name ?? "") || rules.Partners.Contains(Hex(m.Serial)));
+        }
+
         private bool IsFriendly(Mobile m, Rules rules)
         {
             string name = m.Name ?? "";
 
-            return rules.Partners.Contains(name) || rules.Guard != null && (rules.Guard.NpcSerials.Contains(m.Serial) || rules.Guard.NpcNames.Contains(name));
+            return IsPartner(m, rules) || rules.Guard != null && (rules.Guard.NpcSerials.Contains(m.Serial) || rules.Guard.NpcNames.Contains(name));
         }
 
         // staff: a GM body, a GM robe, or a staff title in the name. When in doubt it counts as staff, since all that
@@ -2966,7 +2965,7 @@ namespace ClassicUO.Game.Managers
 
             foreach (Mobile m in _world.Mobiles.Values)
             {
-                if (m == _world.Player || m.IsDestroyed || !(m.IsHuman || m.IsDead) || rules.IgnorePeople.Contains(m.Name ?? "") || rules.Partners.Contains(m.Name ?? ""))
+                if (m == _world.Player || m.IsDestroyed || !(m.IsHuman || m.IsDead) || rules.IgnorePeople.Contains(m.Name ?? "") || IsPartner(m, rules))
                 {
                     continue;
                 }

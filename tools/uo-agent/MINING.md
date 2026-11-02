@@ -243,3 +243,28 @@ files further: they apply at once, without a new build.
   waypoints in one go (`/travel`, cuo-agent13: the next stretch starts 3 tiles before the current one ends).
 - While recording, Icepick strayed out of the guards' protection twice (the canyon at 1116,1909 and the bottom end
   at 1190,1904): both past the corridor's limits, so the measured edges hold.
+- **When Burgers banks** (the user, 2026-11-01 22:15: a bank trip costs 22 mana and a gate needs all 40, so banking
+  mustn't cost Icepick a gate): in the south half of the route (from the middle gate spot down), when he holds about
+  300 ingots; at the end of every pass, everything; in the north half only when he must (a nearly full pack).
+  Shovels alone are a reason to go only once he has none left to give (the user: with 15 there's no need to go
+  for 5 more); when he's at the bank anyway he tops up to 20. He carries up to 20 spare shovels (ingots weigh about a
+  tenth of a stone each, so a whole pass's worth fits). Icepick keeps his small one-ore piles (no "emptying" them).
+- **McGee check** (the user, 2026-11-01 22:20: "you're a little too strict"): after a walk between blocks, give the
+  horse 3 seconds to catch up (the user: 2 was too short, 5 more than needed), then go back for him only if he's more than **8 tiles** away or out of sight (it was
+  3 tiles, checked at once).
+- **Forge trips by weight** (the user, 2026-11-01 22:23): only when the pack weighs **more than 380** (and never
+  over 393): a dig adds 12, so he digs while at 380 or less. No "half-full at the start" trip (that sent him to
+  the forge from the north at 237 stones).
+- **Icepick carries 2 shovels** (the user, 2026-11-01 23:04; was 5): about one wears out per forge round trip and
+  he's topped up at every visit, and fewer shovels leave room for more ore.
+- **The wait between passes** (the user, 2026-11-01 23:13): an hour from when the pass *started* (that's when
+  the top was dug), not from when Icepick gets back to the top; if the pass took longer, he starts again at once.
+- **Failed smelts are tried again** (the user noticed a golden pile left over, 2026-11-01 23:27): "You burn away
+  the impurities but are left with less useable metal" means the smelt failed and ate some ore (harder metals like
+  golden fail more); the loop smelts what's left again, up to 4 more times.
+- **Buildings the map doesn't show** (2026-11-01 23:35: Icepick rode straight into one at 1133-1151,1793-1819; the
+  user: "it looks like a field on the map, it's some special addition... you have to go around"): made of items
+  the server placed (walls, wooden planks, thatch roof, barred metal doors at 1145,1807 and 1148,1807, a wooden door
+  at 1143,1819), so only the client knows them. The loop records every building piece the client shows
+  (`routes/obstacles.json`, before every ride) and the planner keeps a tile clear of them. The client opens doors
+  you walk into, which is how he got in.
