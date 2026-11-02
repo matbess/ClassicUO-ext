@@ -75,8 +75,8 @@ def main():
     os.makedirs(out, exist_ok=True)
     info = uo.find_bridge(None)
     rules = uo.call(info, 'GET', '/rules')
-    x1, y1, x2, y2 = rules['area']
-    z1, z2 = rules['z']
+    x1, y1, x2, y2 = rules['areas'][0]['box']
+    z1, z2 = rules['areas'][0]['z']
     nearby = uo.call(info, 'GET', '/nearby', range=14)
     nearby = nearby.get('items', nearby) if isinstance(nearby, dict) else nearby
     floor = [i for i in nearby if x1 <= i['x'] <= x2 and y1 <= i['y'] <= y2 and z1 <= i['z'] <= z2

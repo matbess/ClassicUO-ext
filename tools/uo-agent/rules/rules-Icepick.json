@@ -1,0 +1,24 @@
+{
+  // Icepick, the miner (see MINING.md). Made by mining_area.py from the user's walk (route1.jsonl, 2026-11-01):
+  // a corridor along the mountain face in west Britain, kept inside the guards' protection, halfway into the canyon.
+  "map": 0,
+  "areas": [{"name": "route 1", "box": [1119, 1543, 1134, 1559], "z": [-10, 40]}, {"name": "route 2", "box": [1119, 1551, 1129, 1567], "z": [-10, 40]}, {"name": "route 3", "box": [1117, 1559, 1129, 1579], "z": [-10, 40]}, {"name": "route 4", "box": [1110, 1571, 1125, 1591], "z": [-10, 40]}, {"name": "route 5", "box": [1100, 1583, 1118, 1598], "z": [-10, 40]}, {"name": "route 6", "box": [1100, 1590, 1109, 1598], "z": [-10, 40]}, {"name": "route 7", "box": [1100, 1590, 1105, 1653], "z": [-10, 40]}, {"name": "route 8", "box": [1100, 1645, 1116, 1659], "z": [-10, 40]}, {"name": "route 9", "box": [1108, 1651, 1127, 1663], "z": [-10, 40]}, {"name": "route 10", "box": [1119, 1654, 1139, 1672], "z": [-10, 40]}, {"name": "route 11", "box": [1131, 1664, 1143, 1682], "z": [-10, 40]}, {"name": "route 12", "box": [1135, 1674, 1143, 1693], "z": [-10, 40]}, {"name": "route 13", "box": [1135, 1685, 1146, 1705], "z": [-10, 40]}, {"name": "route 14", "box": [1138, 1697, 1153, 1716], "z": [-10, 40]}, {"name": "route 15", "box": [1145, 1708, 1158, 1727], "z": [-10, 40]}, {"name": "route 16", "box": [1150, 1719, 1168, 1731], "z": [-10, 40]}, {"name": "route 17", "box": [1160, 1722, 1180, 1734], "z": [-10, 40]}, {"name": "route 18", "box": [1172, 1726, 1192, 1745], "z": [-10, 40]}, {"name": "route 19", "box": [1184, 1737, 1199, 1757], "z": [-10, 40]}, {"name": "route 20", "box": [1191, 1749, 1202, 1766], "z": [-10, 40]}, {"name": "route 21", "box": [1193, 1758, 1202, 1775], "z": [-10, 40]}, {"name": "route 22", "box": [1184, 1767, 1202, 1785], "z": [-10, 40]}, {"name": "route 23", "box": [1172, 1775, 1192, 1787], "z": [-10, 40]}, {"name": "route 24", "box": [1162, 1764, 1180, 1783], "z": [-10, 40]}, {"name": "route 25", "box": [1154, 1761, 1170, 1772], "z": [-10, 40]}, {"name": "route 26", "box": [1142, 1757, 1162, 1769], "z": [-10, 40]}, {"name": "route 27", "box": [1132, 1757, 1150, 1767], "z": [-10, 40]}, {"name": "route 28", "box": [1120, 1752, 1140, 1765], "z": [-10, 40]}, {"name": "route 29", "box": [1108, 1752, 1128, 1770], "z": [-10, 40]}, {"name": "route 30", "box": [1105, 1762, 1117, 1778], "z": [-10, 40]}, {"name": "route 31", "box": [1100, 1770, 1113, 1790], "z": [-10, 40]}, {"name": "route 32", "box": [1100, 1782, 1109, 1799], "z": [-10, 40]}, {"name": "route 33", "box": [1100, 1791, 1108, 1811], "z": [-10, 40]}, {"name": "route 34", "box": [1100, 1803, 1112, 1823], "z": [-10, 40]}, {"name": "route 35", "box": [1103, 1815, 1121, 1827], "z": [-10, 40]}, {"name": "route 36", "box": [1113, 1819, 1124, 1838], "z": [-10, 40]}, {"name": "route 37", "box": [1115, 1830, 1133, 1844], "z": [-10, 40]}, {"name": "route 38", "box": [1125, 1836, 1143, 1855], "z": [-10, 40]}, {"name": "route 39", "box": [1135, 1847, 1154, 1867], "z": [-10, 40]}, {"name": "route 40", "box": [1134, 1859, 1152, 1879], "z": [-10, 40]}, {"name": "route 41", "box": [1133, 1871, 1142, 1888], "z": [-10, 40]}, {"name": "route 42", "box": [1128, 1880, 1143, 1898], "z": [-10, 40]}, {"name": "route 43", "box": [1135, 1870, 1147, 1890], "z": [-10, 40]}, {"name": "route 44", "box": [1139, 1864, 1159, 1878], "z": [-10, 40]}, {"name": "route 45", "box": [1151, 1864, 1170, 1881], "z": [-10, 40]}, {"name": "route 46", "box": [1162, 1873, 1182, 1890], "z": [-10, 40]}, {"name": "route 47", "box": [1174, 1881, 1190, 1898], "z": [-10, 40]}, {"name": "route 48", "box": [1180, 1889, 1191, 1898], "z": [-10, 40]}],
+  // people walk past out here; the guard deals with anyone who stops or talks
+  "pauseForPeople": false,
+  "partners": ["Burgers"],
+  // shovels and pickaxes (both facings), and ore piles for smelting
+  "useFromBackpack": ["0x0F39", "0x0F3A", "0x0E85", "0x0E86", "0x19B7", "0x19B8", "0x19B9", "0x19BA"],
+  "say": ["all follow me"],
+  "spells": [],
+  // 21 Hiding; the horses this character rides (for the tired-mount trick)
+  "skills": [21],
+  "mounts": ["0x00042FCB"],
+  // the guard stops work and the agent gets the character away and hides (the user, 2026-11-01); the bridge hides
+  // him itself if nobody has started within hideAfter seconds
+  "guard": { "onAlarm": "hide", "hideAfter": 5, "talk": true, "loiter": [3, 10], "attack": true, "watchItems": [], "npcs": [] },
+  // the user, 2026-11-01: slower than a person would bother to be (gap and break in milliseconds; aim is the pause
+  // between the target cursor appearing and the click, from build cuo-agent10 on)
+  // repeat / repeatAim: another stroke of the shovel at the same rock can be quick (the user, 2026-11-01), from cuo-agent11
+  "pacing": { "gap": [2500, 4000], "burst": 5, "break": [6000, 10000], "aim": [700, 1500],
+              "repeat": [300, 700], "repeatAim": [100, 300] }
+}

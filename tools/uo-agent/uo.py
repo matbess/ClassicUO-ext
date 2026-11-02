@@ -17,8 +17,24 @@
                                with --amount, only that many from a stack (the rest stays as a new item)
   uo equip SERIAL              put an item on (into the hands for a wand)
   uo use SERIAL TARGET         use an item held in the hands (a wand) on a target
+  uo use SERIAL --at X Y Z [--graphic G] [--reach N]
+                               use a tool on a spot on the map: a pickaxe on rock (graphic 0 = the ground),
+                               ore on a forge (the forge's graphic)
+  uo tiles [range]             the ground and statics around the character (what rock there is to mine)
+  uo give SERIAL TO [--amount N]
+                               drop a carried item on a partner character: opens the trade window
+  uo trade accept|unaccept|cancel
+  uo cast SPELL TARGET         cast an allowed spell (32 = Recall) on a carried item (a rune)
+  uo say TEXT                  say one of the allowed words ("bank")
+  uo guard on|off              the guard: stops work if anyone talks, loiters, attacks or steals (on also
+                               clears an alarm once the person has gone)
+  uo skill ID                  use an allowed skill (21 = Hiding)
+  uo dismount | uo mount SERIAL
+                               get off the horse / on one of the mounts named in the rules
+  uo alarm                     the last guard alarm (Agent/alarm.json) and the alarm log
+  uo logout                    log the character out now
   uo cancel                    cancel a target cursor
-  uo rules                     show Agent/rules.json as the bridge sees it
+  uo rules                     show the rules as the bridge sees them (Agent/rules-NAME.json or rules.json)
   uo resume                    carry on after the bridge stopped because the server went quiet
   uo actions                   what the bridge sent and when, next to the server's "You must wait"
   uo clear                     is anyone else in the agent's area? (exit code 0 when clear)
@@ -62,6 +78,8 @@ def find_bridge(character):
                 infos.append(json.load(fh))
         except (OSError, ValueError):
             pass
+    # rules files and the guard's alarm.json sit in the same folder
+    infos = [i for i in infos if isinstance(i, dict) and 'port' in i and 'token' in i]
     if character:
         infos = [i for i in infos if character.lower() in i.get('character', '').lower()]
     if len(infos) > 1:
@@ -92,12 +110,23 @@ def others_in_area(info):
     """Names of other people (or ghosts) in the area, the same check the bridge makes before acting."""
     rules = call(info, 'GET', '/rules')
     near = call(info, 'GET', '/nearby', range=24)
-    x1, y1, x2, y2 = rules['area']
-    zmin, zmax = rules['z']
-    ignore = {n.lower() for n in rules['ignorePeople']}
+    ignore = {n.lower() for n in rules['ignorePeople'] + rules.get('partners', [])}
+
+    def inside(m):
+        return any(a['box'][0] <= m['x'] <= a['box'][2] and a['box'][1] <= m['y'] <= a['box'][3]
+                   and a['z'][0] <= m['z'] <= a['z'][1] for a in rules['areas'])
+
     return [m['name'] or 'someone' for m in near['mobiles']
-            if (m['human'] or m['dead']) and (m['name'] or '').lower() not in ignore
-            and x1 <= m['x'] <= x2 and y1 <= m['y'] <= y2 and zmin <= m['z'] <= zmax]
+            if (m['human'] or m['dead']) and (m['name'] or '').lower() not in ignore and inside(m)]
+
+
+def read_alarm():
+    """The guard's last alarm (Agent/alarm.json), or None."""
+    try:
+        with open(os.path.join(AGENT_DIR, 'alarm.json'), encoding='utf-8-sig') as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return None
 
 
 def on_floor(info, serial):
@@ -306,6 +335,18 @@ def print_messages(messages):
         print(f"#{m['id']} {m['time']} {m['type']}{about} {who}{m['text']}")
 
 
+def print_trade(trade):
+    if not trade:
+        print('trade: none open')
+        return
+    print(f"trade with {trade['partnerName']} {trade['partner']}: "
+          f"me {'ACCEPTING' if trade['imAccepting'] else 'not accepting'}, "
+          f"them {'ACCEPTING' if trade['heIsAccepting'] else 'not accepting'}")
+    for side in ('mine', 'his'):
+        for item in trade[side]:
+            print(f"  {side}: {describe(item)}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--char')
@@ -340,7 +381,26 @@ def main():
     sub.add_parser('equip').add_argument('serial')
     p = sub.add_parser('use')
     p.add_argument('serial')
+    p.add_argument('target', nargs='?')
+    p.add_argument('--at', nargs=3, type=int, metavar=('X', 'Y', 'Z'))
+    p.add_argument('--graphic', default='0')
+    p.add_argument('--reach', type=int)
+    sub.add_parser('tiles').add_argument('range', nargs='?', type=int)
+    p = sub.add_parser('give')
+    p.add_argument('serial')
+    p.add_argument('to')
+    p.add_argument('--amount', type=int)
+    sub.add_parser('trade').add_argument('what', choices=['accept', 'unaccept', 'cancel'])
+    p = sub.add_parser('cast')
+    p.add_argument('spell', type=int)
     p.add_argument('target')
+    sub.add_parser('say').add_argument('text', nargs='+')
+    sub.add_parser('guard').add_argument('on', choices=['on', 'off'])
+    sub.add_parser('skill').add_argument('id', type=int)
+    sub.add_parser('dismount')
+    sub.add_parser('mount').add_argument('serial')
+    sub.add_parser('alarm')
+    sub.add_parser('logout')
     sub.add_parser('cancel')
     sub.add_parser('rules')
     sub.add_parser('clear')
@@ -356,6 +416,15 @@ def main():
         labels = load_labels()
         for serial, text in sorted(labels.items(), key=lambda kv: kv[1]):
             print(f'{serial}  {text}')
+        return
+
+    if args.command == 'alarm':
+        print(json.dumps(read_alarm()))
+        try:
+            with open(os.path.join(AGENT_DIR, 'alarms.log'), encoding='utf-8') as fh:
+                print(''.join(fh.readlines()[-10:]), end='')
+        except OSError:
+            pass
         return
 
     info = find_bridge(args.char)
@@ -401,7 +470,35 @@ def main():
     elif c == 'equip':
         result = call(info, 'POST', '/equip', serial=args.serial)
     elif c == 'use':
-        result = call(info, 'POST', '/use', serial=args.serial, target=args.target)
+        if args.at:
+            x, y, z = args.at
+            result = call(info, 'POST', '/use', serial=args.serial, x=x, y=y, z=z,
+                          graphic=int(args.graphic, 0), reach=args.reach)
+        elif args.target:
+            result = call(info, 'POST', '/use', serial=args.serial, target=args.target)
+        else:
+            sys.exit('use needs a TARGET or --at X Y Z')
+    elif c == 'tiles':
+        result = call(info, 'GET', '/tiles', range=args.range)
+    elif c == 'give':
+        result = call(info, 'POST', '/give', serial=args.serial, to=args.to, amount=args.amount)
+    elif c == 'trade':
+        result = call(info, 'POST', '/trade', **({'cancel': 1} if args.what == 'cancel' else
+                                                 {'accept': 1 if args.what == 'accept' else 0}))
+    elif c == 'cast':
+        result = call(info, 'POST', '/cast', spell=args.spell, target=args.target)
+    elif c == 'say':
+        result = call(info, 'POST', '/say', text=' '.join(args.text))
+    elif c == 'guard':
+        result = call(info, 'POST', '/guard', on=1 if args.on == 'on' else 0)
+    elif c == 'logout':
+        result = call(info, 'POST', '/logout')
+    elif c == 'skill':
+        result = call(info, 'POST', '/skill', id=args.id)
+    elif c == 'dismount':
+        result = call(info, 'POST', '/dismount')
+    elif c == 'mount':
+        result = call(info, 'POST', '/mount', serial=args.serial)
     elif c == 'cancel':
         result = call(info, 'POST', '/cancel')
     elif c == 'rules':
@@ -429,13 +526,28 @@ def main():
         print(f"{r['character']} {r['serial']} at {r['x']},{r['y']},{r['z']} map {r['map']}")
         print(f"hits {r['hits']}/{r['hitsMax']}  stamina {r['stamina']}/{r['staminaMax']}  mana {r['mana']}/{r['manaMax']}"
               f"  weight {r['weight']}/{r['weightMax']}")
-        flags = [f for f in ('warMode', 'hidden', 'dead', 'targeting') if r.get(f)]
+        flags = [f for f in ('mounted', 'warMode', 'hidden', 'dead', 'targeting') if r.get(f)]
         if flags or r.get('holding'):
             print('state:', ', '.join(flags + ([f"holding {r['holding']}"] if r.get('holding') else [])))
         if r.get('backpack'):
             print('backpack:', describe(r['backpack']))
         for item in r['hands']:
             print('in hand:', describe(item))
+        if r.get('bank'):
+            print('bank box:', r['bank'])
+        print_trade(r.get('trade'))
+        g = r.get('guard')
+        if g:
+            seen = ', '.join(f"{w['serial']}{'' if w['seen'] else ' (not seen yet)'}" for w in g.get('watching', []))
+            print(f"guard: {'ON' if g['on'] else 'off'}" + (f"  watching {seen}" if seen else ''))
+            a = g.get('alarm')
+            if a:
+                t = a.get('threat')
+                print(f"  ALARM {a['reason']} ({a['seconds']} s ago{', getting away' if a['evading'] else ''})" +
+                      (f"; {t['name'] or '?'} {t['serial']} last at {t['x']},{t['y']}"
+                       f" {'in sight' if t['visible'] else str(t['secondsSinceSeen']) + ' s ago'}" if t else ''))
+            for m in g.get('near', []):
+                print(f"  near: {m['name'] or '?'} {m['serial']} for {m['seconds']} s")
         print(f"last message #{r['lastMessageId']}")
     elif c == 'nearby':
         print(f"you are at {result['you']['x']},{result['you']['y']},{result['you']['z']}")
@@ -477,6 +589,23 @@ def main():
             print(describe(result['item']))
         if result.get('target'):
             print('target:', describe(result['target']))
+        print_messages(result['messages'])
+    elif c == 'tiles':
+        for t in result['tiles']:
+            statics = ', '.join(f"{s['graphic']} {s['name']} z{s['z']}" for s in t['statics'])
+            print(f"{t['x']},{t['y']}  {t.get('land')} {t.get('landName')} z{t.get('landZ')}" +
+                  (f"  | {statics}" if statics else ''))
+    elif c in ('give', 'trade'):
+        print_trade(result.get('trade'))
+        print_messages(result.get('messages', []))
+    elif c == 'cast':
+        print(('moved' if result['moved'] else 'did not move') + f" to {result['x']},{result['y']},{result['z']}"
+              f"  mana {result['mana']}")
+        print_messages(result['messages'])
+    elif c in ('say', 'guard', 'logout'):
+        print(json.dumps(result))
+    elif c in ('skill', 'dismount', 'mount'):
+        print(', '.join(f'{k} {v}' for k, v in result.items() if k != 'messages'))
         print_messages(result['messages'])
     elif c == 'name':
         for r in result:

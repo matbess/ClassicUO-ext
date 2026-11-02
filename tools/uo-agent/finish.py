@@ -31,7 +31,7 @@ def main():
             if not result['moved']:
                 sys.exit(f"{item['serial']} did not go into the spares pouch")
             say(f"{' '.join(name)} -> spares pouch")
-    x1, y1, x2, y2 = uo.call(info, 'GET', '/rules')['area']
+    x1, y1, x2, y2 = uo.call(info, 'GET', '/rules')['areas'][0]['box']
     walked = uo.call(info, 'POST', '/walk', x=(x1 + x2) // 2, y=(y1 + y2) // 2, distance=0)
     say(f"Johnny is at {walked['x']},{walked['y']}" + ('' if walked['arrived'] else ' (the middle was blocked)'))
 

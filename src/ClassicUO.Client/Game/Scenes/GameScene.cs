@@ -738,6 +738,28 @@ namespace ClassicUO.Game.Scenes
                 return;
             }
 
+            // the agent bridge's guard (or the agent) asked to leave the game: the same as the paperdoll's
+            // Log Out, without the question, so the client doesn't reconnect by itself
+            string agentLogout = _world.AgentBridge.TakeLogoutRequest();
+
+            if (agentLogout != null)
+            {
+                Log.Warn($"Agent bridge: logging out ({agentLogout})");
+
+                if ((_world.ClientFeatures.Flags & CharacterListFlags.CLF_OWERWRITE_CONFIGURATION_BUTTON) != 0)
+                {
+                    DisconnectionRequested = true;
+                    NetClient.Socket.Send_LogoutNotification();
+                }
+                else
+                {
+                    NetClient.Socket.Disconnect();
+                    Client.Game.SetScene(new LoginScene(_world));
+
+                    return;
+                }
+            }
+
             if (!_world.InGame)
             {
                 return;

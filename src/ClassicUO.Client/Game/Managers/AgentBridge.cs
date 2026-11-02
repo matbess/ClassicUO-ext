@@ -31,11 +31,26 @@ namespace ClassicUO.Game.Managers
     // else is in that area. Actions are paced like a person playing: a random gap between each, and a
     // longer break after every few. Anything out of reach is refused before it is sent (the server
     // ignores it silently), and if the server ever doesn't answer, the bridge stops until told to resume.
+    // A character can have its own Agent/rules-<character>.json (several areas, partners it may trade
+    // with, words it may say, spells and skills it may use, mounts it may ride). Its "guard" goes off the
+    // moment someone talks nearby, loiters next to it, attacks it, opens a trade or takes a watched item:
+    // work stops (only getting away and hiding are allowed) and Agent/alarm.json tells the partner's client.
     internal sealed class AgentBridge
     {
         private const int FIRST_PORT = 7780;
         private const int LAST_PORT = 7789;
-        private const int VERSION = 1;
+        private const int VERSION = 2;
+        private const int GUARD_INTERVAL = 250;  // milliseconds between the guard's checks
+        private const int ALARM_FILE_INTERVAL = 1000;
+        private const int CAST_TIMEOUT = 6000;   // from casting to the target cursor
+        private const int LAND_RESULT_TIMEOUT = 6000; // mining and smelting answer after the swing
+        private const int RECALL_TIMEOUT = 6000;
+        private const int TRADE_TIMEOUT = 3000;
+        private const int MAX_TILE_RANGE = 8;
+        private const int SKILL_TIMEOUT = 3000;
+        private const int MOUNT_TIMEOUT = 3000;
+        private const int HIDING = 21;
+        private const int REPEAT_WINDOW = 15000; // a stroke counts as a repeat within this long of the last one
         private const int GAME_THREAD_TIMEOUT = 5000;
         private const int POLL_INTERVAL = 50;
         private const int OPEN_TIMEOUT = 3000;
@@ -72,15 +87,37 @@ namespace ClassicUO.Game.Managers
         private string _infoPath;
         private uint _playerSerial;
         private uint _failedSerial;
+        private string _characterName; // set on the game thread at start; read by the listener for the rules file
+
+        // the guard, on the game thread
+        private bool _guardOn;
+        private DateTime _guardSince; // UTC; alarms written before this are old news
+        private DateTime _nextGuardCheck;
+        private DateTime _nextAlarmFileCheck;
+        private int _lastHits = -1;
+        private readonly Dictionary<uint, DateTime> _nearSince = new Dictionary<uint, DateTime>();
+        private readonly HashSet<uint> _seenCarried = new HashSet<uint>();
+        private volatile string _alarm; // the listener refuses normal work while it's set
+        private DateTime _alarmAt;
+        private DateTime _nextAutoHide;
+        private DateTime _alarmFileSeen;
+        private volatile bool _evading; // the agent is getting the character away (walking, hiding, recalling)
+        private volatile bool _alarmStaff; // staff set it off: stand still, do nothing, and tell the user
+        private Threat _threat;
+        private string _lastLogged;
+        private volatile string _logoutRequest; // read by GameScene, which logs out at a safe point in its update
 
         // only touched on the listener thread
         private readonly Random _random = new Random();
         private DateTime _nextAction;
         private int _burstCount;
+        private string _lastKind; // what the last action was, to tell a repeated stroke from a new action
+        private DateTime _lastKindAt;
         private string _halted;
         private readonly Queue<(DateTime Time, string What, uint Serial)> _actions = new Queue<(DateTime, string, uint)>();
-        private Rules _rules;
+        private volatile Rules _rules; // the guard reads it on the game thread
         private DateTime _rulesTime;
+        private string _rulesName;
 
         public AgentBridge(World world)
         {
@@ -112,6 +149,20 @@ namespace ClassicUO.Game.Managers
             {
                 action();
             }
+
+            if (_listener != null && _guardOn && _logoutRequest == null)
+            {
+                GuardTick();
+            }
+        }
+
+        // called by GameScene once per update, at the point where it can safely leave the game
+        public string TakeLogoutRequest()
+        {
+            string why = _logoutRequest;
+            _logoutRequest = null;
+
+            return why;
         }
 
         // server packets, on the game thread: note when a container is shown (0x24) or its contents arrive (0x3C).
@@ -171,6 +222,12 @@ namespace ClassicUO.Game.Managers
             _labels.Clear();
             _containerGumps.Clear();
             _containerAnswers.Clear();
+            _guardOn = false;
+            _nearSince.Clear();
+            _seenCarried.Clear();
+            _alarm = null;
+            _alarmStaff = false;
+            _threat = null;
             DeleteInfoFile();
             Log.Info("Agent bridge stopped");
         }
@@ -222,6 +279,7 @@ namespace ClassicUO.Game.Managers
 
             _listener = listener;
             _playerSerial = player;
+            _characterName = characterName;
 
             new Thread(() => Listen(listener, Encoding.ASCII.GetBytes(Convert.ToHexString(token))))
             {
@@ -234,13 +292,7 @@ namespace ClassicUO.Game.Managers
 
         private void WriteInfoFile(string characterName, uint player, int port, string token)
         {
-            string name = string.IsNullOrEmpty(characterName) ? "unknown" : characterName;
-
-            foreach (char c in Path.GetInvalidFileNameChars())
-            {
-                name = name.Replace(c, '_');
-            }
-
+            string name = SafeFileName(characterName);
             string folder = FileSystemHelper.CreateFolderIfNotExists(CUOEnviroment.ExecutablePath, "Agent");
             string path = Path.Combine(folder, name + ".json");
 
@@ -311,6 +363,11 @@ namespace ClassicUO.Game.Managers
             while (_messages.Count > MAX_MESSAGES)
             {
                 _messages.Dequeue();
+            }
+
+            if (_guardOn)
+            {
+                CheckTalk(e);
             }
 
             if (serial == 0)
@@ -493,12 +550,14 @@ namespace ClassicUO.Game.Managers
                 case "/open":
                     RequireMethod(method, "POST");
                     CheckNotHalted();
+                    CheckNoAlarm();
 
                     return Open(GetSerial(query));
 
                 case "/name":
                     RequireMethod(method, "POST");
                     CheckNotHalted();
+                    CheckNoAlarm();
 
                     return Name(GetSerials(query));
 
@@ -552,26 +611,131 @@ namespace ClassicUO.Game.Managers
                 case "/walk":
                     RequireMethod(method, "POST");
                     CheckNotHalted();
+                    CheckNoStaff();
+
+                    if (_alarm != null)
+                    {
+                        _evading = true;
+                    }
 
                     return Walk(query);
 
                 case "/move":
                     RequireMethod(method, "POST");
                     CheckNotHalted();
+                    CheckNoAlarm();
 
                     return Move(GetSerial(query), GetSerial(query, "to"), GetInt(query, "x", 0xFFFF), GetInt(query, "y", 0xFFFF), GetInt(query, "amount", 0));
 
                 case "/equip":
                     RequireMethod(method, "POST");
                     CheckNotHalted();
+                    CheckNoAlarm();
 
                     return Equip(GetSerial(query));
 
                 case "/use":
                     RequireMethod(method, "POST");
                     CheckNotHalted();
+                    CheckNoAlarm();
+
+                    // a spot on the map (a rock face to mine, a forge to smelt at) instead of an item
+                    if (query.ContainsKey("x"))
+                    {
+                        return UseOnTile
+                        (
+                            GetSerial(query),
+                            GetRequiredInt(query, "x"),
+                            GetRequiredInt(query, "y"),
+                            GetRequiredInt(query, "z"),
+                            GetInt(query, "graphic", 0),
+                            Math.Clamp(GetInt(query, "reach", REACH), 1, TARGET_REACH)
+                        );
+                    }
 
                     return Use(GetSerial(query), GetSerial(query, "target"));
+
+                case "/give":
+                    RequireMethod(method, "POST");
+                    CheckNotHalted();
+                    CheckNoAlarm();
+
+                    return Give(GetSerial(query), GetSerial(query, "to"), GetInt(query, "amount", 0));
+
+                case "/trade":
+                    RequireMethod(method, "POST");
+                    CheckNotHalted();
+
+                    if (GetInt(query, "cancel", 0) == 0)
+                    {
+                        CheckNoAlarm();
+                    }
+
+                    return Trade(GetInt(query, "accept", -1), GetInt(query, "cancel", 0) != 0);
+
+                case "/cast":
+                    RequireMethod(method, "POST");
+                    CheckNotHalted();
+                    CheckNoStaff();
+
+                    if (_alarm != null)
+                    {
+                        _evading = true;
+                    }
+
+                    return Cast(GetRequiredInt(query, "spell"), GetSerial(query, "target"));
+
+                case "/say":
+                    RequireMethod(method, "POST");
+                    CheckNotHalted();
+                    CheckNoAlarm();
+
+                    return Say(query.TryGetValue("text", out string text) ? text : "");
+
+                case "/skill":
+                    RequireMethod(method, "POST");
+                    CheckNotHalted();
+                    CheckNoStaff();
+
+                    return UseSkill(GetRequiredInt(query, "id"));
+
+                case "/dismount":
+                    RequireMethod(method, "POST");
+                    CheckNotHalted();
+                    CheckNoStaff();
+
+                    return Dismount();
+
+                case "/mount":
+                    RequireMethod(method, "POST");
+                    CheckNotHalted();
+                    CheckNoStaff();
+
+                    return Mount(GetSerial(query));
+
+                case "/logout":
+                    RequireMethod(method, "POST");
+                    _logoutRequest = "asked to log out";
+
+                    return Json(w => WriteDone(w, true));
+
+                case "/guard":
+                    RequireMethod(method, "POST");
+                    bool on = GetInt(query, "on", 1) != 0;
+                    Rules guardRules = on ? RequireRules() : null;
+
+                    if (on && guardRules.Guard == null)
+                    {
+                        throw new BridgeException(403, "the rules file has no guard section for this character");
+                    }
+
+                    return OnGame(() => Json(w => WriteGuard(w, SetGuard(on))));
+
+                case "/tiles":
+                    RequireMethod(method, "GET");
+                    int tileRange = Math.Clamp(GetInt(query, "range", 3), 0, MAX_TILE_RANGE);
+
+                    return OnGame(() => Json(w => WriteTiles(w, tileRange)));
             }
 
             throw new BridgeException(404, $"unknown request {path}");
@@ -730,6 +894,9 @@ namespace ClassicUO.Game.Managers
         private byte[] Walk(Dictionary<string, string> query)
         {
             Rules rules = RequireRules();
+
+            // a walk waits its turn like any other action, so nothing happens the instant he arrives somewhere
+            WaitForActionSlot();
             bool toItem = query.ContainsKey("to");
             uint target = toItem ? GetSerial(query, "to") : 0;
             int x = toItem ? 0 : GetRequiredInt(query, "x");
@@ -776,10 +943,44 @@ namespace ClassicUO.Game.Managers
                 }
             );
 
-            if (!already)
+            bool leftArea = false;
+
+            if (already)
+            {
+                PaceFromNow();
+            }
+            else
             {
                 Thread.Sleep(POLL_INTERVAL * 2);
-                WaitFor(() => !_world.Player.Pathfinder.AutoWalking, WALK_TIMEOUT);
+
+                // the path finder may step round an obstacle outside the area: stop the moment that happens
+                WaitFor
+                (
+                    () =>
+                    {
+                        PlayerMobile p = _world.Player;
+                        leftArea = !rules.Contains(_world.MapIndex, p.X, p.Y, p.Z);
+
+                        return leftArea || !p.Pathfinder.AutoWalking;
+                    },
+                    WALK_TIMEOUT
+                );
+
+                if (leftArea)
+                {
+                    OnGame
+                    (
+                        () =>
+                        {
+                            _world.Player.Pathfinder.StopAutoWalk();
+
+                            return true;
+                        }
+                    );
+                }
+
+                // and the next action waits a full gap from arriving
+                PaceFromNow();
             }
 
             return OnGame
@@ -793,6 +994,11 @@ namespace ClassicUO.Game.Managers
 
                         w.WriteStartObject();
                         w.WriteBoolean("arrived", left <= distance);
+
+                        if (leftArea)
+                        {
+                            w.WriteBoolean("leftArea", true);
+                        }
                         w.WriteNumber("x", p.X);
                         w.WriteNumber("y", p.Y);
                         w.WriteNumber("z", p.Z);
@@ -993,13 +1199,7 @@ namespace ClassicUO.Game.Managers
                         Item item = _world.Items.Get(serial) ?? throw new BridgeException(404, "no such item nearby");
 
                         // nothing else is ever double-clicked, so a potion can't be drunk by mistake
-                        bool inHands = item.Container == _world.Player.Serial && (item.Layer == Layer.OneHanded || item.Layer == Layer.TwoHanded);
-                        bool allowedTool = rules.UseFromBackpack.Contains(item.Graphic) && IsCarried(item);
-
-                        if (!inHands && !allowedTool)
-                        {
-                            throw new BridgeException(403, "only an item in the character's hands, or a tool rules.json allows from the backpack, can be used");
-                        }
+                        CheckUsable(item, rules);
 
                         Item aim = _world.Items.Get(target) ?? throw new BridgeException(404, "no such target nearby");
                         CheckInReach(CheckReachable(aim, rules, "target"), TARGET_REACH);
@@ -1032,6 +1232,8 @@ namespace ClassicUO.Game.Managers
 
             if (targeting)
             {
+                Aim(rules);
+
                 long aimed = OnGame
                 (
                     () =>
@@ -1184,6 +1386,1229 @@ namespace ClassicUO.Game.Managers
             return targeting;
         }
 
+        // only an item in the hands, or a tool the rules allow from the backpack, is ever double-clicked
+        private void CheckUsable(Item item, Rules rules)
+        {
+            bool inHands = item.Container == _world.Player.Serial && (item.Layer == Layer.OneHanded || item.Layer == Layer.TwoHanded);
+            bool allowedTool = rules.UseFromBackpack.Contains(item.Graphic) && IsCarried(item);
+
+            if (!inHands && !allowedTool)
+            {
+                throw new BridgeException(403, "only an item in the character's hands, or a tool the rules allow from the backpack, can be used");
+            }
+        }
+
+        // uses a tool on a spot on the map instead of an item: a pickaxe on a rock face, ore on a forge.
+        // graphic 0 aims at the ground itself (mountain and cave floors are ground); anything else is a static there
+        private byte[] UseOnTile(uint serial, int x, int y, int z, int graphic, int reach)
+        {
+            Rules rules = RequireRules();
+            long before = 0;
+            bool targeting = false;
+            bool repeat = false;
+
+            for (int attempt = 0; attempt < 2 && !targeting; attempt++)
+            {
+                repeat = WaitForActionSlot($"use {Hex(serial)} at {x},{y},{z}");
+
+                before = OnGame
+                (
+                    () =>
+                    {
+                        CheckNobodyElse(rules);
+                        Item item = _world.Items.Get(serial) ?? throw new BridgeException(404, "no such item nearby");
+                        CheckUsable(item, rules);
+
+                        if (!rules.ContainsSpot(_world.MapIndex, x, y))
+                        {
+                            throw new BridgeException(403, "that spot is outside the agent's area");
+                        }
+
+                        PlayerMobile p = _world.Player;
+                        int distance = Math.Max(Math.Abs(p.X - x), Math.Abs(p.Y - y));
+
+                        if (distance > reach)
+                        {
+                            throw new BridgeException(409, $"too far away ({distance} tiles, reach is {reach}); walk closer first");
+                        }
+
+                        if (_world.TargetManager.IsTargeting)
+                        {
+                            _world.TargetManager.CancelTarget();
+                        }
+
+                        LogAction("use (double-click)", serial);
+                        GameActions.DoubleClick(_world, serial);
+
+                        return _lastMessageId;
+                    }
+                );
+
+                WaitFor(() => _world.TargetManager.IsTargeting || HasSystemMessageAfter(before), TARGET_TIMEOUT);
+                targeting = OnGame(() => _world.TargetManager.IsTargeting);
+
+                if (!targeting && !OnGame(() => SawMessage(before, MUST_WAIT)))
+                {
+                    break;
+                }
+            }
+
+            if (!targeting && !OnGame(() => HasMessageAfter(before)))
+            {
+                Halt($"no answer when using {Hex(serial)}");
+            }
+
+            bool sent = false;
+
+            if (targeting)
+            {
+                Aim(rules, repeat);
+
+                (long aimed, bool stillTargeting) = OnGame
+                (
+                    () =>
+                    {
+                        LogAction($"target {x},{y},{z} {Hex((ushort)graphic)}", 0);
+                        long id = _lastMessageId;
+                        _world.TargetManager.Target((ushort)graphic, (ushort)x, (ushort)y, (short)z);
+
+                        // the client refuses a ground spot when the cursor wants an object, and sends nothing
+                        return (id, _world.TargetManager.IsTargeting);
+                    }
+                );
+
+                sent = !stillTargeting;
+
+                if (sent)
+                {
+                    // mining and smelting answer after the swing, with a message from the server (not, say, the
+                    // name of a bird that just flew into view)
+                    if (WaitFor(() => HasSystemMessageAfter(aimed), LAND_RESULT_TIMEOUT))
+                    {
+                        Thread.Sleep(SETTLE_TIME);
+                    }
+                    else
+                    {
+                        OnGame(CancelTarget);
+                        Halt($"no answer after targeting {x},{y},{z}");
+                    }
+                }
+            }
+
+            OnGame(CancelTarget);
+
+            return OnGame
+            (
+                () => Json
+                (
+                    w =>
+                    {
+                        w.WriteStartObject();
+                        w.WriteBoolean("targeted", sent);
+
+                        if (targeting && !sent)
+                        {
+                            w.WriteString("refused", "the cursor wants an object, not a spot on the ground");
+                        }
+
+                        WriteMessagesSince(w, before, 0);
+                        w.WriteNumber("weight", _world.Player.Weight);
+                        w.WriteNumber("weightMax", _world.Player.WeightMax);
+                        w.WriteEndObject();
+                    }
+                )
+            );
+        }
+
+        // hands a carried item to one of the user's own characters: dropping it on them opens the trade window
+        private byte[] Give(uint serial, uint to, int amount)
+        {
+            Rules rules = RequireRules();
+
+            long before = Lift
+            (
+                serial,
+                rules,
+                item =>
+                {
+                    if (!IsCarried(item))
+                    {
+                        throw new BridgeException(403, "only things the character carries can be given");
+                    }
+
+                    Mobile m = _world.Mobiles.Get(to) ?? throw new BridgeException(404, "no such character nearby");
+
+                    if (!rules.Partners.Contains(m.Name ?? ""))
+                    {
+                        throw new BridgeException(403, "things can only be given to a partner named in the rules");
+                    }
+
+                    if (m.Distance > REACH)
+                    {
+                        throw new BridgeException(409, $"too far away ({m.Distance} tiles, reach is {REACH}); walk closer first");
+                    }
+                },
+                amount
+            );
+
+            OnGame
+            (
+                () =>
+                {
+                    LogAction("drop on partner", to);
+                    GameActions.DropItem(serial, 0xFFFF, 0xFFFF, 0, to);
+
+                    return true;
+                }
+            );
+
+            PaceFromNow();
+
+            bool answered = WaitFor(() => UIManager.GetTradingGump(to) != null || HasSystemMessageAfter(before), TRADE_TIMEOUT);
+            Thread.Sleep(SETTLE_TIME);
+
+            if (!answered)
+            {
+                OnGame
+                (
+                    () =>
+                    {
+                        ReleaseHeldItem();
+
+                        return true;
+                    }
+                );
+
+                Halt($"no answer after giving {Hex(serial)}");
+            }
+
+            return OnGame
+            (
+                () =>
+                {
+                    ReleaseHeldItem();
+
+                    return Json
+                    (
+                        w =>
+                        {
+                            w.WriteStartObject();
+                            WriteTrade(w);
+                            WriteMessagesSince(w, before, 0);
+                            w.WriteEndObject();
+                        }
+                    );
+                }
+            );
+        }
+
+        // ticks or unticks this side's accept box in the open trade window, or cancels the trade.
+        // When both sides accept, the server swaps the items and closes the window.
+        private byte[] Trade(int accept, bool cancel)
+        {
+            Rules rules = RequireRules();
+
+            if (!cancel && accept < 0)
+            {
+                throw new BridgeException(400, "give accept=1, accept=0 or cancel=1");
+            }
+
+            WaitForActionSlot();
+
+            uint partner = OnGame
+            (
+                () =>
+                {
+                    TradingGump gump = FindTrade() ?? throw new BridgeException(404, "no trade window is open");
+
+                    if (cancel)
+                    {
+                        LogAction("cancel trade", gump.LocalSerial);
+                        GameActions.CancelTrade(gump.ID1);
+
+                        return gump.LocalSerial;
+                    }
+
+                    Mobile m = _world.Mobiles.Get(gump.LocalSerial);
+
+                    if (m == null || !rules.Partners.Contains(m.Name ?? ""))
+                    {
+                        throw new BridgeException(403, "trades are only accepted with a partner named in the rules");
+                    }
+
+                    LogAction(accept != 0 ? "accept trade" : "unaccept trade", gump.LocalSerial);
+                    GameActions.AcceptTrade(gump.ID1, accept != 0);
+
+                    return gump.LocalSerial;
+                }
+            );
+
+            // the server answers with both boxes' state, or closes the window when the trade is done
+            WaitFor
+            (
+                () =>
+                {
+                    TradingGump gump = UIManager.GetTradingGump(partner);
+
+                    return gump == null || !cancel && gump.ImAccepting == (accept != 0);
+                },
+                TRADE_TIMEOUT
+            );
+
+            Thread.Sleep(SETTLE_TIME);
+
+            return OnGame
+            (
+                () => Json
+                (
+                    w =>
+                    {
+                        w.WriteStartObject();
+                        WriteTrade(w);
+                        w.WriteEndObject();
+                    }
+                )
+            );
+        }
+
+        private static TradingGump FindTrade()
+        {
+            for (LinkedListNode<Gump> node = UIManager.Gumps.First; node != null; node = node.Next)
+            {
+                if (node.Value is TradingGump trade && !trade.IsDisposed)
+                {
+                    return trade;
+                }
+            }
+
+            return null;
+        }
+
+        // casts a spell the rules allow (Recall is 32) on something the character carries (a rune)
+        private byte[] Cast(int spell, uint target)
+        {
+            Rules rules = RequireRules();
+
+            if (!rules.Spells.Contains(spell))
+            {
+                throw new BridgeException(403, "the rules don't allow that spell");
+            }
+
+            WaitForActionSlot();
+
+            (long before, int x0, int y0) = OnGame
+            (
+                () =>
+                {
+                    CheckNobodyElse(rules);
+                    Item aim = _world.Items.Get(target) ?? throw new BridgeException(404, "no such target nearby");
+
+                    if (!IsCarried(aim))
+                    {
+                        throw new BridgeException(403, "spells are only cast on things the character carries");
+                    }
+
+                    if (_world.TargetManager.IsTargeting)
+                    {
+                        _world.TargetManager.CancelTarget();
+                    }
+
+                    LogAction($"cast spell {spell}", target);
+                    GameActions.CastSpell(spell);
+
+                    return (_lastMessageId, (int)_world.Player.X, (int)_world.Player.Y);
+                }
+            );
+
+            // a fizzle, too little mana or missing reagents come back as messages instead of a cursor
+            WaitFor(() => _world.TargetManager.IsTargeting || HasSystemMessageAfter(before), CAST_TIMEOUT);
+            bool targeting = OnGame(() => _world.TargetManager.IsTargeting);
+
+            if (!targeting && !OnGame(() => HasMessageAfter(before)))
+            {
+                Halt($"no answer when casting spell {spell}");
+            }
+
+            bool moved = false;
+
+            if (targeting)
+            {
+                Aim(rules);
+
+                long aimed = OnGame
+                (
+                    () =>
+                    {
+                        LogAction("target", target);
+                        long id = _lastMessageId;
+                        _world.TargetManager.Target(target);
+
+                        return id;
+                    }
+                );
+
+                if (!WaitFor(() => _world.Player.X != x0 || _world.Player.Y != y0 || HasSystemMessageAfter(aimed), RECALL_TIMEOUT))
+                {
+                    OnGame(CancelTarget);
+                    Halt($"no answer after targeting {Hex(target)} with spell {spell}");
+                }
+
+                Thread.Sleep(SETTLE_TIME);
+                moved = OnGame(() => _world.Player.X != x0 || _world.Player.Y != y0);
+            }
+
+            OnGame(CancelTarget);
+            PaceFromNow();
+
+            return OnGame
+            (
+                () => Json
+                (
+                    w =>
+                    {
+                        PlayerMobile p = _world.Player;
+
+                        w.WriteStartObject();
+                        w.WriteBoolean("targeted", targeting);
+                        w.WriteBoolean("moved", moved);
+                        w.WriteNumber("x", p.X);
+                        w.WriteNumber("y", p.Y);
+                        w.WriteNumber("z", p.Z);
+                        w.WriteNumber("mana", p.Mana);
+                        WriteMessagesSince(w, before, 0);
+                        w.WriteEndObject();
+                    }
+                )
+            );
+        }
+
+        // says one of the few words the rules allow ("bank"); never anything else, so it can't talk to players
+        private byte[] Say(string text)
+        {
+            Rules rules = RequireRules();
+            text = text.Trim();
+
+            if (text.Length == 0 || !rules.Say.Contains(text))
+            {
+                throw new BridgeException(403, "the rules don't allow saying that");
+            }
+
+            WaitForActionSlot();
+
+            long before = OnGame
+            (
+                () =>
+                {
+                    CheckNobodyElse(rules);
+                    LogAction($"say \"{text}\"", 0);
+                    long id = _lastMessageId;
+                    GameActions.Say(text);
+
+                    return id;
+                }
+            );
+
+            Thread.Sleep(1000); // the banker opens the bank box, which needs no other answer
+
+            return OnGame
+            (
+                () => Json
+                (
+                    w =>
+                    {
+                        w.WriteStartObject();
+                        Item bank = _world.Player.FindItemByLayer(Layer.Bank);
+
+                        if (bank != null)
+                        {
+                            w.WritePropertyName("bank");
+                            WriteItem(w, bank);
+                        }
+
+                        WriteMessagesSince(w, before, 0);
+                        w.WriteEndObject();
+                    }
+                )
+            );
+        }
+
+        // ---- the guard, on the game thread ----
+
+        // (re)starting the guard also clears an alarm: the agent calls it once the person has gone
+        private bool SetGuard(bool on)
+        {
+            _guardOn = on;
+            _nearSince.Clear();
+            _seenCarried.Clear();
+            _lastHits = -1;
+            _alarm = null;
+            _alarmStaff = false;
+            _threat = null;
+            _evading = false;
+            _lastLogged = null;
+
+            if (on)
+            {
+                _guardSince = DateTime.UtcNow;
+                _nextGuardCheck = DateTime.MinValue;
+                _nextAlarmFileCheck = DateTime.MinValue;
+                _alarmFileSeen = AlarmFileTime(); // alarms written before now are old news
+                Log.Info("Agent bridge guard on");
+            }
+
+            return on;
+        }
+
+        private void GuardTick()
+        {
+            DateTime now = DateTime.UtcNow;
+
+            if (now < _nextGuardCheck)
+            {
+                return;
+            }
+
+            _nextGuardCheck = now.AddMilliseconds(GUARD_INTERVAL);
+
+            Rules rules = _rules;
+            GuardRules g = rules?.Guard;
+            PlayerMobile p = _world.Player;
+
+            if (g == null || p == null)
+            {
+                return;
+            }
+
+            if (_alarm != null)
+            {
+                // keep track of where the person is, for the agent deciding when they've gone
+                Mobile seen = _threat != null && _threat.Serial != 0 ? _world.Mobiles.Get(_threat.Serial) : null;
+
+                if (seen != null && !seen.IsDestroyed)
+                {
+                    _threat.X = seen.X;
+                    _threat.Y = seen.Y;
+                    _threat.Seen = now;
+                }
+
+                // nobody is getting the character away (the agent's script isn't running): hide where he stands
+                if (!_evading && !_alarmStaff && now >= _nextAutoHide && !p.IsHidden && rules.Skills.Contains(HIDING))
+                {
+                    _nextAutoHide = now.AddSeconds(11);
+                    Log.Warn("Agent bridge guard: nobody is getting the character away; hiding");
+                    GameActions.UseSkill(HIDING);
+                }
+            }
+
+            // the partner's guard went off: stop work here too
+            if (now >= _nextAlarmFileCheck)
+            {
+                _nextAlarmFileCheck = now.AddMilliseconds(ALARM_FILE_INTERVAL);
+                DateTime written = AlarmFileTime();
+
+                if (written > _alarmFileSeen)
+                {
+                    _alarmFileSeen = written;
+                    (string who, string why, bool staff) = ReadAlarmFile();
+
+                    if (who != null && !who.Equals(_characterName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Alarm($"partner {who}: {why}", null, 0, false, staff);
+
+                        if (g.LogOut)
+                        {
+                            return;
+                        }
+                    }
+                }
+            }
+
+            if (g.Attack && p.HitsMax > 0)
+            {
+                if (_lastHits >= 0 && p.Hits < _lastHits)
+                {
+                    Mobile near = NearestStranger(rules, 12);
+                    Alarm($"hit points went down from {_lastHits} to {p.Hits}: attacked?", near, near?.Serial ?? 0, true);
+                }
+
+                _lastHits = p.Hits;
+            }
+
+            // runes are never used up or moved by the agent, so one that goes missing was taken
+            foreach (uint serial in g.WatchItems)
+            {
+                Item item = _world.Items.Get(serial);
+
+                if (item != null && !item.IsDestroyed && IsCarried(item))
+                {
+                    _seenCarried.Add(serial);
+                }
+                else if (_seenCarried.Remove(serial))
+                {
+                    Mobile near = NearestStranger(rules, 12);
+                    Alarm($"{Hex(serial)} is gone from the backpack: stolen?", near, near?.Serial ?? 0, true);
+                }
+            }
+
+            TradingGump trade = FindTrade();
+
+            if (trade != null)
+            {
+                Mobile who = _world.Mobiles.Get(trade.LocalSerial);
+
+                if (who == null || !rules.Partners.Contains(who.Name ?? ""))
+                {
+                    GameActions.CancelTrade(trade.ID1);
+                    Alarm($"{Describe(who, trade.LocalSerial)} opened a trade", who, trade.LocalSerial, true);
+                }
+            }
+
+            // someone standing close instead of walking past may be snooping or stealing
+            var near3 = new List<uint>();
+
+            foreach (Mobile m in _world.Mobiles.Values)
+            {
+                if (m == p || m.IsDestroyed || !(m.IsHuman || m.IsDead) || IsFriendly(m, rules) || m.Distance > g.LoiterRange)
+                {
+                    continue;
+                }
+
+                near3.Add(m.Serial);
+
+                if (!_nearSince.TryGetValue(m.Serial, out DateTime since))
+                {
+                    _nearSince[m.Serial] = now;
+                }
+                else if ((now - since).TotalSeconds > g.LoiterSeconds)
+                {
+                    Alarm($"{Describe(m, m.Serial)} stood within {g.LoiterRange} tiles for over {g.LoiterSeconds} seconds", m, m.Serial, true, IsStaff(m));
+                }
+            }
+
+            if (_nearSince.Count > near3.Count)
+            {
+                var gone = new List<uint>();
+
+                foreach (uint serial in _nearSince.Keys)
+                {
+                    if (!near3.Contains(serial))
+                    {
+                        gone.Add(serial);
+                    }
+                }
+
+                foreach (uint serial in gone)
+                {
+                    _nearSince.Remove(serial);
+                }
+            }
+        }
+
+        // anyone but the user's own characters and the local townsfolk speaking nearby
+        private void CheckTalk(MessageEventArgs e)
+        {
+            Rules rules = _rules;
+            GuardRules g = rules?.Guard;
+
+            if (g == null || _logoutRequest != null)
+            {
+                return;
+            }
+
+            if (e.Parent is Mobile m)
+            {
+                if (m == _world.Player || IsFriendly(m, rules))
+                {
+                    return;
+                }
+
+                switch (e.Type)
+                {
+                    case MessageType.Label:   // a name from a single click
+                    case MessageType.Party:
+                    case MessageType.Guild:
+                    case MessageType.Alliance:
+                    case MessageType.Command:
+                        return;
+                }
+
+                if (g.Talk)
+                {
+                    Alarm($"{Describe(m, m.Serial)} said \"{e.Text}\"", m, m.Serial, true, IsStaff(m) || e.Type == MessageType.GmChat);
+                }
+
+                return;
+            }
+
+            if (e.Parent != null)
+            {
+                return; // an item, such as the trash barrel
+            }
+
+            string lower = e.Text.ToLowerInvariant();
+
+            // "You see X attacking you!", "You notice X trying to steal from you"
+            if (g.Attack && (lower.Contains("attacking you") || lower.Contains("you notice")))
+            {
+                Mobile near = NearestStranger(rules, 12);
+                Alarm($"the server said \"{e.Text}\"", near, near?.Serial ?? 0, true);
+
+                return;
+            }
+
+            // speech from someone the client doesn't know, other than the server itself
+            if (g.Talk && e.Type != MessageType.System && e.Type != MessageType.Label && !string.IsNullOrEmpty(e.Name)
+                && !e.Name.Equals("System", StringComparison.OrdinalIgnoreCase) && !rules.Partners.Contains(e.Name) && !g.NpcNames.Contains(e.Name))
+            {
+                Alarm($"{e.Name} said \"{e.Text}\"", null, 0, true, e.Type == MessageType.GmChat || LooksLikeStaff(e.Name));
+            }
+        }
+
+        private bool IsFriendly(Mobile m, Rules rules)
+        {
+            string name = m.Name ?? "";
+
+            return rules.Partners.Contains(name) || rules.Guard != null && (rules.Guard.NpcSerials.Contains(m.Serial) || rules.Guard.NpcNames.Contains(name));
+        }
+
+        // staff: a GM body, a GM robe, or a staff title in the name. When in doubt it counts as staff, since all that
+        // happens then is that the characters stand still and the user is told.
+        private static bool IsStaff(Mobile m)
+        {
+            if (m == null)
+            {
+                return false;
+            }
+
+            if (m.Graphic == 0x03DB || m.Graphic == 0x03DF)
+            {
+                return true;
+            }
+
+            Item robe = m.FindItemByLayer(Layer.Robe);
+
+            return robe != null && robe.Graphic == 0x204F || LooksLikeStaff(m.Name);
+        }
+
+        private static bool LooksLikeStaff(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                return false;
+            }
+
+            foreach (string word in name.Split(new[] { ' ', '[', ']', '(', ')', '-', '_', '.', ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                switch (word.ToLowerInvariant())
+                {
+                    case "gm":
+                    case "seer":
+                    case "counselor":
+                    case "counsellor":
+                    case "admin":
+                    case "administrator":
+                    case "staff":
+                    case "moderator":
+                    case "developer":
+                    case "owner":
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        // the nearest person who isn't a partner or one of the townsfolk: the likely culprit
+        private Mobile NearestStranger(Rules rules, int range)
+        {
+            Mobile best = null;
+
+            foreach (Mobile m in _world.Mobiles.Values)
+            {
+                if (m != _world.Player && !m.IsDestroyed && (m.IsHuman || m.IsDead) && !IsFriendly(m, rules) && m.Distance <= range && (best == null || m.Distance < best.Distance))
+                {
+                    best = m;
+                }
+            }
+
+            return best;
+        }
+
+        private static string Describe(Mobile m, uint serial) => $"{(string.IsNullOrEmpty(m?.Name) ? "someone" : m.Name)} ({Hex(serial)})";
+
+        private static string AlarmPath() => Path.Combine(CUOEnviroment.ExecutablePath, "Agent", "alarm.json");
+
+        private static DateTime AlarmFileTime()
+        {
+            try
+            {
+                string path = AlarmPath();
+
+                return File.Exists(path) ? File.GetLastWriteTimeUtc(path) : DateTime.MinValue;
+            }
+            catch (IOException)
+            {
+                return DateTime.MinValue;
+            }
+        }
+
+        private static (string Who, string Why, bool Staff) ReadAlarmFile()
+        {
+            try
+            {
+                using JsonDocument doc = JsonDocument.Parse(File.ReadAllBytes(AlarmPath()));
+                JsonElement root = doc.RootElement;
+
+                return
+                (
+                    root.GetProperty("character").GetString(),
+                    root.GetProperty("reason").GetString(),
+                    root.TryGetProperty("staff", out JsonElement staff) && staff.ValueKind == JsonValueKind.True
+                );
+            }
+            catch (Exception)
+            {
+                return (null, null, false);
+            }
+        }
+
+        // the guard went off: stop work at once, note who it was, and tell the partner's client. The agent then gets
+        // the character away and hides (or the bridge hides him itself if nobody does); with "onAlarm": "logout"
+        // in the rules the character logs out instead.
+        private void Alarm(string reason, Mobile threat, uint threatSerial, bool tellPartner, bool staff = false)
+        {
+            if (staff && !reason.StartsWith("STAFF", StringComparison.Ordinal))
+            {
+                reason = "STAFF " + reason;
+            }
+
+            string line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {_characterName}: {reason}";
+
+            if (line.Substring(20) != _lastLogged)
+            {
+                _lastLogged = line.Substring(20);
+                AppendAlarmLog(line);
+            }
+
+            if (_logoutRequest != null)
+            {
+                return;
+            }
+
+            if (_alarm != null)
+            {
+                // already dealing with one; the log has the rest. Staff turning up changes it to standing still.
+                if (staff && !_alarmStaff)
+                {
+                    _alarmStaff = true;
+                    _alarm = $"{DateTime.Now:HH:mm:ss} {reason}";
+                    _world.Player.Pathfinder.StopAutoWalk();
+
+                    if (tellPartner)
+                    {
+                        WriteAlarmFile(reason, true);
+                    }
+                }
+
+                return;
+            }
+
+            _alarmStaff = staff;
+
+            GuardRules g = _rules?.Guard;
+            DateTime now = DateTime.UtcNow;
+            _alarm = $"{DateTime.Now:HH:mm:ss} {reason}";
+            _alarmAt = now;
+            _evading = false;
+            _nextAutoHide = now.AddSeconds(g?.HideAfter ?? 5);
+
+            if (threat != null || threatSerial != 0)
+            {
+                _threat = new Threat
+                {
+                    Serial = threatSerial,
+                    Name = threat?.Name,
+                    X = threat?.X ?? _world.Player.X,
+                    Y = threat?.Y ?? _world.Player.Y,
+                    Seen = now
+                };
+            }
+
+            Log.Warn($"Agent bridge guard: {_alarm}");
+
+            // stop whatever was going on: a walk, a target cursor, an item in hand
+            _world.Player.Pathfinder.StopAutoWalk();
+            CancelTarget();
+            ReleaseHeldItem();
+
+            if (tellPartner)
+            {
+                WriteAlarmFile(reason, staff);
+            }
+
+            if (g != null && g.LogOut && !staff)
+            {
+                _logoutRequest = reason;
+            }
+        }
+
+        private void WriteAlarmFile(string reason, bool staff)
+        {
+            try
+            {
+                File.WriteAllBytes
+                (
+                    AlarmPath(),
+                    Json
+                    (
+                        w =>
+                        {
+                            w.WriteStartObject();
+                            w.WriteString("time", DateTime.Now.ToString("s", CultureInfo.InvariantCulture));
+                            w.WriteString("character", _characterName);
+                            w.WriteString("reason", reason);
+                            w.WriteBoolean("staff", staff);
+                            w.WriteEndObject();
+                        }
+                    )
+                );
+
+                _alarmFileSeen = AlarmFileTime(); // this bridge's own alarm isn't news to it
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Agent bridge guard: could not write the alarm: {ex.Message}");
+            }
+        }
+
+        private void AppendAlarmLog(string line)
+        {
+            try
+            {
+                string folder = FileSystemHelper.CreateFolderIfNotExists(CUOEnviroment.ExecutablePath, "Agent");
+                File.AppendAllText(Path.Combine(folder, "alarms.log"), line + Environment.NewLine);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Agent bridge guard: could not log the alarm: {ex.Message}");
+            }
+        }
+
+        // on the listener thread: with staff about, the character stands still (no walking, hiding or casting either)
+        private void CheckNoStaff()
+        {
+            if (_alarmStaff)
+            {
+                throw new BridgeException(409, $"staff alarm, standing still: {_alarm}");
+            }
+        }
+
+        // on the listener thread: normal work stops while the guard's alarm is on
+        private void CheckNoAlarm()
+        {
+            string alarm = _alarm;
+
+            if (alarm != null)
+            {
+                throw new BridgeException(409, $"alarm: {alarm}");
+            }
+        }
+
+        private void WriteGuard(Utf8JsonWriter w, bool on)
+        {
+            w.WriteStartObject();
+            WriteGuardFields(w);
+            w.WriteEndObject();
+        }
+
+        private void WriteGuardFields(Utf8JsonWriter w)
+        {
+            DateTime now = DateTime.UtcNow;
+
+            w.WriteStartObject("guard");
+            w.WriteBoolean("on", _guardOn);
+
+            if (_alarm != null)
+            {
+                w.WriteStartObject("alarm");
+                w.WriteString("reason", _alarm);
+                w.WriteNumber("seconds", Math.Round((now - _alarmAt).TotalSeconds));
+                w.WriteBoolean("staff", _alarmStaff);
+                w.WriteBoolean("evading", _evading);
+
+                if (_threat != null)
+                {
+                    Mobile m = _threat.Serial != 0 ? _world.Mobiles.Get(_threat.Serial) : null;
+
+                    w.WriteStartObject("threat");
+                    w.WriteString("serial", Hex(_threat.Serial));
+                    w.WriteString("name", _threat.Name);
+                    w.WriteNumber("x", _threat.X);
+                    w.WriteNumber("y", _threat.Y);
+                    w.WriteBoolean("visible", m != null && !m.IsDestroyed);
+                    w.WriteNumber("secondsSinceSeen", Math.Round((now - _threat.Seen).TotalSeconds));
+                    w.WriteEndObject();
+                }
+
+                w.WriteEndObject();
+            }
+
+            GuardRules g = _rules?.Guard;
+
+            if (g != null)
+            {
+                w.WriteStartArray("watching");
+
+                foreach (uint serial in g.WatchItems)
+                {
+                    w.WriteStartObject();
+                    w.WriteString("serial", Hex(serial));
+                    w.WriteBoolean("seen", _seenCarried.Contains(serial));
+                    w.WriteEndObject();
+                }
+
+                w.WriteEndArray();
+            }
+
+            w.WriteStartArray("near");
+
+            foreach (KeyValuePair<uint, DateTime> pair in _nearSince)
+            {
+                w.WriteStartObject();
+                w.WriteString("serial", Hex(pair.Key));
+                w.WriteString("name", _world.Mobiles.Get(pair.Key)?.Name);
+                w.WriteNumber("seconds", Math.Round((now - pair.Value).TotalSeconds, 1));
+                w.WriteEndObject();
+            }
+
+            w.WriteEndArray();
+            w.WriteEndObject();
+        }
+
+        // uses a skill the rules allow (21 is Hiding)
+        private byte[] UseSkill(int skill)
+        {
+            Rules rules = RequireRules();
+
+            if (!rules.Skills.Contains(skill))
+            {
+                throw new BridgeException(403, "the rules don't allow that skill");
+            }
+
+            if (_alarm != null)
+            {
+                _evading = true;
+            }
+
+            WaitForActionSlot();
+
+            long before = OnGame
+            (
+                () =>
+                {
+                    LogAction($"skill {skill}", 0);
+                    long id = _lastMessageId;
+                    GameActions.UseSkill(skill);
+
+                    return id;
+                }
+            );
+
+            WaitFor(() => HasSystemMessageAfter(before) || skill == HIDING && _world.Player.IsHidden, SKILL_TIMEOUT);
+            Thread.Sleep(SETTLE_TIME);
+
+            return OnGame
+            (
+                () => Json
+                (
+                    w =>
+                    {
+                        w.WriteStartObject();
+                        w.WriteBoolean("hidden", _world.Player.IsHidden);
+                        WriteMessagesSince(w, before, 0);
+                        w.WriteEndObject();
+                    }
+                )
+            );
+        }
+
+        // double-clicks the character himself, which gets off a mount
+        private byte[] Dismount()
+        {
+            Rules rules = RequireRules();
+
+            if (rules.Mounts.Count == 0)
+            {
+                throw new BridgeException(403, "the rules name no mounts");
+            }
+
+            WaitForActionSlot();
+
+            long before = OnGame
+            (
+                () =>
+                {
+                    PlayerMobile p = _world.Player;
+
+                    if (p.FindItemByLayer(Layer.Mount) == null)
+                    {
+                        throw new BridgeException(409, "not riding");
+                    }
+
+                    LogAction("dismount (double-click self)", p.Serial);
+                    long id = _lastMessageId;
+                    GameActions.DoubleClick(_world, p.Serial);
+
+                    return id;
+                }
+            );
+
+            WaitFor(() => _world.Player.FindItemByLayer(Layer.Mount) == null || HasSystemMessageAfter(before), MOUNT_TIMEOUT);
+            Thread.Sleep(SETTLE_TIME);
+
+            return OnGame(() => Json(w => WriteMountResult(w, before)));
+        }
+
+        // double-clicks one of the character's own mounts named in the rules, to ride it
+        private byte[] Mount(uint serial)
+        {
+            Rules rules = RequireRules();
+
+            if (!rules.Mounts.Contains(serial))
+            {
+                throw new BridgeException(403, "that isn't one of the mounts in the rules");
+            }
+
+            WaitForActionSlot();
+
+            long before = OnGame
+            (
+                () =>
+                {
+                    PlayerMobile p = _world.Player;
+
+                    if (p.FindItemByLayer(Layer.Mount) != null)
+                    {
+                        throw new BridgeException(409, "already riding");
+                    }
+
+                    Mobile m = _world.Mobiles.Get(serial) ?? throw new BridgeException(404, "that mount isn't nearby");
+
+                    if (m.Distance > REACH)
+                    {
+                        throw new BridgeException(409, $"too far away ({m.Distance} tiles, reach is {REACH}); walk closer first");
+                    }
+
+                    LogAction("mount (double-click)", serial);
+                    long id = _lastMessageId;
+                    GameActions.DoubleClick(_world, serial);
+
+                    return id;
+                }
+            );
+
+            WaitFor(() => _world.Player.FindItemByLayer(Layer.Mount) != null || HasSystemMessageAfter(before), MOUNT_TIMEOUT);
+            Thread.Sleep(SETTLE_TIME);
+
+            return OnGame(() => Json(w => WriteMountResult(w, before)));
+        }
+
+        private void WriteMountResult(Utf8JsonWriter w, long before)
+        {
+            w.WriteStartObject();
+            w.WriteBoolean("mounted", _world.Player.FindItemByLayer(Layer.Mount) != null);
+            WriteMessagesSince(w, before, 0);
+            w.WriteEndObject();
+        }
+
+        private void WriteTrade(Utf8JsonWriter w)
+        {
+            TradingGump gump = FindTrade();
+
+            if (gump == null)
+            {
+                w.WriteNull("trade");
+
+                return;
+            }
+
+            w.WriteStartObject("trade");
+            w.WriteString("partner", Hex(gump.LocalSerial));
+            w.WriteString("partnerName", _world.Mobiles.Get(gump.LocalSerial)?.Name);
+            w.WriteBoolean("imAccepting", gump.ImAccepting);
+            w.WriteBoolean("heIsAccepting", gump.HeIsAccepting);
+
+            foreach ((string key, uint box) in new[] { ("mine", gump.ID1), ("his", gump.ID2) })
+            {
+                w.WriteStartArray(key);
+                Item container = _world.Items.Get(box);
+
+                for (LinkedObject i = container?.Items; i != null; i = i.Next)
+                {
+                    WriteItem(w, (Item)i);
+                }
+
+                w.WriteEndArray();
+            }
+
+            w.WriteEndObject();
+        }
+
+        // the ground and statics around the character, as the client has them (for finding rock to mine)
+        private void WriteTiles(Utf8JsonWriter w, int range)
+        {
+            PlayerMobile p = _world.Player;
+            var tileData = Client.Game.UO.FileManager.TileData;
+
+            w.WriteStartObject();
+            w.WriteNumber("x", p.X);
+            w.WriteNumber("y", p.Y);
+            w.WriteStartArray("tiles");
+
+            for (int y = p.Y - range; y <= p.Y + range; y++)
+            {
+                for (int x = p.X - range; x <= p.X + range; x++)
+                {
+                    w.WriteStartObject();
+                    w.WriteNumber("x", x);
+                    w.WriteNumber("y", y);
+                    w.WriteStartArray("statics");
+
+                    Land land = null;
+
+                    for (GameObject o = _world.Map.GetTile(x, y); o != null; o = o.TNext)
+                    {
+                        if (o is Land l)
+                        {
+                            land = l;
+                        }
+                        else if (o is Static s)
+                        {
+                            w.WriteStartObject();
+                            w.WriteString("graphic", Hex(s.Graphic));
+                            w.WriteNumber("z", s.Z);
+                            w.WriteString("name", s.Graphic < tileData.StaticData.Length ? tileData.StaticData[s.Graphic].Name : null);
+                            w.WriteEndObject();
+                        }
+                    }
+
+                    w.WriteEndArray();
+
+                    if (land != null)
+                    {
+                        w.WriteString("land", Hex(land.Graphic));
+                        w.WriteNumber("landZ", land.Z);
+                        w.WriteString("landName", land.Graphic < tileData.LandData.Length ? tileData.LandData[land.Graphic].Name : null);
+                    }
+
+                    w.WriteEndObject();
+                }
+            }
+
+            w.WriteEndArray();
+            w.WriteEndObject();
+        }
+
         // ---- rules, on the game thread unless noted ----
 
         // returns the item's outermost container on the ground, or null when the character carries it
@@ -1310,9 +2735,15 @@ namespace ClassicUO.Game.Managers
 
         private void CheckNobodyElse(Rules rules)
         {
+            // out in the world people pass by all the time; there the guard deals with them instead
+            if (!rules.PauseForPeople)
+            {
+                return;
+            }
+
             foreach (Mobile m in _world.Mobiles.Values)
             {
-                if (m == _world.Player || m.IsDestroyed || !(m.IsHuman || m.IsDead) || rules.IgnorePeople.Contains(m.Name ?? ""))
+                if (m == _world.Player || m.IsDestroyed || !(m.IsHuman || m.IsDead) || rules.IgnorePeople.Contains(m.Name ?? "") || rules.Partners.Contains(m.Name ?? ""))
                 {
                     continue;
                 }
@@ -1324,46 +2755,77 @@ namespace ClassicUO.Game.Managers
             }
         }
 
-        // on the listener thread; reloads Agent/rules.json when it changes
+        // on the listener thread; reloads the rules when the file changes. A character's own
+        // Agent/rules-<character>.json comes first, then the shared Agent/rules.json.
         private Rules RequireRules()
         {
-            string path = Path.Combine(CUOEnviroment.ExecutablePath, "Agent", "rules.json");
+            string folder = Path.Combine(CUOEnviroment.ExecutablePath, "Agent");
+            string own = "rules-" + SafeFileName(_characterName) + ".json";
+            string name = File.Exists(Path.Combine(folder, own)) ? own : "rules.json";
+            string path = Path.Combine(folder, name);
 
             if (!File.Exists(path))
             {
-                throw new BridgeException(403, "actions are off until Agent/rules.json sets the agent's area");
+                throw new BridgeException(403, $"actions are off until Agent/{own} or Agent/rules.json sets the agent's area");
             }
 
             DateTime time = File.GetLastWriteTimeUtc(path);
 
-            if (_rules == null || time != _rulesTime)
+            if (_rules == null || time != _rulesTime || name != _rulesName)
             {
                 try
                 {
-                    _rules = Rules.Parse(File.ReadAllBytes(path));
+                    Rules rules = Rules.Parse(File.ReadAllBytes(path));
+                    rules.FileName = name;
+                    _rules = rules;
                     _rulesTime = time;
+                    _rulesName = name;
                 }
                 catch (Exception ex)
                 {
                     _rules = null;
 
-                    throw new BridgeException(403, $"Agent/rules.json is not valid: {ex.Message}");
+                    throw new BridgeException(403, $"Agent/{name} is not valid: {ex.Message}");
                 }
             }
 
             return _rules;
         }
 
-        // on the listener thread: waits for this action's turn, then books the gap before the next one
-        private void WaitForActionSlot()
+        private static string SafeFileName(string name)
+        {
+            name = string.IsNullOrEmpty(name) ? "unknown" : name;
+
+            foreach (char c in Path.GetInvalidFileNameChars())
+            {
+                name = name.Replace(c, '_');
+            }
+
+            return name;
+        }
+
+        // on the listener thread: waits for this action's turn, then books the gap before the next one.
+        // The same action repeated straight away (another stroke of the shovel at the same rock) only waits the
+        // short "repeat" gap when the rules give one; anything else after it still waits a full gap.
+        private bool WaitForActionSlot(string kind = null)
         {
             CheckNotHalted();
 
-            int wait = (int)(_nextAction - DateTime.UtcNow).TotalMilliseconds;
+            Rules pacing = TryRules() ?? Rules.Defaults;
+            bool repeat = kind != null && kind == _lastKind && pacing.RepeatMax > 0 && (DateTime.UtcNow - _lastKindAt).TotalMilliseconds < REPEAT_WINDOW;
 
-            if (wait > 0)
+            if (repeat)
             {
-                Thread.Sleep(wait);
+                Thread.Sleep(_random.Next(pacing.RepeatMin, pacing.RepeatMax + 1));
+            }
+            else
+            {
+                int wait = (int)(_nextAction - DateTime.UtcNow).TotalMilliseconds;
+
+                if (wait > 0)
+                {
+                    Thread.Sleep(wait);
+                }
             }
 
             while (OnGame(IsSaving))
@@ -1371,8 +2833,7 @@ namespace ClassicUO.Game.Managers
                 Thread.Sleep(500);
             }
 
-            Rules pacing = TryRules() ?? Rules.Defaults;
-            bool takeBreak = ++_burstCount >= pacing.Burst;
+            bool takeBreak = !repeat && ++_burstCount >= pacing.Burst;
 
             if (takeBreak)
             {
@@ -1381,6 +2842,23 @@ namespace ClassicUO.Game.Managers
 
             int gap = takeBreak ? _random.Next(pacing.BreakMin, pacing.BreakMax + 1) : _random.Next(pacing.GapMin, pacing.GapMax + 1);
             _nextAction = DateTime.UtcNow.AddMilliseconds(gap);
+            _lastKind = kind;
+            _lastKindAt = DateTime.UtcNow;
+
+            return repeat;
+        }
+
+        // on the listener thread: a person takes a moment to aim once the target cursor shows
+        private void Aim(Rules rules, bool repeat = false)
+        {
+            if (repeat && rules.RepeatAimMax > 0)
+            {
+                Thread.Sleep(_random.Next(rules.RepeatAimMin, rules.RepeatAimMax + 1));
+            }
+            else if (rules.AimMax > 0)
+            {
+                Thread.Sleep(_random.Next(rules.AimMin, rules.AimMax + 1));
+            }
         }
 
         // on the listener thread: the next action waits a full gap from now
@@ -1407,6 +2885,13 @@ namespace ClassicUO.Game.Managers
         // on the listener thread: the server didn't answer, so stop everything until told to resume
         private void Halt(string why)
         {
+            string alarm = _alarm;
+
+            if (alarm != null)
+            {
+                throw new BridgeException(409, $"alarm: {alarm} (stopped {why})");
+            }
+
             _halted = $"{why} at {DateTime.Now:HH:mm:ss}";
             Log.Warn($"Agent bridge stopped: {_halted}");
 
@@ -1607,6 +3092,7 @@ namespace ClassicUO.Game.Managers
             w.WriteNumber("weight", p.Weight);
             w.WriteNumber("weightMax", p.WeightMax);
             w.WriteBoolean("warMode", p.InWarMode);
+            w.WriteBoolean("mounted", p.FindItemByLayer(Layer.Mount) != null);
             w.WriteBoolean("hidden", p.IsHidden);
             w.WriteBoolean("dead", p.IsDead);
             w.WriteBoolean("targeting", _world.TargetManager.IsTargeting);
@@ -1643,6 +3129,16 @@ namespace ClassicUO.Game.Managers
             }
 
             w.WriteEndArray();
+
+            Item bank = p.FindItemByLayer(Layer.Bank);
+
+            if (bank != null)
+            {
+                w.WriteString("bank", Hex(bank.Serial));
+            }
+
+            WriteTrade(w);
+            WriteGuardFields(w);
             w.WriteNumber("lastMessageId", _lastMessageId);
             w.WriteEndObject();
         }
@@ -2152,25 +3648,57 @@ namespace ClassicUO.Game.Managers
 
         private sealed class Rules
         {
+            public string FileName;
             public int Map = -1;
-            public int X1, Y1, X2, Y2;
-            public int ZMin = sbyte.MinValue, ZMax = sbyte.MaxValue;
+            public readonly List<Box> Areas = new List<Box>();
             public readonly HashSet<uint> OffLimits = new HashSet<uint>();
             public readonly HashSet<ushort> NeverTouch = new HashSet<ushort>();
             public readonly HashSet<string> IgnorePeople = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            public readonly HashSet<string> Partners = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // the user's own characters: trades go only to them, and the guard ignores them
             public readonly HashSet<ushort> UseFromBackpack = new HashSet<ushort>(); // tools that may be used without holding them (scissors)
+            public readonly HashSet<string> Say = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // the only words the character may say ("bank")
+            public readonly HashSet<int> Spells = new HashSet<int>(); // the only spells it may cast (32 is Recall)
+            public readonly HashSet<int> Skills = new HashSet<int>(); // the only skills it may use (21 is Hiding)
+            public readonly HashSet<uint> Mounts = new HashSet<uint>(); // its own horses, to get on and off
+            public bool PauseForPeople = true;
+            public GuardRules Guard;
 
             // a random gap between actions, and a longer break after every Burst actions (milliseconds)
             public int GapMin = 1200, GapMax = 2000, Burst = 5, BreakMin = 3000, BreakMax = 5000;
 
+            // between a target cursor appearing and the click on the target (milliseconds), as a person takes to aim
+            public int AimMin, AimMax;
+
+            // the same stroke repeated (digging on at the same rock): the gap and the aim, instead of the above
+            public int RepeatMin, RepeatMax, RepeatAimMin, RepeatAimMax;
+
             public static readonly Rules Defaults = new Rules();
 
-            public bool Contains(int map, int x, int y, int z)
+            public bool Contains(int map, int x, int y, int z) => AreaAt(map, x, y, z) != null;
+
+            // a spot to aim at (a rock face, a forge) only has to lie inside an area; its height doesn't matter
+            public bool ContainsSpot(int map, int x, int y) => AreaAt(map, x, y, 0, true) != null;
+
+            public Box AreaAt(int map, int x, int y, int z, bool anyHeight = false)
             {
-                return (Map < 0 || map == Map) && x >= X1 && x <= X2 && y >= Y1 && y <= Y2 && z >= ZMin && z <= ZMax;
+                if (Map >= 0 && map != Map)
+                {
+                    return null;
+                }
+
+                foreach (Box box in Areas)
+                {
+                    if (box.Contains(x, y, anyHeight ? box.ZMin : z))
+                    {
+                        return box;
+                    }
+                }
+
+                return null;
             }
 
             // { "map": 0, "area": [x1, y1, x2, y2], "z": [min, max], "offLimits": ["0x..."], "neverTouch": ["0x1766"], "ignorePeople": [] }
+            // or several areas: "areas": [{ "name": "forge", "box": [x1, y1, x2, y2], "z": [min, max] }, ...]
             public static Rules Parse(byte[] json)
             {
                 using JsonDocument doc = JsonDocument.Parse
@@ -2181,43 +3709,66 @@ namespace ClassicUO.Game.Managers
 
                 JsonElement root = doc.RootElement;
                 var rules = new Rules();
-                JsonElement area = root.GetProperty("area");
 
-                if (area.GetArrayLength() != 4)
+                if (root.TryGetProperty("area", out JsonElement area))
                 {
-                    throw new FormatException("area needs four numbers: x1, y1, x2, y2");
+                    rules.Areas.Add(Box.Parse("area", area, root.TryGetProperty("z", out JsonElement z) ? z : default));
                 }
 
-                rules.X1 = Math.Min(area[0].GetInt32(), area[2].GetInt32());
-                rules.X2 = Math.Max(area[0].GetInt32(), area[2].GetInt32());
-                rules.Y1 = Math.Min(area[1].GetInt32(), area[3].GetInt32());
-                rules.Y2 = Math.Max(area[1].GetInt32(), area[3].GetInt32());
+                if (root.TryGetProperty("areas", out JsonElement areas))
+                {
+                    foreach (JsonElement e in areas.EnumerateArray())
+                    {
+                        rules.Areas.Add
+                        (
+                            Box.Parse
+                            (
+                                e.TryGetProperty("name", out JsonElement name) ? name.GetString() : $"area {rules.Areas.Count + 1}",
+                                e.GetProperty("box"),
+                                e.TryGetProperty("z", out JsonElement boxZ) ? boxZ : default
+                            )
+                        );
+                    }
+                }
+
+                if (rules.Areas.Count == 0)
+                {
+                    throw new FormatException("no area: give \"area\" or \"areas\"");
+                }
 
                 if (root.TryGetProperty("map", out JsonElement map))
                 {
                     rules.Map = map.GetInt32();
                 }
 
-                if (root.TryGetProperty("z", out JsonElement z))
-                {
-                    rules.ZMin = z[0].GetInt32();
-                    rules.ZMax = z[1].GetInt32();
-                }
+                ReadNumbers(root, "offLimits", n => rules.OffLimits.Add(n));
+                ReadNumbers(root, "neverTouch", n => rules.NeverTouch.Add((ushort)n));
+                ReadNumbers(root, "useFromBackpack", n => rules.UseFromBackpack.Add((ushort)n));
+                ReadStrings(root, "ignorePeople", rules.IgnorePeople);
+                ReadStrings(root, "partners", rules.Partners);
+                ReadStrings(root, "say", rules.Say);
 
-                if (root.TryGetProperty("offLimits", out JsonElement offLimits))
+                if (root.TryGetProperty("spells", out JsonElement spells))
                 {
-                    foreach (JsonElement e in offLimits.EnumerateArray())
+                    foreach (JsonElement e in spells.EnumerateArray())
                     {
-                        rules.OffLimits.Add(ParseNumber(e.GetString()));
+                        rules.Spells.Add(e.GetInt32());
                     }
                 }
 
-                if (root.TryGetProperty("neverTouch", out JsonElement neverTouch))
+                if (root.TryGetProperty("skills", out JsonElement skills))
                 {
-                    foreach (JsonElement e in neverTouch.EnumerateArray())
+                    foreach (JsonElement e in skills.EnumerateArray())
                     {
-                        rules.NeverTouch.Add((ushort)ParseNumber(e.GetString()));
+                        rules.Skills.Add(e.GetInt32());
                     }
+                }
+
+                ReadNumbers(root, "mounts", n => rules.Mounts.Add(n));
+
+                if (root.TryGetProperty("pauseForPeople", out JsonElement pause))
+                {
+                    rules.PauseForPeople = pause.GetBoolean();
                 }
 
                 // "pacing": { "gap": [1200, 2000], "burst": 5, "break": [3000, 5000] }; never faster than the server allows
@@ -2234,78 +3785,176 @@ namespace ClassicUO.Game.Managers
                         rules.Burst = Math.Max(1, burst.GetInt32());
                     }
 
-                    if (pacing.TryGetProperty("break", out JsonElement pause))
+                    if (pacing.TryGetProperty("break", out JsonElement longBreak))
                     {
-                        rules.BreakMin = Math.Max(rules.GapMin, pause[0].GetInt32());
-                        rules.BreakMax = Math.Max(rules.BreakMin, pause[1].GetInt32());
+                        rules.BreakMin = Math.Max(rules.GapMin, longBreak[0].GetInt32());
+                        rules.BreakMax = Math.Max(rules.BreakMin, longBreak[1].GetInt32());
+                    }
+
+                    if (pacing.TryGetProperty("aim", out JsonElement aim))
+                    {
+                        rules.AimMin = Math.Clamp(aim[0].GetInt32(), 0, 2500);
+                        rules.AimMax = Math.Clamp(aim[1].GetInt32(), rules.AimMin, 2500);
+                    }
+
+                    // never quicker than 200 ms: the server's own swing time does the rest
+                    if (pacing.TryGetProperty("repeat", out JsonElement repeatGap))
+                    {
+                        rules.RepeatMin = Math.Clamp(repeatGap[0].GetInt32(), 200, 5000);
+                        rules.RepeatMax = Math.Clamp(repeatGap[1].GetInt32(), rules.RepeatMin, 5000);
+                    }
+
+                    if (pacing.TryGetProperty("repeatAim", out JsonElement repeatAim))
+                    {
+                        rules.RepeatAimMin = Math.Clamp(repeatAim[0].GetInt32(), 0, 2500);
+                        rules.RepeatAimMax = Math.Clamp(repeatAim[1].GetInt32(), rules.RepeatAimMin, 2500);
                     }
                 }
 
-                if (root.TryGetProperty("useFromBackpack", out JsonElement tools))
+                // "guard": { "talk": true, "loiter": [3, 10], "attack": true, "watchItems": ["0x..."], "npcs": ["0x...", "Name"] }
+                if (root.TryGetProperty("guard", out JsonElement guard))
                 {
-                    foreach (JsonElement e in tools.EnumerateArray())
-                    {
-                        rules.UseFromBackpack.Add((ushort)ParseNumber(e.GetString()));
-                    }
-                }
+                    var g = new GuardRules();
 
-                if (root.TryGetProperty("ignorePeople", out JsonElement people))
-                {
-                    foreach (JsonElement e in people.EnumerateArray())
+                    if (guard.TryGetProperty("talk", out JsonElement talk))
                     {
-                        rules.IgnorePeople.Add(e.GetString());
+                        g.Talk = talk.GetBoolean();
                     }
+
+                    if (guard.TryGetProperty("loiter", out JsonElement loiter))
+                    {
+                        g.LoiterRange = Math.Clamp(loiter[0].GetInt32(), 1, 18);
+                        g.LoiterSeconds = Math.Clamp(loiter[1].GetInt32(), 1, 600);
+                    }
+
+                    if (guard.TryGetProperty("attack", out JsonElement attack))
+                    {
+                        g.Attack = attack.GetBoolean();
+                    }
+
+                    if (guard.TryGetProperty("onAlarm", out JsonElement onAlarm))
+                    {
+                        g.LogOut = onAlarm.GetString() == "logout";
+                    }
+
+                    if (guard.TryGetProperty("hideAfter", out JsonElement hideAfter))
+                    {
+                        g.HideAfter = Math.Clamp(hideAfter.GetInt32(), 1, 120);
+                    }
+
+                    ReadNumbers(guard, "watchItems", n => g.WatchItems.Add(n));
+
+                    if (guard.TryGetProperty("npcs", out JsonElement npcs))
+                    {
+                        foreach (JsonElement e in npcs.EnumerateArray())
+                        {
+                            string s = e.GetString() ?? "";
+
+                            if (s.StartsWith("0x", StringComparison.OrdinalIgnoreCase) && TryParseSerial(s, out uint serial))
+                            {
+                                g.NpcSerials.Add(serial);
+                            }
+                            else
+                            {
+                                g.NpcNames.Add(s);
+                            }
+                        }
+                    }
+
+                    rules.Guard = g;
                 }
 
                 return rules;
             }
 
+            private static void ReadNumbers(JsonElement parent, string key, Action<uint> add)
+            {
+                if (parent.TryGetProperty(key, out JsonElement list))
+                {
+                    foreach (JsonElement e in list.EnumerateArray())
+                    {
+                        add(ParseNumber(e.GetString()));
+                    }
+                }
+            }
+
+            private static void ReadStrings(JsonElement parent, string key, HashSet<string> into)
+            {
+                if (parent.TryGetProperty(key, out JsonElement list))
+                {
+                    foreach (JsonElement e in list.EnumerateArray())
+                    {
+                        into.Add(e.GetString());
+                    }
+                }
+            }
+
             public void Write(Utf8JsonWriter w)
             {
                 w.WriteStartObject();
+                w.WriteString("file", FileName);
                 w.WriteNumber("map", Map);
-                w.WriteStartArray("area");
-                w.WriteNumberValue(X1);
-                w.WriteNumberValue(Y1);
-                w.WriteNumberValue(X2);
-                w.WriteNumberValue(Y2);
-                w.WriteEndArray();
-                w.WriteStartArray("z");
-                w.WriteNumberValue(ZMin);
-                w.WriteNumberValue(ZMax);
-                w.WriteEndArray();
-                w.WriteStartArray("offLimits");
+                w.WriteStartArray("areas");
 
-                foreach (uint serial in OffLimits)
+                foreach (Box box in Areas)
                 {
-                    w.WriteStringValue(Hex(serial));
+                    box.Write(w);
                 }
 
                 w.WriteEndArray();
-                w.WriteStartArray("neverTouch");
+                w.WriteBoolean("pauseForPeople", PauseForPeople);
+                WriteList(w, "offLimits", OffLimits, s => Hex(s));
+                WriteList(w, "neverTouch", NeverTouch, g => Hex(g));
+                WriteList(w, "ignorePeople", IgnorePeople, s => s);
+                WriteList(w, "partners", Partners, s => s);
+                WriteList(w, "useFromBackpack", UseFromBackpack, g => Hex(g));
+                WriteList(w, "say", Say, s => s);
+                w.WriteStartArray("spells");
 
-                foreach (ushort graphic in NeverTouch)
+                foreach (int spell in Spells)
                 {
-                    w.WriteStringValue(Hex(graphic));
+                    w.WriteNumberValue(spell);
                 }
 
                 w.WriteEndArray();
-                w.WriteStartArray("ignorePeople");
+                w.WriteStartArray("skills");
 
-                foreach (string name in IgnorePeople)
+                foreach (int skill in Skills)
                 {
-                    w.WriteStringValue(name);
+                    w.WriteNumberValue(skill);
                 }
 
                 w.WriteEndArray();
-                w.WriteStartArray("useFromBackpack");
+                WriteList(w, "mounts", Mounts, s => Hex(s));
 
-                foreach (ushort graphic in UseFromBackpack)
+                if (Guard != null)
                 {
-                    w.WriteStringValue(Hex(graphic));
+                    w.WriteStartObject("guard");
+                    w.WriteBoolean("talk", Guard.Talk);
+                    w.WriteStartArray("loiter");
+                    w.WriteNumberValue(Guard.LoiterRange);
+                    w.WriteNumberValue(Guard.LoiterSeconds);
+                    w.WriteEndArray();
+                    w.WriteBoolean("attack", Guard.Attack);
+                    w.WriteString("onAlarm", Guard.LogOut ? "logout" : "hide");
+                    w.WriteNumber("hideAfter", Guard.HideAfter);
+                    WriteList(w, "watchItems", Guard.WatchItems, s => Hex(s));
+                    w.WriteStartArray("npcs");
+
+                    foreach (uint serial in Guard.NpcSerials)
+                    {
+                        w.WriteStringValue(Hex(serial));
+                    }
+
+                    foreach (string name in Guard.NpcNames)
+                    {
+                        w.WriteStringValue(name);
+                    }
+
+                    w.WriteEndArray();
+                    w.WriteEndObject();
                 }
 
-                w.WriteEndArray();
                 w.WriteStartObject("pacing");
                 w.WriteStartArray("gap");
                 w.WriteNumberValue(GapMin);
@@ -2316,11 +3965,35 @@ namespace ClassicUO.Game.Managers
                 w.WriteNumberValue(BreakMin);
                 w.WriteNumberValue(BreakMax);
                 w.WriteEndArray();
+                w.WriteStartArray("aim");
+                w.WriteNumberValue(AimMin);
+                w.WriteNumberValue(AimMax);
+                w.WriteEndArray();
+                w.WriteStartArray("repeat");
+                w.WriteNumberValue(RepeatMin);
+                w.WriteNumberValue(RepeatMax);
+                w.WriteEndArray();
+                w.WriteStartArray("repeatAim");
+                w.WriteNumberValue(RepeatAimMin);
+                w.WriteNumberValue(RepeatAimMax);
+                w.WriteEndArray();
                 w.WriteEndObject();
                 w.WriteEndObject();
             }
 
-            private static uint ParseNumber(string text)
+            private static void WriteList<T>(Utf8JsonWriter w, string key, IEnumerable<T> values, Func<T, string> text)
+            {
+                w.WriteStartArray(key);
+
+                foreach (T value in values)
+                {
+                    w.WriteStringValue(text(value));
+                }
+
+                w.WriteEndArray();
+            }
+
+            public static uint ParseNumber(string text)
             {
                 if (text == null || !TryParseSerial(text, out uint value))
                 {
@@ -2329,6 +4002,79 @@ namespace ClassicUO.Game.Managers
 
                 return value;
             }
+        }
+
+        private sealed class Box
+        {
+            public string Name;
+            public int X1, Y1, X2, Y2;
+            public int ZMin = sbyte.MinValue, ZMax = sbyte.MaxValue;
+
+            public bool Contains(int x, int y, int z) => x >= X1 && x <= X2 && y >= Y1 && y <= Y2 && z >= ZMin && z <= ZMax;
+
+            public static Box Parse(string name, JsonElement box, JsonElement z)
+            {
+                if (box.GetArrayLength() != 4)
+                {
+                    throw new FormatException($"{name} needs four numbers: x1, y1, x2, y2");
+                }
+
+                var b = new Box
+                {
+                    Name = name,
+                    X1 = Math.Min(box[0].GetInt32(), box[2].GetInt32()),
+                    X2 = Math.Max(box[0].GetInt32(), box[2].GetInt32()),
+                    Y1 = Math.Min(box[1].GetInt32(), box[3].GetInt32()),
+                    Y2 = Math.Max(box[1].GetInt32(), box[3].GetInt32())
+                };
+
+                if (z.ValueKind == JsonValueKind.Array)
+                {
+                    b.ZMin = z[0].GetInt32();
+                    b.ZMax = z[1].GetInt32();
+                }
+
+                return b;
+            }
+
+            public void Write(Utf8JsonWriter w)
+            {
+                w.WriteStartObject();
+                w.WriteString("name", Name);
+                w.WriteStartArray("box");
+                w.WriteNumberValue(X1);
+                w.WriteNumberValue(Y1);
+                w.WriteNumberValue(X2);
+                w.WriteNumberValue(Y2);
+                w.WriteEndArray();
+                w.WriteStartArray("z");
+                w.WriteNumberValue(ZMin);
+                w.WriteNumberValue(ZMax);
+                w.WriteEndArray();
+                w.WriteEndObject();
+            }
+        }
+
+        // what the guard watches for; any of it logs the character out
+        private sealed class GuardRules
+        {
+            public bool Talk = true;
+            public int LoiterRange = 3, LoiterSeconds = 10;
+            public bool Attack = true;
+            public bool LogOut;     // "onAlarm": "logout" logs out instead of stopping for the agent to get away and hide
+            public int HideAfter = 5; // seconds: if nobody starts getting the character away by then, the bridge hides him
+            public readonly HashSet<uint> WatchItems = new HashSet<uint>(); // must stay in the backpack (runes)
+            public readonly HashSet<uint> NpcSerials = new HashSet<uint>();  // townsfolk who talk and stand around
+            public readonly HashSet<string> NpcNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        // who set the guard off, and where they were last seen
+        private sealed class Threat
+        {
+            public uint Serial;
+            public string Name;
+            public int X, Y;
+            public DateTime Seen;
         }
 
         private sealed class Label

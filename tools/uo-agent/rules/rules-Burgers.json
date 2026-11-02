@@ -1,0 +1,25 @@
+{
+  // Burgers, who waits hidden by the forge, takes the ingots to the Ocllo bank and brings shovels (see MINING.md).
+  "map": 0,
+  "areas": [
+    { "name": "forge", "box": [1142, 1851, 1153, 1863], "z": [-10, 20] }
+  ],
+  "pauseForPeople": false,
+  "partners": ["Icepick"],
+  "say": ["bank", "all follow me"],
+  // 32 Recall, 52 Gate Travel
+  "spells": [32, 52],
+  // his runes: Ocllo Bank, Mining Start, Mining Forge, Mining gate location. One that goes missing was stolen.
+  // 21 Hiding; the horses this character rides (for the tired-mount trick)
+  "skills": [21],
+  "mounts": [],
+  // the guard stops work and the agent gets the character away and hides (the user, 2026-11-01); the bridge hides
+  // him itself if nobody has started within hideAfter seconds
+  "guard": { "onAlarm": "hide", "hideAfter": 5, "talk": true, "loiter": [3, 10], "attack": true,
+             "watchItems": ["0x406EDA8E", "0x406EBB72", "0x406EDA9E", "0x406EC754"],
+             // the Ocllo bankers
+             "npcs": ["0x0001EFC6", "0x0000D57D"] },
+  // the user, 2026-11-01: slower than a person would bother to be (gap and break in milliseconds; aim is the pause
+  // between the target cursor appearing and the click, from build cuo-agent10 on)
+  "pacing": { "gap": [2500, 4000], "burst": 5, "break": [6000, 10000], "aim": [700, 1500] }
+}
