@@ -4,6 +4,8 @@ ore to the forge, where he smelts it and hands the ingots to Burgers; Burgers ba
 
   python3 mine.py [--passes N] [--wait MINUTES] [--from BLOCK] [--to BLOCK] [--no-wait]
   python3 mine.py --bank          only a bank trip for Burgers
+  python3 mine.py --incidents     the run-and-hide incidents the user hasn't reviewed (shown at every handoff)
+  python3 mine.py --reviewed      the user has reviewed them: the count goes back to 0
 
 It runs on its own (no tokens) and stops after the passes, or the moment something needs the user: staff about,
 a stolen rune, a lost horse, a bridge gone, anything it doesn't understand. Everything it does goes to
@@ -226,6 +228,15 @@ class Miner:
         self.stats['incidents'] += 1
         with open(INCIDENTS, 'a', encoding='utf-8') as fh:
             fh.write(json.dumps(record) + '\n')
+        # kept until the user says they've reviewed them (the user, 2026-11-02), shown with every handoff
+        s = self.ice.status()
+        alarm = (record.get('icepick') or record.get('burgers') or {})
+        threat = alarm.get('threat') or {}
+        self.state.setdefault('unreviewed', []).append({
+            'time': record['time'], 'what': record.get('what'),
+            'who': f"{threat.get('name') or '?'} {threat.get('serial') or ''}".strip(),
+            'where': f"Icepick at {s['x']},{s['y']}"})
+        self.save_state()
 
     def handle_alarm(self, why):
         si, sb = self.ice.status(), self.bur.status()
@@ -801,10 +812,29 @@ class Miner:
             self.travel(mining.FORGE_SPOT)
         self.ice.walk(*mining.FORGE_SPOT, 0)
 
+    FORGE_AT = (1148, 1859)  # the forge item itself; smelting works from within 2 tiles
+
+    def at_forge(self):
+        """Make sure Icepick stands within reach of the forge (2026-11-02: a ride that ended a tile off his spot left
+        every smelt "too far away"): his usual spot, else the other free tiles around the forge."""
+        for spot in (mining.FORGE_SPOT, (1148, 1857), (1149, 1857), (1146, 1858), (1146, 1859), (1150, 1858)):
+            s = self.ice.status()
+            if cheb((s['x'], s['y']), self.FORGE_AT) <= 2:
+                return True
+            try:
+                self.ice.walk(spot[0], spot[1], 0)
+            except uo.BridgeError as e:
+                if e.code not in (403, 409):
+                    raise
+        s = self.ice.status()
+        return cheb((s['x'], s['y']), self.FORGE_AT) <= 2
+
     def smelt_all(self):
         """Smelt every pile. A lone small pile is too little ("not enough metal-bearing ore"), so it waits for
         another small pile of the same metal; two of them are combined first (the smelt cursor takes another
         pile as well as the forge)."""
+        if not self.at_forge():
+            raise Stop("Icepick can't get within reach of the forge")
         piles = [i for i in self.ice.pack() if i.get('graphic') in mining.ORE]
         small = {}
         for pile in piles:
@@ -837,6 +867,10 @@ class Miner:
                 answer = texts[-1] if texts else '?'
                 if 'riding' in answer.lower():
                     self.dismount()
+                    continue
+                if 'too far away' in answer.lower():
+                    if not self.at_forge():
+                        raise Stop("Icepick can't get within reach of the forge")
                     continue
                 log(f"smelt {item['serial']} (hue {item.get('hue')}, {item.get('amount', 1)}): {answer}")
                 # a failed smelt ("You burn away the impurities but are left with less useable metal", the harder
@@ -911,7 +945,8 @@ class Miner:
         totals['iron'] += iron
         self.save_state()
         log(f'handed Burgers {n} ingots ({iron} iron)' + (f' and {len(extra)} small ore piles' if extra else '')
-            + f"; gave Icepick {len(spares)} shovels. Total: {totals['ingots']} ingots, {totals['iron']} iron")
+            + f"; gave Icepick {len(spares)} shovels. Total: {totals['ingots']} ingots, {totals['iron']} iron."
+            + f" Run and hide: {len(self.state.get('unreviewed', []))} to review")
         self.hide(self.bur)
 
     def burgers_should_bank(self, end_of_pass=False, where=None):
@@ -1113,7 +1148,27 @@ def main():
     p.add_argument('--to', dest='end', type=int, help='last block')
     p.add_argument('--bank', action='store_true', help='only send Burgers on a bank trip, then stop')
     p.add_argument('--empty', action='store_true', help="only empty Icepick's pack (smelt, hand over the ingots), then stop")
+    p.add_argument('--incidents', action='store_true', help='list the run-and-hide incidents the user has not reviewed')
+    p.add_argument('--reviewed', action='store_true', help='the user has reviewed them: clear the list (kept in incidents.jsonl)')
     args = p.parse_args()
+    if args.incidents or args.reviewed:
+        try:
+            with open(STATE, encoding='utf-8') as fh:
+                state = json.load(fh)
+        except (OSError, ValueError):
+            state = {}
+        items = state.get('unreviewed', [])
+        if args.incidents:
+            print(f'{len(items)} run-and-hide incidents to review' + (':' if items else ''))
+            for i in items:
+                print(f"  {i['time']}  {i['who']}  {i['where']}  ({i['what']})")
+        else:
+            state['unreviewed'] = []
+            state.setdefault('reviewed', []).append({'time': time.strftime('%Y-%m-%d %H:%M:%S'), 'count': len(items)})
+            with open(STATE, 'w', encoding='utf-8') as fh:
+                json.dump(state, fh, indent=1)
+            print(f'marked {len(items)} incidents reviewed')
+        return
     miner = None
     try:
         miner = Miner(args)

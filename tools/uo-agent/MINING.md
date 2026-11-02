@@ -290,3 +290,8 @@ files further: they apply at once, without a new build.
 - **Reagents** (the user, 2026-11-02 00:45): Burgers keeps **35** each of black pearl, blood moss, mandrake root and
   sulfurous ash in his pouch, topped up from a reagent bag in his bank on every bank trip; fewer than 6 (black
   pearl, blood moss, mandrake root) or 3 (sulfurous ash) makes a bank trip a must.
+- **Run-and-hide incidents to review** (the user, 2026-11-02 00:56): every guard incident is kept in the state
+  (`unreviewed`) until the user says they've reviewed them, and every handoff line ends "Run and hide: N to review".
+  `python3 mine.py --incidents` lists them (when, who, what, where); `--reviewed` (only when the user says so) sets
+  the count back to 0. The full record stays in incidents.jsonl and the bridge's alarms.log; all logs are on the
+  Mac (~/claude/uo-agent-work/mining), so a server reboot doesn't lose them.
