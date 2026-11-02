@@ -10,8 +10,8 @@ SPEC says where the gear goes (decided per batch from the keep rules in the uo-s
   place_in:       [[serial, chest label part], ...]                smelting, needs your decision, ...
   spares, cut:    [serial, ...]                                    ID tools, cut with the scissors
   trash, smelt:   [serial, ...]                                    carried in loads to the trash barrel, or to the
-                                                                   smelting chest and then the smelting crates (each
-                                                                   takes up to 125 items before the next one is used)
+                                                                   smelting crates (each takes up to 125 items before
+                                                                   the next one is used)
   sets:           [serial, ...]                                    GM armour set pieces: each goes into the first set
                                                                    bag in the GM chest missing that piece, or a new one
   scroll_markers: {"circle": serial, ...}                          markers for circles that have none yet
@@ -164,14 +164,14 @@ def empty_bags(n):
 
 
 def room_in(name):
-    """Where trash or smelting goes: trash into the trash barrel (the user's rule, 2026-11-01), smelting into the
-    smelting chest first, then the numbered crates, whichever has room."""
+    """Where trash or smelting goes: trash into the trash barrel, smelting into the first of the numbered smelting
+    crates by the door with room (the user's rules, 2026-11-01: no smelting chest, all smelting in one place)."""
     if name == 'trash':
         barrel = uo.resolve('trash barrel')
         learn(barrel)
         return barrel
     crates = sorted((text, serial) for serial, text in labels().items() if re.match(rf'{name} \d', text))
-    for c in ([chest('for smelting')] if name == 'smelting' else []) + [serial for _, serial in crates]:
+    for c in [serial for _, serial in crates]:
         if c not in FULL and len(learn(c)) < LIMIT:
             return c
     sys.exit(f'every {name} container is full')
