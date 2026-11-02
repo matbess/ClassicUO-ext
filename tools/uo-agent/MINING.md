@@ -225,3 +225,21 @@ files further: they apply at once, without a new build.
   goes to Mining Start on purpose): every recall and gate first single-clicks the rune and checks its name
   ("Ocllo Bank", "Mining Start", "Mining Forge", "Mining gate location"); a mismatch makes the loop look for the
   right rune by name, or stop. The bridge allows single clicks during an alarm from cuo-agent12 on.
+
+## Travel (the user, 2026-11-01 21:46, after watching the first pass ride up along the mountain)
+
+- Long trips go **straight with the path finder** (`Miner.travel`), not along the mountain face ("all weird and
+  slow"); only if it finds no way does it fall back to long hops along the route.
+- **To the top of the route: straight to Burgers at the forge, and through his gate on the Mining Start rune**
+  (comes out at 1130,1544). At the start of a pass and after the bottom. Burgers needs full mana; the loop waits up
+  to 4 minutes for it, then rides instead.
+- Back from the forge to a block far north: through a gate to the nearer end (start or middle) if Burgers has full
+  mana, else ride straight.
+- **Recorded rides** (the user's idea, 2026-11-01 22:03-22:09): the user rode Icepick from the top of the route,
+  from the canyon and from the bottom end, each to the forge (`routes/ride-top.jsonl`, `ride-canyon.jsonl`,
+  `ride-bottom.jsonl`; spots outside Icepick's areas trimmed). A long trip follows the ride that fits best, either
+  way (`mining.ride_path`: plan to the nearest point of the ride, a waypoint about every 10 tiles along it, plan
+  from the point nearest the goal); other trips are planned on the map (`mining.plan_path`). The bridge rides the
+  waypoints in one go (`/travel`, cuo-agent13: the next stretch starts 3 tiles before the current one ends).
+- While recording, Icepick strayed out of the guards' protection twice (the canyon at 1116,1909 and the bottom end
+  at 1190,1904): both past the corridor's limits, so the measured edges hold.

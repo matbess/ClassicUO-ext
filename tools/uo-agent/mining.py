@@ -120,6 +120,130 @@ def walkable(x, y):
     return not any(m.impassable_static(t) and sz + m.static_heights[t] > z for t, sz, _ in m.statics(x, y))
 
 
+RIDES = os.path.join(HERE, 'routes')  # the user's recorded rides to the forge: ride-*.jsonl
+
+
+def rides():
+    """The user's recorded rides (2026-11-01: from the top of the route, the canyon and the bottom end, each to the
+    forge), each a list of spots, one per step."""
+    import glob
+    found = []
+    for path in sorted(glob.glob(os.path.join(RIDES, 'ride-*.jsonl'))):
+        points, last = [], None
+        with open(path, encoding='utf-8') as fh:
+            for line in fh:
+                r = json.loads(line)
+                if 'message' in r:
+                    continue
+                spot = (r['x'], r['y'])
+                if spot != last:
+                    points.append(spot)
+                    last = spot
+        if points:
+            found.append(points)
+    return found
+
+
+def ride_path(start, goal, areas, join=25, step=10):
+    """A path for a long trip that follows one of the user's recorded rides: plan to the ride's point nearest the
+    start, along the ride (every `step`-th point, whichever way) to its point nearest the goal, then plan to the
+    goal. Picks the ride that needs the least planning off it. None if no ride helps (none recorded, too far from
+    them, or the stretch along one is short)."""
+
+    def dist(a, b):
+        return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
+
+    best = None
+    for points in rides():
+        i = min(range(len(points)), key=lambda k: dist(points[k], start))
+        j = min(range(len(points)), key=lambda k: dist(points[k], goal))
+        off = dist(points[i], start) + dist(points[j], goal)
+        lo, hi = min(i, j), max(i, j)
+        along_tiles = sum(dist(points[k], points[k + 1]) for k in range(lo, hi))
+        if dist(points[i], start) <= join and dist(points[j], goal) <= join and along_tiles >= 25:
+            if best is None or off < best[0]:
+                best = (off, points, i, j)
+    if best is None:
+        return None
+    _, points, i, j = best
+    first = plan_path(start, points[i], areas) if dist(points[i], start) > 1 else []
+    last = plan_path(points[j], goal, areas) if dist(points[j], goal) > 1 else []
+    if first is None or last is None:
+        return None
+    stretch = points[i:j + 1] if j > i else points[j:i + 1][::-1]
+    # a waypoint about every `step` tiles along the ride (the recorder caught him every few tiles)
+    along = [stretch[0]]
+    for spot in stretch[1:]:
+        if dist(spot, along[-1]) >= step:
+            along.append(spot)
+    if along[-1] != stretch[-1]:
+        along.append(stretch[-1])
+    path = []
+    for spot in first + along + last:
+        if not path or spot != path[-1]:
+            path.append(spot)
+    return path
+
+
+def plan_path(start, goal, areas, longest=14):
+    """A path across the map from start to goal, planned in advance (the user, 2026-11-01: see where you're going
+    beforehand): A* over the tiles the map shows walkable inside the areas, eight ways, no cutting corners. Returns
+    waypoints a few tiles to a dozen apart, wherever the path turns (each stretch straight and clear on the map, so
+    the client's path finder can ride it), ending at the goal; or None if the map shows no way."""
+    import heapq
+    passable = {}
+
+    def ok(x, y):
+        if (x, y) in (start, goal):
+            return True
+        if (x, y) not in passable:
+            passable[(x, y)] = in_areas(areas, x, y) and walkable(x, y)
+        return passable[(x, y)]
+
+    def h(p):
+        return max(abs(p[0] - goal[0]), abs(p[1] - goal[1]))
+
+    open_heap = [(h(start), 0, start)]
+    came, cost = {start: None}, {start: 0}
+    while open_heap:
+        _, g, cur = heapq.heappop(open_heap)
+        if cur == goal:
+            break
+        if g > cost[cur]:
+            continue
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                if dx == dy == 0:
+                    continue
+                nxt = (cur[0] + dx, cur[1] + dy)
+                if not ok(*nxt) or dx and dy and not (ok(cur[0] + dx, cur[1]) and ok(cur[0], cur[1] + dy)):
+                    continue
+                ng = g + (1.0 if dx == 0 or dy == 0 else 1.001)  # straight a hair cheaper: fewer zigzags
+                if ng < cost.get(nxt, 1e9):
+                    cost[nxt], came[nxt] = ng, cur
+                    heapq.heappush(open_heap, (ng + h(nxt), ng, nxt))
+    if goal not in came:
+        return None
+    path = [goal]
+    while came[path[-1]] is not None:
+        path.append(came[path[-1]])
+    path.reverse()
+
+    def clear(a, b):
+        # every tile on the straight line from a to b is walkable
+        n = max(abs(b[0] - a[0]), abs(b[1] - a[1]))
+        return all(ok(round(a[0] + (b[0] - a[0]) * k / n), round(a[1] + (b[1] - a[1]) * k / n)) for k in range(n + 1))
+
+    points, i = [], 0
+    while i < len(path) - 1:
+        j = min(len(path) - 1, i + longest)
+        while j > i + 1 and not clear(path[i], path[j]):
+            j -= 1
+        points.append(path[j])
+        i = j
+    return points
+
+
 def plan(points=None, reach=2):
     """The ore blocks along the route, in the order Icepick reaches them. Ore is shared by an 8x8 block, so any rock
     in a block will do. For each block: the waypoint where it first comes within reach (for the order), and every

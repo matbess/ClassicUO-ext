@@ -36,13 +36,16 @@ BURGERS_SPARES = 10         # Burgers keeps this many in his pack, from the shov
 BANK_AT_INGOTS = 300        # Burgers banks when he holds this many ingots (the user, 2026-11-01; ingots weigh
                             # next to nothing), when he's low on shovels, and at the end of every pass
 SMALL_ORE = '0x19B7'        # a small pile: one on its own is too little to smelt; two of a metal can be combined
-FOOT_HOP = 6                # between blocks closer than this, Icepick walks and McGee follows
+FOOT_HOP = 12               # between blocks closer than this, Icepick walks and McGee follows (the user, 2026-11-01)
 MCGEE_NEAR = 3              # McGee must stay this close, or Icepick goes back and rides
 FLEE = 30                   # tiles to put between Icepick and a stranger before hiding
 GONE_AFTER = 180            # seconds unseen before a stranger counts as gone
 GIVE_UP_WAITING = 1800      # seconds: still not gone after this, stop and tell the user
 WATCH_AFTER = 600           # seconds after an incident to keep watching for the same person
-GATE = (1141, 1666)         # where Burgers' gate comes out
+GATE = (1141, 1666)         # where Burgers' gate to the "Mining gate location" rune comes out
+START = (1130, 1544)        # where the "Mining Start" rune leads (the top of the route)
+GATE_ENDS = {'gate': GATE, 'start': START}
+MANA_WAIT = 240             # seconds to wait for Burgers' mana for a gate before riding instead
 GATE_SAVES = 40             # use the gate only if it saves at least this many waypoints of riding
 BURGERS_HIDE_SPOT = (1147, 1856)
 BURGERS_TRADE_SPOT = (1148, 1856)
@@ -386,7 +389,7 @@ class Miner:
             time.sleep(1)
             self.mount()
 
-    def travel_route(self, target, during_alarm=False):
+    def travel_route(self, target, during_alarm=False, reach=15):
         """Ride along the route to waypoint `target`, taking short cuts (see mining.walk_route)."""
         if not self.ice.status()['mounted']:
             self.mount()
@@ -397,7 +400,7 @@ class Miner:
         while cheb(self.points[target], (x, y)) > 1:
             if not during_alarm:
                 self.check_guard()
-            ahead = [j for j in range(i + step, target + step, step) if cheb(self.points[j], (x, y)) <= 15]
+            ahead = [j for j in range(i + step, target + step, step) if cheb(self.points[j], (x, y)) <= reach]
             ahead.reverse()
             moved = False
             for j in ahead[:6]:
@@ -410,6 +413,120 @@ class Miner:
                 raise Stop(f"Icepick couldn't ride on from {x},{y} towards waypoint {target} {self.points[target]}")
             if not during_alarm:
                 self.check_mount_fatigue()
+
+    def travel(self, spot):
+        """Ride to a spot along a path planned in advance on the map (mining.plan_path), in one smooth ride by the
+        bridge (/travel: the next stretch starts before the current one ends). The user, 2026-11-01: not along the
+        mountain, and not stopping every ten tiles. If the ride gets stuck (a house the map doesn't show), plan again
+        from where he got to; after that, short straight hops."""
+        self.mount()
+        areas = mining.load_rules()['areas']
+        for attempt in range(3):
+            s = self.ice.status()
+            here = (s['x'], s['y'])
+            if cheb(here, spot) <= 1:
+                self.check_mount_fatigue()
+                return
+            # a long trip follows the user's recorded ride where it can; otherwise a path planned on the map
+            path = (mining.ride_path(here, spot, areas) if attempt == 0 else None) or mining.plan_path(here, spot, areas)
+            if not path:
+                log(f'the map shows no way from {here} to {spot}')
+                break
+            r = self.ice.call('POST', '/travel', path=';'.join(f'{x},{y}' for x, y in path[:200]))
+            if r['arrived']:
+                self.check_mount_fatigue()
+                return
+            log(f"ride to {spot} stopped at {r['x']},{r['y']} ({r.get('stopped')}); planning again")
+        self.hop_to(spot)
+
+    def hop_to(self, spot):
+        """The fallback: short straight hops of up to 16 tiles, each to a walkable tile inside Icepick's areas."""
+        import math
+        areas = mining.load_rules()['areas']
+        s = self.ice.status()
+        here = (s['x'], s['y'])
+        for _ in range(40):
+            if cheb(here, spot) <= 1:
+                return
+            if cheb(here, spot) <= 16:
+                hops = [spot]
+            else:
+                a = math.atan2(spot[1] - here[1], spot[0] - here[0])
+                hops = []
+                for length in (16, 12, 8):
+                    for turn in (0, 15, -15, 30, -30, 45, -45):
+                        p = (round(here[0] + math.cos(a + math.radians(turn)) * length),
+                             round(here[1] + math.sin(a + math.radians(turn)) * length))
+                        if mining.in_areas(areas, *p) and mining.walkable(*p) and p not in hops:
+                            hops.append(p)
+            moved = False
+            for hop in hops[:6]:
+                try:
+                    r = self.ice.walk(hop[0], hop[1], 1)
+                except uo.BridgeError as e:
+                    if e.code not in (403, 409):
+                        raise
+                    continue
+                if (r['x'], r['y']) != here and cheb((r['x'], r['y']), spot) < cheb(here, spot):
+                    here, moved = (r['x'], r['y']), True
+                    break
+            if not moved:
+                break
+        if cheb(here, spot) > 1:
+            log(f'no way on from {here} to {spot}; along the route instead')
+            self.travel_route(mining.nearest(self.points, *spot), reach=15)
+            self.ice.walk(spot[0], spot[1], 1)
+
+    def gate_to(self, end):
+        """From the forge: Burgers opens a gate on a rune (checked by name) and Icepick rides through to its far end.
+        Returns False (and nothing is cast) if Burgers' mana doesn't come back to full within MANA_WAIT."""
+        deadline = time.time() + MANA_WAIT
+        while True:
+            b = self.bur.status()
+            if b['mana'] >= b['manaMax'] >= 40:
+                break
+            if time.time() > deadline:
+                log(f"Burgers' mana is {b['mana']}/{b['manaMax']}; no gate")
+                return False
+            self.check_guard()
+            time.sleep(10)
+        self.travel(mining.FORGE_SPOT)
+        b = self.bur.status()
+        gate_tile = (b['x'], b['y'])
+        r = self.bur.call('POST', '/cast', spell=GATE_TRAVEL, target=self.rune(end))
+        if not any('magical gate' in m['text'].lower() for m in r['messages']):
+            log(f"the gate didn't open ({[m['text'] for m in r['messages']][-1:]})")
+            self.hide(self.bur)
+            return False
+        self.stats['gates'] += 1
+        # off the gate (it opens on his own tile), so Icepick can come through
+        off = next(sp for sp in (BURGERS_TRADE_SPOT, (1148, 1855), (1146, 1856), BURGERS_HIDE_SPOT)
+                   if sp != gate_tile and sp != mining.FORGE_SPOT)
+        self.bur.walk(*off, 0)
+        self.ice.walk(gate_tile[0], gate_tile[1], 0)
+        # the jump through the gate lands a moment after the step onto it
+        for _ in range(8):
+            s = self.ice.status()
+            arrived = cheb((s['x'], s['y']), GATE_ENDS[end]) <= 3
+            if arrived:
+                break
+            time.sleep(0.5)
+        log(f"gate to {end}: Icepick {'came out at' if arrived else 'did not go through; still at'} {s['x']},{s['y']}")
+        self.hide(self.bur)
+        if arrived:
+            # off the far end of the gate, so he doesn't step back through it
+            self.ice.walk(GATE_ENDS[end][0] + 1, GATE_ENDS[end][1] + 1, 0)
+        return arrived
+
+    def to_start(self):
+        """To the top of the route: straight to Burgers at the forge and through his gate to the Mining Start rune
+        (the user, 2026-11-01); ride only if there's no gate."""
+        s = self.ice.status()
+        if cheb((s['x'], s['y']), START) <= 4:
+            return
+        self.travel(mining.FORGE_SPOT)
+        if not self.gate_to('start'):
+            self.travel(START)
 
     def go_to(self, spot):
         """Get Icepick to a spot to dig from: on foot for a short hop (McGee follows), riding for anything longer."""
@@ -426,7 +543,15 @@ class Miner:
                 r = self.ice.walk(spot[0], spot[1], 0)
             return
         if cheb(here, spot) > 15:
-            self.travel_route(mining.nearest(self.points, *spot))
+            # a long way (back from the forge, say): through a gate to the nearer end if Burgers can, else ride
+            if cheb(here, mining.FORGE_SPOT) <= 3:
+                index = mining.nearest(self.points, *spot)
+                end = min(GATE_ENDS, key=lambda e: abs(mining.nearest(self.points, *GATE_ENDS[e]) - index))
+                b = self.bur.status()
+                gain = mining.nearest(self.points, *GATE_ENDS[end])
+                if abs(index - gain) + 40 < abs(index - self.forge_index) and b['mana'] >= b['manaMax'] >= 40:
+                    self.gate_to(end)
+            self.travel(spot)
         else:
             self.mount()
         self.ice.walk(spot[0], spot[1], 0)
@@ -524,10 +649,20 @@ class Miner:
         s = self.ice.status()
         here = mining.nearest(self.points, s['x'], s['y'])
         log(f'to the forge ({why}) from waypoint {here}')
-        if self.gate_worth_it(here):
-            self.via_gate()
+        if here < self.gate_index - GATE_SAVES:
+            # north of the middle: the middle gate spot is on the way to the forge; gate from there if Burgers'
+            # mana has come back by then (it takes about 5 minutes from empty), else ride on
+            self.travel((GATE[0] + 1, GATE[1] + 1))
+            b = self.bur.status()
+            if b['mana'] < b['manaMax'] and b['manaMax'] - b['mana'] <= 6:
+                time.sleep((b['manaMax'] - b['mana']) * 8 + 2)  # nearly full: worth the wait
+            if self.gate_worth_it(0):
+                self.via_gate()
+            else:
+                self.travel(mining.FORGE_SPOT)
+                self.ice.walk(*mining.FORGE_SPOT, 0)
         else:
-            self.travel_route(self.forge_index)
+            self.travel(mining.FORGE_SPOT)
             self.ice.walk(*mining.FORGE_SPOT, 0)
         self.smelt_all()
         need = SHOVELS_WANTED - len(self.shovels())
@@ -554,12 +689,12 @@ class Miner:
 
     def via_gate(self):
         log('Burgers opens a gate; Icepick rides to the gate spot')
-        self.travel_route(self.gate_index)
+        self.travel((GATE[0] + 1, GATE[1] + 1))
         self.ice.walk(GATE[0] + 1, GATE[1] + 1, 0)
         r = self.bur.call('POST', '/cast', spell=GATE_TRAVEL, target=self.rune('gate'))
         if not any('magical gate' in m['text'].lower() for m in r['messages']):
             log(f'the gate didn\'t open ({[m["text"] for m in r["messages"]][-1:]}); riding instead')
-            self.travel_route(self.forge_index)
+            self.travel(mining.FORGE_SPOT)
             self.ice.walk(*mining.FORGE_SPOT, 0)
             return
         self.stats['gates'] += 1
@@ -569,10 +704,14 @@ class Miner:
                    if sp != (b['x'], b['y']) and sp != mining.FORGE_SPOT)
         self.bur.walk(*off, 0)
         self.ice.walk(*GATE, 0)
-        s = self.ice.status()
+        for _ in range(8):
+            s = self.ice.status()
+            if cheb((s['x'], s['y']), mining.FORGE_SPOT) <= 3:
+                break
+            time.sleep(0.5)
         if cheb((s['x'], s['y']), mining.FORGE_SPOT) > 3:
             log('didn\'t go through the gate; riding instead')
-            self.travel_route(self.forge_index)
+            self.travel(mining.FORGE_SPOT)
         self.ice.walk(*mining.FORGE_SPOT, 0)
 
     def smelt_all(self):
@@ -735,8 +874,13 @@ class Miner:
         self.preflight()
         first = self.args.start if self.args.start is not None else self.state.get('next', 0)
         last = self.args.end if self.args.end is not None else len(self.targets) - 1
+        s = self.ice.status()
+        if s['weight'] >= s['weightMax'] // 2:
+            self.safely(self.forge_visit, 'a half-full pack at the start')
         for p in range(self.args.passes):
             log(f'pass {p + 1}: blocks {first} to {last}')
+            if first == 0:
+                self.safely(self.to_start)
             for n in range(first, last + 1):
                 self.state['next'] = n
                 self.save_state()
@@ -749,7 +893,7 @@ class Miner:
             self.save_state()
             first, last = 0, len(self.targets) - 1
             if p + 1 < self.args.passes and not self.args.no_wait:
-                self.safely(self.travel_route, self.targets[0]['index'])
+                self.safely(self.to_start)
                 self.hide(self.ice)
                 log(f'waiting {self.args.wait} minutes for the ore to come back')
                 end = time.time() + self.args.wait * 60
