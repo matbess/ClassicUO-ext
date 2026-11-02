@@ -276,5 +276,17 @@ files further: they apply at once, without a new build.
 - **NPCs by their fidget** (the user, 2026-11-02: NPCs twist their upper body when standing still, players never
   do): that's an idle animation the server sends. Build cuo-agent14 records every animation the server sends for
   characters nearby (`uo animations`) and, once the rules' `guard.fidgets` lists the fidget animation numbers,
-  marks anyone doing one as an NPC for good (`Agent/npcs-learned.json`); the guard ignores them. To do: after the
-  install, watch Sacha (or another townsperson) fidget, read the numbers, put them in both rules files.
+  marks anyone doing one as an NPC for good (`Agent/npcs-learned.json`); the guard ignores them. Installed
+  2026-11-02 00:05; the first animation caught was Sacha's **6** (twice), now in both rules (`"fidgets": [6]`). In
+  UO, human animations 5 and 6 are the two idle fidgets; add 5 once a townsperson is seen doing it.
+- **Icepick carries 3 shovels** (the user, 2026-11-02 00:30): with 2 he ran out before his pack was full.
+- **No bank trip at the end of a pass** (the user, 2026-11-02 00:35): the gate to the top needs all of Burgers' mana,
+  so at the end he smelts, hands over and gates Icepick up; the bank waits for the south half of the next pass
+  (about 300 ingots), or for a must (no spare shovels, a nearly full pack).
+- **Tired horse** (the user, 2026-11-02 00:42: "it wasn't handling it"): the server says "Your mount is very
+  fatigued." (an emote, a warning) and then "Your mount is too fatigued to move." (a system message, many times a
+  second while he tries to ride). The loop now acts on any "fatigued" message, and checks after every ride stretch
+  (also one that stalled) and before every hop, not only on arriving.
+- **Reagents** (the user, 2026-11-02 00:45): Burgers keeps **35** each of black pearl, blood moss, mandrake root and
+  sulfurous ash in his pouch, topped up from a reagent bag in his bank on every bank trip; fewer than 6 (black
+  pearl, blood moss, mandrake root) or 3 (sulfurous ash) makes a bank trip a must.

@@ -4326,6 +4326,14 @@ namespace ClassicUO.Game.Managers
                     }
 
                     w.WriteEndArray();
+                    w.WriteStartArray("fidgets");
+
+                    foreach (ushort action in Guard.Fidgets)
+                    {
+                        w.WriteNumberValue(action);
+                    }
+
+                    w.WriteEndArray();
                     w.WriteEndObject();
                 }
 

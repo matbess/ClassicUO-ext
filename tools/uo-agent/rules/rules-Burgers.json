@@ -18,7 +18,9 @@
   "guard": { "onAlarm": "hide", "hideAfter": 5, "talk": true, "loiter": [3, 3], "attack": true,
              "watchItems": ["0x406EDA8E", "0x406EBB72", "0x406EDA9E", "0x406EC754"],
              // the Ocllo bankers
-             "npcs": ["0x0001EFC6", "0x0000D57D", "0x00023934"] },
+             "npcs": ["0x0001EFC6", "0x0000D57D", "0x00023934"],
+             // the idle fidget animations only NPCs do (seen: Sacha, 6); anyone doing one is learned as an NPC
+             "fidgets": [6] },
   // the user, 2026-11-01: slower than a person would bother to be (gap and break in milliseconds; aim is the pause
   // between the target cursor appearing and the click, from build cuo-agent10 on)
   "pacing": { "gap": [2500, 4000], "burst": 5, "break": [6000, 10000], "aim": [700, 1500] }

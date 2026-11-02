@@ -32,10 +32,15 @@ STATE = os.path.join(WORK, 'state.json')
 
 HEAVY = 380                 # go to the forge only once the pack weighs more than this (the user, 2026-11-01): a dig
                             # adds 12, so he digs at 380 or less and never goes past 392 (the user's limit is 393)
-SHOVELS_WANTED = 2          # Icepick carries this many (the user, 2026-11-01: 5 at first, then 2 is enough)
+SHOVELS_WANTED = 3          # Icepick carries this many (the user: 5 at first, then 2, then 3 after he ran out, 2026-11-02)
 BURGERS_SPARES = 20         # Burgers keeps this many in his pack, from the shovel bag in his bank (the user, 2026-11-01)
 BANK_AT_INGOTS = 300        # Burgers banks when he holds this many ingots (the user, 2026-11-01; ingots weigh
                             # next to nothing), when he's low on shovels, and at the end of every pass
+# Burgers' four reagents (Recall: black pearl, blood moss, mandrake root; Gate Travel: black pearl, mandrake root,
+# sulfurous ash). He keeps 35 of each in his pouch and tops up from a bag in his bank (the user, 2026-11-02).
+REAGENTS = {'0x0F7A': 'black pearl', '0x0F7B': 'blood moss', '0x0F86': 'mandrake root', '0x0F8C': 'sulfurous ash'}
+REAGENTS_WANTED = 35        # the user, 2026-11-02: enough that reagents seldom need a trip of their own
+REAGENTS_LOW = {'0x0F7A': 6, '0x0F7B': 6, '0x0F86': 6, '0x0F8C': 3}  # below this a bank trip is a must
 SMALL_ORE = '0x19B7'        # a small pile: one on its own is too little to smelt; two of a metal can be combined
 FOOT_HOP = 12               # between blocks closer than this, Icepick walks and McGee follows (the user, 2026-11-01)
 MCGEE_NEAR = 8              # McGee must be this close a moment after a walk, or Icepick goes back and rides (the user: 8)
@@ -425,7 +430,8 @@ class Miner:
         new = [m for m in self.ice.call('GET', '/messages', after=self.fatigue_seen)['messages']]
         if new:
             self.fatigue_seen = max(m['id'] for m in new)
-        if any('mount is very fatigued' in m['text'].lower() for m in new) and self.ice.status()['mounted']:
+        # "Your mount is very fatigued." (a warning) or "Your mount is too fatigued to move." (it has stopped)
+        if any('fatigued' in m['text'].lower() for m in new) and self.ice.status()['mounted']:
             log('McGee is tired: dismount, "all follow me", mount again')
             self.ice.call('POST', '/dismount')
             self.ice.call('POST', '/say', text='all follow me')
@@ -484,8 +490,9 @@ class Miner:
                 log(f'the map shows no way from {here} to {spot}')
                 break
             r = self.ice.call('POST', '/travel', path=';'.join(f'{x},{y}' for x, y in path[:200]))
+            # a tired horse stalls a ride: after every ride, arrived or not, see to him (the user, 2026-11-02)
+            self.check_mount_fatigue()
             if r['arrived']:
-                self.check_mount_fatigue()
                 return
             log(f"ride to {spot} stopped at {r['x']},{r['y']} ({r.get('stopped')}); planning again")
         self.hop_to(spot)
@@ -595,6 +602,7 @@ class Miner:
         here = (s['x'], s['y'])
         if here == spot:
             return
+        self.check_mount_fatigue()
         if not s['mounted'] and cheb(here, spot) <= FOOT_HOP:
             r = self.ice.walk(spot[0], spot[1], 0)
             h = self.mcgee()
@@ -747,12 +755,10 @@ class Miner:
         if need > 0 and self.burgers_spares() < need and self.bur.status()['mana'] >= 22:
             self.bank_trip()  # fetch shovels first
         self.handoff()
+        # at the end of a pass Burgers keeps his mana for the gate to the top (the user, 2026-11-02: the bank can
+        # wait until it suits, in the south half of the next pass), so only a bank trip he can't do without
         end_of_pass = why == 'the end of the route'
-        if end_of_pass:
-            # everything goes to the bank at the end of a pass: wait for Burgers' mana if need be
-            while self.bur.status()['mana'] < 22 and self.ingots(self.bur):
-                time.sleep(20)
-        if self.burgers_should_bank(end_of_pass, where=here):
+        if self.burgers_should_bank(where=None if end_of_pass else here):
             self.bank_trip()
         if not self.shovels():
             self.handoff()  # shovels fetched on that trip
@@ -845,6 +851,19 @@ class Miner:
     def ingots(self, char):
         return [i for i in char.pack() if 'ingot' in (i.get('type') or '')]
 
+    def burgers_reagents(self):
+        """Burgers' reagents: {graphic: (amount, pile serial or None)}, and the container they're kept in."""
+        pack = self.bur.status()['backpack']['serial']
+        found, home = {g: (0, None) for g in REAGENTS}, pack
+        for item in self.bur.call('GET', '/contents', serial=pack, depth=2)['items']:
+            for inner in [item] + item.get('items', []):
+                g = inner.get('graphic')
+                if g in REAGENTS:
+                    found[g] = (found[g][0] + inner.get('amount', 1), inner['serial'])
+                    if inner is not item:
+                        home = item['serial']
+        return found, home
+
     def burgers_spares(self):
         return sum(1 for i in self.bur.pack() if i.get('graphic') in mining.SHOVELS)
 
@@ -904,6 +923,9 @@ class Miner:
             return False
         held = sum(i.get('amount', 1) for i in self.ingots(self.bur))
         spares = self.burgers_spares()
+        reagents, _ = self.burgers_reagents()
+        if any(reagents[g][0] < low for g, low in REAGENTS_LOW.items()):
+            return True  # too few for more than a trip or two: a must, wherever Icepick is
         # shovels alone are only a reason to go once he has none left to give (the user, 2026-11-01); when he's
         # at the bank anyway he tops up to BURGERS_SPARES
         if end_of_pass:
@@ -914,7 +936,7 @@ class Miner:
 
     def bank_bags(self, bank):
         bags = self.state.setdefault('bags', {})
-        if bags.get('shovels') and bags.get('ingots'):
+        if bags.get('shovels') and bags.get('ingots') and bags.get('reagents'):
             return bags
         for item in self.bur.call('GET', '/contents', serial=bank)['items']:
             if not item.get('container'):
@@ -925,12 +947,36 @@ class Miner:
                 bags['shovels'] = item['serial']
             elif any('ingot' in (i.get('type') or '') for i in inside):
                 bags['ingots'] = item['serial']
+            elif any(i.get('graphic') in REAGENTS for i in inside):
+                bags['reagents'] = item['serial']
         if not (bags.get('shovels') and bags.get('ingots')):
             raise Stop(f"couldn't find the shovel bag and the ingot bag in Burgers' bank (found {bags})")
         uo.save_label(bags['shovels'], 'bag: shovels (Burgers\' bank)')
         uo.save_label(bags['ingots'], 'bag: ingots (Burgers\' bank)')
+        if bags.get('reagents'):
+            uo.save_label(bags['reagents'], 'bag: reagents (Burgers\' bank)')
         self.save_state()
         return bags
+
+    def restock_reagents(self, bag):
+        """At the bank: each of Burgers' four reagents back up to REAGENTS_WANTED, split off the bank's piles onto the
+        piles in his pouch."""
+        have, home = self.burgers_reagents()
+        stock = self.bur.call('GET', '/contents', serial=bag)['items']
+        took = []
+        for g, name in REAGENTS.items():
+            want = REAGENTS_WANTED - have[g][0]
+            pile = next((i for i in stock if i.get('graphic') == g), None)
+            if want <= 0 or not pile:
+                if want > 0:
+                    log(f'no {name} left in the bank bag')
+                continue
+            amount = min(want, pile.get('amount', 1))
+            to = have[g][1] or home
+            self.bur.call('POST', '/move', serial=pile['serial'], to=to, amount=amount if amount < pile.get('amount', 1) else None)
+            took.append(f'{amount} {name}')
+        if took:
+            log('Burgers took ' + ', '.join(took) + ' from the bank')
 
     def bank_trip(self):
         """Burgers to the Ocllo bank and back. The bank is relaxed (the user): his guard is off while he's there."""
@@ -947,8 +993,9 @@ class Miner:
             if not bank:
                 raise Stop("Burgers said \"bank\" but no bank box opened")
             bags = self.bank_bags(bank)
-            for bag in (bags['shovels'], bags['ingots']):
-                self.bur.call('POST', '/open', serial=bag)
+            for bag in (bags['shovels'], bags['ingots'], bags.get('reagents')):
+                if bag:
+                    self.bur.call('POST', '/open', serial=bag)
             in_bag = self.bur.call('GET', '/contents', serial=bags['ingots'])['items']
             for bar in self.ingots(self.bur):
                 same = next((i for i in in_bag if i.get('graphic') == bar.get('graphic') and i.get('hue') == bar.get('hue')), None)
@@ -963,6 +1010,8 @@ class Miner:
                 for shovel in spare:
                     self.bur.call('POST', '/move', serial=shovel, to=pack)
                 log(f'Burgers took {len(spare)} shovels from the bank')
+            if bags.get('reagents'):
+                self.restock_reagents(bags['reagents'])
             burgers_rules(bank=False)  # the slow pace again before he leaves the bank
             self.bur.call('GET', '/rules')
             r = self.recall('forge')

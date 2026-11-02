@@ -17,7 +17,9 @@
   "mounts": ["0x00042FCB"],
   // the guard stops work and the agent gets the character away and hides (the user, 2026-11-01); the bridge hides
   // him itself if nobody has started within hideAfter seconds
-  "guard": { "onAlarm": "hide", "hideAfter": 5, "talk": true, "loiter": [3, 3], "attack": true, "watchItems": [], "npcs": ["0x00023934"] },
+  "guard": { "onAlarm": "hide", "hideAfter": 5, "talk": true, "loiter": [3, 3], "attack": true, "watchItems": [], "npcs": ["0x00023934"],
+             // the idle fidget animations only NPCs do (seen: Sacha, 6); anyone doing one is learned as an NPC
+             "fidgets": [6] },
   // the user, 2026-11-01: slower than a person would bother to be (gap and break in milliseconds; aim is the pause
   // between the target cursor appearing and the click, from build cuo-agent10 on)
   // repeat / repeatAim: another stroke of the shovel at the same rock can be quick (the user, 2026-11-01), from cuo-agent11
