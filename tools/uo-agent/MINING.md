@@ -303,3 +303,9 @@ files further: they apply at once, without a new build.
   clients kept trying to reconnect (the user's settings reconnect on their own). The loop stopped cleanly ("the
   game is not responding"). After a login the client knows nothing inside bags, so the loop's start-up now opens
   both backpacks and Burgers' pouch before checking his runes. Totals at the stop: 5172 ingots, 4077 iron.
+- **The reboot rolled the world back** to about 04:00 (Icepick came back at the forge holding the 57 ingots of the
+  04:00 smelt, Burgers with none): the ore and handoffs after 04:00 never happened, so the totals were corrected to
+  4898 ingots, 3854 iron, and the loop went back to block 54. After an outage, compare the packs with the log to
+  find the save point before trusting the totals.
+- **The shovel bag ran out** (Burgers "took 0 shovels from the bank" at 03:56): about 59 shovels in a night, roughly
+  one per forge trip. Burgers had 15 spares and Icepick 2 at 04:21; the user needs to restock the bank bag.
