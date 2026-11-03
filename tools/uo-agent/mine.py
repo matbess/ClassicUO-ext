@@ -396,7 +396,14 @@ class Miner:
                     continue
                 tried.add(spot)
                 before = self.ice.call('GET', '/status')['lastMessageId']
-                r = self.ice.walk(spot[0], spot[1], 1)
+                try:
+                    r = self.ice.walk(spot[0], spot[1], 1)
+                except uo.BridgeError as e:
+                    # no way there from here (the client's path finder): the next spot (2026-11-03 08:43, by the
+                    # forge, this ended the loop with Icepick part way)
+                    if e.code == 409:
+                        continue
+                    raise
                 new = self.ice.call('GET', '/messages', after=before)['messages']
                 if any('left the protection' in m['text'].lower() for m in new):
                     # the guards' edge is closer than thought: straight back where he was, another direction
