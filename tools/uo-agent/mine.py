@@ -93,6 +93,16 @@ def burgers_rules(bank):
         fh.write(text)
 
 
+def learned_npc(serial):
+    """Whether the guard has learned this mobile is an NPC (it did an idle fidget only NPCs do), from the bridge's
+    Agent/npcs-learned.json."""
+    try:
+        with open(os.path.join(AGENT_DIR, 'npcs-learned.json'), encoding='utf-8') as fh:
+            return any(n.get('serial') == serial for n in json.load(fh))
+    except (OSError, ValueError):
+        return False
+
+
 class Stop(Exception):
     """Something the user must hear about now; the loop ends."""
 
@@ -274,7 +284,7 @@ class Miner:
                 raise Alarm(f"{c.name}: {g['alarm']['reason']}")
         # someone from an earlier incident turning up again near Icepick
         now = time.time()
-        self.watch = {s: t for s, t in self.watch.items() if t > now}
+        self.watch = {s: t for s, t in self.watch.items() if t > now and not learned_npc(s)}
         if self.watch:
             near = self.ice.call('GET', '/nearby', range=18)['mobiles']
             for m in near:
@@ -496,6 +506,11 @@ class Miner:
         serial = (threat or {}).get('serial')
         last_seen = time.time()
         while True:
+            if serial and learned_npc(serial):
+                # it did an NPC's idle fidget and the guard learned it (Sheridan and Chandra, 2026-11-03): no stranger
+                log(f"{(threat or {}).get('name') or serial} turned out to be a town NPC (the guard learned it); carrying on")
+                self.watch.pop(serial, None)
+                return
             seen = False
             for c in (self.ice, self.bur):
                 s = c.status()
