@@ -147,7 +147,7 @@ There are now a couple of other players on the server (2026-11-01), besides the 
   to his bank before he runs out (his bank bag ran out of black pearl that morning).
 - **Stopping the loop** (the user, 2026-11-02 23:13: for an install both characters are mounted and hidden when
   the clients close, and never stopped while Icepick digs on foot):
-  - `python3 -I mine.py --park` is the way: the running loop finishes the block it's on, puts Icepick on McGee and
+  - `python3 -I mine.py --park` is the way: the running loop stops before its next dig (or after the step it is on), puts Icepick on McGee and
     hides him, sees Burgers hidden at his spot, logs `PARKED: ...` with both and ends. The command waits for that
     and prints it. The next run starts at the next block.
   - Out of shovels (none on Icepick, none from Burgers or the bank) parks them the same way before the loop stops

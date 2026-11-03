@@ -998,6 +998,9 @@ class Miner:
                 return 'no shovels'
             self.check_guard()
             self.keep_mcgee()
+            if os.path.exists(PARK_FILE):
+                # the user, 2026-11-03: "park it" means now, not after the block (this one left him digging on)
+                self.park()
             try:
                 r = self.ice.call('POST', '/use', serial=tools[0], x=x, y=y, z=z, graphic=0)
             except uo.BridgeError as e:
