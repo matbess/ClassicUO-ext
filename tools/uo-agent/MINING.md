@@ -348,3 +348,11 @@ files further: they apply at once, without a new build.
 - **A stranger counts as gone after 30 seconds out of sight** (the user, 2026-11-02 18:05; it was 3 minutes), doubled
   for the same person again soon after. Jake recalled in and out near the route twice (17:02, 17:59); his spell words
   set off the talk alarm each time.
+- **The second shovel bag held 20** and was empty by 20:15 (2026-11-02). Burgers then banked at every handoff for
+  nothing. Now:
+  - When the shovel bag turns up empty, Burgers looks through the bank for another bag with shovels in it.
+  - If there's none, he notes the bank as out of shovels (`bank_out_of_shovels` in the state) and doesn't go back
+    for shovels for 30 minutes.
+  - While he has no spares and the bank isn't known to be empty, he skips gates to keep his mana for the bank trip.
+    In the north half every gate takes all his mana, so the bank trip never came.
+  - When Icepick runs out, the loop stops and says the bank is empty.

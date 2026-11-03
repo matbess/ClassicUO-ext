@@ -752,7 +752,8 @@ class Miner:
                 # the gate end nearest the spot on the map (the route winds too much to compare along it)
                 end = min(GATE_ENDS, key=lambda e: cheb(GATE_ENDS[e], spot))
                 b = self.bur.status()
-                if cheb(GATE_ENDS[end], spot) + 40 < cheb(here, spot) and b['mana'] >= b['manaMax'] >= 40:
+                if cheb(GATE_ENDS[end], spot) + 40 < cheb(here, spot) and b['mana'] >= b['manaMax'] >= 40 \
+                        and not self.saving_mana_for_bank():
                     self.gate_to(end)
             self.travel(spot)
         else:
@@ -931,7 +932,7 @@ class Miner:
             self.ice.walk(*mining.FORGE_SPOT, 0)
         self.smelt_all()
         need = SHOVELS_WANTED - len(self.shovels())
-        if need > 0 and self.burgers_spares() < need and self.bur.status()['mana'] >= 22:
+        if need > 0 and self.burgers_spares() < need and self.bur.status()['mana'] >= 22 and not self.bank_known_empty():
             self.bank_trip()  # fetch shovels first
         self.handoff()
         # at the end of a pass Burgers keeps his mana for the gate to the top (the user, 2026-11-02: the bank can
@@ -942,13 +943,22 @@ class Miner:
         if not self.shovels():
             self.handoff()  # shovels fetched on that trip
         if not self.shovels():
-            raise Stop('Icepick has no shovels left and Burgers has none to give')
+            raise Stop('Icepick has no shovels left and Burgers has none to give'
+                       + (' (the shovel bag in his bank is empty)' if self.state.get('bank_out_of_shovels') else ''))
+
+    def saving_mana_for_bank(self):
+        """Out of spare shovels, Burgers keeps his mana for the bank (two Recalls) instead of a gate: in the north half
+        every gate takes all of it, so the bank trip never came (2026-11-02 20:15, Icepick down to 2 shovels)."""
+        if self.burgers_spares() > 0 or self.bank_known_empty():
+            return False
+        log("no gate: Burgers keeps his mana for a bank trip (he has no spare shovels)")
+        return True
 
     def gate_worth_it(self, here):
         if here >= self.gate_index - GATE_SAVES:
             return False
         b = self.bur.status()
-        return b['mana'] >= b['manaMax'] and b['manaMax'] >= 40
+        return b['mana'] >= b['manaMax'] and b['manaMax'] >= 40 and not self.saving_mana_for_bank()
 
     def via_gate(self):
         log('Burgers opens a gate; Icepick rides to the gate spot')
@@ -1134,11 +1144,22 @@ class Miner:
             return True  # too few for more than a trip or two: a must, wherever Icepick is
         # shovels alone are only a reason to go once he has none left to give (the user, 2026-11-01); when he's
         # at the bank anyway he tops up to BURGERS_SPARES
+        out = spares == 0 and not self.bank_known_empty()
         if end_of_pass:
-            return held > 0 or spares == 0
+            return held > 0 or out
         if where is not None and where >= self.gate_index:
-            return held >= BANK_AT_INGOTS or spares == 0
-        return spares == 0 or b['weight'] >= b['weightMax'] - 40
+            return held >= BANK_AT_INGOTS or out
+        return out or b['weight'] >= b['weightMax'] - 40
+
+    def bank_shovels(self, bags):
+        if not bags.get('shovels'):
+            return []
+        return [i['serial'] for i in self.bur.call('GET', '/contents', serial=bags['shovels'])['items']
+                if i.get('graphic') in mining.SHOVELS]
+
+    def bank_known_empty(self):
+        t = self.state.get('bank_out_of_shovels')
+        return bool(t) and time.time() - t < 1800
 
     def bank_bags(self, bank):
         bags = self.state.setdefault('bags', {})
@@ -1155,9 +1176,10 @@ class Miner:
                 bags['ingots'] = item['serial']
             elif any(i.get('graphic') in REAGENTS for i in inside):
                 bags['reagents'] = item['serial']
-        if not (bags.get('shovels') and bags.get('ingots')):
-            raise Stop(f"couldn't find the shovel bag and the ingot bag in Burgers' bank (found {bags})")
-        uo.save_label(bags['shovels'], 'bag: shovels (Burgers\' bank)')
+        if not bags.get('ingots'):
+            raise Stop(f"couldn't find the ingot bag in Burgers' bank (found {bags})")
+        if bags.get('shovels'):
+            uo.save_label(bags['shovels'], 'bag: shovels (Burgers\' bank)')
         uo.save_label(bags['ingots'], 'bag: ingots (Burgers\' bank)')
         if bags.get('reagents'):
             uo.save_label(bags['reagents'], 'bag: reagents (Burgers\' bank)')
@@ -1210,12 +1232,21 @@ class Miner:
                 self.bur.call('POST', '/move', serial=pile['serial'], to=bank)
             want = BURGERS_SPARES - self.burgers_spares()
             if want > 0:
-                spare = [i['serial'] for i in self.bur.call('GET', '/contents', serial=bags['shovels'])['items']
-                         if i.get('graphic') in mining.SHOVELS][:want]
+                spare = self.bank_shovels(bags)
+                if not spare:
+                    # that bag is empty: look again for one with shovels in it (the user may have put in a new bag)
+                    self.state['bags'].pop('shovels', None)
+                    bags = self.bank_bags(bank)
+                    spare = self.bank_shovels(bags)
+                spare = spare[:want]
                 pack = self.bur.status()['backpack']['serial']
                 for shovel in spare:
                     self.bur.call('POST', '/move', serial=shovel, to=pack)
-                log(f'Burgers took {len(spare)} shovels from the bank')
+                log(f'Burgers took {len(spare)} shovels from the bank'
+                    + ('' if spare else '; the bank has none left (the user needs to put more in)'))
+                # an empty bank isn't worth a trip at every handoff: look again in half an hour (2026-11-02 20:15)
+                self.state['bank_out_of_shovels'] = None if spare else time.time()
+                self.save_state()
             if bags.get('reagents'):
                 self.restock_reagents(bags['reagents'])
             burgers_rules(bank=False)  # the slow pace again before he leaves the bank
