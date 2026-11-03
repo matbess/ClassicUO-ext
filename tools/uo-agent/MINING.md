@@ -112,7 +112,7 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
 character standing in the world (tested 19:38: the guard's logout worked, Clem's "hi" logged both out at once, but
 that's no protection). Instead:
 - Remember where he was, run away from the person (staying inside the guarded area, i.e. the bridge's corridor),
-  and when about 30 tiles away, hide. Don't log out.
+  and when about 50 tiles away (30 at first; the user, 2026-11-02 23:30: 50), hide, on McGee. Don't log out.
 - Wait hidden for the person to leave. If he gets revealed before they've gone, hide again.
 - When they're gone, go back to where he left off and carry on.
 - Claude's working definitions (tell the user; change if they want): "gone" means neither character has seen them

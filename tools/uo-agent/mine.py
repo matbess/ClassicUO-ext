@@ -55,7 +55,7 @@ TAMING = 35                 # Animal Taming: McGee tamed again if he goes wild (
 TAME_TRIES = 30
 TAME_GAP = 10               # seconds between tries (the server wants a pause between skill uses)
                             # (3, checked at once, was too strict: a following horse is a few steps behind)
-FLEE = 30                   # tiles to put between Icepick and a stranger before hiding
+FLEE = 50                   # tiles to put between Icepick and a stranger before hiding (the user: 30, then 50 on 2026-11-02)
 GONE_AFTER = 30             # seconds unseen before a stranger counts as gone (the user, 2026-11-02 18:05; was 3 minutes)
 GIVE_UP_WAITING = 1800      # seconds: still not gone after this, stop and tell the user
 WATCH_AFTER = 600           # seconds after an incident to keep watching for the same person
@@ -407,7 +407,7 @@ class Miner:
                     log(f'Icepick got away to {r["x"]},{r["y"]} ({cheb((r["x"], r["y"]), (tx, ty))} tiles from {tx},{ty})')
                     self.hide(self.ice)
                     return
-        log('Icepick found nowhere 30 tiles off; hiding where he is')
+        log(f'Icepick found nowhere {FLEE} tiles off; hiding where he is')
         self.hide(self.ice)
 
     def rune(self, key):
