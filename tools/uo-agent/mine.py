@@ -48,6 +48,7 @@ REAGENTS_LOW = {'0x0F7A': 6, '0x0F7B': 6, '0x0F86': 6, '0x0F8C': 3}  # below thi
 SMALL_ORE = '0x19B7'        # a small pile: one on its own is too little to smelt; two of a metal can be combined
 FOOT_HOP = 12               # between blocks closer than this, Icepick walks and McGee follows (the user, 2026-11-01)
 MCGEE_NEAR = 8              # McGee must be this close a moment after a walk, or Icepick goes back and rides (the user: 8)
+MCGEE_STUCK = 5             # seconds McGee may stay more than 2 tiles off without coming closer before he counts as stuck
                             # (3, checked at once, was too strict: a following horse is a few steps behind)
 FLEE = 30                   # tiles to put between Icepick and a stranger before hiding
 GONE_AFTER = 30             # seconds unseen before a stranger counts as gone (the user, 2026-11-02 18:05; was 3 minutes)
@@ -225,6 +226,7 @@ class Miner:
         self.watch = {}          # serial -> until (time) for strangers seen in an incident
         self.repeats = {}        # serial -> how many incidents in a row with them (each doubles the wait)
         self.burgers_away = False  # Burgers recalled away during an alarm (only when he was seen)
+        self.mcgee_far = None      # (tiles, since when) while McGee is more than 2 tiles off (keep_mcgee)
         self.stats = {'ore': 0, 'misses': 0, 'blocks': 0, 'empty': 0, 'forge visits': 0, 'ingots': 0,
                       'bank trips': 0, 'gates': 0, 'incidents': 0}
         self.state = self.load_state()
@@ -537,6 +539,37 @@ class Miner:
                 raise
         if not self.ice.status()['mounted']:
             raise Stop("Icepick couldn't get back on McGee")
+
+    def keep_mcgee(self):
+        """The user, 2026-11-02 23:00: if McGee is stuck, or more than MCGEE_NEAR tiles away, Icepick goes and gets
+        him at once (a horse left too far behind may go wild), then carries on with what he was doing. Stuck: more
+        than 2 tiles off and no closer for MCGEE_STUCK seconds. He once stood on the rocks 6 tiles off and 13 higher
+        while Icepick dug and walked on, and the check after each walk didn't see it (22:56)."""
+        s = self.ice.status()
+        if s['mounted']:
+            self.mcgee_far = None
+            return
+        h = self.mcgee()
+        now = time.time()
+        if h and h['distance'] <= 2:
+            self.mcgee_far = None
+            return
+        if h and h['distance'] <= MCGEE_NEAR:
+            if self.mcgee_far is None or h['distance'] < self.mcgee_far[0]:
+                self.mcgee_far = (h['distance'], now)  # off a little, or coming closer: give him a moment
+                return
+            if now - self.mcgee_far[1] < MCGEE_STUCK:
+                return
+            why = f"McGee is stuck {h['distance']} tiles away at {h['x']},{h['y']}"
+        else:
+            why = f"McGee is {h['distance']} tiles away" if h else 'McGee is out of sight'
+        log(why + '; Icepick goes to get him')
+        back = (s['x'], s['y'])
+        self.mount()
+        self.mcgee_far = None
+        # back to where he was, and off again to carry on (the horse is then on his own tile)
+        self.walk_to(back)
+        self.dismount()
 
     def dismount(self):
         if self.ice.status()['mounted']:
@@ -858,6 +891,7 @@ class Miner:
             if not tools:
                 return 'no shovels'
             self.check_guard()
+            self.keep_mcgee()
             try:
                 r = self.ice.call('POST', '/use', serial=tools[0], x=x, y=y, z=z, graphic=0)
             except uo.BridgeError as e:

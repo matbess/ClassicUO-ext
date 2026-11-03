@@ -72,6 +72,11 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
   4-5 tiles to the next rock; the horse follows on foot. But never lose the horse: after every hop check that McGee
   is still close (he can get stuck behind a tree); if he isn't, go back to him and ride. Ride for anything longer
   (to the forge, back to the route, getting away).
+- **Don't let McGee fall behind, he may go wild** (the user, 2026-11-02 23:00): if he's stuck, or more than 8 tiles
+  away, Icepick goes and gets him at once, then carries on with what he was doing. `keep_mcgee` checks before every
+  dig: more than 8 tiles off, out of sight, or more than 2 off and no closer for 5 seconds (stuck) means Icepick
+  gets on him, rides back to his spot and gets off again. (He once stood on the rocks 6 tiles off and 13 higher
+  while Icepick dug on; the check after each walk didn't see it.)
 - **The bank** (the user, 2026-11-01): Burgers' bank box holds a bag with 59 shovels (take shovels from it) and a bag
   for the ingots (put ingots into it). Serials still to be read on the next bank visit.
 - **Mount before hiding, always** (the user, 2026-11-01 21:37, with a screenshot of McGee standing next to a hidden
