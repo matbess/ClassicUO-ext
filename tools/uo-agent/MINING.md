@@ -345,3 +345,6 @@ files further: they apply at once, without a new build.
   next to him, he had nowhere to step out to for the trade, and Icepick's give failed ("no such character nearby").
   Moongates are skipped now, the five gate tiles were taken out of obstacles.json, and Burgers' one step aside only
   checks the map (`walkable(..., learned=False)`). Icepick kept the 56 ingots for the next handoff.
+- **A stranger counts as gone after 30 seconds out of sight** (the user, 2026-11-02 18:05; it was 3 minutes), doubled
+  for the same person again soon after. Jake recalled in and out near the route twice (17:02, 17:59); his spell words
+  set off the talk alarm each time.

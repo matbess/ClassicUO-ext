@@ -50,7 +50,7 @@ FOOT_HOP = 12               # between blocks closer than this, Icepick walks and
 MCGEE_NEAR = 8              # McGee must be this close a moment after a walk, or Icepick goes back and rides (the user: 8)
                             # (3, checked at once, was too strict: a following horse is a few steps behind)
 FLEE = 30                   # tiles to put between Icepick and a stranger before hiding
-GONE_AFTER = 180            # seconds unseen before a stranger counts as gone
+GONE_AFTER = 30             # seconds unseen before a stranger counts as gone (the user, 2026-11-02 18:05; was 3 minutes)
 GIVE_UP_WAITING = 1800      # seconds: still not gone after this, stop and tell the user
 WATCH_AFTER = 600           # seconds after an incident to keep watching for the same person
 GATE = (1141, 1666)         # where Burgers' gate to the "Mining gate location" rune comes out
@@ -472,7 +472,7 @@ class Miner:
         return None
 
     def wait_until_gone(self, threat, gone_after=GONE_AFTER):
-        log(f"waiting until {(threat or {}).get('name') or 'the stranger'} has been out of sight for {gone_after // 60} minutes")
+        log(f"waiting until {(threat or {}).get('name') or 'the stranger'} has been out of sight for {gone_after} seconds")
         start = time.time()
         serial = (threat or {}).get('serial')
         last_seen = time.time()
