@@ -5,7 +5,7 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
 
 ## Status (2026-11-01, end of the evening)
 
-- Built and tested: the bridge (installed build cuo-agent14), the rules files (`rules/rules-Icepick.json`,
+- Built and tested: the bridge (installed build cuo-agent16), the rules files (`rules/rules-Icepick.json`,
   `rules/rules-Burgers.json`, copied into the client's `Agent/` folder), the route (`routes/route1.jsonl`), the
   planner (`mining.py plan`: 92 ore blocks), and the loop (`mine.py`). Tested in the game with the user watching:
   digging, smelting, trades both ways, Recall, the bank trip, Gate Travel, Hiding, the horse, and the guard
