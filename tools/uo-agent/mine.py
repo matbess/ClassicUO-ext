@@ -46,6 +46,7 @@ BANK_AT_INGOTS = 300        # Burgers banks when he holds this many ingots (the 
 # sulfurous ash). He keeps 35 of each in his pouch and tops up from a bag in his bank (the user, 2026-11-02).
 REAGENTS = {'0x0F7A': 'black pearl', '0x0F7B': 'blood moss', '0x0F86': 'mandrake root', '0x0F8C': 'sulfurous ash'}
 REAGENTS_WANTED = 35        # the user, 2026-11-02: enough that reagents seldom need a trip of their own
+REAGENTS_WARN = 20          # below this the loop warns the user to add more (the user, 2026-11-03)
 REAGENTS_LOW = {'0x0F7A': 6, '0x0F7B': 6, '0x0F86': 6, '0x0F8C': 3}  # below this a bank trip is a must
 SMALL_ORE = '0x19B7'        # a small pile: one on its own is too little to smelt; two of a metal can be combined
 FOOT_HOP = 12               # between blocks closer than this, Icepick walks and McGee follows (the user, 2026-11-01)
@@ -1360,6 +1361,15 @@ class Miner:
             took.append(f'{amount} {name}')
         if took:
             log('Burgers took ' + ', '.join(took) + ' from the bank')
+        self.warn_reagents()
+
+    def warn_reagents(self):
+        """The user, 2026-11-03: say when any of Burgers' reagents is below REAGENTS_WARN, so there's warning to add
+        more to his bank (checked after every bank trip and at the start)."""
+        have, _ = self.burgers_reagents()
+        if any(have[g][0] < REAGENTS_WARN for g in REAGENTS):
+            log('reagents low: Burgers has ' + ', '.join(f'{name} {have[g][0]}' for g, name in REAGENTS.items())
+                + f' (warning below {REAGENTS_WARN}; add more to his bank)')
 
     def bank_trip(self):
         """Burgers to the Ocllo bank and back. The bank is relaxed (the user): his guard is off while he's there."""
@@ -1457,6 +1467,7 @@ class Miner:
         for key in RUNE_NAMES:
             self.rune(key)
         log('runes checked: ' + ', '.join(f'{k} {v}' for k, v in self.runes.items()))
+        self.warn_reagents()
         # Burgers belongs at his spot by the forge (an earlier run may have stopped while he was away)
         if cheb((sb['x'], sb['y']), OCLLO_BANK) <= 10:
             log('Burgers is at the bank (a run stopped during a bank trip); he finishes the trip')
