@@ -340,3 +340,8 @@ files further: they apply at once, without a new build.
   forge, so after every Recall back he walks there and hides. Icepick smelts at the forge, then rides up to
   1141,1850 for the trade and the gate; Burgers steps beside him to show himself and goes back to his spot after.
   Through the middle gate Icepick comes out at Burgers' spot and rides on to the forge.
+- **Moongates aren't buildings** (2026-11-02 16:05): the obstacle learner counts any item named with "gate" (meant for
+  fence gates), so Burgers' own moongates were recorded as building tiles: at his new spot that ruled out every tile
+  next to him, he had nowhere to step out to for the trade, and Icepick's give failed ("no such character nearby").
+  Moongates are skipped now, the five gate tiles were taken out of obstacles.json, and Burgers' one step aside only
+  checks the map (`walkable(..., learned=False)`). Icepick kept the 56 ingots for the next handoff.

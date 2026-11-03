@@ -456,7 +456,7 @@ class Miner:
         if cheb((s['x'], s['y']), (b['x'], b['y'])) <= 1 and (s['x'], s['y']) != (b['x'], b['y']):
             return
         spot = ICE_MEET if cheb(ICE_MEET, (b['x'], b['y'])) == 1 else next(
-            (b['x'] + dx, b['y'] + dy) for dx, dy in NEXT_TO if mining.walkable(b['x'] + dx, b['y'] + dy))
+            (b['x'] + dx, b['y'] + dy) for dx, dy in NEXT_TO if mining.walkable(b['x'] + dx, b['y'] + dy, learned=False))
         self.travel(spot)
         self.ice.walk(*spot, 0)
 
@@ -466,7 +466,7 @@ class Miner:
         here = (s['x'], s['y'])
         for dx, dy in NEXT_TO:
             sp = (here[0] + dx, here[1] + dy)
-            if sp not in avoid and mining.walkable(*sp) and all(cheb(sp, a) <= 2 for a in avoid[:1]):
+            if sp not in avoid and mining.walkable(*sp, learned=False) and all(cheb(sp, a) <= 2 for a in avoid[:1]):
                 c.walk(*sp, 0)
                 return sp
         return None
@@ -1085,7 +1085,8 @@ class Miner:
             gates = [(i['x'], i['y']) for i in self.bur.call('GET', '/nearby', range=4)['items']
                      if 'moongate' in (i.get('type') or '')]
             ice = self.ice.status()
-            self.step_aside(self.bur, [(ice['x'], ice['y'])] + gates)
+            if self.step_aside(self.bur, [(ice['x'], ice['y'])] + gates) is None:
+                raise Stop(f"Burgers found no free tile next to him to step out to for the trade (at {b['x']},{b['y']})")
         # Icepick's client must see Burgers again, by name, before he can hand him anything
         bur_serial = self.bur.status()['serial']
         for _ in range(10):

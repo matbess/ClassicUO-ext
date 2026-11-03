@@ -122,7 +122,10 @@ def obstacles():
 def add_obstacles(items):
     """Record the building pieces among items seen by the client; returns how many tiles were new."""
     known = obstacles()
-    new = {(i['x'], i['y']) for i in items if i.get('x') is not None and any(k in (i.get('type') or '') for k in BUILDING)}
+    # not a moongate (Burgers' Gate Travel): "gate" is there for fence gates, and a learned moongate on Burgers' own
+    # spot left him no tile to step out to for a trade (2026-11-02 16:05)
+    new = {(i['x'], i['y']) for i in items if i.get('x') is not None and 'moongate' not in (i.get('type') or '')
+           and any(k in (i.get('type') or '') for k in BUILDING)}
     new -= known
     if new:
         known |= new
@@ -144,12 +147,13 @@ def game_map():
     return _MAP
 
 
-def walkable(x, y):
+def walkable(x, y, learned=True):
     """Whether the map shows a tile one can stand on (no rock, water, tree or wall); houses and other items
-    the map doesn't hold are the path finder's business."""
+    the map doesn't hold are the path finder's business. `learned`: also keep a tile clear of the buildings learned
+    from items (obstacles.json), for planning rides; a single step next to someone needn't."""
     m = game_map()
     tile, z = m.land(x, y)
-    if m.impassable_land(tile) or m.land_name(tile) == 'rock' or near_obstacle(x, y):
+    if m.impassable_land(tile) or m.land_name(tile) == 'rock' or (learned and near_obstacle(x, y)):
         return False
     return not any(m.impassable_static(t) and sz + m.static_heights[t] > z for t, sz, _ in m.statics(x, y))
 
