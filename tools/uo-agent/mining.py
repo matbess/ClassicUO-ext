@@ -139,6 +139,28 @@ def near_obstacle(x, y):
     return any((x + dx, y + dy) in known for dx in (-1, 0, 1) for dy in (-1, 0, 1))
 
 
+GATE_OPEN = 60  # seconds the planner keeps clear of a moongate Burgers opened (the server's last about 30)
+_open_gates = {}  # tile -> when the planner may use it again
+
+
+def gate_opened(*tiles):
+    """Both ends of a gate Burgers just opened: rides planned in the next minute go round them. Icepick once came out
+    at the mining end, rode on over that end along the recorded ride and came back out by the forge (2026-11-02 22:39)."""
+    for t in tiles:
+        _open_gates[tuple(t)] = time.time() + GATE_OPEN
+
+
+def gates_open():
+    """Seconds until the last open gate the planner knows of has closed (0 if none)."""
+    now = time.time()
+    return max([t - now for t in _open_gates.values() if t > now], default=0)
+
+
+def near_open_gate(x, y):
+    now = time.time()
+    return any(t > now and abs(x - a) <= 1 and abs(y - b) <= 1 for (a, b), t in _open_gates.items())
+
+
 def game_map():
     global _MAP
     if _MAP is None:
@@ -153,7 +175,7 @@ def walkable(x, y, learned=True):
     from items (obstacles.json), for planning rides; a single step next to someone needn't."""
     m = game_map()
     tile, z = m.land(x, y)
-    if m.impassable_land(tile) or m.land_name(tile) == 'rock' or (learned and near_obstacle(x, y)):
+    if m.impassable_land(tile) or m.land_name(tile) == 'rock' or (learned and (near_obstacle(x, y) or near_open_gate(x, y))):
         return False
     return not any(m.impassable_static(t) and sz + m.static_heights[t] > z for t, sz, _ in m.statics(x, y))
 

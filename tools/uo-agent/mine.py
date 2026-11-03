@@ -619,8 +619,14 @@ class Miner:
             if cheb(here, spot) <= 1:
                 self.check_mount_fatigue()
                 return
-            # a long trip follows the user's recorded ride where it can; otherwise a path planned on the map
-            path = (mining.ride_path(here, spot, areas) if attempt == 0 else None) or mining.plan_path(here, spot, areas)
+            # a long trip follows the user's recorded ride where it can; otherwise a path planned on the map. Not the
+            # ride while a gate is open: its points aren't checked against the map, and one ran over the gate's far end
+            ride = attempt == 0 and not mining.gates_open()
+            path = (mining.ride_path(here, spot, areas) if ride else None) or mining.plan_path(here, spot, areas)
+            if not path and mining.gates_open():
+                log(f'no way round the open gate from {here}; waiting for it to close')
+                time.sleep(mining.gates_open() + 1)
+                continue
             if not path:
                 log(f'the map shows no way from {here} to {spot}')
                 break
@@ -702,6 +708,7 @@ class Miner:
             self.hide(self.bur)
             return False
         self.stats['gates'] += 1
+        mining.gate_opened(gate_tile, GATE_ENDS[end])
         # off the gate (it opens on his own tile), so Icepick can come through
         s = self.ice.status()
         self.step_aside(self.bur, [(s['x'], s['y']), gate_tile])
@@ -978,6 +985,7 @@ class Miner:
         # off the gate (it opens on his own tile), so Icepick can come through
         b = self.bur.status()
         gate_tile = (b['x'], b['y'])
+        mining.gate_opened(gate_tile, GATE)
         self.step_aside(self.bur, [gate_tile])
         self.ice.walk(*GATE, 0)
         for _ in range(8):
