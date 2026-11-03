@@ -1275,7 +1275,7 @@ class Miner:
         self.save_state()
         log(f'handed Burgers {n} ingots ({iron} iron)' + (f' and {len(extra)} small ore piles' if extra else '')
             + f"; gave Icepick {len(spares)} shovels. Total: {totals['ingots']} ingots, {totals['iron']} iron."
-            + f" Run and hide: {len(self.state.get('unreviewed', []))} to review")
+            + f" Run and hide: {len(self.state.get('unreviewed', []))} to review. Reagents: {self.reagent_counts()}")
         ice = self.ice.status()
         if (ice['x'], ice['y']) != BURGERS_WAIT:
             self.bur.walk(*BURGERS_WAIT, 0)
@@ -1362,6 +1362,14 @@ class Miner:
         if took:
             log('Burgers took ' + ', '.join(took) + ' from the bank')
         self.warn_reagents()
+
+    def reagent_counts(self):
+        """Burgers' four reagents, for every handoff line (the user, 2026-11-03)."""
+        try:
+            have, _ = self.burgers_reagents()
+        except uo.BridgeError:
+            return '?'
+        return ', '.join(f'{name} {have[g][0]}' for g, name in REAGENTS.items())
 
     def warn_reagents(self):
         """The user, 2026-11-03: say when any of Burgers' reagents is below REAGENTS_WARN, so there's warning to add
