@@ -66,6 +66,7 @@ GUILD_TAG = re.compile(r'said "\[[^"\]]*\]"$')  # a player's guild tag ("[title,
 HIDING = 21
 RECALL, GATE_TRAVEL = 32, 52
 # what each rune's single-click name must say (the user, 2026-11-01: always check the rune before using it)
+OCLLO_BANK = (3686, 2506)   # where the bank rune lands Burgers (2026-11-02)
 RUNE_NAMES = {'bank': 'ocllo bank', 'start': 'mining start', 'forge': 'mining forge', 'gate': 'mining gate'}
 RUNE_GRAPHICS = ('0x1F14', '0x1F15', '0x1F16', '0x1F17')
 
@@ -1163,10 +1164,15 @@ class Miner:
 
     def bank_bags(self, bank):
         bags = self.state.setdefault('bags', {})
+        in_bank = self.bur.call('GET', '/contents', serial=bank)['items']
+        # a bag the user has taken out (an empty shovel bag swapped for a full one, 2026-11-02) is looked for again
+        here = {i['serial'] for i in in_bank}
+        for kind in [k for k, s in bags.items() if s not in here]:
+            bags.pop(kind)
         if bags.get('shovels') and bags.get('ingots') and bags.get('reagents'):
             return bags
-        for item in self.bur.call('GET', '/contents', serial=bank)['items']:
-            if not item.get('container'):
+        for item in in_bank:
+            if not item.get('container') or item['serial'] in bags.values():
                 continue
             self.bur.call('POST', '/open', serial=item['serial'])
             inside = self.bur.call('GET', '/contents', serial=item['serial'])['items']
@@ -1214,14 +1220,16 @@ class Miner:
         try:
             burgers_rules(bank=True)
             self.bur.call('GET', '/rules')  # the bridge reads the quick pacing now
-            r = self.recall('bank')
-            if not r['moved']:
-                raise Stop(f"Burgers' Recall to the bank didn't work: {[m['text'] for m in r['messages']][-2:]}")
+            b = self.bur.status()
+            if cheb((b['x'], b['y']), OCLLO_BANK) > 10:  # (he's there already if a run stopped during a bank trip)
+                r = self.recall('bank')
+                if not r['moved']:
+                    raise Stop(f"Burgers' Recall to the bank didn't work: {[m['text'] for m in r['messages']][-2:]}")
             bank = self.bur.call('POST', '/say', text='bank').get('bank', {}).get('serial')
             if not bank:
                 raise Stop("Burgers said \"bank\" but no bank box opened")
             bags = self.bank_bags(bank)
-            for bag in (bags['shovels'], bags['ingots'], bags.get('reagents')):
+            for bag in (bags.get('shovels'), bags['ingots'], bags.get('reagents')):
                 if bag:
                     self.bur.call('POST', '/open', serial=bag)
             in_bag = self.bur.call('GET', '/contents', serial=bags['ingots'])['items']
@@ -1301,7 +1309,10 @@ class Miner:
             self.rune(key)
         log('runes checked: ' + ', '.join(f'{k} {v}' for k, v in self.runes.items()))
         # Burgers belongs at his spot by the forge (an earlier run may have stopped while he was away)
-        if cheb((sb['x'], sb['y']), BURGERS_WAIT) > 15:
+        if cheb((sb['x'], sb['y']), OCLLO_BANK) <= 10:
+            log('Burgers is at the bank (a run stopped during a bank trip); he finishes the trip')
+            self.bank_trip()
+        elif cheb((sb['x'], sb['y']), BURGERS_WAIT) > 15:
             log(f"Burgers is at {sb['x']},{sb['y']}, not by the forge; recalling him back")
             self.burgers_back()
         self.burgers_to_wait()
