@@ -1068,8 +1068,10 @@ class Miner:
         if not self.shovels():
             self.handoff()  # shovels fetched on that trip
         if not self.shovels():
+            how = self.leave_safe()  # parked, both mounted and hidden, until the user brings more
             raise Stop('Icepick has no shovels left and Burgers has none to give'
-                       + (' (the shovel bag in his bank is empty)' if self.state.get('bank_out_of_shovels') else ''))
+                       + (' (the shovel bag in his bank is empty)' if self.state.get('bank_out_of_shovels') else '')
+                       + f'. Parked: {how}')
 
     def saving_mana_for_bank(self):
         """Out of spare shovels, Burgers keeps his mana for the bank (two Recalls) instead of a gate: in the north half
@@ -1490,6 +1492,16 @@ class Miner:
     def park(self):
         """--park (the user, 2026-11-02, before an install): between blocks, Icepick back on McGee and hidden,
         Burgers at his spot and hidden, then the loop ends. The next run starts at the next block."""
+        how = self.leave_safe()
+        try:
+            os.remove(PARK_FILE)
+        except OSError:
+            pass
+        raise Parked(how)
+
+    def leave_safe(self):
+        """Both characters mounted and hidden, Burgers at his spot, before the loop ends (a park, or out of shovels:
+        the user, 2026-11-03). Returns how they were left."""
         self.mount()
         self.hide(self.ice)
         b = self.bur.status()
@@ -1497,14 +1509,9 @@ class Miner:
             self.burgers_back()
         self.burgers_to_wait()
         si, sb = self.ice.status(), self.bur.status()
-        how = (f"Icepick at {si['x']},{si['y']} {'mounted' if si['mounted'] else 'ON FOOT'} and "
-               f"{'hidden' if si['hidden'] else 'NOT HIDDEN'}; Burgers at {sb['x']},{sb['y']} "
-               f"{'mounted' if sb['mounted'] else 'ON FOOT'} and {'hidden' if sb['hidden'] else 'NOT HIDDEN'}")
-        try:
-            os.remove(PARK_FILE)
-        except OSError:
-            pass
-        raise Parked(how)
+        return (f"Icepick at {si['x']},{si['y']} {'mounted' if si['mounted'] else 'ON FOOT'} and "
+                f"{'hidden' if si['hidden'] else 'NOT HIDDEN'}; Burgers at {sb['x']},{sb['y']} "
+                f"{'mounted' if sb['mounted'] else 'ON FOOT'} and {'hidden' if sb['hidden'] else 'NOT HIDDEN'}")
 
     def report(self, start):
         minutes = (time.time() - start) / 60
