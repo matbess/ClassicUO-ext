@@ -12,8 +12,9 @@
   "useFromBackpack": ["0x0F39", "0x0F3A", "0x0E85", "0x0E86", "0x19B7", "0x19B8", "0x19B9", "0x19BA"],
   "say": ["all follow me"],
   "spells": [],
-  // 21 Hiding; the horses this character rides (for the tired-mount trick)
-  "skills": [21],
+  // 21 Hiding, 35 Animal Taming (only ever aimed at his own horse, to tame McGee again if he goes wild: the user,
+  // 2026-11-02); the horses this character rides (for the tired-mount trick)
+  "skills": [21, 35],
   "mounts": ["0x00042FCB"],
   // the guard stops work and the agent gets the character away and hides (the user, 2026-11-01); the bridge hides
   // him itself if nobody has started within hideAfter seconds

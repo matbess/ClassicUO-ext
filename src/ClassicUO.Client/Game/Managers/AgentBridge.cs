@@ -39,7 +39,7 @@ namespace ClassicUO.Game.Managers
     {
         private const int FIRST_PORT = 7780;
         private const int LAST_PORT = 7789;
-        private const int VERSION = 2;
+        private const int VERSION = 3; // 3: /skill takes a target (Animal Taming on the character's own horse)
         private const int GUARD_INTERVAL = 250;  // milliseconds between the guard's checks
         private const int ALARM_FILE_INTERVAL = 1000;
         private const int CAST_TIMEOUT = 6000;   // from casting to the target cursor
@@ -730,7 +730,7 @@ namespace ClassicUO.Game.Managers
                     CheckNotHalted();
                     CheckNoStaff();
 
-                    return UseSkill(GetRequiredInt(query, "id"));
+                    return UseSkill(GetRequiredInt(query, "id"), query.ContainsKey("target") ? GetSerial(query, "target") : 0);
 
                 case "/dismount":
                     RequireMethod(method, "POST");
@@ -2863,13 +2863,20 @@ namespace ClassicUO.Game.Managers
         }
 
         // uses a skill the rules allow (21 is Hiding)
-        private byte[] UseSkill(int skill)
+        // a skill, and for one that asks for a target, the target: only ever one of the character's own mounts from
+        // the rules (Animal Taming on a horse that has gone wild, the user 2026-11-02)
+        private byte[] UseSkill(int skill, uint target = 0)
         {
             Rules rules = RequireRules();
 
             if (!rules.Skills.Contains(skill))
             {
                 throw new BridgeException(403, "the rules don't allow that skill");
+            }
+
+            if (target != 0 && !rules.Mounts.Contains(target))
+            {
+                throw new BridgeException(403, "a skill is only aimed at one of the mounts in the rules");
             }
 
             if (_alarm != null)
@@ -2883,6 +2890,21 @@ namespace ClassicUO.Game.Managers
             (
                 () =>
                 {
+                    if (target != 0)
+                    {
+                        Mobile m = _world.Mobiles.Get(target) ?? throw new BridgeException(404, "that mount isn't nearby");
+
+                        if (m.Distance > REACH)
+                        {
+                            throw new BridgeException(409, $"too far away ({m.Distance} tiles, reach is {REACH}); walk closer first");
+                        }
+                    }
+
+                    if (_world.TargetManager.IsTargeting)
+                    {
+                        _world.TargetManager.CancelTarget();
+                    }
+
                     LogAction($"skill {skill}", 0);
                     long id = _lastMessageId;
                     GameActions.UseSkill(skill);
@@ -2891,7 +2913,48 @@ namespace ClassicUO.Game.Managers
                 }
             );
 
-            WaitFor(() => HasSystemMessageAfter(before) || skill == HIDING && _world.Player.IsHidden, SKILL_TIMEOUT);
+            WaitFor(() => HasSystemMessageAfter(before) || _world.TargetManager.IsTargeting || skill == HIDING && _world.Player.IsHidden, SKILL_TIMEOUT);
+
+            if (target != 0)
+            {
+                WaitFor(() => _world.TargetManager.IsTargeting, 1000); // "Tame which animal?" can come a moment before the cursor
+            }
+
+            if (OnGame(() => _world.TargetManager.IsTargeting))
+            {
+                if (target == 0)
+                {
+                    OnGame(CancelTarget);
+
+                    throw new BridgeException(400, "that skill wants a target; give target=");
+                }
+
+                Aim(rules);
+
+                long aimed = OnGame
+                (
+                    () =>
+                    {
+                        LogAction("target", target);
+                        long id = _lastMessageId;
+                        _world.TargetManager.Target(target);
+
+                        return id;
+                    }
+                );
+
+                // taming answers at once ("You start to tame the creature.") and settles over the next seconds,
+                // which the caller reads from /messages
+                if (!WaitFor(() => HasSystemMessageAfter(aimed) || HasMessageFrom(_world.Player.Serial, aimed), SKILL_TIMEOUT))
+                {
+                    OnGame(CancelTarget);
+                    Halt($"no answer after aiming skill {skill} at {Hex(target)}");
+                }
+
+                OnGame(CancelTarget);
+                PaceFromNow();
+            }
+
             Thread.Sleep(SETTLE_TIME);
 
             return OnGame

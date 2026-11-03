@@ -77,6 +77,13 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
   dig: more than 8 tiles off, out of sight, or more than 2 off and no closer for 5 seconds (stuck) means Icepick
   gets on him, rides back to his spot and gets off again. (He once stood on the rocks 6 tiles off and 13 higher
   while Icepick dug on; the check after each walk didn't see it.)
+- **If McGee goes wild** (the user, 2026-11-02: he stops listening or won't let you ride), Icepick tames him again
+  with Animal Taming (skill 35, in Icepick's rules; even at his low skill it works). The loop sees it when a mount
+  fails ("You dont own that mount."); stops listening shows the same way, as keep_mcgee goes back and mounts. With
+  bridge 3 (/skill takes `target=`, only one of the rules' mounts; build cuo-agent16) he tries up to 30 times, 10 s
+  apart, until "It seems to accept you as master.", then mounts and says "all follow me". On an older bridge the loop
+  stops with Icepick on foot next to McGee for the user to tame him by hand. The "yourPet" flag in /nearby isn't
+  used alone: the client learns it from a status packet it may not have had since a login.
 - **The bank** (the user, 2026-11-01): Burgers' bank box holds a bag with 59 shovels (take shovels from it) and a bag
   for the ingots (put ingots into it). Serials still to be read on the next bank visit.
 - **Mount before hiding, always** (the user, 2026-11-01 21:37, with a screenshot of McGee standing next to a hidden

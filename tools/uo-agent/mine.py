@@ -49,6 +49,9 @@ SMALL_ORE = '0x19B7'        # a small pile: one on its own is too little to smel
 FOOT_HOP = 12               # between blocks closer than this, Icepick walks and McGee follows (the user, 2026-11-01)
 MCGEE_NEAR = 8              # McGee must be this close a moment after a walk, or Icepick goes back and rides (the user: 8)
 MCGEE_STUCK = 5             # seconds McGee may stay more than 2 tiles off without coming closer before he counts as stuck
+TAMING = 35                 # Animal Taming: McGee tamed again if he goes wild (the user, 2026-11-02)
+TAME_TRIES = 30
+TAME_GAP = 10               # seconds between tries (the server wants a pause between skill uses)
                             # (3, checked at once, was too strict: a following horse is a few steps behind)
 FLEE = 30                   # tiles to put between Icepick and a stranger before hiding
 GONE_AFTER = 30             # seconds unseen before a stranger counts as gone (the user, 2026-11-02 18:05; was 3 minutes)
@@ -524,21 +527,95 @@ class Miner:
                 return m
         return None
 
-    def mount(self):
+    def mount(self, retame=True):
         if self.ice.status()['mounted']:
             return
         h = self.mcgee()
         if not h:
             raise Stop('McGee is nowhere in sight; Icepick is on foot')
+        # (not on the "yourPet" flag alone: the client only learns it from a status the server may not have sent
+        # since a login.) He stops listening: keep_mcgee comes back for him and the mount below tells.
         if h['distance'] > 1:
             self.ice.walk(h['x'], h['y'], 1)
+        r = {'messages': []}
         try:
-            self.ice.call('POST', '/mount', serial=mining.HORSE)
+            r = self.ice.call('POST', '/mount', serial=mining.HORSE)
         except uo.BridgeError as e:
             if 'already riding' not in (e.message or ''):
                 raise
         if not self.ice.status()['mounted']:
-            raise Stop("Icepick couldn't get back on McGee")
+            said = [m['text'] for m in r.get('messages', [])][-1:]
+            h = self.mcgee()
+            if h and h['distance'] > 1:
+                # a step away when the mount came (he wanders): not wild, try once more
+                self.ice.walk(h['x'], h['y'], 1)
+                try:
+                    self.ice.call('POST', '/mount', serial=mining.HORSE)
+                except uo.BridgeError as e:
+                    if 'already riding' not in (e.message or ''):
+                        raise
+                if self.ice.status()['mounted']:
+                    return
+            if retame:
+                # he won't let Icepick ride: gone wild (the user, 2026-11-02)
+                return self.retame_mcgee(f"he won't let Icepick ride {said}")
+            raise Stop(f"Icepick couldn't get back on McGee {said}")
+
+    # the server's answers to Animal Taming
+    TAMED = ('accept you as master', 'looks tame already')
+    TAME_AGAIN = ('fail to tame', 'too far', "can't see", 'cannot be seen', 'angry', 'anger', 'must wait', 'busy')
+    TAME_NEVER = ('no chance', 'cannot be tamed', "can't tame", 'too many owners', 'someone else', 'not tamable')
+
+    def retame_mcgee(self, why):
+        """McGee has gone wild: he stops listening or won't let Icepick ride. Icepick tames him again with Animal Taming
+        (the user, 2026-11-02: even at his low skill it works), then gets on and carries on. That needs bridge 3 (a
+        target for /skill, from build cuo-agent16); before that the loop stops with Icepick next to him for the user."""
+        log(f'McGee has gone wild: {why}')
+        self.stats['retames'] = self.stats.get('retames', 0) + 1
+        if self.ice.status().get('bridge', 0) < 3:
+            h = self.mcgee()
+            if h and h['distance'] > 1:
+                try:
+                    self.ice.walk(h['x'], h['y'], 1)
+                except uo.BridgeError:
+                    pass
+            raise Stop(f"McGee has gone wild ({why}). Icepick is standing next to him, on foot; tame him by hand "
+                       "(Animal Taming), then tell me to carry on. From the next client build Icepick does it himself")
+        for attempt in range(1, TAME_TRIES + 1):
+            self.check_guard()
+            h = self.mcgee()
+            if not h:
+                raise Stop('McGee has gone wild and wandered out of sight; Icepick is on foot')
+            if h['distance'] > 1:
+                self.ice.walk(h['x'], h['y'], 1)
+            start = self.ice.status()['lastMessageId']
+            try:
+                self.ice.call('POST', '/skill', id=TAMING, target=mining.HORSE)
+            except uo.BridgeError as e:
+                if e.code == 409:  # he wandered off a step: after him again
+                    continue
+                raise
+            # taming takes a few seconds of coaxing after the start; the answer comes as a system message
+            result, deadline = None, time.time() + 25
+            while result is None and time.time() < deadline:
+                time.sleep(1)
+                for m in self.ice.call('GET', '/messages', after=start)['messages']:
+                    low = m['text'].lower()
+                    if any(k in low for k in self.TAMED):
+                        result = 'tamed'
+                    elif any(k in low for k in self.TAME_NEVER):
+                        result = 'never'
+                    elif any(k in low for k in self.TAME_AGAIN):
+                        result = result or 'again'
+            if result == 'tamed':
+                log(f'Icepick tamed McGee again (try {attempt})')
+                self.mount(retame=False)
+                self.ice.call('POST', '/say', text='all follow me')
+                return
+            if result == 'never':
+                raise Stop(f"McGee has gone wild ({why}) and the server says Icepick can't tame him; he's on foot")
+            time.sleep(TAME_GAP)
+        raise Stop(f'McGee has gone wild ({why}); {TAME_TRIES} taming tries failed. Icepick is next to him, on foot')
 
     def keep_mcgee(self):
         """The user, 2026-11-02 23:00: if McGee is stuck, or more than MCGEE_NEAR tiles away, Icepick goes and gets
