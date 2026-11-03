@@ -32,6 +32,8 @@ WORK = os.path.expanduser('~/claude/uo-agent-work/mining')
 LOG = os.path.join(WORK, 'mine.log')
 INCIDENTS = os.path.join(WORK, 'incidents.jsonl')
 STATE = os.path.join(WORK, 'state.json')
+PID_FILE = os.path.join(WORK, 'mine.pid')  # the running loop's process (for --stop and --park)
+PARK_FILE = os.path.join(WORK, 'park')     # --park asks the running loop to park both characters and end
 
 HEAVY = 380                 # go to the forge only once the pack weighs more than this (the user, 2026-11-01)
 LIMIT = 393                 # never go past this (the user, 2026-11-02): over it every step tires Icepick out. A dig
@@ -101,6 +103,10 @@ class Alarm(Exception):
 
 class Again(Exception):
     """A world save interrupted a step; run it again from the current state."""
+
+
+class Parked(Exception):
+    """Both characters are mounted and hidden, as --park asked; the loop ends."""
 
 
 class NoWay(Exception):
@@ -1458,6 +1464,10 @@ class Miner:
                 self.safely(self.dig_block, n)
                 self.stats['blocks'] += 1
                 self.safely(self.check_mount_fatigue)
+                if os.path.exists(PARK_FILE):
+                    self.state['next'] = n + 1
+                    self.save_state()
+                    self.safely(self.park)
             self.safely(self.forge_visit, 'the end of the route')
             self.safely(self.mount)
             self.state['next'] = 0
@@ -1472,8 +1482,29 @@ class Miner:
                     if end > time.time() else 'the ore at the top has had its time already; on we go')
                 while time.time() < end:
                     self.safely(lambda: None)
-                    time.sleep(30)
+                    if os.path.exists(PARK_FILE):
+                        self.safely(self.park)
+                    time.sleep(5)
         self.report(start)
+
+    def park(self):
+        """--park (the user, 2026-11-02, before an install): between blocks, Icepick back on McGee and hidden,
+        Burgers at his spot and hidden, then the loop ends. The next run starts at the next block."""
+        self.mount()
+        self.hide(self.ice)
+        b = self.bur.status()
+        if cheb((b['x'], b['y']), BURGERS_WAIT) > 15:
+            self.burgers_back()
+        self.burgers_to_wait()
+        si, sb = self.ice.status(), self.bur.status()
+        how = (f"Icepick at {si['x']},{si['y']} {'mounted' if si['mounted'] else 'ON FOOT'} and "
+               f"{'hidden' if si['hidden'] else 'NOT HIDDEN'}; Burgers at {sb['x']},{sb['y']} "
+               f"{'mounted' if sb['mounted'] else 'ON FOOT'} and {'hidden' if sb['hidden'] else 'NOT HIDDEN'}")
+        try:
+            os.remove(PARK_FILE)
+        except OSError:
+            pass
+        raise Parked(how)
 
     def report(self, start):
         minutes = (time.time() - start) / 60
@@ -1491,7 +1522,14 @@ def main():
     p.add_argument('--empty', action='store_true', help="only empty Icepick's pack (smelt, hand over the ingots), then stop")
     p.add_argument('--incidents', action='store_true', help='list the run-and-hide incidents the user has not reviewed')
     p.add_argument('--reviewed', action='store_true', help='the user has reviewed them: clear the list (kept in incidents.jsonl)')
+    p.add_argument('--park', action='store_true',
+                   help='ask the running loop to stop after the block it is on, both characters mounted and hidden; '
+                        'waits until it has')
+    p.add_argument('--stop', action='store_true',
+                   help='stop the running loop at once (an emergency: nobody is parked or hidden)')
     args = p.parse_args()
+    if args.park or args.stop:
+        return park_or_stop(args.park)
     if args.incidents or args.reviewed:
         try:
             with open(STATE, encoding='utf-8') as fh:
@@ -1510,17 +1548,28 @@ def main():
                 json.dump(state, fh, indent=1)
             print(f'marked {len(items)} incidents reviewed')
         return
+    if running_loop():
+        sys.exit(f'a mining loop is already running (pid {running_loop()}); --park or --stop it first')
+    os.makedirs(WORK, exist_ok=True)
+    with open(PID_FILE, 'w', encoding='utf-8') as fh:
+        fh.write(str(os.getpid()))
+    try:
+        os.remove(PARK_FILE)  # an old request, from a run that ended before it got to it
+    except OSError:
+        pass
     miner = None
     try:
         miner = Miner(args)
         if args.bank or args.empty:
-            os.makedirs(WORK, exist_ok=True)
             start = time.time()
             miner.preflight()
             miner.safely(miner.bank_trip if args.bank else miner.empty_pack)
             miner.report(start)
             return
         miner.run()
+    except Parked as e:
+        log(f'PARKED: {e}')
+        miner.report(time.time())
     except Stop as e:
         log(f'STOPPED: {e}')
         if miner:
@@ -1529,6 +1578,60 @@ def main():
     except uo.BridgeError as e:
         log(f'STOPPED on an unexpected answer from the bridge: {e}')
         sys.exit(3)
+    finally:
+        if running_loop() == os.getpid():
+            os.remove(PID_FILE)
+
+
+def running_loop():
+    """The pid of the mining loop that's running, or None. Checked by its command line, so a stale file or a
+    reused pid doesn't count."""
+    import subprocess
+    try:
+        with open(PID_FILE, encoding='utf-8') as fh:
+            pid = int(fh.read().strip())
+    except (OSError, ValueError):
+        return None
+    if pid == os.getpid():
+        return pid
+    ps = subprocess.run(['ps', '-p', str(pid), '-o', 'command='], capture_output=True, text=True)
+    return pid if 'mine.py' in ps.stdout and '--park' not in ps.stdout and '--stop' not in ps.stdout else None
+
+
+def park_or_stop(park):
+    """--park: ask the loop to park both characters after its current block, and wait for it to end.
+    --stop: end it now. Either way, check the process has gone (2026-11-02: a pkill on the wrong name missed the
+    loop, and it carried on through a forge visit)."""
+    import signal
+    pid = running_loop()
+    if not pid:
+        print('no mining loop is running')
+        return
+    with open(LOG, encoding='utf-8') as fh:
+        seen = len(fh.readlines())
+    if park:
+        open(PARK_FILE, 'w').close()
+        print(f'asked the loop (pid {pid}) to park after the block it is on; waiting')
+        deadline = time.time() + 20 * 60
+        while running_loop() and time.time() < deadline:
+            time.sleep(2)
+        if running_loop():
+            print('the loop is still running after 20 minutes; it never got to the end of a block (stuck?)')
+            sys.exit(1)
+    else:
+        os.kill(pid, signal.SIGTERM)
+        for _ in range(20):
+            if not running_loop():
+                break
+            time.sleep(0.5)
+        else:
+            os.kill(pid, signal.SIGKILL)
+            time.sleep(1)
+        print(f'stopped the loop (pid {pid}); ' + ('it is gone' if not running_loop() else 'IT IS STILL RUNNING'))
+        print('nobody was parked: check where Icepick and Burgers are, and hide them')
+    with open(LOG, encoding='utf-8') as fh:
+        for line in fh.readlines()[seen:][-6:]:
+            print(line.rstrip())
 
 
 if __name__ == '__main__':

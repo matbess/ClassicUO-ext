@@ -46,6 +46,8 @@ against the MSVC and Windows SDK libraries that `xwin` downloads.
 ```
 
 Rules from the user:
+- Before the clients close for an install while mining runs, both characters are left mounted and hidden (the
+  user, 2026-11-02; how, in `tools/uo-agent/MINING.md`).
 - Never smoke test, install, or run `wineserver -k` while their clients are running ("don't mess up my game"). Ask
   them to close the clients first, and ask before installing.
 - Back up the installed `cuo.dll` and `cuo.pdb` before every install (install.sh does).

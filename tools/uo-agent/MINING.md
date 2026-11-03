@@ -142,6 +142,15 @@ There are now a couple of other players on the server (2026-11-01), besides the 
   clients log out together, and logging out.
 - Tools: read the map files to list every mineable tile in the area; the mining loop script.
 - Installing a new client build needs all the user's clients closed: ask first.
+- **Stopping the loop** (the user, 2026-11-02 23:13: for an install both characters are mounted and hidden when
+  the clients close, and never stopped while Icepick digs on foot):
+  - `python3 -I mine.py --park` is the way: the running loop finishes the block it's on, puts Icepick on McGee and
+    hides him, sees Burgers hidden at his spot, logs `PARKED: ...` with both and ends. The command waits for that
+    and prints it. The next run starts at the next block.
+  - `python3 -I mine.py --stop` only for an emergency: ends the loop at once, nobody parked; then hide them by hand.
+  - Both find the loop by `mine.pid` in the work folder and check the process has gone. Don't pkill by name: the
+    loop runs as `.../MacOS/Python -I mine.py`, so `pkill -f "python3 -I mine.py"` killed only the shell around it
+    and the loop ran on through a forge visit (2026-11-02 23:14). A second loop won't start while one runs.
 
 ## Tested 2026-11-01 evening (build cuo-agent8)
 
