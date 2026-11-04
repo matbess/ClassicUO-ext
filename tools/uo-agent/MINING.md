@@ -343,6 +343,9 @@ files further: they apply at once, without a new build.
   empty after 04:00 dropped from the state, and the loop went back to block 69. Opening Icepick's pack by hand
   30 s after the login got no answer and halted his bridge (the first restart stopped on it): leave the opening to
   the loop's start-up, and check `halted` in both statuses (then `uo resume`) before restarting.
+- **The user swaps whole bags in Burgers' bank** (2026-11-04: easier than emptying them; ingots, shovels or
+  reagents). At each bank trip the loop drops a remembered bag that's gone, finds the new one by what's in it,
+  labels it, and removes the labels of bags no longer in the bank.
 - **Burgers' spare shovels are in a bag in his pack** (the user, 2026-11-04: they put them there from now on,
   not loose). The loop counts and hands out shovels loose or in any bag in his pack, puts the ones from the bank
   into that bag, and remembers the bag (`shovel_bag` in the state) for when it's empty.

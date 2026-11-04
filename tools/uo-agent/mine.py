@@ -1349,6 +1349,8 @@ class Miner:
         here = {i['serial'] for i in in_bank}
         for kind in [k for k, s in bags.items() if s not in here]:
             bags.pop(kind)
+        # and their labels: the user swaps in new bags rather than emptying the old ones (2026-11-04)
+        uo.forget_labels([s for s, text in uo.load_labels().items() if text.endswith("(Burgers' bank)") and s not in here])
         if bags.get('shovels') and bags.get('ingots') and bags.get('reagents'):
             return bags
         for item in in_bank:

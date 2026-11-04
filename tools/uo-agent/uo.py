@@ -312,6 +312,16 @@ def save_label(serial, text):
         json.dump(labels, fh, indent=2, sort_keys=True)
 
 
+def forget_labels(serials):
+    """Drop the labels of containers that are gone (a bag the user took out of the bank)."""
+    labels = load_labels()
+    gone = [s for s in serials if labels.pop('0x' + s[2:].upper().zfill(8), None) is not None]
+    if gone:
+        with open(LABELS, 'w', encoding='utf-8') as fh:
+            json.dump(labels, fh, indent=2, sort_keys=True)
+    return gone
+
+
 def describe(item, indent=''):
     if not item.get('name') and load_names().get(item['serial']):
         item = dict(item, name=load_names()[item['serial']])
