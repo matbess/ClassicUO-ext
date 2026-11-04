@@ -338,6 +338,10 @@ files further: they apply at once, without a new build.
   04:00 smelt, Burgers with none): the ore and handoffs after 04:00 never happened, so the totals were corrected to
   4898 ingots, 3854 iron, and the loop went back to block 54. After an outage, compare the packs with the log to
   find the save point before trusting the totals.
+- **Again 2026-11-04 04:15** (a nightly reboot, it seems): both clients back at 04:19, rolled back to about 04:00
+  (Icepick at the forge with his ore half smelted, Burgers holding the 55 ingots of the 03:57:55 handoff). Icepick
+  came back in sight and was hidden at once. Totals 29567 / 23357 corrected to 29301 / 23155, the blocks marked
+  empty after 04:00 dropped from the state, and the loop went back to block 69.
 - **The shovel bag ran out** (Burgers "took 0 shovels from the bank" at 03:56): about 59 shovels in a night, roughly
   one per forge trip. Burgers had 15 spares and Icepick 2 at 04:21; the user needs to restock the bank bag.
 - **Never over the weight limit** (the user, 2026-11-02 14:20). At 13:58 one more dig took Icepick to 404/390.
