@@ -59,7 +59,8 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
 - **The bank is relaxed** (the user, 2026-11-01): other players around the Ocllo bank are fine, and Burgers is only
   there for a few seconds, so no getting away and hiding there. He just drops off and picks up, and recalls back.
   The loop turns Burgers' guard off before recalling to the bank and on again back at the forge (and then checks
-  that all four runes are still in his pack).
+  that all four runes are still in his pack). A run that starts with him at the bank leaves his guard off until
+  that trip brings him back (2026-11-04: turned on at the bank, it raised an alarm over Sharri there).
 - **Gate.** When Icepick is far from the forge (towards the northern end), Burgers opens a Gate Travel towards the
   middle of the mountain so Icepick gets to and from the forge faster. That needs a rune marked there.
 - **Always ride when not mining** (the user, 2026-11-01): Icepick gets off his horse McGee (0x00042FCB) only to dig,

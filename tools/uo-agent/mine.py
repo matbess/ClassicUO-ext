@@ -1497,11 +1497,15 @@ class Miner:
         si, sb = self.ice.status(), self.bur.status()
         log(f"Icepick at {si['x']},{si['y']} weight {si['weight']}/{si['weightMax']}, {len(self.shovels())} shovels; "
             f"Burgers at {sb['x']},{sb['y']} mana {sb['mana']}/{sb['manaMax']}, {self.burgers_spares()} spare shovels")
+        # the bank is relaxed: at the bank Burgers' guard stays off until the bank trip brings him back (2026-11-04
+        # 00:46: turned on there, it raised an alarm over Sharri by the bank), and the trip checks his runes then
+        at_bank = cheb((sb['x'], sb['y']), OCLLO_BANK) <= 10
         for c in (self.ice, self.bur):
-            c.call('POST', '/guard', on=1)
+            if not (c is self.bur and at_bank):
+                c.call('POST', '/guard', on=1)
         time.sleep(2)
         missing = [w['serial'] for w in self.bur.status()['guard'].get('watching', []) if not w['seen']]
-        if missing:
+        if missing and not at_bank:
             raise Stop(f"Burgers' pack doesn't show these runes: {missing} (open his backpack once?)")
         if not self.mcgee() and not si['mounted']:
             raise Stop('McGee is not near Icepick')
@@ -1510,7 +1514,7 @@ class Miner:
         log('runes checked: ' + ', '.join(f'{k} {v}' for k, v in self.runes.items()))
         self.warn_reagents()
         # Burgers belongs at his spot by the forge (an earlier run may have stopped while he was away)
-        if cheb((sb['x'], sb['y']), OCLLO_BANK) <= 10:
+        if at_bank:
             log('Burgers is at the bank (a run stopped during a bank trip); he finishes the trip')
             self.bank_trip()
         elif cheb((sb['x'], sb['y']), BURGERS_WAIT) > 15:
