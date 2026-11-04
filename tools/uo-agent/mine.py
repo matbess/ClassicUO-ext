@@ -1238,15 +1238,34 @@ class Miner:
                         home = item['serial']
         return found, home
 
+    def burgers_shovels(self):
+        """Burgers' spare shovels, loose in his pack or in a bag inside it (the user keeps them in a bag from
+        2026-11-04): (serials, the bag holding most of them or None)."""
+        pack = self.bur.status()['backpack']['serial']
+        loose, bags = [], {}
+        for item in self.bur.call('GET', '/contents', serial=pack, depth=2)['items']:
+            if item.get('graphic') in mining.SHOVELS:
+                loose.append(item['serial'])
+            inside = [i['serial'] for i in item.get('items', []) if i.get('graphic') in mining.SHOVELS]
+            if inside:
+                bags[item['serial']] = inside
+        bag = max(bags, key=lambda b: len(bags[b])) if bags else None
+        if bag and bag != self.state.get('shovel_bag'):
+            self.state['shovel_bag'] = bag  # remembered for when it's empty
+            self.save_state()
+        elif not bag and self.state.get('shovel_bag') in {i['serial'] for i in self.bur.pack() if i.get('container')}:
+            bag = self.state['shovel_bag']
+        return loose + [sv for b in bags.values() for sv in b], bag
+
     def burgers_spares(self):
-        return sum(1 for i in self.bur.pack() if i.get('graphic') in mining.SHOVELS)
+        return len(self.burgers_shovels()[0])
 
     def handoff(self, extra=()):
         # shovels beyond the ones he carries go back to Burgers too (the user cut Icepick's from 5 to 2)
         surplus = [i for i in self.ice.pack() if i.get('graphic') in mining.SHOVELS][SHOVELS_WANTED:]
         bars = self.ingots(self.ice) + list(extra) + surplus
         need = max(0, SHOVELS_WANTED - len(self.shovels()))
-        spares = [i['serial'] for i in self.bur.pack() if i.get('graphic') in mining.SHOVELS][:need]
+        spares = self.burgers_shovels()[0][:need] if need else []
         if not bars and not spares:
             return
         # Icepick rides up to Burgers' spot, away from the forge (the user, 2026-11-02)
@@ -1442,9 +1461,10 @@ class Miner:
                     bags = self.bank_bags(bank)
                     spare = self.bank_shovels(bags)
                 spare = spare[:want]
-                pack = self.bur.status()['backpack']['serial']
+                # into the bag he keeps his shovels in, if there is one (the user, 2026-11-04)
+                to = self.burgers_shovels()[1] or self.bur.status()['backpack']['serial']
                 for shovel in spare:
-                    self.bur.call('POST', '/move', serial=shovel, to=pack)
+                    self.bur.call('POST', '/move', serial=shovel, to=to)
                 log(f'Burgers took {len(spare)} shovels from the bank'
                     + ('' if spare else '; the bank has none left (the user needs to put more in)'))
                 # an empty bank isn't worth a trip at every handoff: look again in half an hour (2026-11-02 20:15)

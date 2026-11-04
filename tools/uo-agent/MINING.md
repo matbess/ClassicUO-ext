@@ -343,6 +343,9 @@ files further: they apply at once, without a new build.
   empty after 04:00 dropped from the state, and the loop went back to block 69. Opening Icepick's pack by hand
   30 s after the login got no answer and halted his bridge (the first restart stopped on it): leave the opening to
   the loop's start-up, and check `halted` in both statuses (then `uo resume`) before restarting.
+- **Burgers' spare shovels are in a bag in his pack** (the user, 2026-11-04: they put them there from now on,
+  not loose). The loop counts and hands out shovels loose or in any bag in his pack, puts the ones from the bank
+  into that bag, and remembers the bag (`shovel_bag` in the state) for when it's empty.
 - **The shovel bag ran out** (Burgers "took 0 shovels from the bank" at 03:56): about 59 shovels in a night, roughly
   one per forge trip. Burgers had 15 spares and Icepick 2 at 04:21; the user needs to restock the bank bag.
 - **Never over the weight limit** (the user, 2026-11-02 14:20). At 13:58 one more dig took Icepick to 404/390.
