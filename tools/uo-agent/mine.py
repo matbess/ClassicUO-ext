@@ -453,7 +453,17 @@ class Miner:
         serial = self.rune(key)
         for attempt in range(3):
             try:
-                return self.bur.call('POST', '/cast', spell=RECALL, target=serial)
+                b = self.bur.status()
+                r = self.bur.call('POST', '/cast', spell=RECALL, target=serial)
+                # the bridge can answer on a message (Razor's "Black Pearl amount is now 4!") a moment before the
+                # teleport lands; that once read as a failed recall and stopped the loop (2026-11-03 18:57)
+                for _ in range(8):
+                    if r.get('moved'):
+                        break
+                    time.sleep(0.5)
+                    s = self.bur.status()
+                    r['moved'] = cheb((s['x'], s['y']), (b['x'], b['y'])) > 5
+                return r
             except Fizzled:
                 time.sleep(2)
         raise Stop(f"Burgers' Recall ({RUNE_NAMES[key]}) fizzled three times")
