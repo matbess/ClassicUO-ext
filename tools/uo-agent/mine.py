@@ -7,14 +7,13 @@ ore to the forge, where he smelts it and hands the ingots to Burgers; Burgers ba
   python3 mine.py --incidents     the run-and-hide incidents the user hasn't reviewed (shown at every handoff)
   python3 mine.py --reviewed      the user has reviewed them: the count goes back to 0
 
-It runs on its own (no tokens) and stops after the passes, or the moment something needs the user: staff about,
-a stolen rune, a lost horse, a bridge gone, anything it doesn't understand. Everything it does goes to
+It runs on its own (no tokens) and stops after the passes, or the moment something needs the user: a stolen rune, a lost horse, a bridge gone, anything it doesn't understand. Everything it does goes to
 ~/claude/uo-agent-work/mining/mine.log, and incidents to incidents.jsonl.
 
 The user's rules it follows (all in MINING.md): slow pace except digging strokes (the bridge does the pacing), ride
 whenever not digging and never lose McGee, Burgers hidden whenever he isn't dealing with Icepick, a random rock and
-spot in each block, the guard: get away from strangers and hide, wait until they've gone, carry on; staff: stand
-still and stop; the bank is relaxed (Burgers' guard is off there).
+spot in each block, the guard: get away from strangers and hide, wait until they've gone, carry on (staff too: the
+user, 2026-11-04); the bank is relaxed (Burgers' guard is off there).
 """
 import argparse
 import json
@@ -182,7 +181,7 @@ class Char:
             return uo.call(self.info, method, endpoint, **params)
         except uo.BridgeError as e:
             text = e.message or ''
-            if e.code == 409 and (text.startswith('alarm') or text.startswith('staff')):
+            if e.code == 409 and text.startswith('alarm'):
                 raise Alarm(f'{self.name}: {text}')
             if e.code == 423:
                 late = answered_late(self.info, e)
@@ -324,7 +323,7 @@ class Miner:
         si, sb = self.ice.status(), self.bur.status()
         ai, ab = (si.get('guard') or {}).get('alarm'), (sb.get('guard') or {}).get('alarm')
         reasons = [a['reason'] for a in (ai, ab) if a]
-        if reasons and all(GUILD_TAG.search(r) and not a.get('staff') for r, a in zip(reasons, [a for a in (ai, ab) if a])):
+        if reasons and all(GUILD_TAG.search(r) for r in reasons):
             # the guard took a guild tag over someone's name for speech (the user, 2026-11-02: ignore those); someone
             # standing close still sets off the loiter alarm
             log(f'(a guild tag, not speech; carrying on: {reasons[-1]})')
@@ -332,10 +331,6 @@ class Miner:
                 c.call('POST', '/guard', on=1)
             return
         log(f'ALARM {why}')
-        staff = any(a and a.get('staff') for a in (ai, ab))
-        if staff:
-            self.incident({'what': 'staff', 'icepick': ai, 'burgers': ab})
-            raise Stop(f'STAFF: {(ai or ab)["reason"]}. Both characters are standing still; nothing more was done.')
         theft = any(a and 'gone from the backpack' in a['reason'] for a in (ai, ab))
         # whose own alarm it is (the other one only has the partner's)
         own_ice = ai and not ai['reason'].split(' ', 1)[-1].startswith('partner')

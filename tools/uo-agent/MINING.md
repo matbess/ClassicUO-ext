@@ -14,7 +14,7 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
   wait between passes, and anything unattended. Run the first whole pass with the user around.
 - How to run: `python3 mine.py --passes 1` (from where the last run stopped; `--from N --to M` for a stretch;
   `--bank` for a bank trip only), as a background task. It logs to `~/claude/uo-agent-work/mining/mine.log` and
-  stops on anything that needs the user (staff, a stolen rune, a lost horse, a bridge gone). Before starting: both
+  stops on anything that needs the user (a stolen rune, a lost horse, a bridge gone). Before starting: both
   characters logged in with the Agent bridge option ticked, Icepick near McGee, Burgers by the forge with his four
   runes.
 
@@ -124,11 +124,10 @@ that's no protection). Instead:
   after the alarm.
 - Tell the user about every incident (who, what happened), at the latest when the script next stops.
 
-**Staff are different (the user agreed, 2026-11-01; not built yet).** If whoever speaks looks like staff (GM chat
-message type, GM body 0x3DB or a GM robe, or a name/title with GM, Seer, Counselor, Admin or Staff; when unsure,
-treat them as staff): stop all automation on both characters at once, don't run, hide or log out, say nothing
-(Claude won't pretend to be the user to a moderator), and alert the user right away so they answer themselves.
-An optional truthful away message ("my owner is away and has been notified") only if the user asks for it.
+**Staff get the normal guard** (the user, 2026-11-04). Until then a staff alarm (GM chat, a GM body or robe, a
+staff title in the name) made both characters stand still and the loop stop until the user answered; that was
+taken out of the bridge (version 4, build cuo-agent17) and the loop, so a staff member near or talking is one more
+stranger: get away, hide, wait until they've gone, carry on, and the incident goes on the review list.
 
 Test 2026-11-01 19:38: Clem said "hi" next to Burgers; Burgers' guard tripped at once and Icepick's followed within
 the second through Agent/alarm.json; neither client reconnected by itself.

@@ -39,7 +39,7 @@ namespace ClassicUO.Game.Managers
     {
         private const int FIRST_PORT = 7780;
         private const int LAST_PORT = 7789;
-        private const int VERSION = 3; // 3: /skill takes a target (Animal Taming on the character's own horse)
+        private const int VERSION = 4; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard)
         private const int GUARD_INTERVAL = 250;  // milliseconds between the guard's checks
         private const int ALARM_FILE_INTERVAL = 1000;
         private const int CAST_TIMEOUT = 6000;   // from casting to the target cursor
@@ -106,7 +106,6 @@ namespace ClassicUO.Game.Managers
         private DateTime _nextAutoHide;
         private DateTime _alarmFileSeen;
         private volatile bool _evading; // the agent is getting the character away (walking, hiding, recalling)
-        private volatile bool _alarmStaff; // staff set it off: stand still, do nothing, and tell the user
         private Threat _threat;
         private string _lastLogged;
         private volatile string _logoutRequest; // read by GameScene, which logs out at a safe point in its update
@@ -247,7 +246,6 @@ namespace ClassicUO.Game.Managers
             _nearSince.Clear();
             _seenCarried.Clear();
             _alarm = null;
-            _alarmStaff = false;
             _threat = null;
             DeleteInfoFile();
             Log.Info("Agent bridge stopped");
@@ -578,7 +576,7 @@ namespace ClassicUO.Game.Managers
                 case "/name":
                     RequireMethod(method, "POST");
                     CheckNotHalted();
-                    CheckNoStaff(); // a single click only asks for a name: allowed while getting away (to check a rune)
+                    // (no alarm check: a single click only asks for a name, allowed while getting away to check a rune)
 
                     return Name(GetSerials(query));
 
@@ -632,7 +630,6 @@ namespace ClassicUO.Game.Managers
                 case "/walk":
                     RequireMethod(method, "POST");
                     CheckNotHalted();
-                    CheckNoStaff();
 
                     if (_alarm != null)
                     {
@@ -709,7 +706,6 @@ namespace ClassicUO.Game.Managers
                 case "/cast":
                     RequireMethod(method, "POST");
                     CheckNotHalted();
-                    CheckNoStaff();
 
                     if (_alarm != null)
                     {
@@ -728,21 +724,18 @@ namespace ClassicUO.Game.Managers
                 case "/skill":
                     RequireMethod(method, "POST");
                     CheckNotHalted();
-                    CheckNoStaff();
 
                     return UseSkill(GetRequiredInt(query, "id"), query.ContainsKey("target") ? GetSerial(query, "target") : 0);
 
                 case "/dismount":
                     RequireMethod(method, "POST");
                     CheckNotHalted();
-                    CheckNoStaff();
 
                     return Dismount();
 
                 case "/mount":
                     RequireMethod(method, "POST");
                     CheckNotHalted();
-                    CheckNoStaff();
 
                     return Mount(GetSerial(query));
 
@@ -2279,7 +2272,6 @@ namespace ClassicUO.Game.Managers
             _seenCarried.Clear();
             _lastHits = -1;
             _alarm = null;
-            _alarmStaff = false;
             _threat = null;
             _evading = false;
             _lastLogged = null;
@@ -2330,7 +2322,7 @@ namespace ClassicUO.Game.Managers
 
                 // nobody is getting the character away (the agent's script isn't running): hide where he stands,
                 // on his horse first if it's beside him (a riderless horse next to a hidden man gives him away)
-                if (!_evading && !_alarmStaff && now >= _nextAutoHide && !p.IsHidden && rules.Skills.Contains(HIDING))
+                if (!_evading && now >= _nextAutoHide && !p.IsHidden && rules.Skills.Contains(HIDING))
                 {
                     Mobile horse = null;
 
@@ -2371,11 +2363,11 @@ namespace ClassicUO.Game.Managers
                 if (written > _alarmFileSeen)
                 {
                     _alarmFileSeen = written;
-                    (string who, string why, bool staff) = ReadAlarmFile();
+                    (string who, string why) = ReadAlarmFile();
 
                     if (who != null && !who.Equals(_characterName, StringComparison.OrdinalIgnoreCase))
                     {
-                        Alarm($"partner {who}: {why}", null, 0, false, staff);
+                        Alarm($"partner {who}: {why}", null, 0, false);
 
                         if (g.LogOut)
                         {
@@ -2443,7 +2435,7 @@ namespace ClassicUO.Game.Managers
                 }
                 else if ((now - since).TotalSeconds > g.LoiterSeconds)
                 {
-                    Alarm($"{Describe(m, m.Serial)} stood within {g.LoiterRange} tiles for over {g.LoiterSeconds} seconds", m, m.Serial, true, IsStaff(m));
+                    Alarm($"{Describe(m, m.Serial)} stood within {g.LoiterRange} tiles for over {g.LoiterSeconds} seconds", m, m.Serial, true);
                 }
             }
 
@@ -2498,14 +2490,14 @@ namespace ClassicUO.Game.Managers
                 // speech: not someone talking (the user, 2026-11-02, after two false alarms)
                 string text = e.Text ?? "";
 
-                if (text.Length > 1 && text[0] == '[' && text[text.Length - 1] == ']' && e.Type != MessageType.GmChat && !IsStaff(m))
+                if (text.Length > 1 && text[0] == '[' && text[text.Length - 1] == ']')
                 {
                     return;
                 }
 
                 if (g.Talk)
                 {
-                    Alarm($"{Describe(m, m.Serial)} said \"{e.Text}\"", m, m.Serial, true, IsStaff(m) || e.Type == MessageType.GmChat);
+                    Alarm($"{Describe(m, m.Serial)} said \"{e.Text}\"", m, m.Serial, true);
                 }
 
                 return;
@@ -2531,7 +2523,7 @@ namespace ClassicUO.Game.Managers
             if (g.Talk && e.Type != MessageType.System && e.Type != MessageType.Label && !string.IsNullOrEmpty(e.Name)
                 && !e.Name.Equals("System", StringComparison.OrdinalIgnoreCase) && !rules.Partners.Contains(e.Name) && !g.NpcNames.Contains(e.Name))
             {
-                Alarm($"{e.Name} said \"{e.Text}\"", null, 0, true, e.Type == MessageType.GmChat || LooksLikeStaff(e.Name));
+                Alarm($"{e.Name} said \"{e.Text}\"", null, 0, true);
             }
         }
 
@@ -2546,53 +2538,6 @@ namespace ClassicUO.Game.Managers
             string name = m.Name ?? "";
 
             return IsPartner(m, rules) || LoadLearnedNpcs().Contains(m.Serial) || rules.Guard != null && (rules.Guard.NpcSerials.Contains(m.Serial) || rules.Guard.NpcNames.Contains(name));
-        }
-
-        // staff: a GM body, a GM robe, or a staff title in the name. When in doubt it counts as staff, since all that
-        // happens then is that the characters stand still and the user is told.
-        private static bool IsStaff(Mobile m)
-        {
-            if (m == null)
-            {
-                return false;
-            }
-
-            if (m.Graphic == 0x03DB || m.Graphic == 0x03DF)
-            {
-                return true;
-            }
-
-            Item robe = m.FindItemByLayer(Layer.Robe);
-
-            return robe != null && robe.Graphic == 0x204F || LooksLikeStaff(m.Name);
-        }
-
-        private static bool LooksLikeStaff(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-            {
-                return false;
-            }
-
-            foreach (string word in name.Split(new[] { ' ', '[', ']', '(', ')', '-', '_', '.', ',' }, StringSplitOptions.RemoveEmptyEntries))
-            {
-                switch (word.ToLowerInvariant())
-                {
-                    case "gm":
-                    case "seer":
-                    case "counselor":
-                    case "counsellor":
-                    case "admin":
-                    case "administrator":
-                    case "staff":
-                    case "moderator":
-                    case "developer":
-                    case "owner":
-                        return true;
-                }
-            }
-
-            return false;
         }
 
         // the nearest person who isn't a partner or one of the townsfolk: the likely culprit
@@ -2629,7 +2574,7 @@ namespace ClassicUO.Game.Managers
             }
         }
 
-        private static (string Who, string Why, bool Staff) ReadAlarmFile()
+        private static (string Who, string Why) ReadAlarmFile()
         {
             try
             {
@@ -2639,26 +2584,20 @@ namespace ClassicUO.Game.Managers
                 return
                 (
                     root.GetProperty("character").GetString(),
-                    root.GetProperty("reason").GetString(),
-                    root.TryGetProperty("staff", out JsonElement staff) && staff.ValueKind == JsonValueKind.True
+                    root.GetProperty("reason").GetString()
                 );
             }
             catch (Exception)
             {
-                return (null, null, false);
+                return (null, null);
             }
         }
 
         // the guard went off: stop work at once, note who it was, and tell the partner's client. The agent then gets
         // the character away and hides (or the bridge hides him itself if nobody does); with "onAlarm": "logout"
         // in the rules the character logs out instead.
-        private void Alarm(string reason, Mobile threat, uint threatSerial, bool tellPartner, bool staff = false)
+        private void Alarm(string reason, Mobile threat, uint threatSerial, bool tellPartner)
         {
-            if (staff && !reason.StartsWith("STAFF", StringComparison.Ordinal))
-            {
-                reason = "STAFF " + reason;
-            }
-
             string line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} {_characterName}: {reason}";
 
             if (line.Substring(20) != _lastLogged)
@@ -2674,23 +2613,8 @@ namespace ClassicUO.Game.Managers
 
             if (_alarm != null)
             {
-                // already dealing with one; the log has the rest. Staff turning up changes it to standing still.
-                if (staff && !_alarmStaff)
-                {
-                    _alarmStaff = true;
-                    _alarm = $"{DateTime.Now:HH:mm:ss} {reason}";
-                    _world.Player.Pathfinder.StopAutoWalk();
-
-                    if (tellPartner)
-                    {
-                        WriteAlarmFile(reason, true);
-                    }
-                }
-
-                return;
+                return; // already dealing with one; the log has the rest
             }
-
-            _alarmStaff = staff;
 
             GuardRules g = _rules?.Guard;
             DateTime now = DateTime.UtcNow;
@@ -2720,16 +2644,16 @@ namespace ClassicUO.Game.Managers
 
             if (tellPartner)
             {
-                WriteAlarmFile(reason, staff);
+                WriteAlarmFile(reason);
             }
 
-            if (g != null && g.LogOut && !staff)
+            if (g != null && g.LogOut)
             {
                 _logoutRequest = reason;
             }
         }
 
-        private void WriteAlarmFile(string reason, bool staff)
+        private void WriteAlarmFile(string reason)
         {
             try
             {
@@ -2744,7 +2668,6 @@ namespace ClassicUO.Game.Managers
                             w.WriteString("time", DateTime.Now.ToString("s", CultureInfo.InvariantCulture));
                             w.WriteString("character", _characterName);
                             w.WriteString("reason", reason);
-                            w.WriteBoolean("staff", staff);
                             w.WriteEndObject();
                         }
                     )
@@ -2768,15 +2691,6 @@ namespace ClassicUO.Game.Managers
             catch (Exception ex)
             {
                 Log.Error($"Agent bridge guard: could not log the alarm: {ex.Message}");
-            }
-        }
-
-        // on the listener thread: with staff about, the character stands still (no walking, hiding or casting either)
-        private void CheckNoStaff()
-        {
-            if (_alarmStaff)
-            {
-                throw new BridgeException(409, $"staff alarm, standing still: {_alarm}");
             }
         }
 
@@ -2810,7 +2724,6 @@ namespace ClassicUO.Game.Managers
                 w.WriteStartObject("alarm");
                 w.WriteString("reason", _alarm);
                 w.WriteNumber("seconds", Math.Round((now - _alarmAt).TotalSeconds));
-                w.WriteBoolean("staff", _alarmStaff);
                 w.WriteBoolean("evading", _evading);
 
                 if (_threat != null)

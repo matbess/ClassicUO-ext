@@ -12,8 +12,8 @@ This is the user's fork of ClassicUO (github.com/matbess/ClassicUO-ext). All of 
 - The server is a private one based on the UOSA (Second Age, T2A-era) server code, hosted elsewhere by someone who no
   longer plays. Besides the user's brother (who cooperates) there are now a couple of other players (2026-11-01).
   There's no moderation now, but the user wants to be safe if old rules come back: everything the agent does is
-  paced slower than a person would bother to be (see MINING.md, "Pacing"), and staff talking to a character makes
-  everything stop and stand still while the user is told.
+  paced slower than a person would bother to be (see MINING.md, "Pacing"). Staff get the normal guard like anyone
+  else (the user, 2026-11-04: the old stand-still-and-tell-the-user rule for staff is gone).
 - `UOSecondAge.app` is the original UOSA launcher: leave it untouched. Game data files: `~/Games/UOSA-data`.
 - "Crashes" have turned out to be server-side disconnects before; check the macOS log (tcp_connection_summary) before
   assuming the client crashed. Razor.exe is IL-patched for a runebook gump crash; WINEDEBUG is `fixme-all`.
