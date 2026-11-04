@@ -47,6 +47,8 @@ BANK_AT_INGOTS = 300        # Burgers banks when he holds this many ingots (the 
 REAGENTS = {'0x0F7A': 'black pearl', '0x0F7B': 'blood moss', '0x0F86': 'mandrake root', '0x0F8C': 'sulfurous ash'}
 REAGENTS_WANTED = 35        # the user, 2026-11-02: enough that reagents seldom need a trip of their own
 REAGENTS_WARN = 20          # below this the loop warns the user to add more (the user, 2026-11-03)
+RECALL_REAGENTS = ('0x0F7A', '0x0F7B', '0x0F86')  # black pearl, blood moss, mandrake root
+REAGENTS_RESERVE = 4        # with the bank out of one of these, the loop parks before he could get stuck there
 REAGENTS_LOW = {'0x0F7A': 6, '0x0F7B': 6, '0x0F86': 6, '0x0F8C': 3}  # below this a bank trip is a must
 SMALL_ORE = '0x19B7'        # a small pile: one on its own is too little to smelt; two of a metal can be combined
 FOOT_HOP = 12               # between blocks closer than this, Icepick walks and McGee follows (the user, 2026-11-01)
@@ -1098,6 +1100,7 @@ class Miner:
             raise Stop('Icepick has no shovels left and Burgers has none to give'
                        + (' (the shovel bag in his bank is empty)' if self.state.get('bank_out_of_shovels') else '')
                        + f'. Parked: {how}')
+        self.reagents_stop(REAGENTS_RESERVE)
 
     def saving_mana_for_bank(self):
         """Out of spare shovels, Burgers keeps his mana for the bank (two Recalls) instead of a gate: in the north half
@@ -1350,13 +1353,14 @@ class Miner:
         piles in his pouch."""
         have, home = self.burgers_reagents()
         stock = self.bur.call('GET', '/contents', serial=bag)['items']
-        took = []
+        took, short = [], []
         for g, name in REAGENTS.items():
             want = REAGENTS_WANTED - have[g][0]
             pile = next((i for i in stock if i.get('graphic') == g), None)
             if want <= 0 or not pile:
                 if want > 0:
                     log(f'no {name} left in the bank bag')
+                    short.append(g)
                 continue
             amount = min(want, pile.get('amount', 1))
             to = have[g][1] or home
@@ -1364,7 +1368,22 @@ class Miner:
             took.append(f'{amount} {name}')
         if took:
             log('Burgers took ' + ', '.join(took) + ' from the bank')
+        self.state['bank_short'] = short  # what the bank bag had none of, this visit
+        self.save_state()
         self.warn_reagents()
+
+    def reagents_stop(self, minimum, only_if_bank_short=True):
+        """Park both and stop before Burgers can't recall back from the bank (2026-11-03: the bank ran out of black
+        pearl and mandrake root). `minimum` of each recall reagent; with only_if_bank_short, only for the ones his bank
+        had none of on the last visit (otherwise the next bank trip restocks them)."""
+        have, _ = self.burgers_reagents()
+        short = self.state.get('bank_short') or []
+        low = [f'{have[g][0]} {REAGENTS[g]}' for g in RECALL_REAGENTS
+               if have[g][0] < minimum and (g in short or not only_if_bank_short)]
+        if low:
+            how = self.leave_safe()
+            raise Stop(f"Burgers is down to {', '.join(low)}" + (' and his bank has none' if only_if_bank_short else '')
+                       + f'; parked before he could get stuck at the bank. {how}. Reagents: {self.reagent_counts()}')
 
     def reagent_counts(self):
         """Burgers' four reagents, for every handoff line (the user, 2026-11-03)."""
@@ -1385,6 +1404,7 @@ class Miner:
     def bank_trip(self):
         """Burgers to the Ocllo bank and back. The bank is relaxed (the user): his guard is off while he's there."""
         self.stats['bank trips'] += 1
+        self.reagents_stop(2, only_if_bank_short=False)  # a recall there and one back
         log('Burgers takes the ingots to the bank')
         self.bur.call('POST', '/guard', on=0)
         try:

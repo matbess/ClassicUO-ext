@@ -145,6 +145,9 @@ There are now a couple of other players on the server (2026-11-01), besides the 
 - **Reagents low** (the user, 2026-11-03): after every bank trip and at the start, if any of Burgers' four
   reagents is below 20 the loop logs `reagents low: ...` with all four counts; relay it so the user can add more
   to his bank before he runs out (his bank bag ran out of black pearl that morning).
+  Every handoff line ends with his four counts. If his bank had none of a recall reagent (black pearl, blood
+  moss, mandrake root) and he's down to under 4 of it, or under 2 before any bank trip, the loop parks both
+  and stops, so he can't get stuck at the Ocllo bank unable to recall back.
 - **Stopping the loop** (the user, 2026-11-02 23:13: for an install both characters are mounted and hidden when
   the clients close, and never stopped while Icepick digs on foot):
   - `python3 -I mine.py --park` is the way: the running loop stops before its next dig (or after the step it is on), puts Icepick on McGee and
