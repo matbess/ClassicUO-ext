@@ -151,10 +151,11 @@ There are now a couple of other players on the server (2026-11-01), besides the 
 - **Stopping the loop** (the user, 2026-11-02 23:13: for an install both characters are mounted and hidden when
   the clients close, and never stopped while Icepick digs on foot):
   - `python3 -I mine.py --park` is the way: the running loop stops before its next dig (or after the step it is on), puts Icepick on McGee and
-    hides him, sees Burgers hidden at his spot, logs `PARKED: ...` with both and ends. The command waits for that
-    and prints it. The next run starts at the next block.
+    hides him, sees Burgers hidden at his spot, turns off the guard of each one that is hidden (so the user can
+    play them; the user, 2026-11-03), logs `PARKED: ...` with both and ends. The command waits for that and prints
+    it. The next run starts at the next block, and its preflight turns both guards back on.
   - Out of shovels (none on Icepick, none from Burgers or the bank) parks them the same way before the loop stops
-    (the user, 2026-11-03); the STOPPED line says how they were left.
+    (the user, 2026-11-03), guards off too; the STOPPED line says how they were left.
   - `python3 -I mine.py --stop` only for an emergency: ends the loop at once, nobody parked; then hide them by hand.
   - Both find the loop by `mine.pid` in the work folder and check the process has gone. Don't pkill by name: the
     loop runs as `.../MacOS/Python -I mine.py`, so `pkill -f "python3 -I mine.py"` killed only the shell around it

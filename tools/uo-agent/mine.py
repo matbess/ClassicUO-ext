@@ -1583,9 +1583,15 @@ class Miner:
             self.burgers_back()
         self.burgers_to_wait()
         si, sb = self.ice.status(), self.bur.status()
+        # hidden, they don't need the guard, and with it off the user can play them (the user, 2026-11-03 20:17);
+        # one left in sight keeps his (the next run's preflight turns both back on)
+        for c, s in ((self.ice, si), (self.bur, sb)):
+            if s['hidden']:
+                c.call('POST', '/guard', on=0)
         return (f"Icepick at {si['x']},{si['y']} {'mounted' if si['mounted'] else 'ON FOOT'} and "
-                f"{'hidden' if si['hidden'] else 'NOT HIDDEN'}; Burgers at {sb['x']},{sb['y']} "
-                f"{'mounted' if sb['mounted'] else 'ON FOOT'} and {'hidden' if sb['hidden'] else 'NOT HIDDEN'}")
+                f"{'hidden, guard off' if si['hidden'] else 'NOT HIDDEN, guard on'}; Burgers at {sb['x']},{sb['y']} "
+                f"{'mounted' if sb['mounted'] else 'ON FOOT'} and "
+                f"{'hidden, guard off' if sb['hidden'] else 'NOT HIDDEN, guard on'}")
 
     def report(self, start):
         minutes = (time.time() - start) / 60
