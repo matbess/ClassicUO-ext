@@ -61,6 +61,7 @@ SET_PIECES = {'ringmail gloves', 'ringmail sleeves', 'chainmail leggings', 'chai
               'plate helm', 'close helmet', 'close helm', 'helmet', 'nose helm'}
 FOOTWEAR = {'boots', 'thigh boots', 'shoes', 'sandals'}
 MISC = {'crystal ball'}  # things the user keeps that have no other home: the miscellaneous chest
+MISC_GRAPHICS = {'0x097C', '0x097D', '0x097E'}  # cheese: wedges and wheels (tiledata names carry plural codes)
 
 # armour bags for keepers and gear the user doesn't mind losing: (material, slot) -> bag kind, chest
 TYPE_BAG = {('plate', 'gloves'): ('plate gloves', 'plate'), ('plate', 'helm'): ('helms', 'helms'),
@@ -187,7 +188,7 @@ def decide(item, name):
         return 'limit', 'defense' if p == 0 else 'guarding'  # gear the user doesn't mind losing
     if t in ('torch', 'torches'):
         return 'trash', 'torch'  # the user, 2026-11-04
-    if t in MISC:
+    if t in MISC or item['graphic'] in MISC_GRAPHICS:
         return 'keep', ('misc',)  # kept, loose in the miscellaneous chest (the user, 2026-11-04)
     # cloth clothes, hats and footwear
     if any(w in n for w in GOOD_WEAR):
