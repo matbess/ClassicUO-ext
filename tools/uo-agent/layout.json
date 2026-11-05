@@ -88,7 +88,7 @@
    },
    {
     "kind": "circle 2 scrolls",
-    "known": 8,
+    "known": 0,
     "marker": {
      "name": "Agility Scroll",
      "serial": "0x408BFD2C",
@@ -101,7 +101,7 @@
    },
    {
     "kind": "circle 8 scrolls",
-    "known": 7,
+    "known": 0,
     "marker": {
      "name": "Energy Vortex Scro",
      "serial": "0x406DBEEF",
@@ -116,7 +116,7 @@
   "items": 16,
   "label": "chest: scrolls (col 5, top)",
   "loose": [],
-  "recorded": "2026-11-04 21:03"
+  "recorded": "2026-11-04 22:07"
  },
  "0x408FB1E0": {
   "bags": [
@@ -166,63 +166,63 @@
   "label": "chest: reagents (col 5, 2nd from top)",
   "loose": [
    {
-    "amount": 109,
-    "name": "Mandrake Roots",
-    "serial": "0x4072FED1",
-    "x": 18,
-    "y": 132
-   },
-   {
-    "amount": 373,
+    "amount": 385,
     "name": "Blood Moss",
     "serial": "0x4081FC17",
     "x": 43,
     "y": 107
    },
    {
-    "amount": 101,
-    "name": "Nightshade",
-    "serial": "0x406FF9B4",
-    "x": 42,
-    "y": 133
-   },
-   {
-    "amount": 101,
-    "name": "Spider's Silk",
-    "serial": "0x406FF9B6",
-    "x": 72,
-    "y": 133
-   },
-   {
-    "amount": 107,
-    "name": "Sulfurous Ash",
-    "serial": "0x406FF9C6",
-    "x": 95,
-    "y": 133
-   },
-   {
-    "amount": 99,
-    "name": "Black Pearls",
-    "serial": "0x406FF9B5",
-    "x": 18,
-    "y": 109
-   },
-   {
-    "amount": 927,
+    "amount": 936,
     "name": "Ginseng",
     "serial": "0x40925301",
     "x": 97,
     "y": 107
    },
    {
-    "amount": 555,
+    "amount": 561,
     "name": "Garlic",
     "serial": "0x40925029",
     "x": 79,
     "y": 107
+   },
+   {
+    "amount": 124,
+    "name": "Mandrake Roots",
+    "serial": "0x4072FED1",
+    "x": 18,
+    "y": 132
+   },
+   {
+    "amount": 107,
+    "name": "Spider's Silk",
+    "serial": "0x406FF9B6",
+    "x": 72,
+    "y": 133
+   },
+   {
+    "amount": 110,
+    "name": "Nightshade",
+    "serial": "0x406FF9B4",
+    "x": 42,
+    "y": 133
+   },
+   {
+    "amount": 119,
+    "name": "Sulfurous Ash",
+    "serial": "0x406FF9C6",
+    "x": 95,
+    "y": 133
+   },
+   {
+    "amount": 109,
+    "name": "Black Pearls",
+    "serial": "0x406FF9B5",
+    "x": 18,
+    "y": 109
    }
   ],
-  "recorded": "2026-11-04 21:03"
+  "recorded": "2026-11-04 22:07"
  },
  "0x408FBF7C": {
   "bags": [
@@ -270,7 +270,7 @@
   "bags": [
    {
     "kind": "attack wands",
-    "known": 30,
+    "known": 31,
     "marker": {
      "name": "a wand of lightning (9 charges)",
      "serial": "0x402C2735",
@@ -283,7 +283,7 @@
    },
    {
     "kind": "healing wands",
-    "known": 9,
+    "known": 0,
     "marker": {
      "name": "a wand of greater healing (4 charges)",
      "serial": "0x40717795",
@@ -298,7 +298,7 @@
   "items": 4,
   "label": "chest: magic wands (col 2, 3rd from top)",
   "loose": [],
-  "recorded": "2026-11-04 21:03"
+  "recorded": "2026-11-04 22:07"
  },
  "0x408FD0C7": {
   "bags": [
@@ -467,7 +467,7 @@
   "items": 2,
   "label": "chest: gems (col 5, bottom)",
   "loose": [],
-  "recorded": "2026-11-04 21:03"
+  "recorded": "2026-11-04 22:07"
  },
  "0x408FF16B": {
   "bags": [
@@ -586,7 +586,7 @@
  },
  "0x408FF84A": {
   "bags": [],
-  "items": 1,
+  "items": 2,
   "label": "chest: miscellaneous (col 5, 3rd from top)",
   "loose": [
    {
@@ -595,9 +595,16 @@
     "serial": "0x408638A2",
     "x": 18,
     "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "crystal ball",
+    "serial": "0x408A6E83",
+    "x": 33,
+    "y": 105
    }
   ],
-  "recorded": "2026-11-04 21:03"
+  "recorded": "2026-11-04 22:07"
  },
  "0x408FF9AB": {
   "bags": [],
@@ -651,7 +658,7 @@
    },
    {
     "kind": "chain & ring",
-    "known": 10,
+    "known": 11,
     "marker": {
      "name": "a chainmail coif of defense",
      "serial": "0x4087E8C7",
@@ -666,13 +673,13 @@
   "items": 4,
   "label": "chest: plain gear (col 6, bottom)",
   "loose": [],
-  "recorded": "2026-11-04 21:03"
+  "recorded": "2026-11-04 22:07"
  },
  "0x40901EDF": {
   "bags": [
    {
     "kind": "ID wands & staves (spares)",
-    "known": 3,
+    "known": 4,
     "marker": null,
     "serial": "0x4049D6B8",
     "x": 18,
@@ -697,10 +704,17 @@
     "y": 106
    },
    {
-    "amount": 229,
-    "name": "cut cloth (191 yards)",
-    "serial": "0x40988811",
-    "x": 98,
+    "amount": 4,
+    "name": "blank scrolls",
+    "serial": "0x408D19BF",
+    "x": 81,
+    "y": 106
+   },
+   {
+    "amount": 181,
+    "name": "81 pieces of leather",
+    "serial": "0x40988462",
+    "x": 50,
     "y": 129
    },
    {
@@ -725,28 +739,29 @@
     "y": 105
    },
    {
-    "amount": 4,
-    "name": "blank scrolls",
-    "serial": "0x408D19BF",
-    "x": 81,
-    "y": 106
-   },
-   {
-    "amount": 181,
-    "name": "81 pieces of leather",
-    "serial": "0x40988462",
-    "x": 50,
+    "amount": 231,
+    "name": "cut cloth (191 yards)",
+    "serial": "0x40988811",
+    "x": 98,
     "y": 129
    }
   ],
-  "recorded": "2026-11-04 21:03"
+  "recorded": "2026-11-04 22:07"
  },
  "0x409020EB": {
   "bags": [],
-  "items": 0,
+  "items": 1,
   "label": "chest: needs your decision (col 6, 2nd from top)",
-  "loose": [],
-  "recorded": "2026-11-01 15:34"
+  "loose": [
+   {
+    "amount": 1,
+    "name": "a tattered treasure map",
+    "serial": "0x408AD955",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "recorded": "2026-11-04 22:07"
  },
  "0x40902338": {
   "bags": [
