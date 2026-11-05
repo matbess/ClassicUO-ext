@@ -686,7 +686,7 @@
   "bags": [
    {
     "kind": "ID wands & staves (spares)",
-    "known": 5,
+    "known": 0,
     "marker": null,
     "serial": "0x4049D6B8",
     "x": 18,
@@ -704,25 +704,11 @@
     "y": 106
    },
    {
-    "amount": 21,
-    "name": "empty bottles",
-    "serial": "0x408A846F",
-    "x": 63,
-    "y": 106
-   },
-   {
     "amount": 4,
     "name": "blank scrolls",
     "serial": "0x408D19BF",
     "x": 81,
     "y": 106
-   },
-   {
-    "amount": 232,
-    "name": "cut cloth (191 yards)",
-    "serial": "0x40988811",
-    "x": 98,
-    "y": 129
    },
    {
     "amount": 1134,
@@ -746,14 +732,28 @@
     "y": 105
    },
    {
-    "amount": 186,
+    "amount": 22,
+    "name": "empty bottles",
+    "serial": "0x408A846F",
+    "x": 63,
+    "y": 106
+   },
+   {
+    "amount": 233,
+    "name": "cut cloth (191 yards)",
+    "serial": "0x40988811",
+    "x": 98,
+    "y": 129
+   },
+   {
+    "amount": 187,
     "name": "81 pieces of leather",
     "serial": "0x40988462",
     "x": 50,
     "y": 129
    }
   ],
-  "recorded": "2026-11-04 23:40"
+  "recorded": "2026-11-05 00:03"
  },
  "0x409020EB": {
   "bags": [],
