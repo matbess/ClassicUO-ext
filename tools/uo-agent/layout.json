@@ -10,7 +10,7 @@
   "bags": [
    {
     "kind": "circle 3 scrolls",
-    "known": 7,
+    "known": 8,
     "marker": {
      "name": "Unlock Scroll",
      "serial": "0x40888CB7",
@@ -88,7 +88,7 @@
    },
    {
     "kind": "circle 2 scrolls",
-    "known": 4,
+    "known": 6,
     "marker": {
      "name": "Agility Scroll",
      "serial": "0x408BFD2C",
@@ -101,7 +101,7 @@
    },
    {
     "kind": "circle 8 scrolls",
-    "known": 6,
+    "known": 7,
     "marker": {
      "name": "Energy Vortex Scro",
      "serial": "0x406DBEEF",
@@ -116,7 +116,7 @@
   "items": 16,
   "label": "chest: scrolls (col 5, top)",
   "loose": [],
-  "recorded": "2026-11-01 16:52"
+  "recorded": "2026-11-04 19:16"
  },
  "0x408FB1E0": {
   "bags": [
@@ -166,63 +166,63 @@
   "label": "chest: reagents (col 5, 2nd from top)",
   "loose": [
    {
-    "amount": 51,
-    "name": "Black Pearls",
-    "serial": "0x406FF9B5",
-    "x": 18,
-    "y": 107
-   },
-   {
-    "amount": 1074,
-    "name": "Blood Moss",
-    "serial": "0x408EAC3B",
-    "x": 43,
-    "y": 107
-   },
-   {
-    "amount": 1044,
-    "name": "Garlic",
-    "serial": "0x408EAE32",
-    "x": 79,
-    "y": 107
-   },
-   {
-    "amount": 1096,
-    "name": "Ginseng",
-    "serial": "0x408EB03C",
-    "x": 97,
-    "y": 107
-   },
-   {
-    "amount": 67,
-    "name": "Nightshade",
-    "serial": "0x406FF9B4",
-    "x": 42,
-    "y": 133
-   },
-   {
-    "amount": 75,
+    "amount": 77,
     "name": "Spider's Silk",
     "serial": "0x406FF9B6",
     "x": 72,
     "y": 133
    },
    {
-    "amount": 77,
+    "amount": 331,
+    "name": "Blood Moss",
+    "serial": "0x4081FC17",
+    "x": 43,
+    "y": 107
+   },
+   {
+    "amount": 546,
+    "name": "Garlic",
+    "serial": "0x40925029",
+    "x": 79,
+    "y": 107
+   },
+   {
+    "amount": 80,
+    "name": "Nightshade",
+    "serial": "0x406FF9B4",
+    "x": 42,
+    "y": 133
+   },
+   {
+    "amount": 79,
+    "name": "Mandrake Roots",
+    "serial": "0x4072FED1",
+    "x": 18,
+    "y": 132
+   },
+   {
+    "amount": 86,
     "name": "Sulfurous Ash",
     "serial": "0x406FF9C6",
     "x": 95,
     "y": 133
    },
    {
-    "amount": 37,
-    "name": "Mandrake Roots",
-    "serial": "0x4072FED1",
+    "amount": 915,
+    "name": "Ginseng",
+    "serial": "0x40925301",
+    "x": 97,
+    "y": 107
+   },
+   {
+    "amount": 78,
+    "name": "Black Pearls",
+    "serial": "0x406FF9B5",
     "x": 18,
-    "y": 132
+    "y": 109
    }
   ],
-  "recorded": "2026-11-01 10:35"
+  "recorded": "2026-11-04 19:16"
  },
  "0x408FBF7C": {
   "bags": [
@@ -467,7 +467,7 @@
   "items": 2,
   "label": "chest: gems (col 5, bottom)",
   "loose": [],
-  "recorded": "2026-11-01 16:52"
+  "recorded": "2026-11-04 19:16"
  },
  "0x408FF16B": {
   "bags": [
@@ -664,7 +664,7 @@
   "bags": [
    {
     "kind": "ID wands & staves (spares)",
-    "known": 2,
+    "known": 0,
     "marker": null,
     "serial": "0x4049D6B8",
     "x": 18,
@@ -696,20 +696,6 @@
     "y": 106
    },
    {
-    "amount": 1020,
-    "name": "arrow",
-    "serial": "0x407004A7",
-    "x": 105,
-    "y": 105
-   },
-   {
-    "amount": 47,
-    "name": "crossbow bolt",
-    "serial": "0x4095AFB1",
-    "x": 18,
-    "y": 123
-   },
-   {
     "amount": 36,
     "name": "feathers",
     "serial": "0x4095AE52",
@@ -717,21 +703,35 @@
     "y": 105
    },
    {
-    "amount": 205,
-    "name": "cut cloth (191 yards)",
-    "serial": "0x40988811",
-    "x": 98,
-    "y": 129
+    "amount": 1134,
+    "name": "arrow",
+    "serial": "0x407004A7",
+    "x": 105,
+    "y": 105
    },
    {
-    "amount": 169,
+    "amount": 51,
+    "name": "crossbow bolt",
+    "serial": "0x4095AFB1",
+    "x": 18,
+    "y": 123
+   },
+   {
+    "amount": 180,
     "name": "81 pieces of leather",
     "serial": "0x40988462",
     "x": 50,
     "y": 129
+   },
+   {
+    "amount": 229,
+    "name": "cut cloth (191 yards)",
+    "serial": "0x40988811",
+    "x": 98,
+    "y": 129
    }
   ],
-  "recorded": "2026-11-01 16:52"
+  "recorded": "2026-11-04 19:16"
  },
  "0x409020EB": {
   "bags": [],

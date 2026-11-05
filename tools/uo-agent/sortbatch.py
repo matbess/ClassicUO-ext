@@ -102,9 +102,24 @@ def move(serial, to, x=None, y=None):
                 say('the trash barrel was full and emptied itself; carrying on')
                 return {'moved': True, 'messages': []}
             raise
-        if not result['moved']:
+        if not result['moved'] and not landed_in(serial, to):
             raise uo.BridgeError(0, f'{serial} did not go into {to}: ' + '; '.join(m['text'] for m in result['messages']))
         return result
+
+
+def landed_in(serial, to):
+    """Whether the item is in `to` after all. A server-wide message (a tournament announcement) arriving just as a
+    drop is answered can make the bridge report a move that did happen as not done (2026-11-04)."""
+    time.sleep(1)
+    try:
+        found = uo.call(info, 'GET', '/item', serial=serial)
+    except uo.BridgeError:
+        return False
+    inside = [i['serial'] for i in found.get('insideOf', [])]
+    if inside and inside[0] == to:
+        say(f'{serial} did go into {to} (the bridge missed it)')
+        return True
+    return False
 
 
 def chest(part):

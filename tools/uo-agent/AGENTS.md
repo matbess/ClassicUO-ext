@@ -88,8 +88,8 @@ column 4, gold (loot gold goes to needs your decision); the gems chest is mostly
 ## Open items (2026-11-01)
 
 - **Mining** is under way (MINING.md): the bridge now has per-character rules files (`rules/rules-<name>.json`,
-  copied into the client's Agent folder), several areas, trades, casting, Hiding, mounts and the guard. Sorting
-  scripts that call `uo.find_bridge(None)` need `--char Johnny` style selection when Icepick and Burgers are on too.
+  copied into the client's Agent folder), several areas, trades, casting, Hiding, mounts and the guard. For sorting
+  while they're logged in, set `UO_CHAR=Johnny`: every tool then uses Johnny's bridge only (2026-11-04).
 - **Bridge fix for the next client build**: in `Move`, count any message from the drop target as an answer (the
   barrel's "The trash is full! Emptying!" is spoken by the barrel, not a system message, so it causes a false stop
   that the scripts resume with `uo.resume_after_barrel_emptied`).

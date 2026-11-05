@@ -73,6 +73,9 @@ class BridgeError(Exception):
 
 
 def find_bridge(character):
+    """The bridge of the named character; with no name, $UO_CHAR's (UO_CHAR=Johnny for sorting while Icepick and
+    Burgers are logged in too), or the only one running."""
+    character = character or os.environ.get('UO_CHAR')
     infos = []
     for path in sorted(glob.glob(os.path.join(AGENT_DIR, '*.json'))):
         try:
@@ -293,8 +296,16 @@ def remember_names(result):
         names = load_names()
         if any(names.get(k) != v for k, v in found.items()):
             names.update(found)
-            with open(NAMES, 'w', encoding='utf-8') as fh:
-                json.dump(names, fh, indent=1, sort_keys=True)
+            write_json(NAMES, names, 1)
+
+
+def write_json(path, data, indent):
+    """Write a shared file in one step: sorting and mining run side by side, and a reader must never see a
+    half-written names.json or labels.json (it would load as empty and the next write would wipe it)."""
+    tmp = f'{path}.{os.getpid()}.tmp'
+    with open(tmp, 'w', encoding='utf-8') as fh:
+        json.dump(data, fh, indent=indent, sort_keys=True)
+    os.replace(tmp, path)
 
 
 def load_labels():
@@ -308,8 +319,7 @@ def load_labels():
 def save_label(serial, text):
     labels = load_labels()
     labels['0x' + serial[2:].upper().zfill(8)] = text
-    with open(LABELS, 'w', encoding='utf-8') as fh:
-        json.dump(labels, fh, indent=2, sort_keys=True)
+    write_json(LABELS, labels, 2)
 
 
 def forget_labels(serials):
@@ -317,8 +327,7 @@ def forget_labels(serials):
     labels = load_labels()
     gone = [s for s in serials if labels.pop('0x' + s[2:].upper().zfill(8), None) is not None]
     if gone:
-        with open(LABELS, 'w', encoding='utf-8') as fh:
-            json.dump(labels, fh, indent=2, sort_keys=True)
+        write_json(LABELS, labels, 2)
     return gone
 
 
