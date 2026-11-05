@@ -110,7 +110,7 @@ Emetah's keep list (another player's advice) is the rule, except where the user 
 | Shields | Invulnerability only (2026-11-01: with both hands full you can't drink potions, so shields are rarely worth it) | Everything else: metal to smelting, wooden to trash |
 | Leather and studded | Invulnerability only (2026-11-01; everything kept before that was cut the same day) | Everything else is cut |
 | Jewellery and clothes | Invisibility, magic reflection, teleport; all magic rings (they're teleport or invisibility) except a curse | Everything else, including blessings and protection (rarely used: the slots go to teleport, reflect and invisibility; the user rejected them 2026-11-01), stat boosts (agility, strength, cunning: the charges wear off fast) and clumsiness, feeblemind, weakness and night eyes |
-| Other | | Night Sight potions |
+| Other | | Night Sight potions; torches (the user, 2026-11-04) |
 | Bone armour | Only really good bone (the user, 2026-11-01): hardening, fortification or invulnerability, like plate's keepers, and any daemon bone. No "gear I don't mind losing" bone. It goes in a bag in the bone armour chest (column 2, bottom). Bone has AR 32 per piece against plate's 30, needs 40 strength, but lasts half as long (25-30 hits). | Rejected bone goes in the trash barrel: it can't be smelted or cut (the user, 2026-11-01) |
 | Left in the loot by accident | Gold goes to the needs-your-decision chest (the user wants to see it); iron ore goes to smelting. sortbatch does both. | |
 | Feathers | Supplies (they make arrows); sortbatch piles them there. | |

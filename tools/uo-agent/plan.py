@@ -184,6 +184,8 @@ def decide(item, name):
                 (m in ('plate', 'ring') and p >= PROTECTION.index('hardening')):
             return 'keep', ('armour', m)
         return 'limit', 'defense' if p == 0 else 'guarding'  # gear the user doesn't mind losing
+    if t in ('torch', 'torches'):
+        return 'trash', 'torch'  # the user, 2026-11-04
     # cloth clothes, hats and footwear
     if any(w in n for w in GOOD_WEAR):
         return 'keep', ('clothing', 'footwear' if t in FOOTWEAR else 'hats' if 'hat' in t or t in
