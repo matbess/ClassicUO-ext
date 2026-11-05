@@ -723,6 +723,7 @@ class Miner:
         """Ride along the route to waypoint `target`, taking short cuts (see mining.walk_route)."""
         if not self.ice.status()['mounted']:
             self.mount()
+        self.back_into_area(mining.load_rules()['areas'])
         s = self.ice.status()
         x, y = s['x'], s['y']
         i = mining.nearest(self.points, x, y)
@@ -782,12 +783,43 @@ class Miner:
             if r['arrived']:
                 return
             log(f"ride to {spot} stopped at {r['x']},{r['y']} ({r.get('stopped')}); planning again")
+            if r.get('stopped') == 'left the area':
+                self.back_into_area(areas)
         self.hop_to(spot)
+
+    def back_into_area(self, areas):
+        """The client's path finder can step a tile out of Icepick's areas going round something, and the bridge
+        stops every walk the moment it sees him outside, even one back in (2026-11-05 09:38: stuck at 1099,1649 and
+        the loop stopped). Step back onto the nearest walkable tile inside, one tile at a time, a few tries."""
+        for _ in range(12):
+            s = self.ice.status()
+            here = (s['x'], s['y'])
+            if mining.in_areas(areas, *here):
+                return True
+            for ring in (1, 2, 3):
+                inside = [(here[0] + dx, here[1] + dy) for dx in range(-ring, ring + 1) for dy in range(-ring, ring + 1)
+                          if max(abs(dx), abs(dy)) == ring and mining.in_areas(areas, here[0] + dx, here[1] + dy)
+                          and mining.walkable(here[0] + dx, here[1] + dy)]
+                if inside:
+                    break
+            if not inside:
+                return False
+            try:
+                self.ice.walk(*random.choice(inside), 0)
+            except uo.BridgeError as e:
+                if e.code not in (403, 409):
+                    raise
+            time.sleep(0.5)
+        s = self.ice.status()
+        ok = mining.in_areas(areas, s['x'], s['y'])
+        log(f"back inside the area at {s['x']},{s['y']}" if ok else f"couldn't get back inside the area from {s['x']},{s['y']}")
+        return ok
 
     def hop_to(self, spot):
         """The fallback: short straight hops of up to 16 tiles, each to a walkable tile inside Icepick's areas."""
         import math
         areas = mining.load_rules()['areas']
+        self.back_into_area(areas)
         s = self.ice.status()
         here = (s['x'], s['y'])
         for _ in range(40):

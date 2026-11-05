@@ -347,6 +347,13 @@ files further: they apply at once, without a new build.
   came back on foot and in sight while digging: put on McGee (`uo mount`) and hidden at once (Hiding needed a
   second try). Burgers held exactly the last handoff before the save (54 ingots, 38 iron, 03:58:05), which dated
   it. Totals 44173 / 34898 corrected to 43907 / 34698, back to block 53.
+- **A tile outside the area** (2026-11-05 09:38): on the long straight stretch to waypoint 31 (1101,1594 to
+  1101,1649, along the area's west edge at x 1100) the client's path finder stepped Icepick to 1099,1649. The
+  bridge stops every walk the moment it sees him outside the area, even one heading back in, so the replans and
+  hops all failed and the loop stopped (he was left mounted but in sight; hidden by hand). The loop now steps him
+  back onto a walkable tile inside, a tile at a time, whenever a ride stops with "left the area". **Bridge fix
+  for the next build**: count "left the area" only when a walk takes him from inside to outside, not when it
+  starts outside.
 - **The user swaps whole bags in Burgers' bank** (2026-11-04: easier than emptying them; ingots, shovels or
   reagents). At each bank trip the loop drops a remembered bag that's gone, finds the new one by what's in it,
   labels it, and removes the labels of bags no longer in the bank.
