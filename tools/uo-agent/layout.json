@@ -75,7 +75,7 @@
    },
    {
     "kind": "circle 1 scrolls",
-    "known": 8,
+    "known": 0,
     "marker": {
      "name": "Heal Scroll",
      "serial": "0x406FF258",
@@ -88,7 +88,7 @@
    },
    {
     "kind": "circle 2 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Agility Scroll",
      "serial": "0x408BFD2C",
@@ -101,7 +101,7 @@
    },
    {
     "kind": "circle 8 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Energy Vortex Scro",
      "serial": "0x406DBEEF",
@@ -116,7 +116,7 @@
   "items": 16,
   "label": "chest: scrolls (col 5, top)",
   "loose": [],
-  "recorded": "2026-11-04 22:07"
+  "recorded": "2026-11-04 23:00"
  },
  "0x408FB1E0": {
   "bags": [
@@ -166,63 +166,63 @@
   "label": "chest: reagents (col 5, 2nd from top)",
   "loose": [
    {
-    "amount": 385,
+    "amount": 412,
     "name": "Blood Moss",
     "serial": "0x4081FC17",
     "x": 43,
     "y": 107
    },
    {
-    "amount": 936,
-    "name": "Ginseng",
-    "serial": "0x40925301",
-    "x": 97,
-    "y": 107
-   },
-   {
-    "amount": 561,
+    "amount": 591,
     "name": "Garlic",
     "serial": "0x40925029",
     "x": 79,
     "y": 107
    },
    {
-    "amount": 124,
-    "name": "Mandrake Roots",
-    "serial": "0x4072FED1",
-    "x": 18,
-    "y": 132
-   },
-   {
-    "amount": 107,
-    "name": "Spider's Silk",
-    "serial": "0x406FF9B6",
-    "x": 72,
-    "y": 133
-   },
-   {
-    "amount": 110,
-    "name": "Nightshade",
-    "serial": "0x406FF9B4",
-    "x": 42,
-    "y": 133
-   },
-   {
-    "amount": 119,
+    "amount": 131,
     "name": "Sulfurous Ash",
     "serial": "0x406FF9C6",
     "x": 95,
     "y": 133
    },
    {
-    "amount": 109,
+    "amount": 119,
+    "name": "Spider's Silk",
+    "serial": "0x406FF9B6",
+    "x": 72,
+    "y": 133
+   },
+   {
+    "amount": 145,
+    "name": "Mandrake Roots",
+    "serial": "0x4072FED1",
+    "x": 18,
+    "y": 132
+   },
+   {
+    "amount": 116,
+    "name": "Nightshade",
+    "serial": "0x406FF9B4",
+    "x": 42,
+    "y": 133
+   },
+   {
+    "amount": 115,
     "name": "Black Pearls",
     "serial": "0x406FF9B5",
     "x": 18,
     "y": 109
+   },
+   {
+    "amount": 939,
+    "name": "Ginseng",
+    "serial": "0x40925301",
+    "x": 97,
+    "y": 107
    }
   ],
-  "recorded": "2026-11-04 22:07"
+  "recorded": "2026-11-04 23:00"
  },
  "0x408FBF7C": {
   "bags": [
@@ -270,7 +270,7 @@
   "bags": [
    {
     "kind": "attack wands",
-    "known": 31,
+    "known": 34,
     "marker": {
      "name": "a wand of lightning (9 charges)",
      "serial": "0x402C2735",
@@ -298,7 +298,7 @@
   "items": 4,
   "label": "chest: magic wands (col 2, 3rd from top)",
   "loose": [],
-  "recorded": "2026-11-04 22:07"
+  "recorded": "2026-11-04 23:00"
  },
  "0x408FD0C7": {
   "bags": [
@@ -467,7 +467,7 @@
   "items": 2,
   "label": "chest: gems (col 5, bottom)",
   "loose": [],
-  "recorded": "2026-11-04 22:07"
+  "recorded": "2026-11-04 23:00"
  },
  "0x408FF16B": {
   "bags": [
@@ -567,7 +567,7 @@
   "bags": [
    {
     "kind": "maces & staves",
-    "known": 1,
+    "known": 2,
     "marker": {
      "name": "a substantial mace of daemon's breath (21 charges)",
      "serial": "0x40921683",
@@ -582,7 +582,7 @@
   "items": 2,
   "label": "chest: maces & staves (col 1, 3rd from top)",
   "loose": [],
-  "recorded": "2026-11-01 16:52"
+  "recorded": "2026-11-04 23:00"
  },
  "0x408FF84A": {
   "bags": [],
@@ -679,7 +679,7 @@
   "bags": [
    {
     "kind": "ID wands & staves (spares)",
-    "known": 4,
+    "known": 0,
     "marker": null,
     "serial": "0x4049D6B8",
     "x": 18,
@@ -711,13 +711,6 @@
     "y": 106
    },
    {
-    "amount": 181,
-    "name": "81 pieces of leather",
-    "serial": "0x40988462",
-    "x": 50,
-    "y": 129
-   },
-   {
     "amount": 1134,
     "name": "arrow",
     "serial": "0x407004A7",
@@ -739,14 +732,21 @@
     "y": 105
    },
    {
-    "amount": 231,
+    "amount": 184,
+    "name": "81 pieces of leather",
+    "serial": "0x40988462",
+    "x": 50,
+    "y": 129
+   },
+   {
+    "amount": 232,
     "name": "cut cloth (191 yards)",
     "serial": "0x40988811",
     "x": 98,
     "y": 129
    }
   ],
-  "recorded": "2026-11-04 22:07"
+  "recorded": "2026-11-04 23:00"
  },
  "0x409020EB": {
   "bags": [],
