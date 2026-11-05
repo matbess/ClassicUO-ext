@@ -343,6 +343,10 @@ files further: they apply at once, without a new build.
   empty after 04:00 dropped from the state, and the loop went back to block 69. Opening Icepick's pack by hand
   30 s after the login got no answer and halted his bridge (the first restart stopped on it): leave the opening to
   the loop's start-up, and check `halted` in both statuses (then `uo resume`) before restarting.
+- **And 2026-11-05 04:15** (so it is nightly, at about 04:15): back at 04:19, rolled back to about 03:59. Icepick
+  came back on foot and in sight while digging: put on McGee (`uo mount`) and hidden at once (Hiding needed a
+  second try). Burgers held exactly the last handoff before the save (54 ingots, 38 iron, 03:58:05), which dated
+  it. Totals 44173 / 34898 corrected to 43907 / 34698, back to block 53.
 - **The user swaps whole bags in Burgers' bank** (2026-11-04: easier than emptying them; ingots, shovels or
   reagents). At each bank trip the loop drops a remembered bag that's gone, finds the new one by what's in it,
   labels it, and removes the labels of bags no longer in the bank.
