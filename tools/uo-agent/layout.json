@@ -116,7 +116,7 @@
   "items": 16,
   "label": "chest: scrolls (col 5, top)",
   "loose": [],
-  "recorded": "2026-11-04 20:15"
+  "recorded": "2026-11-04 20:53"
  },
  "0x408FB1E0": {
   "bags": [
@@ -222,7 +222,7 @@
     "y": 109
    }
   ],
-  "recorded": "2026-11-04 20:15"
+  "recorded": "2026-11-04 20:53"
  },
  "0x408FBF7C": {
   "bags": [
@@ -249,7 +249,7 @@
   "bags": [
    {
     "kind": "helms",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "an orc helm of guarding",
      "serial": "0x406FFBE2",
@@ -264,7 +264,7 @@
   "items": 2,
   "label": "chest: helms (col 4, bottom)",
   "loose": [],
-  "recorded": "2026-11-01 16:52"
+  "recorded": "2026-11-04 20:53"
  },
  "0x408FC781": {
   "bags": [
@@ -298,7 +298,7 @@
   "items": 4,
   "label": "chest: magic wands (col 2, 3rd from top)",
   "loose": [],
-  "recorded": "2026-11-04 20:15"
+  "recorded": "2026-11-04 20:53"
  },
  "0x408FD0C7": {
   "bags": [
@@ -317,7 +317,7 @@
    },
    {
     "kind": "swords",
-    "known": 0,
+    "known": 3,
     "marker": {
      "name": "a broadsword of thunder (23 charges)",
      "serial": "0x406590E4",
@@ -345,13 +345,13 @@
   "items": 6,
   "label": "chest: swords (col 1, top)",
   "loose": [],
-  "recorded": "2026-11-01 16:52"
+  "recorded": "2026-11-04 20:53"
  },
  "0x408FD7CF": {
   "bags": [
    {
     "kind": "plate tunics",
-    "known": 0,
+    "known": 2,
     "marker": {
      "name": "a platemail tunic of invulnerability",
      "serial": "0x4073B9ED",
@@ -377,7 +377,7 @@
    },
    {
     "kind": "plate gloves",
-    "known": 1,
+    "known": 0,
     "marker": {
      "name": "platemail gloves of guarding",
      "serial": "0x407E710E",
@@ -418,7 +418,7 @@
   "items": 10,
   "label": "chest: plate (col 3, top)",
   "loose": [],
-  "recorded": "2026-11-01 16:52"
+  "recorded": "2026-11-04 20:53"
  },
  "0x408FDB4F": {
   "bags": [
@@ -467,7 +467,7 @@
   "items": 2,
   "label": "chest: gems (col 5, bottom)",
   "loose": [],
-  "recorded": "2026-11-04 20:15"
+  "recorded": "2026-11-04 20:53"
  },
  "0x408FF16B": {
   "bags": [
@@ -486,7 +486,7 @@
    },
    {
     "kind": "ringmail",
-    "known": 0,
+    "known": 4,
     "marker": {
      "name": "ringmail leggings of guarding",
      "serial": "0x409199EE",
@@ -499,7 +499,7 @@
    },
    {
     "kind": "chain leggings",
-    "known": 0,
+    "known": 1,
     "marker": {
      "name": "chainmail leggings of guarding",
      "serial": "0x40624234",
@@ -527,7 +527,7 @@
   "items": 8,
   "label": "chest: chain & ring + coifs (col 3, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-01 16:52"
+  "recorded": "2026-11-04 20:53"
  },
  "0x408FF313": {
   "bags": [
@@ -630,7 +630,7 @@
   "bags": [
    {
     "kind": "plate",
-    "known": 0,
+    "known": 14,
     "marker": {
      "name": "an orc helm of defense",
      "serial": "0x40889A6F",
@@ -658,13 +658,13 @@
   "items": 4,
   "label": "chest: plain gear (col 6, bottom)",
   "loose": [],
-  "recorded": "2026-11-01 16:52"
+  "recorded": "2026-11-04 20:53"
  },
  "0x40901EDF": {
   "bags": [
    {
     "kind": "ID wands & staves (spares)",
-    "known": 0,
+    "known": 3,
     "marker": null,
     "serial": "0x4049D6B8",
     "x": 18,
@@ -731,7 +731,7 @@
     "y": 106
    }
   ],
-  "recorded": "2026-11-04 20:15"
+  "recorded": "2026-11-04 20:53"
  },
  "0x409020EB": {
   "bags": [],

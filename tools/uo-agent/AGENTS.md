@@ -66,13 +66,13 @@ Labels say "(col N, ROW)" with rows counted from the top.
 |---|---|---|---|---|---|---|
 | top | swords | fencing | plate | jewellery | scrolls | GM armour sets |
 | 2nd | axes | archery | chain & ring + coifs | magic clothing | reagents | needs your decision |
-| 3rd | maces & staves | magic wands | leather + caps | spare + invulnerability shields | gold (spare) | supplies & ID wands |
+| 3rd | maces & staves | magic wands | leather + caps | spare + invulnerability shields | miscellaneous | supplies & ID wands |
 | bottom | polearms | bone armour | studded | helms | gems | plain gear |
 
 Every chest and every bag inside one is labelled in `labels.json`; `python3 layout.py` prints what each chest holds.
 Each bag has a marker item under it showing its kind (except GM set bags). Empty as of 2026-11-01: leather + caps
 and studded (they'll take invulnerability leather and studded, the only kind kept now), bone armour, the spare in
-column 4, gold (loot gold goes to needs your decision); the gems chest is mostly free.
+column 4, miscellaneous (crystal balls and other odds and ends); the gems chest is mostly free.
 
 **Crates and the rest:**
 - Potion crates: a stack of six at 1758,1404 (z 26 up: heal, cure, refresh, agility, strength, poison) and

@@ -60,6 +60,7 @@ TUNICS = {'platemail', 'plate armor', 'female plate', 'chainmail tunic', 'ringma
 SET_PIECES = {'ringmail gloves', 'ringmail sleeves', 'chainmail leggings', 'chainmail tunic', 'platemail gorget',
               'plate helm', 'close helmet', 'close helm', 'helmet', 'nose helm'}
 FOOTWEAR = {'boots', 'thigh boots', 'shoes', 'sandals'}
+MISC = {'crystal ball'}  # things the user keeps that have no other home: the miscellaneous chest
 
 # armour bags for keepers and gear the user doesn't mind losing: (material, slot) -> bag kind, chest
 TYPE_BAG = {('plate', 'gloves'): ('plate gloves', 'plate'), ('plate', 'helm'): ('helms', 'helms'),
@@ -186,6 +187,8 @@ def decide(item, name):
         return 'limit', 'defense' if p == 0 else 'guarding'  # gear the user doesn't mind losing
     if t in ('torch', 'torches'):
         return 'trash', 'torch'  # the user, 2026-11-04
+    if t in MISC:
+        return 'keep', ('misc',)  # kept, loose in the miscellaneous chest (the user, 2026-11-04)
     # cloth clothes, hats and footwear
     if any(w in n for w in GOOD_WEAR):
         return 'keep', ('clothing', 'footwear' if t in FOOTWEAR else 'hats' if 'hat' in t or t in
@@ -278,7 +281,9 @@ def main():
         report[action].append((str(detail), name or item['type']))
         if action == 'keep':
             what = detail[0]
-            if what == 'wand':
+            if what == 'misc':
+                spec['place_in'].append([s, 'miscellaneous'])
+            elif what == 'wand':
                 groups[(detail[1], 'magic wands')].append(s)
             elif what == 'jewellery':
                 groups[(detail[1], 'jewellery')].append(s)
