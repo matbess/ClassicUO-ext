@@ -338,9 +338,10 @@ def main():
     for chest, marker, kind in spec['new_slots']:
         print(f"NEW BAG '{kind}' in the {chest} chest, marker {names.get(marker)}")
     print({k: len(v) for k, v in spec.items()})
-    if spec['place_in']:
+    asking = [s for s, chest in spec['place_in'] if chest == 'needs your decision']
+    if asking:
         print('TELL THE USER: these go to the needs-your-decision chest:',
-              '; '.join(names.get(s, inv[s]['type']) for s, _ in spec['place_in']))
+              '; '.join(names.get(s, inv[s]['type']) for s in asking))
 
 
 if __name__ == '__main__':
