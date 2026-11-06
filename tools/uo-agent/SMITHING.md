@@ -7,7 +7,8 @@ decided, so any session can pick it up. Newer notes win where they disagree with
 
 - **Icepick** trains **Blacksmithing to 100**: craft an item, smelt it straight back into ingots, put the ingots back
   on the pile, repeat. The loop is `smith.py`.
-- **What to craft at each level:**
+- **What to craft at each level** (the user, 2026-11-06: the levels are his **effective** Blacksmithy, the value with
+  his stat bonus, not the base; `smith.py` reads `value` from `/skills`, e.g. 67.1 against a base of 63.5):
 
   | Blacksmithing | Item |
   |---|---|
