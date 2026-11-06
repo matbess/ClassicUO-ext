@@ -34,6 +34,10 @@ STAIRS_2_BOTTOM = (1755, 1406)
 STAIRS_2_TOP = (1755, 1403)
 THIRD_LANDING = (1753, 1403)
 SECOND_LANDING = (1755, 1407)
+# the ground floor stairs (x 1750-1751, y 1406 at z 6 up to 1403 at z 23) and the tile they lead to on the second
+GROUND_STAIRS_FOOT = (1751, 1407)
+GROUND_STAIRS_TOP = (1751, 1403)
+SECOND_FROM_GROUND = (1752, 1402)
 
 info = None
 DRY = False
@@ -149,6 +153,16 @@ def go_to_floor(floor):
     x, y, z = here()
     if floor_of(z) == floor:
         return
+    if floor_of(z) == 1:
+        # the path finder stops at a goal's x,y on whatever floor it reaches first: onto the stairs, then up
+        walk(*GROUND_STAIRS_FOOT)
+        walk(*GROUND_STAIRS_TOP)
+        walk(*SECOND_FROM_GROUND)
+        x, y, z = here()
+        if floor_of(z) != 2:
+            raise SystemExit(f'meant to reach floor 2, but Clem is at {x},{y},{z}')
+        say(f'now on floor 2 at {x},{y},{z}')
+        return go_to_floor(floor)
     if floor_of(z) == 2 and floor == 3:
         walk(*STAIRS_2_BOTTOM)
         walk(*STAIRS_2_TOP)
@@ -288,7 +302,8 @@ def refresh(state):
     """Real counts of every bag in the state, from the client."""
     for bag, b in state['bags'].items():
         b['maps'] = len(contents(bag))
-    save_state(state)
+    if not DRY:  # a dry run opens nothing, so a bag the client has forgotten would count as empty
+        save_state(state)
 
 
 def reorg(dry):
