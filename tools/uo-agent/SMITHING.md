@@ -87,7 +87,8 @@ cuo-agent19 was installed at 20:31; the user crafted a cutlass and smelted it by
 2. Weapons: "What materials would you like to work with?" and a target cursor: target the ingots (in his pack).
 3. "What type of item do you want to craft?": 1 Bladed, 2 Axes, 3 Polearms, 4 Bashing.
 4. "What do you want to make?" (Bladed): broadsword 10 ingots, **cutlass 8**, dagger 3, **kryss 8**, longsword 12,
-   scimitar 10, viking sword 14. The menu's serial changes every time; its id is always 0.
+   scimitar 10, viking sword 14. Polearms (seen 2026-11-06 05:53, at 78): bardiche 18, halberd 20, **short spear 6**,
+   **spear 12**, war fork 12. The menu's serial changes every time; its id is always 0.
 5. About 4.5 s later: "You create the item." or "You failed to create the item, and some of your materials are
    lost." (a failed cutlass lost 4 ingots).
 6. **Make Last Item** crafts at once: no materials cursor, no further menus.
@@ -104,7 +105,7 @@ Tinkering are set to rise, the rest to fall.
   the bag when under 40, then one attempt (Make Last Item when the last item is the one wanted, else the menus),
   and every item made smelted at once. Every 50 crafts it looks for ore in the bag and smelts it first.
 - The item comes from the user's table by Blacksmithy's value; `--item NAME` makes one kind regardless (for the
-  trial at 99). Items not where expected (short spear, spear: Polearms is a guess) are looked for under the other
+  trial at 99). Items not where expected (short spear and spear are under Polearms, checked at 78) are looked for under the other
   kinds, and the log says so.
 - **Clicks in Icepick's client** while the loop runs can take its menu or cursor (2026-11-05 20:45: a click on the
   ground used up the Smelt cursor and the loop stopped). It now tries the step again, and stops only after five
