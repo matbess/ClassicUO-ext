@@ -185,8 +185,18 @@ Needs: Clem's pack cleared to about 20 items, and 5 empty bags on the third floo
 - The **125-item limit** counts everything inside bags in the pack too. Spell icons in the pack listing (serials
   from 0x7F000000) aren't items and don't count (`pack_items()`).
 - **Changing floors**: the path finder only checks a walk's goal by x,y, so it stops at that x,y on whatever floor it
-  reaches first. Walk onto the stairs first (`go_to_floor()` uses the bottom and top steps at x 1755, y 1406/1403),
-  then to the tile. `/walk` checks the rules area at the height he's at.
+  reaches first. Walk onto the stairs first (`go_to_floor()` uses the bottom and top steps at x 1755, y 1406/1403,
+  and from the ground floor 1751,1407, 1751,1403, then 1752,1402; walks on those stairs often stop a tile short, so
+  it tries again), then to the tile. `/walk` checks the rules area at the height he's at.
+- **Walking on a floor**: the ground floor stairs come up into the bag room at 1751,1403, so a long walk across the
+  room can go down them and end under the bag (2026-11-05: he stood at 1752,1409 on the ground floor, the server
+  said "I can't reach that" to the double-click). `walk()` goes in hops of at most 3 tiles (down and back up is
+  always longer), through the gap in the wall (1753,1408 / 1753,1410), never aims a hop at the stairwell or the
+  stairs up, and checks the floor after every hop. Only `go_to_floor()` uses a plain walk (`stride()`).
+- **"I can't reach that"** isn't an answer to the bridge (cuo-agent17): it stops (423) as if the server had gone
+  quiet. And `uo.wait_out_world_save` takes any stop for a world save while a save's messages are among the last 15,
+  so it resumed and the same double-click went out 12 times. `carto.act()` now treats a stop within two minutes of
+  a save as something else and quits with the last messages.
 - **Putting a bag down**: `/move ground=1` drops it at his own feet only (and only the `dropOnGround` graphics), so
   `put_down()` walks onto the spot first.
 - **A bag nobody has opened** shows no contents in the client: `contents()` opens it first (not with `--dry`).
@@ -202,6 +212,7 @@ Needs: Clem's pack cleared to about 20 items, and 5 empty bags on the third floo
   messages around them, so the user can draw a map by hand while Claude watches.
 - **Cartography**: reading and pressing the gumps it shows (Send_GumpResponse). Steps from the recording.
 - **Invisibility on himself**: /cast only aims at things the character carries.
+- Count the server's "I can't reach that." (and other refusals spoken by the character) as an answer, not silence.
 - **Doors**: open and close, lock and unlock with a key.
 - Maybe the runebook's gump (the vendor runes are in "Map Makers and Ships"); loose runes work with /cast today.
 - Belt and braces: a guard that hears another bridge's alarm should act on it only if that character is a partner.

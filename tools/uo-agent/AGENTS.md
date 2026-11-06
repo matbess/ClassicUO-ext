@@ -99,6 +99,10 @@ column 4, miscellaneous (crystal balls and other odds and ends); the gems chest 
 - **Bridge fix for the next client build**: in `Move`, count any message from the drop target as an answer (the
   barrel's "The trash is full! Emptying!" is spoken by the barrel, not a system message, so it causes a false stop
   that the scripts resume with `uo.resume_after_barrel_emptied`).
+- **`uo.wait_out_world_save` is too trusting** (found 2026-11-05 by the cartography session): it takes any 423 stop
+  for a world save while a save's messages are among the last 15, so a real stop shortly after a save gets resumed
+  and the action re-sent (12 double-clicks in a row for Clem). Fix: only count save messages newer than the stop.
+  It's shared with `mine.py`, so it wasn't changed while the mining loop runs; `carto.py` guards against it itself.
 - **GM sets 2 and 3** have plain (non-GM) gorgets. sortbatch puts the next GM gorgets into those sets and sends the
   plain ones to smelting.
 - The effect recorder can be dropped from the client once the user is happy with the buff tracker.

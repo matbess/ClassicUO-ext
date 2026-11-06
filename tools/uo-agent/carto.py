@@ -38,6 +38,13 @@ SECOND_LANDING = (1755, 1407)
 GROUND_STAIRS_FOOT = (1751, 1407)
 GROUND_STAIRS_TOP = (1751, 1403)
 SECOND_FROM_GROUND = (1752, 1402)
+# walking on a floor (see walk()): hops of at most HOP tiles; the second floor's wall along y 1409 with its gap at
+# x 1753-1754; tiles on the second floor not to aim a hop at (box x1, y1, x2, y2): the ground floor stairwell (no floor
+# there) and the stairs up to the third floor
+HOP = 3
+WALL_Y = 1409
+GAP_NORTH, GAP_SOUTH = (1753, 1408), (1753, 1410)
+SECOND_NO_HOP = [(1750, 1402, 1751, 1408), (1755, 1403, 1756, 1405)]
 
 info = None
 DRY = False
@@ -70,10 +77,15 @@ def kind_of(name):
 
 
 def floor_of(z):
+    if z >= 66:
+        return 4  # the roof
     return 3 if z >= 46 else 2 if z >= 26 else 1
 
 
 # ---- talking to the bridge, with the usual stops handled ----
+
+LAST_SAVE = [0.0]
+
 
 def act(method, endpoint, **params):
     """A bridge call that waits out what a person would wait out: a world save, someone in the room."""
@@ -81,9 +93,16 @@ def act(method, endpoint, **params):
         try:
             return uo.call(info, method, endpoint, **params)
         except uo.BridgeError as e:
-            if e.code == 423 and uo.wait_out_world_save(info, e):
+            # uo.wait_out_world_save takes any stop for a save while a save's messages are among the last 15, so a
+            # double-click the server answered with "I can't reach that" was resumed and sent 12 times (2026-11-05):
+            # a stop within two minutes of a save is something else
+            if e.code == 423 and time.time() - LAST_SAVE[0] > 120 and uo.wait_out_world_save(info, e):
+                LAST_SAVE[0] = time.time()
                 say('world save: waited it out')
                 continue
+            if e.code == 423:
+                said = [m['text'] for m in uo.call(info, 'GET', '/messages')['messages'][-3:]]
+                raise SystemExit(f'the bridge stopped: {e.message}; last messages: {said}')
             if e.code == 409 and 'paused' in e.message:
                 say(f'paused: {e.message}; waiting for the room to clear')
                 while uo.others_in_area(info):
@@ -145,8 +164,49 @@ def names(serials, kind=None):
 
 # ---- moving about the tower ----
 
-def walk(x, y, distance=0):
+def stride(x, y, distance=0):
+    """One walk, wherever the path finder takes him: only for the stairs (go_to_floor)."""
     return act('POST', '/walk', x=x, y=y, distance=distance)
+
+
+def side(y):
+    return None if y == WALL_Y else ('north' if y < WALL_Y else 'south')
+
+
+def walk(x, y, distance=0):
+    """Walk to within `distance` of x,y on the floor he's on. The path finder stops at the goal's x,y on whatever floor
+    it reaches first, and the ground floor stairs come up into the bag room at 1751,1403: a long walk across the room
+    went down them and ended under the bag he was going to (2026-11-05). So he walks in hops of at most HOP tiles
+    (down the stairs and back is always longer), through the gap in the wall, and the floor is checked after each."""
+    sx, sy, sz = here()
+    floor = floor_of(sz)
+    legs = []
+    if floor == 2 and side(sy) and side(y) and side(sy) != side(y):
+        legs += [GAP_NORTH, GAP_SOUTH] if side(sy) == 'north' else [GAP_SOUTH, GAP_NORTH]
+    legs.append((x, y))
+    for n, (lx, ly) in enumerate(legs):
+        near = distance if n == len(legs) - 1 else 1
+        stuck = 0
+        while True:
+            cx, cy, cz = here()
+            if floor_of(cz) != floor:
+                raise SystemExit(f'meant to stay on floor {floor}, but Clem is at {cx},{cy},{cz}')
+            d = max(abs(lx - cx), abs(ly - cy))
+            if d <= near:
+                break
+            if d <= HOP:
+                hx, hy, hd = lx, ly, near
+            else:
+                hx, hy, hd = cx + round((lx - cx) * HOP / d), cy + round((ly - cy) * HOP / d), 1
+                if floor == 2:
+                    for x1, y1, x2, y2 in SECOND_NO_HOP:
+                        if x1 <= hx <= x2 and y1 <= hy <= y2:
+                            hx = x1 - 1 if x1 > 1752 else x2 + 1
+            act('POST', '/walk', x=hx, y=hy, distance=hd)
+            if here()[:2] == (cx, cy):
+                stuck += 1
+                if stuck >= 2:
+                    raise SystemExit(f"couldn't walk from {cx},{cy},{cz} towards {lx},{ly}")
 
 
 def go_to_floor(floor):
@@ -155,22 +215,27 @@ def go_to_floor(floor):
         return
     if floor_of(z) == 1:
         # the path finder stops at a goal's x,y on whatever floor it reaches first: onto the stairs, then up
-        walk(*GROUND_STAIRS_FOOT)
-        walk(*GROUND_STAIRS_TOP)
-        walk(*SECOND_FROM_GROUND)
-        x, y, z = here()
+        # walks on these stairs often stop a tile short (2026-11-05), so the last step is tried again
+        stride(*GROUND_STAIRS_FOOT)
+        stride(*GROUND_STAIRS_TOP)
+        for _ in range(3):
+            stride(*SECOND_FROM_GROUND)
+            x, y, z = here()
+            if floor_of(z) == 2:
+                break
         if floor_of(z) != 2:
             raise SystemExit(f'meant to reach floor 2, but Clem is at {x},{y},{z}')
         say(f'now on floor 2 at {x},{y},{z}')
         return go_to_floor(floor)
     if floor_of(z) == 2 and floor == 3:
-        walk(*STAIRS_2_BOTTOM)
-        walk(*STAIRS_2_TOP)
-        walk(*THIRD_LANDING)
-    elif floor_of(z) == 3 and floor == 2:
-        walk(*STAIRS_2_TOP)
-        walk(*STAIRS_2_BOTTOM)
         walk(*SECOND_LANDING)
+        stride(*STAIRS_2_BOTTOM)
+        stride(*STAIRS_2_TOP)
+        stride(*THIRD_LANDING)
+    elif floor_of(z) == 3 and floor == 2:
+        stride(*STAIRS_2_TOP)
+        stride(*STAIRS_2_BOTTOM)
+        stride(*SECOND_LANDING)
     else:
         raise SystemExit(f'no way planned from floor {floor_of(z)} to floor {floor}')
     x, y, z = here()
@@ -186,7 +251,7 @@ def come_within_reach(serial):
     go_to_floor(floor_of(spot['z']))
     spot = uo.on_floor(info, serial)
     if spot['distance'] > REACH:
-        act('POST', '/walk', to=spot['serial'], distance=1)
+        walk(spot['x'], spot['y'], distance=1)
         spot = uo.on_floor(info, serial)
         if spot['distance'] > REACH:
             raise SystemExit(f"can't get within reach of {serial} at {spot['x']},{spot['y']},{spot['z']}")
@@ -300,7 +365,11 @@ def misfit(state, serial, kind, holder):
 
 def refresh(state):
     """Real counts of every bag in the state, from the client."""
-    for bag, b in state['bags'].items():
+    def where(bag):  # in his pack first, then floor by floor, the north half before the south, column by column
+        spot = state['bags'][bag].get('spot')
+        return (0, 0, 0, 0) if not spot else (floor_of(spot[2]), spot[1] > WALL_Y, spot[0], spot[1])
+    for bag in sorted(state['bags'], key=where):
+        b = state['bags'][bag]
         b['maps'] = len(contents(bag))
     if not DRY:  # a dry run opens nothing, so a bag the client has forgotten would count as empty
         save_state(state)
