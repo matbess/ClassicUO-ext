@@ -170,6 +170,17 @@ Needs: Clem's pack cleared to about 20 items, and 5 empty bags on the third floo
   0x405AE5DC (77) at 1753,1405, 0x409397D1 (76) at 1752,1404, 0x40832F5B (76) at 1753,1404. The working bag
   0x4098F2E4 holds 100 blanks in Clem's pack (120 items in all). 4,958 maps, as at the start. 0x409397A3
   (1752,1403,46) is still empty upstairs. Clem is standing in the gap in the wall (1753,1409).
+- **2026-11-05 21:58 to 2026-11-06 11:44: every blank map drawn.** 3,739 blanks (the 3,606 in the bags plus the two
+  older bags upstairs, 85 and 48) made about **3,200 world maps**; about 535 were ruined. **Cartography 84.2 -> 95.3**
+  (95.7 with his bonus). Success rose with the skill: about 73% at 84, 84% overall, 90-96% a bag at 94-95. Now every
+  map bag holds completed maps: 46 on the second floor, 6 on the third (the four overflow bags' results and the two
+  older bags'), and 0x409167C0 (78 world maps) in Clem's pack. Nothing was sold: the user, 2026-11-06, "make sure
+  you don't try to [sell in town] yet ... only work on drawing on all the blank maps and then pause". Clem stands on
+  the third floor at 1753,1402.
+- The five bags on the raised strip (x 1752, y 1404-1408, see below) ended on the tiles beside it at x 1753: 1753,1403
+  holds three bags, 1753,1407 and 1753,1408 two each. The strip itself is empty now.
+- The nightly reboot (04:15) rolled the world back to about 03:58: Clem was holding the bag he'd had before the 04:10
+  swap again, with 39 blanks and 54 drawn loose. The state was put right by hand and the loop went on at 04:20.
 
 ## Running it (carto.py)
 
@@ -214,6 +225,16 @@ Needs: Clem's pack cleared to about 20 items, and 5 empty bags on the third floo
 - Moving a map from a bag on the floor into the bag in his pack needs only the floor bag in reach (the pack is
   always in reach); `move()` walks to it first.
 - The Mac's python3 is 3.9: no f-strings that reuse the outer quote inside `{}`.
+- **The raised strip** (2026-11-06): on the second floor the tiles x 1752, y 1404-1408 (beside the ground floor
+  stairwell) have something about 5 higher than the floor under the bags (they lie at z 31-32). Clem can't step up
+  onto them, and a walk to one went for the ground floor's tile by the stairs instead (the floor check stopped him on
+  the top step). He can pick bags up from beside them, but the bridge drops a bag only at his feet, so nothing goes
+  back onto those tiles: a bag from there goes down on a neighbouring bag's tile (work.py, `standable()`).
+- **After the nightly reboot** (04:15, rollback to about 15 minutes before): the client logs back in by itself (about
+  04:19) and knows nothing inside bags. Before starting again: check `halted`, open his working bag through the
+  bridge (Razor queued that first double-click for 5 s after the login, which halted the bridge once: `uo resume`,
+  the open had gone through), see which bag is really in his pack and how many blanks and loose maps there are, and
+  put the state right (`reorg.working`, both bags' kind, count and spot). A swap after the save point is undone.
 
 ## Drawing a map (recorded 2026-11-05 21:58, the user by hand; `~/claude/uo-agent-work/carto/draw1.jsonl`)
 
@@ -223,10 +244,16 @@ Needs: Clem's pack cleared to about 20 items, and 5 empty bags on the third floo
 2. Choose world map (by name, not number). About 6 s later the server says either **"With great care, thou dost make
    a chart of the geography."** (a world map lands loose in his pack) or **"Thy trembling hand results in an unusable
    map."** (the blank is used up, nothing made). Either way one blank goes, so the pack's item count doesn't change.
-3. Again at once (no "must wait" seen at full speed so far): about 10-12 s a map, most of it the server's.
+3. Again at once: about 10.8 s a map, most of it the server's (and the bridge's /skill wait, below). Now and then
+   (26 times in 3,700) the server answers the skill with "You must wait a few moments to use another skill.": just
+   use it again.
 - Cartography was 84.2 (85.6 with a bonus), cap 100, on 2026-11-05 22:00.
-- The loop is `~/claude/uo-agent-work/carto/draw.py` for now (outside the repo while the other agent works on the
-  code; to go into carto.py): it draws from the working bag until it's empty and logs each go to `draws.jsonl`.
+- The loop is in `~/claude/uo-agent-work/carto/` for now (outside the repo while the other agent works on the code;
+  to go into carto.py): `draw.py` draws from the working bag until it's empty and logs each go to `draws.jsonl`;
+  `work.py` goes bag after bag: draw the working bag, put the loose drawn maps into it, set it down on the next blank
+  bag's tile (the completed bag goes down before the blank one is picked up, for the 125-item limit), pick that one
+  up. Third floor overflow first, then the second floor by row, the raised strip last. It stops when no blank bag is
+  left, and never leaves the tower (his rules allow no spells).
 - `/skill` waits for a system message or a cursor, and a menu is neither, so it returns only after its timeout (about
   3 s) each time. For a later build: count a menu as the skill's answer.
 
@@ -272,9 +299,7 @@ gump recorder and the cartography menu are done. Still to come:
 
 ## Next steps (in order)
 
-1. Add the two older third floor blank bags (0x409167C0: 85 at 1753,1402; 0x409167C1: 48 at 1752,1402; the client
-   has forgotten their contents, so open them first) to the state as overflow blank bags. The reorganisation itself
-   is done.
-2. Draw the blanks (under way 2026-11-05 with draw.py), then the storage moves between bags (carto.py has them).
-3. The bridge additions (vendor, Invisibility on himself, doors), into the other agent's next build, with the user's
+1. Done 2026-11-06: every blank drawn (Progress). Clem is paused until the user says what's next.
+2. Fold draw.py and work.py into carto.py once the other agent is done with the code.
+3. Selling (not yet: the user, 2026-11-06) needs the bridge additions (vendor, Invisibility on himself, doors), into the other agent's next build, with the user's
    go-ahead; then the user shows the vendor rune, the gold chest and the door, and the vendor trips get written.
