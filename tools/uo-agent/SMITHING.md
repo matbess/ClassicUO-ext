@@ -150,8 +150,19 @@ Tinkering are set to rise, the rest to fall.
   are exact (to 21:16); the 258 from 21:16 to 21:38, while the user was adding, are estimated from the failures
   (4.97 lost a failure).
 - **Totals**: `python3 -I smith.py report`.
-- After a server reboot the loop stops ("the server went quiet"); check `halted` in `uo --char Icepick status`,
-  `uo --char Icepick resume` if set, and start it again (it opens the pack, chest, bag and pouch itself).
+- **The nightly reboot** (about 04:15; the world rolls back to the save about 15 minutes before; MINING.md): the loop
+  stops with "the game is not responding". Then:
+  1. Back up `state.json`; wait until `uo --char Icepick status` answers (about 04:19); `uo --char Icepick resume`
+     if it shows `halted`.
+  2. Find the save point: his Blacksmithy (`uo skills`) matches one "A -> B" line in the log; a hammer the log says
+     broke after the save is back in his pack; his pack's ingots match a supplies line.
+  3. Correct the state: ingots used = started with minus what's really left now (bag + pack); take the hammers that
+     broke after the save out of `broken` (the one back in his pack gets its uses at the save; one taken after it is
+     back in the pouch, so out of `hammers`); set crafts, made, failed and the item counts back to the last skill line
+     before the save; say so in `totals.note`.
+  4. Start the loop and the Monitor again, and tell the user.
+  2026-11-06: back at 04:19:19, rolled back to about 04:00:30 (76.2 -> 75.8; hammer 0x40860DDD, broken at 04:06:35,
+  back in his pack; 133 ingots returned), the loop running again at 04:20:15.
 
 ## Questions still open
 
