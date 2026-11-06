@@ -84,7 +84,10 @@ CASTERS = {'water elemental', 'air elemental', 'lich', 'orc mage', 'ratman mage'
 PASSIVE = {'llama', 'sheep', 'horse', 'cow', 'bull', 'pig', 'boar', 'chicken', 'deer', 'hind', 'great hart', 'rabbit',
            'jack rabbit', 'cat', 'dog', 'bird', 'eagle', 'goat', 'mountain goat', 'rat', 'squirrel', 'ferret',
            'pack horse', 'pack llama', 'walrus', 'dolphin', 'crane', 'raven', 'magpie', 'finch', 'tern', 'swallow',
-           'panther'}  # panthers: "they are grey", no need to fight them (the user, 2026-11-06)
+           'panther', 'timber wolf'}
+# the user, 2026-11-06: leave panthers alone unless they attack him (they don't seem to); timber wolves don't attack,
+# dire wolves do (deal with those). It's per creature, and the bridge's notoriety doesn't tell (all show Gray). A
+# creature from this list that turns on him (war mode, not provoked) counts as a threat after all.
 SAY_FOLLOW = 'all follow me'
 
 info = None
@@ -483,7 +486,7 @@ class Fight:
                 return False
             say('paralysed, and no pouch left')
 
-        threats = [m for m in mobs.values() if attackable(m) and not passive(m)]
+        threats = [m for m in mobs.values() if attackable(m) and (not passive(m) or m.get('warMode'))]
         busy = [m for m in threats if self.busy(m['serial'], mobs)]
         busy_ids = {m['serial'] for m in busy}
         free = [m for m in threats if m['serial'] not in busy_ids]
