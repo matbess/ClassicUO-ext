@@ -6,6 +6,7 @@ wands and sort it into a house's chests.
 
 - **`AGENTS.md`**: how the pieces fit, the user's house and chest wall, open items and history. Start here.
 - **`MINING.md`** and **`CARTO.md`**: mining (Icepick and Burgers, `mine.py`) and cartography (Clem, `carto.py`).
+- **`COMBAT.md`**: Clem's fights and the tower's front door (`fight.py`, `door.py`, `fight_scenes.py`).
 - **`skills/uo-sort/SKILL.md`**: the sorting procedure, safety rules, server lessons and keep rules (installed as
   the user-level Claude skill `uo-sort` by a symlink).
 

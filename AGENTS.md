@@ -29,6 +29,9 @@ This is the user's fork of ClassicUO (github.com/matbess/ClassicUO-ext). All of 
   Commit identity is set in the repository: matbess <1884731+matbess@users.noreply.github.com>. Push access is a
   repo-only deploy key (`~/.ssh/github_classicuo`, ssh host alias `github-classicuo`). No `gh` CLI on the Mac.
 - Don't draft feedback reports about the session.
+- **Clem outside the tower** (the user, 2026-11-06; `tools/uo-agent/COMBAT.md`): the front door always ends locked
+  and closed; never stop watching him while he's out unless the user is controlling him; always park him back
+  inside; never leave him standing among creatures; once the user takes over, only they hand him back.
 - **Pacing is for mining only** (the user, 2026-11-05: "for johnny too, for everyone"). Only Icepick's digging out in
   town has the slow, human-like pacing (MINING.md, "Pacing"). Everything else runs at **full speed**: inside the
   tower or house (Johnny's sorting, Clem's cartography, Icepick's smithing) and the bank (mine.py switches Burgers to
@@ -47,13 +50,15 @@ This is the user's fork of ClassicUO (github.com/matbess/ClassicUO-ext). All of 
 | **Agent bridge**: a local HTTP API that lets an agent such as Claude see the game and act as one character | `agent_bridge` (Options > Experimental) | `Game/Managers/AgentBridge.cs`, hooks in `World.cs` and `Network/PacketHandlers.cs` |
 
 The agent bridge and its tools are how Claude sorts the user's loot (as Johnny), mines (as Icepick, with
-Burgers banking) and trains Cartography (as Clem). Everything about the bridge and sorting lives in
-**`tools/uo-agent/AGENTS.md`**; mining is in **`tools/uo-agent/MINING.md`** (the user's rules, the route, the guard,
-everything tested) and `mine.py`; cartography is in **`tools/uo-agent/CARTO.md`** and `carto.py`.
+Burgers banking), trains Cartography (as Clem) and fights (as Clem, a bard-mage, outside the tower). Everything
+about the bridge and sorting lives in **`tools/uo-agent/AGENTS.md`**; mining is in **`tools/uo-agent/MINING.md`**
+(the user's rules, the route, the guard, everything tested) and `mine.py`; cartography is in
+**`tools/uo-agent/CARTO.md`** and `carto.py`; fighting and the front door in **`tools/uo-agent/COMBAT.md`**,
+`fight.py` and `door.py`.
 
 ## Other tools in this repository
 
-- `tools/uo-agent/`: the agent tools for sorting, mining and cartography (see its AGENTS.md).
+- `tools/uo-agent/`: the agent tools for sorting, mining, cartography, smithing and fighting (see its AGENTS.md).
 - `tools/build/`: building, smoke testing and installing the client on the Mac.
 - `tools/effects/`: the effect recorder's log decoder and a replay harness for the buff tracker.
 

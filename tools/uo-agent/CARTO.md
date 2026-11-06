@@ -301,5 +301,6 @@ gump recorder and the cartography menu are done. Still to come:
 
 1. Done 2026-11-06: every blank drawn (Progress). Clem is paused until the user says what's next.
 2. Fold draw.py and work.py into carto.py once the other agent is done with the code.
-3. Selling (not yet: the user, 2026-11-06) needs the bridge additions (vendor, Invisibility on himself, doors), into the other agent's next build, with the user's
-   go-ahead; then the user shows the vendor rune, the gold chest and the door, and the vendor trips get written.
+3. Selling (not yet: the user, 2026-11-06) needs Clem able to fight first: Recall home lands him outside the front
+   door among creatures (COMBAT.md; bridge 7 has the doors, creature targets and spells). Still to add: the vendor
+   (buy and sell gumps); then the user shows the vendor rune and the gold chest, and the vendor trips get written.
