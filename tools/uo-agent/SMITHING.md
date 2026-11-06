@@ -27,7 +27,7 @@ decided, so any session can pick it up. Newer notes win where they disagree with
 - **Hammers**: in a pouch in the grey bag. One sledge hammer to start; the user will add **smith's hammers** (not
   sledge hammers) from now on.
 - **Hammers break** (the user, 2026-11-05), so the user keeps a bag full of them stocked. The first, a sledge
-  hammer, lasted 199 uses (broke 21:13). The hammers are found in any pouch or bag in the grey bag (the user swapped
+  hammer, lasted 199 uses (broke 21:13); the first smith's hammers 50 and 40. The hammers are found in any pouch or bag in the grey bag (the user swapped
   the first pouch for one of smith's hammers, 99 of them by 21:16), so swapping containers needs nothing. Icepick carries one at a
   time; when it breaks he takes the next from the pouch. The loop counts crafts per hammer (to learn how long one
   lasts) and tells the user when the pouch is getting low, and stops if none is left.
@@ -108,6 +108,10 @@ Tinkering are set to rise, the rest to fall.
 - **Clicks in Icepick's client** while the loop runs can take its menu or cursor (2026-11-05 20:45: a click on the
   ground used up the Smelt cursor and the loop stopped). It now tries the step again, and stops only after five
   interruptions in a row ("is someone playing Icepick?"). At the start it smelts any crafted item left in his pack.
+- **World saves** (2026-11-05 21:33): the save notices can come where a craft's result should, and just after one
+  the server may answer "You must wait to perform another action". The loop leaves the notices out, waits up to a
+  minute for the real result, doesn't count a refused attempt, and smelts any crafted item it finds lying in his
+  pack every time round.
 - It stops by itself at 99 ("time for the spear / plate gloves trial"), when the hammers or ingots run out, or on
   anything it doesn't understand.
 - Pace, measured: dclick to menu 75 ms; the bridge answers a menu about 1 s after it shows (the 300 ms settle and

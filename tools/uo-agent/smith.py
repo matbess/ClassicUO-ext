@@ -320,9 +320,31 @@ def options_menu(hammer_serial):
     return d
 
 
+NOISE = ('world will save', 'world is saving', 'world save', 'save complete')
+
+
 def result_text(answer):
-    texts = [m['text'] for m in answer.get('messages', []) if not m.get('serial')]
+    """The server's answer, leaving out the world-save notices (one came in place of a craft result, 21:33)."""
+    texts = [m['text'] for m in answer.get('messages', []) if not m.get('serial')
+             and not any(n in m['text'].lower() for n in NOISE)]
     return texts[-1] if texts else '?'
+
+
+def craft_result(answer):
+    """The craft's result: from the answer, or (when a world save held it up) the next one the server sends."""
+    text = result_text(answer)
+    if 'create' in text.lower() or 'failed' in text.lower() or 'must wait' in text.lower():
+        return text
+    last = max([m['id'] for m in answer.get('messages', [])] or [0])
+    end = time.time() + 60
+    while time.time() < end:
+        for m in call('GET', '/messages', after=last)['messages']:
+            last = m['id']
+            low = m['text'].lower()
+            if not m.get('serial') and ('you create' in low or 'failed to create' in low):
+                return m['text']
+        time.sleep(0.5)
+    return text
 
 
 def craft_full(hammer_serial, item, place, ingots):
@@ -374,8 +396,12 @@ def make(state, hammer_serial, item, ingots):
         if answer is None:
             raise Stop(f'{item} is not on any {place[0]} menu (skill too low, or a different name?)')
         state['last_item'] = item
-    made = [i for i in pack() if i['serial'] not in before and not is_ingots(i)]
-    return result_text(answer), made
+    text = craft_result(answer)
+    after = pack()
+    # anything new, and any crafted item left lying in the pack
+    made = [i for i in after if i['serial'] not in before and not is_ingots(i)]
+    made += [i for i in made_items(after) if i not in made]
+    return text, made
 
 
 def smelt_item(hammer_serial, serial):
@@ -454,6 +480,10 @@ def run(forced_item):
             if interrupted >= 5:
                 raise Stop(f'interrupted five times in a row ({e}): is someone playing Icepick?')
             say(f'craft interrupted ({e}); again')
+            continue
+        if 'must wait' in text.lower() and not made:
+            # the server didn't take it (just after a world save, 21:33): not a craft; again in a moment
+            time.sleep(1)
             continue
         t['crafts'] += 1
         since_ore += 1
