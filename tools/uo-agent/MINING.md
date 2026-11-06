@@ -19,9 +19,9 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
   over only), `--incidents`, `--reviewed`, `--park`, `--stop`.
 - Before starting: both characters logged in with the Agent bridge option ticked, Icepick near McGee or on him,
   Burgers by the forge with his four runes, or at the Ocllo bank (the start-up then finishes his bank trip).
-- To do in the bridge, not yet written: "left the area" only on leaving (below, 2026-11-05 09:38). It then needs
-  a new client build, installed with the clients closed and the user's yes. (The ground drop and the guild-tag
-  change were built into cuo-agent16 and are installed; checked 2026-11-05.)
+- Built, not installed yet: **cuo-agent18** (bridge 5), "left the area" only on leaving (below, 2026-11-05 09:38).
+  Installing needs the loop parked, the clients closed (smoke test first) and the user's yes. (The ground drop and
+  the guild-tag change were built into cuo-agent16 and are installed; checked 2026-11-05.)
 
 ## Running it from a Claude session
 
@@ -401,9 +401,9 @@ files further: they apply at once, without a new build.
   1101,1649, along the area's west edge at x 1100) the client's path finder stepped Icepick to 1099,1649. The
   bridge stops every walk the moment it sees him outside the area, even one heading back in, so the replans and
   hops all failed and the loop stopped (he was left mounted but in sight; hidden by hand). The loop now steps him
-  back onto a walkable tile inside, a tile at a time, whenever a ride stops with "left the area". **Bridge fix
-  for the next build**: count "left the area" only when a walk takes him from inside to outside, not when it
-  starts outside.
+  back onto a walkable tile inside, a tile at a time, whenever a ride stops with "left the area". **Bridge 5**
+  (build cuo-agent18, the user asked for it the same day): "left the area" counts only when a walk or ride takes
+  him from inside to outside; one that starts outside may take up to 4 steps outside on its way back in.
 - **The user swaps whole bags in Burgers' bank** (2026-11-04: easier than emptying them; ingots, shovels or
   reagents). At each bank trip the loop drops a remembered bag that's gone, finds the new one by what's in it,
   labels it, and removes the labels of bags no longer in the bank.

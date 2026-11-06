@@ -39,7 +39,7 @@ namespace ClassicUO.Game.Managers
     {
         private const int FIRST_PORT = 7780;
         private const int LAST_PORT = 7789;
-        private const int VERSION = 4; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard)
+        private const int VERSION = 5; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in
         private const int GUARD_INTERVAL = 250;  // milliseconds between the guard's checks
         private const int ALARM_FILE_INTERVAL = 1000;
         private const int CAST_TIMEOUT = 6000;   // from casting to the target cursor
@@ -55,6 +55,7 @@ namespace ClassicUO.Game.Managers
         private const int TRAVEL_TIMEOUT = 180000;  // the longest ride /travel will make
         private const int TRAVEL_STUCK = 6000;      // no progress for this long ends a ride
         private const int TRAVEL_HANDOVER = 3;      // tiles before a stretch's end where the next one starts
+        private const int STEPS_BACK_IN = 4;        // steps a walk that starts outside the area may take outside it
         private const int GAME_THREAD_TIMEOUT = 5000;
         private const int POLL_INTERVAL = 50;
         private const int OPEN_TIMEOUT = 3000;
@@ -934,6 +935,8 @@ namespace ClassicUO.Game.Managers
             int y = toItem ? 0 : GetRequiredInt(query, "y");
             int distance = Math.Clamp(GetInt(query, "distance", toItem ? 1 : 0), 0, 10);
 
+            AreaWatch area = null;
+
             (int destX, int destY, bool already) = OnGame
             (
                 () =>
@@ -941,6 +944,7 @@ namespace ClassicUO.Game.Managers
                     CheckNobodyElse(rules);
                     PlayerMobile p = _world.Player;
                     int dx = x, dy = y;
+                    area = new AreaWatch(m => rules.Contains(_world.MapIndex, m.X, m.Y, m.Z), p);
 
                     if (toItem)
                     {
@@ -990,7 +994,7 @@ namespace ClassicUO.Game.Managers
                     () =>
                     {
                         PlayerMobile p = _world.Player;
-                        leftArea = !rules.Contains(_world.MapIndex, p.X, p.Y, p.Z);
+                        leftArea = area.Left(p);
 
                         return leftArea || !p.Pathfinder.AutoWalking;
                     },
@@ -1065,7 +1069,7 @@ namespace ClassicUO.Game.Managers
                 throw new BridgeException(400, "give 1 to 200 waypoints as path=x,y;x,y;...");
             }
 
-            OnGame
+            AreaWatch area = OnGame
             (
                 () =>
                 {
@@ -1077,7 +1081,7 @@ namespace ClassicUO.Game.Managers
                         }
                     }
 
-                    return true;
+                    return new AreaWatch(m => rules.Contains(_world.MapIndex, m.X, m.Y, m.Z), _world.Player);
                 }
             );
 
@@ -1106,7 +1110,7 @@ namespace ClassicUO.Game.Managers
                     () =>
                     {
                         PlayerMobile p = _world.Player;
-                        bool isOutside = !rules.Contains(_world.MapIndex, p.X, p.Y, p.Z);
+                        bool isOutside = area.Left(p);
 
                         if (isOutside)
                         {
@@ -1218,6 +1222,49 @@ namespace ClassicUO.Game.Managers
                     }
                 )
             );
+        }
+
+        // "left the area", for a walk or a ride: a step took him from inside the agent's area to outside it. One that
+        // starts outside (the path finder stepped Icepick a tile over the edge, 2026-11-05 09:38, and every walk after
+        // stopped at once, back in too) may carry on, for a few steps outside, until he's back in.
+        private sealed class AreaWatch
+        {
+            private readonly Func<PlayerMobile, bool> _inside;
+            private bool _beenInside;
+            private int _stepsOutside;
+            private int _x, _y;
+
+            public AreaWatch(Func<PlayerMobile, bool> inside, PlayerMobile p)
+            {
+                _inside = inside;
+                _beenInside = inside(p);
+                _x = p.X;
+                _y = p.Y;
+            }
+
+            public bool Left(PlayerMobile p)
+            {
+                if (_inside(p))
+                {
+                    _beenInside = true;
+
+                    return false;
+                }
+
+                if (_beenInside)
+                {
+                    return true;
+                }
+
+                if (p.X != _x || p.Y != _y)
+                {
+                    _stepsOutside++;
+                    _x = p.X;
+                    _y = p.Y;
+                }
+
+                return _stepsOutside > STEPS_BACK_IN;
+            }
         }
 
         // picks an item up and drops it into a container (at x, y in its gump) or onto a stack of the same kind;
