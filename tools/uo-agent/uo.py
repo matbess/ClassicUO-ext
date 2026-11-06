@@ -56,6 +56,18 @@ Bridge 6 (build cuo-agent19 on): menus, gumps, target cursors, skills and the ev
   uo record FILE               follow the event log into FILE (JSON lines) until Ctrl-C: record a task done by
                                hand
 
+Bridge 7 (build cuo-agent20 on): fights, for a character whose rules say "fight": true (Clem, COMBAT.md)
+  uo nearby                    creatures also show their health (hits/hitsMax, a share: the server scales it),
+                               and whether they're in war mode, paralyzed or poisoned; uo status shows his own
+  uo skill ID --cursor         a skill that asks for targets (22 = Provocation) leaves its cursor up for uo target
+  uo target SERIAL             a creature anybody may attack (gray, criminal, enemy, murderer; never a person or
+                               a pet) within 12 tiles, or a door the rules name (a key aimed at it)
+  uo cast SPELL SERIAL|self    a spell at such a creature (42 = Energy Bolt) or at himself (4 = Heal): aims as
+                               soon as the cursor shows and comes back
+  uo walk X Y --run [--nowait] run there; --nowait comes back at once, so the next walk can turn him
+  uo use SERIAL                also a door the rules name (it opens or closes) or a key ring they name, where it
+                               hangs
+
 Wherever a SERIAL is expected, a label (or a unique part of one) also works.
 
 Options: --char NAME picks the character when several have the bridge on; --json prints raw JSON.
@@ -483,6 +495,8 @@ def main():
     p.add_argument('y', nargs='?', type=int)
     p.add_argument('--to')
     p.add_argument('--distance', type=int)
+    p.add_argument('--run', action='store_true')
+    p.add_argument('--nowait', action='store_true')
     p = sub.add_parser('move')
     p.add_argument('serial')
     p.add_argument('to')
@@ -506,7 +520,9 @@ def main():
     p.add_argument('target')
     sub.add_parser('say').add_argument('text', nargs='+')
     sub.add_parser('guard').add_argument('on', choices=['on', 'off'])
-    sub.add_parser('skill').add_argument('id', type=int)
+    p = sub.add_parser('skill')
+    p.add_argument('id', type=int)
+    p.add_argument('--cursor', action='store_true')
     sub.add_parser('dismount')
     sub.add_parser('mount').add_argument('serial')
     sub.add_parser('alarm')
@@ -590,7 +606,8 @@ def main():
     elif c == 'walk':
         if args.to is None and (args.x is None or args.y is None):
             sys.exit('walk needs X Y or --to SERIAL')
-        result = call(info, 'POST', '/walk', x=args.x, y=args.y, to=args.to, distance=args.distance)
+        result = call(info, 'POST', '/walk', x=args.x, y=args.y, to=args.to, distance=args.distance,
+                      run=1 if args.run else None, wait=0 if args.nowait else None)
     elif c == 'move':
         x, y = args.at if args.at else (None, None)
         result = move(info, args.serial, args.to, x, y, args.amount)
@@ -614,7 +631,8 @@ def main():
         result = call(info, 'POST', '/trade', **({'cancel': 1} if args.what == 'cancel' else
                                                  {'accept': 1 if args.what == 'accept' else 0}))
     elif c == 'cast':
-        result = call(info, 'POST', '/cast', spell=args.spell, target=args.target)
+        target = call(info, 'GET', '/status')['serial'] if args.target == 'self' else args.target
+        result = call(info, 'POST', '/cast', spell=args.spell, target=target)
     elif c == 'say':
         result = call(info, 'POST', '/say', text=' '.join(args.text))
     elif c == 'guard':
@@ -624,7 +642,7 @@ def main():
     elif c == 'animations':
         result = call(info, 'GET', '/animations')
     elif c == 'skill':
-        result = call(info, 'POST', '/skill', id=args.id)
+        result = call(info, 'POST', '/skill', id=args.id, cursor=1 if args.cursor else None)
     elif c == 'dismount':
         result = call(info, 'POST', '/dismount')
     elif c == 'mount':
@@ -704,8 +722,9 @@ def main():
         print(f"you are at {result['you']['x']},{result['you']['y']},{result['you']['z']}")
         print_items(result['items'])
         for m in result['mobiles']:
-            tags = [t for t in ('human', 'yourPet', 'dead', 'hidden') if m.get(t)]
-            print(f"{m['serial']}  {m['name'] or '?'}  body {m['body']}  {m['notoriety']}"
+            tags = [t for t in ('human', 'yourPet', 'dead', 'hidden', 'warMode', 'paralyzed', 'poisoned') if m.get(t)]
+            health = f"  hits {m['hits']}/{m['hitsMax']}" if m.get('hitsMax') else ''
+            print(f"{m['serial']}  {m['name'] or '?'}  body {m['body']}  {m['notoriety']}{health}"
                   f"  at {m['x']},{m['y']},{m['z']} ({m['dx']:+},{m['dy']:+}, {m['distance']} tiles)"
                   + (f"  [{', '.join(tags)}]" if tags else ''))
     elif c == 'item':
@@ -728,6 +747,9 @@ def main():
         print_items(result['items'], '    ')
     elif c in ('close', 'cancel', 'rules', 'resume'):
         print(json.dumps(result))
+    elif c == 'walk' and 'tilesLeft' not in result:  # --nowait: on his way
+        print(('already there' if result['arrived'] else 'walking' if result['walking'] else 'not walking') +
+              f" from {result['x']},{result['y']},{result['z']}")
     elif c == 'walk':
         print(('arrived' if result['arrived'] else f"stopped {result['tilesLeft']} tiles short") +
               f" at {result['x']},{result['y']},{result['z']}")
@@ -749,6 +771,9 @@ def main():
     elif c in ('give', 'trade'):
         print_trade(result.get('trade'))
         print_messages(result.get('messages', []))
+    elif c == 'cast' and 'aimed' in result:  # at a creature or himself (bridge 7)
+        print(('aimed' if result['aimed'] else 'NOT aimed') + f"  hits {result['hits']}  mana {result['mana']}")
+        print_messages(result['messages'])
     elif c == 'cast':
         print(('moved' if result['moved'] else 'did not move') + f" to {result['x']},{result['y']},{result['z']}"
               f"  mana {result['mana']}")

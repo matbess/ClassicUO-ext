@@ -39,7 +39,7 @@ namespace ClassicUO.Game.Managers
     {
         private const int FIRST_PORT = 7780;
         private const int LAST_PORT = 7789;
-        private const int VERSION = 6; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs)
+        private const int VERSION = 7; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs); 7: fights (creatures' health, skills and spells aimed at creatures, running walks that don't wait, doors and keys)
         private const int GUARD_INTERVAL = 250;  // milliseconds between the guard's checks
         private const int ALARM_FILE_INTERVAL = 1000;
         private const int CAST_TIMEOUT = 6000;   // from casting to the target cursor
@@ -67,6 +67,8 @@ namespace ClassicUO.Game.Managers
         private const int MAX_DEPTH = 4;
         private const int REACH = 2; // the server silently ignores a double-click or lift from further away
         private const int TARGET_REACH = 12;
+        private const int FIGHT_RANGE = 12;   // a creature a skill or spell is aimed at (provoking, a bolt) is at most this far
+        private const int FIGHT_ANSWER = 2000; // in a fight, how long to wait for the server's word on an aim; never a halt
         private const int LIFT_WAIT = 1000; // between picking up and dropping: this server holds a drop that comes sooner and carries it out late
         private const int SAVE_LIMIT = 5;   // minutes: a world save that never says it's complete stops holding actions after this
         private const int ACTION_LOG = 300;
@@ -762,7 +764,7 @@ namespace ClassicUO.Game.Managers
                     RequireMethod(method, "POST");
                     CheckNotHalted();
 
-                    return UseSkill(GetRequiredInt(query, "id"), query.ContainsKey("target") ? GetSerial(query, "target") : 0);
+                    return UseSkill(GetRequiredInt(query, "id"), query.ContainsKey("target") ? GetSerial(query, "target") : 0, GetInt(query, "cursor", 0) != 0);
 
                 case "/dismount":
                     RequireMethod(method, "POST");
@@ -969,9 +971,23 @@ namespace ClassicUO.Game.Managers
         private byte[] Walk(Dictionary<string, string> query)
         {
             Rules rules = RequireRules();
+            bool run = GetInt(query, "run", 0) != 0;
+
+            // wait=0 (fights only): start the walk and come back at once, without waiting a turn: steps aren't actions,
+            // and getting away from a creature can't wait. The path isn't watched for leaving the areas then.
+            bool wait = GetInt(query, "wait", 1) != 0;
+
+            if (!wait && !rules.Fight)
+            {
+                throw new BridgeException(403, "only a character the rules let fight walks without waiting");
+            }
 
             // a walk waits its turn like any other action, so nothing happens the instant he arrives somewhere
-            WaitForActionSlot();
+            if (wait)
+            {
+                WaitForActionSlot();
+            }
+
             bool toItem = query.ContainsKey("to");
             uint target = toItem ? GetSerial(query, "to") : 0;
             int x = toItem ? 0 : GetRequiredInt(query, "x");
@@ -1012,7 +1028,7 @@ namespace ClassicUO.Game.Managers
                         return (dx, dy, true);
                     }
 
-                    if (!p.Pathfinder.WalkTo(dx, dy, p.Z, distance))
+                    if (!p.Pathfinder.WalkTo(dx, dy, p.Z, distance, run))
                     {
                         throw new BridgeException(409, "no path to there");
                     }
@@ -1022,6 +1038,28 @@ namespace ClassicUO.Game.Managers
             );
 
             bool leftArea = false;
+
+            if (!wait)
+            {
+                return OnGame
+                (
+                    () => Json
+                    (
+                        w =>
+                        {
+                            PlayerMobile p = _world.Player;
+
+                            w.WriteStartObject();
+                            w.WriteBoolean("arrived", already);
+                            w.WriteBoolean("walking", !already && p.Pathfinder.AutoWalking);
+                            w.WriteNumber("x", p.X);
+                            w.WriteNumber("y", p.Y);
+                            w.WriteNumber("z", p.Z);
+                            w.WriteEndObject();
+                        }
+                    )
+                );
+            }
 
             if (already)
             {
@@ -1791,6 +1829,14 @@ namespace ClassicUO.Game.Managers
             bool inHands = item.Container == _world.Player.Serial && (item.Layer == Layer.OneHanded || item.Layer == Layer.TwoHanded);
             bool allowedTool = rules.UseFromBackpack.Contains(item.Graphic) && IsCarried(item);
 
+            // a key ring the rules name, locked down by the front door: used where it is, from within reach
+            if (rules.Keys.Contains(item.Serial) && item.OnGround)
+            {
+                CheckInReach(item, REACH);
+
+                return;
+            }
+
             if (!inHands && !allowedTool)
             {
                 throw new BridgeException(403, "only an item in the character's hands, or a tool the rules allow from the backpack, can be used");
@@ -2093,6 +2139,11 @@ namespace ClassicUO.Game.Managers
                 throw new BridgeException(403, "the rules don't allow that spell");
             }
 
+            if (SerialHelper.IsMobile(target))
+            {
+                return CastAt(spell, target, rules);
+            }
+
             WaitForActionSlot();
 
             (long before, int x0, int y0) = OnGame
@@ -2175,6 +2226,189 @@ namespace ClassicUO.Game.Managers
                         w.WriteNumber("y", p.Y);
                         w.WriteNumber("z", p.Z);
                         w.WriteNumber("mana", p.Mana);
+                        WriteMessagesSince(w, before, 0);
+                        w.WriteEndObject();
+                    }
+                )
+            );
+        }
+
+        // a spell at a creature (a bolt) or at the character himself (a heal), in a fight: casts, aims the moment the
+        // cursor shows and comes back; the spell lands (or fizzles) a moment later. Never halts: whatever the server
+        // says is in the answer's messages ("More reagents are needed for this spell.", "Target is not in line of sight.")
+        private byte[] CastAt(int spell, uint target, Rules rules)
+        {
+            OnGame(() => CheckFightTarget(target, rules));
+            WaitForActionSlot();
+
+            long before = OnGame
+            (
+                () =>
+                {
+                    CheckFightTarget(target, rules);
+
+                    if (_world.TargetManager.IsTargeting)
+                    {
+                        _world.TargetManager.CancelTarget();
+                    }
+
+                    LogAction($"cast spell {spell}", target);
+                    long id = _lastMessageId;
+                    GameActions.CastSpell(spell);
+
+                    return id;
+                }
+            );
+
+            WaitFor(() => _world.TargetManager.IsTargeting || HasSystemMessageAfter(before), CAST_TIMEOUT);
+            bool aimed = false;
+
+            if (OnGame(() => _world.TargetManager.IsTargeting))
+            {
+                Aim(rules);
+
+                aimed = OnGame
+                (
+                    () =>
+                    {
+                        Mobile m = _world.Mobiles.Get(target);
+
+                        // died or ran off while the words were said: no aim (the cursor is cancelled below)
+                        if (m == null || m.IsDestroyed || m.IsDead && m != _world.Player)
+                        {
+                            return false;
+                        }
+
+                        LogAction("target", target);
+                        _world.TargetManager.Target(target);
+
+                        return true;
+                    }
+                );
+
+                Thread.Sleep(SETTLE_TIME);
+            }
+
+            OnGame(CancelTarget);
+            PaceFromNow();
+
+            return OnGame
+            (
+                () => Json
+                (
+                    w =>
+                    {
+                        PlayerMobile p = _world.Player;
+
+                        w.WriteStartObject();
+                        w.WriteBoolean("aimed", aimed);
+                        w.WriteNumber("hits", p.Hits);
+                        w.WriteNumber("mana", p.Mana);
+                        WriteMessagesSince(w, before, 0);
+                        w.WriteEndObject();
+                    }
+                )
+            );
+        }
+
+        // game thread: a creature the rules let the character aim skills and spells at: one anybody may attack (gray,
+        // criminal, enemy, murderer), not a person or a pet, within FIGHT_RANGE; or the character himself (a heal).
+        // Never anything blue or green, so a fight can't make him a criminal or touch another player.
+        private Mobile CheckFightTarget(uint serial, Rules rules)
+        {
+            if (!rules.Fight)
+            {
+                throw new BridgeException(403, "the rules don't let this character aim at creatures");
+            }
+
+            Mobile m = _world.Mobiles.Get(serial) ?? throw new BridgeException(404, "no such creature nearby");
+
+            if (m == _world.Player)
+            {
+                return m;
+            }
+
+            if (m.IsDestroyed || m.IsDead)
+            {
+                throw new BridgeException(409, "that creature is dead");
+            }
+
+            if (m.IsHuman || m.IsRenamable)
+            {
+                throw new BridgeException(403, "never a person or a pet");
+            }
+
+            if (m.NotorietyFlag != NotorietyFlag.Gray && m.NotorietyFlag != NotorietyFlag.Criminal && m.NotorietyFlag != NotorietyFlag.Enemy && m.NotorietyFlag != NotorietyFlag.Murderer)
+            {
+                throw new BridgeException(403, $"only creatures anybody may attack (this one is {m.NotorietyFlag})");
+            }
+
+            if (m.Distance > FIGHT_RANGE)
+            {
+                throw new BridgeException(409, $"too far away ({m.Distance} tiles, the most is {FIGHT_RANGE})");
+            }
+
+            return m;
+        }
+
+        // double-clicks one of the doors in the rules (it opens or closes) and waits until it has moved
+        private byte[] UseDoor(uint serial, Rules rules)
+        {
+            WaitForActionSlot();
+
+            (long before, ushort graphic, int x, int y) = OnGame
+            (
+                () =>
+                {
+                    Item door = _world.Items.Get(serial) ?? throw new BridgeException(404, "no such door nearby");
+                    CheckInReach(door, REACH);
+
+                    if (_world.TargetManager.IsTargeting)
+                    {
+                        _world.TargetManager.CancelTarget();
+                    }
+
+                    LogAction("use door (double-click)", serial);
+                    long id = _lastMessageId;
+                    GameActions.DoubleClick(_world, serial);
+
+                    return (id, door.Graphic, (int)door.X, (int)door.Y);
+                }
+            );
+
+            // "This door is locked." and the like come as messages; an opened or closed door changes its art and place
+            WaitFor
+            (
+                () =>
+                {
+                    Item door = _world.Items.Get(serial);
+
+                    return door == null || door.Graphic != graphic || door.X != x || door.Y != y || HasSystemMessageAfter(before);
+                },
+                TARGET_TIMEOUT
+            );
+
+            Thread.Sleep(SETTLE_TIME);
+            PaceFromNow();
+
+            return OnGame
+            (
+                () => Json
+                (
+                    w =>
+                    {
+                        Item door = _world.Items.Get(serial);
+
+                        w.WriteStartObject();
+                        w.WriteBoolean("moved", door == null || door.Graphic != graphic || door.X != x || door.Y != y);
+
+                        if (door != null)
+                        {
+                            w.WriteString("graphic", Hex(door.Graphic));
+                            w.WriteNumber("x", door.X);
+                            w.WriteNumber("y", door.Y);
+                        }
+
                         WriteMessagesSince(w, before, 0);
                         w.WriteEndObject();
                     }
@@ -2868,7 +3102,8 @@ namespace ClassicUO.Game.Managers
         // uses a skill the rules allow (21 is Hiding)
         // a skill, and for one that asks for a target, the target: only ever one of the character's own mounts from
         // the rules (Animal Taming on a horse that has gone wild, the user 2026-11-02)
-        private byte[] UseSkill(int skill, uint target = 0)
+        // keepCursor: a skill that asks for targets (Provocation) leaves its cursor up, and /target answers it
+        private byte[] UseSkill(int skill, uint target = 0, bool keepCursor = false)
         {
             Rules rules = RequireRules();
 
@@ -2925,6 +3160,23 @@ namespace ClassicUO.Game.Managers
 
             if (OnGame(() => _world.TargetManager.IsTargeting))
             {
+                if (target == 0 && keepCursor)
+                {
+                    return OnGame
+                    (
+                        () => Json
+                        (
+                            w =>
+                            {
+                                w.WriteStartObject();
+                                w.WriteBoolean("targeting", true);
+                                WriteMessagesSince(w, before, 0);
+                                w.WriteEndObject();
+                            }
+                        )
+                    );
+                }
+
                 if (target == 0)
                 {
                     OnGame(CancelTarget);
@@ -3638,6 +3890,8 @@ namespace ClassicUO.Game.Managers
             w.WriteBoolean("mounted", p.FindItemByLayer(Layer.Mount) != null);
             w.WriteBoolean("hidden", p.IsHidden);
             w.WriteBoolean("dead", p.IsDead);
+            w.WriteBoolean("paralyzed", p.IsParalyzed);
+            w.WriteBoolean("poisoned", p.IsPoisoned);
             w.WriteBoolean("targeting", _world.TargetManager.IsTargeting);
 
             ItemHold hold = Client.Game.UO.GameCursor.ItemHold;
@@ -3740,6 +3994,17 @@ namespace ClassicUO.Game.Managers
                 w.WriteBoolean("yourPet", mobile.IsRenamable);
                 w.WriteBoolean("dead", mobile.IsDead);
                 w.WriteBoolean("hidden", mobile.IsHidden);
+
+                // another creature's health comes from the server scaled (often out of 25 or 100): the share is what counts
+                if (mobile.HitsMax > 0)
+                {
+                    w.WriteNumber("hits", mobile.Hits);
+                    w.WriteNumber("hitsMax", mobile.HitsMax);
+                }
+
+                w.WriteBoolean("warMode", mobile.InWarMode);
+                w.WriteBoolean("paralyzed", mobile.IsParalyzed);
+                w.WriteBoolean("poisoned", mobile.IsPoisoned);
                 w.WriteEndObject();
             }
 
@@ -4204,6 +4469,9 @@ namespace ClassicUO.Game.Managers
             public readonly HashSet<int> Spells = new HashSet<int>(); // the only spells it may cast (32 is Recall)
             public readonly HashSet<int> Skills = new HashSet<int>(); // the only skills it may use (21 is Hiding)
             public readonly HashSet<uint> Mounts = new HashSet<uint>(); // its own horses, to get on and off
+            public readonly HashSet<uint> Doors = new HashSet<uint>(); // doors it may open and close (double-click) and aim a key at
+            public readonly HashSet<uint> Keys = new HashSet<uint>(); // key rings it may use where they hang (locked down by a door)
+            public bool Fight; // may aim skills and spells at creatures anybody may attack, and at itself, and walk without waiting
             public bool PauseForPeople = true;
             public GuardRules Guard;
 
@@ -4312,6 +4580,13 @@ namespace ClassicUO.Game.Managers
                 }
 
                 ReadNumbers(root, "mounts", n => rules.Mounts.Add(n));
+                ReadNumbers(root, "doors", n => rules.Doors.Add(n));
+                ReadNumbers(root, "keys", n => rules.Keys.Add(n));
+
+                if (root.TryGetProperty("fight", out JsonElement fight))
+                {
+                    rules.Fight = fight.GetBoolean();
+                }
 
                 if (root.TryGetProperty("pauseForPeople", out JsonElement pause))
                 {
@@ -4483,6 +4758,9 @@ namespace ClassicUO.Game.Managers
 
                 w.WriteEndArray();
                 WriteList(w, "mounts", Mounts, s => Hex(s));
+                WriteList(w, "doors", Doors, s => Hex(s));
+                WriteList(w, "keys", Keys, s => Hex(s));
+                w.WriteBoolean("fight", Fight);
 
                 if (Guard != null)
                 {

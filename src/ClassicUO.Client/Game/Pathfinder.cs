@@ -927,7 +927,8 @@ namespace ClassicUO.Game
             return true;
         }
 
-        public bool WalkTo(int x, int y, int z, int distance)
+        // run: always run (the agent bridge, getting away from creatures); otherwise only on long paths as before
+        public bool WalkTo(int x, int y, int z, int distance, bool run = false)
         {
             if (_world.Player == null /*|| World.Player.Stamina == 0*/ || _world.Player.IsParalyzed)
             {
@@ -984,6 +985,7 @@ namespace ClassicUO.Game
 
             if (FindPath(PATHFINDER_MAX_NODES))
             {
+                _run |= run;
                 _pointIndex = 1;
                 ProcessAutoWalk();
             }

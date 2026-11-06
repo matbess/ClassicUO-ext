@@ -12,8 +12,20 @@
     { "name": "bag room (2nd floor)", "box": [1750, 1402, 1756, 1413], "z": [26, 45] },
     // overflow only, to be emptied (the user, 2026-11-05: the second floor holds the map bags; not the room above the
     // vault, not the roof)
-    { "name": "3rd floor west (overflow)", "box": [1750, 1402, 1756, 1413], "z": [46, 65] }
+    { "name": "3rd floor west (overflow)", "box": [1750, 1402, 1756, 1413], "z": [46, 65] },
+    // the front yard, where Recall lands him and the creatures wait (the user, 2026-11-06: he has to fight them to
+    // get in; fight 1 ranged over x 1744-1773, y 1415-1445). Ground level only.
+    { "name": "front yard", "box": [1738, 1414, 1780, 1450], "z": [-10, 10] }
   ],
+  // fights (bridge 7, COMBAT.md): skills and spells at creatures anybody may attack (never a person or a pet) and
+  // at himself, and walks that don't wait
+  "fight": true,
+  // the front door, which must always stay locked and closed (the user, 2026-11-06), and the key ring locked down
+  // outside it at 1758,1415
+  "doors": ["0x408AEA54", "0x408AEA55"],
+  "keys": ["0x4040A302"],
+  // a trapped pouch, used when he's paralysed
+  "useFromBackpack": ["0x0E79"],
   // bags of maps are put down at his feet: backpack, bag, pouch
   "dropOnGround": ["0x0E75", "0x0E76", "0x0E79"],
   // no pausing (the user, 2026-11-05: people walk around the tower; nothing should stop because of that)
@@ -21,8 +33,11 @@
   "ignorePeople": [],
   // cut cloth on the floor is decoration
   "neverTouch": ["0x1766", "0x1767"],
-  // Cartography (2026-11-05): the skill shows a menu, "What do you want to make?", 4 = world map
-  "skills": [12],
+  // Cartography (2026-11-05): the skill shows a menu, "What do you want to make?", 4 = world map; Provocation and
+  // Meditation for fights
+  "skills": [12, 22, 46],
+  // Heal 4, Cure 11, Fireball 18, Greater Heal 29, Lightning 30, Recall 32 (on a rune), Paralyze 38, Energy Bolt 42
+  "spells": [4, 11, 18, 29, 30, 32, 38, 42],
   // full speed (the user, 2026-11-05: everything inside the tower runs at full speed, 1.1 s between requests; only
   // mining, out in town, has pauses); the bridge never goes below 1.1 s (milliseconds)
   "pacing": { "gap": [1100, 1100], "burst": 1000, "break": [1100, 1100], "aim": [0, 0] }

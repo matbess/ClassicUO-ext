@@ -395,6 +395,12 @@ namespace ClassicUO.Game.Managers
         private byte[] UseTool(uint serial)
         {
             Rules rules = RequireRules();
+
+            if (rules.Doors.Contains(serial))
+            {
+                return UseDoor(serial, rules);
+            }
+
             long before = 0, dialogs = 0, targets = 0;
 
             for (int attempt = 0; attempt < 2; attempt++)
@@ -546,8 +552,19 @@ namespace ClassicUO.Game.Managers
                     }
 
                     CheckNobodyElse(rules);
-                    Item aim = _world.Items.Get(serial) ?? throw new BridgeException(404, "no such item nearby");
-                    CheckInReach(CheckReachable(aim, rules, "target"), REACH);
+
+                    if (SerialHelper.IsMobile(serial))
+                    {
+                        CheckFightTarget(serial, rules);
+                    }
+                    else
+                    {
+                        Item aim = _world.Items.Get(serial) ?? throw new BridgeException(404, "no such item nearby");
+
+                        // a door the rules name lies outside the areas (on the house's edge): only reach matters
+                        CheckInReach(rules.Doors.Contains(serial) ? aim : CheckReachable(aim, rules, "target"), REACH);
+                    }
+
                     LogAction("target", serial);
                     _world.TargetManager.Target(serial);
 
@@ -555,15 +572,18 @@ namespace ClassicUO.Game.Managers
                 }
             );
 
-            return AfterAnswer(serial != 0, before, dialogs, targets, $"targeting {Hex(serial)}");
+            // in a fight the answer is waited for briefly and never halts the bridge
+            bool fight = SerialHelper.IsMobile(serial);
+
+            return AfterAnswer(serial != 0, before, dialogs, targets, $"targeting {Hex(serial)}", fight ? FIGHT_ANSWER : ANSWER_TIMEOUT, !fight);
         }
 
         // waits for the server's answer to a choice: another menu or gump, a target cursor or a message
-        private byte[] AfterAnswer(bool expectAnswer, long before, long dialogs, long targets, string what)
+        private byte[] AfterAnswer(bool expectAnswer, long before, long dialogs, long targets, string what, int timeout = ANSWER_TIMEOUT, bool haltIfNone = true)
         {
             if (expectAnswer)
             {
-                if (!WaitFor(() => _dialogCount > dialogs || _targetCount > targets || HasAnswerAfter(before), ANSWER_TIMEOUT))
+                if (!WaitFor(() => _dialogCount > dialogs || _targetCount > targets || HasAnswerAfter(before), timeout) && haltIfNone)
                 {
                     Halt($"no answer after {what}");
                 }
