@@ -33,8 +33,9 @@ decided, so any session can pick it up. Newer notes win where they disagree with
 
 ## The smithy (the tower's ground floor, map 0)
 
-- Icepick stands at **1757,1408** (z 6), mounted on McGee (the user moved him there from 1756,1409). Everything is
-  within 2 tiles, so he never walks.
+- Icepick stands at **1756,1409** or **1757,1408** (z 6), mounted on McGee; both have the chest, the forge and the
+  anvil within the bridge's reach of 2 tiles, so he never walks (the user, 2026-11-05: no walking to the chest).
+  `smith.py` has no walk at all: if he's moved out of reach, the loop stops with "too far away".
 - **Forge** 0x408A3611 at 1755,1410; **anvil** 0x408A3775 at 1756,1410.
 - **The ingot chest**: the bottom wooden chest 0x4074A4C1 at 1757,1407 (z 6), which holds any weight. The two chests
   stacked on it (0x4073C9D0 z 10, 0x40531814 z 14) are off limits. The chest also holds the user's own things (a
@@ -102,6 +103,9 @@ Tinkering are set to rise, the rest to fall.
 - The item comes from the user's table by Blacksmithy's value; `--item NAME` makes one kind regardless (for the
   trial at 99). Items not where expected (short spear, spear: Polearms is a guess) are looked for under the other
   kinds, and the log says so.
+- **Clicks in Icepick's client** while the loop runs can take its menu or cursor (2026-11-05 20:45: a click on the
+  ground used up the Smelt cursor and the loop stopped). It now tries the step again, and stops only after five
+  interruptions in a row ("is someone playing Icepick?"). At the start it smelts any crafted item left in his pack.
 - It stops by itself at 99 ("time for the spear / plate gloves trial"), when the hammers or ingots run out, or on
   anything it doesn't understand.
 - Pace, measured: dclick to menu 75 ms; the bridge answers a menu about 1 s after it shows (the 300 ms settle and
@@ -117,8 +121,9 @@ Tinkering are set to rise, the rest to fall.
   `cd ~/claude/ClassicUO/tools/uo-agent; exec python3 -I ~/claude/ClassicUO/tools/uo-agent/smith.py run`.
   It needs Icepick logged in with the Agent bridge ticked, at his spot with the chest in reach.
 - **Watch** the log with a Monitor (30 minutes at most, re-arm at each expiry):
-  `tail -n 0 -F ~/claude/uo-agent-work/smith/smith.log | grep -E --line-buffered "start:|now making|STOPPED|Blacksmithy|hammer|low|instead|not under|craft [0-9]+|ore smelted|Traceback|Error"`.
-  Every skill gain logs a "Blacksmithy A -> B" line, which is the heartbeat.
+  `tail -n 0 -F ~/claude/uo-agent-work/smith/smith.log | grep -E --line-buffered "start:|now making|STOPPED|-> [0-9]+ after|hammer|low|instead|not under|craft [0-9]+|ore smelted|Traceback|Error"`.
+  Every 0.1 gained logs a "Blacksmithy A -> B" line (several a minute at first), so the filter takes only whole
+  points ("-> 59 after").
 - **Stop**: `python3 -I smith.py stop` (after the craft it's on; waits for the loop to end). No hiding needed indoors.
 - **Tell the user**: every whole skill point (with the rate an hour), item changes, hammers breaking (and how many
   uses one lasted), `hammers low`, `ingots low`, ore smelted, and every stop.

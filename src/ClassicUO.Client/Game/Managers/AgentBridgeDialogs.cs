@@ -154,7 +154,7 @@ namespace ClassicUO.Game.Managers
                 AddEvent
                 (
                     "skill",
-                    ("id", id),
+                    ("skill", id),
                     ("name", name),
                     ("value", BinaryPrimitives.ReadUInt16BigEndian(data.Slice(6)) / 10.0),
                     ("base", BinaryPrimitives.ReadUInt16BigEndian(data.Slice(8)) / 10.0)

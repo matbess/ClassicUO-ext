@@ -73,6 +73,11 @@ class Stop(Exception):
     pass
 
 
+class Interrupted(Stop):
+    """A menu or target cursor went away before the loop answered it: someone clicked in Icepick's client
+    (2026-11-05 20:45: a ground click took the Smelt cursor). The step is tried again."""
+
+
 def say(text):
     line = time.strftime('%Y-%m-%d %H:%M:%S ') + text
     print(line, flush=True)
@@ -84,6 +89,8 @@ def call(method, endpoint, **params):
     try:
         return uo.call(info, method, endpoint, **params)
     except uo.BridgeError as e:
+        if e.code in (404, 409) and ('no target cursor' in e.message or 'no such menu' in e.message):
+            raise Interrupted(f'{method} {endpoint}: {e.message}')
         raise Stop(f'{method} {endpoint} {params}: {e}')
 
 
@@ -333,11 +340,24 @@ def make(state, hammer_serial, item, ingots):
 
 
 def smelt_item(hammer_serial, serial):
-    d = options_menu(hammer_serial)
-    answer = choose(d, menu_item(d, 'Smelt'))
-    if not answer.get('targeting'):
-        raise Stop(f'no target cursor after Smelt: {result_text(answer)}')
-    return result_text(call('POST', '/target', serial=serial))
+    for attempt in range(3):
+        try:
+            d = options_menu(hammer_serial)
+            answer = choose(d, menu_item(d, 'Smelt'))
+            if not answer.get('targeting'):
+                raise Stop(f'no target cursor after Smelt: {result_text(answer)}')
+            return result_text(call('POST', '/target', serial=serial))
+        except Interrupted as e:
+            say(f'smelting {serial} interrupted ({e}); again')
+            if not any(i['serial'] == serial for i in pack()):
+                return 'gone (melted?)'
+    raise Stop(f'smelting {serial} was interrupted three times')
+
+
+def made_items(items):
+    """Crafted things in his pack (any item from the table, or plate gloves), e.g. one left after a stop."""
+    names = [n for _, n, _ in ITEMS] + list(OTHER_PLACES)
+    return [i for i in items if (i.get('type') or '').lower() in names]
 
 
 # ---- the loop ----
@@ -359,9 +379,15 @@ def run(forced_item):
     value = skill()
     started = {'time': time.time(), 'skill': value, 'crafts': t['crafts']}
     ingots = top_up_ingots(state, force=True)
+    leftovers = made_items(pack())
+    if leftovers:
+        h = hammer(state)
+        for m in leftovers:
+            say(f"smelting {m.get('type')} {m['serial']} left in his pack: {smelt_item(h, m['serial'])}")
     say(f"start: {SKILL} {value}; {ingots.get('amount')} ingots in his pack" +
         (f'; making {forced_item} (--item)' if forced_item else ''))
     since_ore = 0
+    interrupted = 0
     while True:
         if os.path.exists(STOP_FILE):
             os.remove(STOP_FILE)
@@ -380,7 +406,15 @@ def run(forced_item):
                 state.pop('last_item', None)
         h = hammer(state)
         ingots = top_up_ingots(state)
-        text, made = make(state, h, item, ingots)
+        try:
+            text, made = make(state, h, item, ingots)
+            interrupted = 0
+        except Interrupted as e:
+            interrupted += 1
+            if interrupted >= 5:
+                raise Stop(f'interrupted five times in a row ({e}): is someone playing Icepick?')
+            say(f'craft interrupted ({e}); again')
+            continue
         t['crafts'] += 1
         since_ore += 1
         state.setdefault('hammers', {})[h] = state.get('hammers', {}).get(h, 0) + 1
