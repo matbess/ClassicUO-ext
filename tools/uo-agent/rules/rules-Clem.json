@@ -21,7 +21,7 @@
   // at himself, and walks that don't wait
   "fight": true,
   // the user takes over (2026-11-06: "if commands come from me it stops and lets me take over"): a step, spell, skill,
-  // double-click, target or war mode of his own stops every action until /resume
+  // double-click, target or war mode of their own stops every action until /resume
   "handOver": true,
   // the front door, which must always stay locked and closed (the user, 2026-11-06), and the key ring locked down
   // outside it at 1758,1415

@@ -39,7 +39,7 @@ namespace ClassicUO.Game.Managers
     {
         private const int FIRST_PORT = 7780;
         private const int LAST_PORT = 7789;
-        private const int VERSION = 7; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs); 7: fights (creatures' health, skills and spells aimed at creatures, running walks that don't wait, doors and keys; the user takes over by giving a command himself)
+        private const int VERSION = 7; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs); 7: fights (creatures' health, skills and spells aimed at creatures, running walks that don't wait, doors and keys; the user takes over by giving a command of their own)
         private const int GUARD_INTERVAL = 250;  // milliseconds between the guard's checks
         private const int ALARM_FILE_INTERVAL = 1000;
         private const int CAST_TIMEOUT = 6000;   // from casting to the target cursor
@@ -172,8 +172,8 @@ namespace ClassicUO.Game.Managers
                 }
             }
 
-            // the user gave a command himself while the rules hand the character over to him: no more actions
-            // until /resume (what he does next is his)
+            // the user gave a command of their own while the rules hand the character over to them: no more actions
+            // until /resume (what happens next is theirs)
             string acted = _userActed;
 
             if (acted != null)
@@ -2319,7 +2319,7 @@ namespace ClassicUO.Game.Managers
                             return false;
                         }
 
-                        // the user took over meanwhile: the cursor may be his, so leave it to him
+                        // the user took over meanwhile: the cursor may be theirs, so leave it to them
                         if (_takenOver != null || _userActed != null)
                         {
                             return false;
@@ -3723,7 +3723,7 @@ namespace ClassicUO.Game.Managers
         {
             if (_takenOver != null || _userActed != null)
             {
-                throw new BridgeException(423, $"the user took over ({_takenOver ?? _userActed}); resume when he hands the character back");
+                throw new BridgeException(423, $"the user took over ({_takenOver ?? _userActed}); resume when they hand the character back");
             }
 
             if (_halted != null)
@@ -4532,7 +4532,7 @@ namespace ClassicUO.Game.Managers
             public readonly HashSet<uint> Doors = new HashSet<uint>(); // doors it may open and close (double-click) and aim a key at
             public readonly HashSet<uint> Keys = new HashSet<uint>(); // key rings it may use where they hang (locked down by a door)
             public bool Fight; // may aim skills and spells at creatures anybody may attack, and at itself, and walk without waiting
-            public bool HandOver; // a command the user gives himself (a step, a spell, a skill, a click, a target) stops all actions until /resume
+            public bool HandOver; // a command the user gives themselves (a step, a spell, a skill, a click, a target) stops all actions until /resume
             public bool PauseForPeople = true;
             public GuardRules Guard;
 

@@ -37,7 +37,7 @@ namespace ClassicUO.Game.Managers
 
         private static volatile AgentBridge _sending; // the running bridge, for NetClient.Send (on whichever thread)
         private volatile bool _inWork;      // game thread: the bridge's own work is running, so what it sends is its own
-        private volatile string _userActed; // a command the user sent himself (OnSent), for Update to act on
+        private volatile string _userActed; // a command the user sent themselves (OnSent), for Update to act on
         private string _takenOver;          // game thread: the user took over (what and when); no actions until /resume
         private readonly ConcurrentQueue<BridgeEvent> _sent = new ConcurrentQueue<BridgeEvent>();
 
@@ -204,8 +204,8 @@ namespace ClassicUO.Game.Managers
             }
         }
 
-        // a command the user gives himself while the rules hand the character over to him ("handOver": in a fight he can
-        // step in to save the character): a step, a skill, a spell, a door, a double-click, a target, war mode, an
+        // a command the user gives themselves while the rules hand the character over to them ("handOver": in a fight
+        // they can step in to save the character): a step, a skill, a spell, a door, a double-click, a target, war mode, an
         // attack. Not a lift or a drop (Razor's scavenger loots by itself), a single click (names), a double-click on a
         // corpse (looting) or what the client sends by itself. What's sent during the bridge's own work, and the steps
         // of its own walks, are the bridge's.
