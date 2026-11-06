@@ -15,7 +15,6 @@
   "0x407D0B95": "bag: reagents (Burgers' bank)",
   "0x4080C375": "chest: scrolls (col 5, top)",
   "0x40832F6B": "bag: circle 1 scrolls (scrolls chest)",
-  "0x40832F8D": "bag: shovels (Burgers' bank)",
   "0x4086BE0E": "bag: circle 2 scrolls (scrolls chest)",
   "0x4087FCC6": "bag: circle 8 scrolls (scrolls chest)",
   "0x408AC160": "potions: strength",
@@ -78,5 +77,6 @@
   "0x4098CD0B": "bag: exceptional swords (swords chest)",
   "0x4098CD0E": "bag: exceptional axes (axes chest)",
   "0x4098CD0F": "bag: rings (jewellery chest)",
-  "0x4098F2D8": "bag: maces & staves (maces & staves chest)"
+  "0x4098F2D8": "bag: maces & staves (maces & staves chest)",
+  "0x4098F2E4": "bag: shovels (Burgers' bank)"
 }
