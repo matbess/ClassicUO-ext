@@ -36,6 +36,9 @@ namespace ClassicUO.Game.Managers
         private const int ANSWER_TIMEOUT = 10000; // from a choice to the server's answer (crafting takes a few seconds)
 
         private static volatile AgentBridge _sending; // the running bridge, for NetClient.Send (on whichever thread)
+        private volatile bool _inWork;      // game thread: the bridge's own work is running, so what it sends is its own
+        private volatile string _userActed; // a command the user sent himself (OnSent), for Update to act on
+        private string _takenOver;          // game thread: the user took over (what and when); no actions until /resume
         private readonly ConcurrentQueue<BridgeEvent> _sent = new ConcurrentQueue<BridgeEvent>();
 
         // only touched on the game thread
@@ -185,6 +188,11 @@ namespace ClassicUO.Game.Managers
             try
             {
                 e = ReadSent(data);
+
+                if (bridge._userActed == null && UserCommand(bridge, data) is string what)
+                {
+                    bridge._userActed = what;
+                }
             }
             catch (Exception)
             {
@@ -194,6 +202,48 @@ namespace ClassicUO.Game.Managers
             {
                 bridge._sent.Enqueue(e);
             }
+        }
+
+        // a command the user gives himself while the rules hand the character over to him ("handOver": in a fight he can
+        // step in to save the character): a step, a skill, a spell, a door, a double-click, a target, war mode, an
+        // attack. Not a lift or a drop (Razor's scavenger loots by itself), a single click (names), a double-click on a
+        // corpse (looting) or what the client sends by itself. What's sent during the bridge's own work, and the steps
+        // of its own walks, are the bridge's.
+        private static string UserCommand(AgentBridge bridge, ReadOnlySpan<byte> d)
+        {
+            if (bridge._inWork || bridge._rules?.HandOver != true)
+            {
+                return null;
+            }
+
+            bool autoWalking = bridge._world.Player?.Pathfinder.AutoWalking == true;
+
+            switch (d[0])
+            {
+                case 0x02:
+                    return autoWalking ? null : "a step";
+
+                case 0x12 when d.Length >= 4:
+                    // the client opens a door its walk runs into
+                    return d[3] == 0x58 ? (autoWalking ? null : "opening a door") : d[3] == 0x24 ? "a skill" : d[3] == 0x56 || d[3] == 0x27 ? "a spell" : "a use";
+
+                case 0xBF when d.Length >= 5 && U16(d, 3) == 0x1C:
+                    return "a spell";
+
+                case 0x6C:
+                    return "a target";
+
+                case 0x06:
+                    return bridge._world.Items.Get(U32(d, 1) & 0x7FFFFFFF) is Item item && item.IsCorpse ? null : "a double-click";
+
+                case 0x72:
+                    return "war mode";
+
+                case 0x05:
+                    return "an attack";
+            }
+
+            return null;
         }
 
         private static BridgeEvent ReadSent(ReadOnlySpan<byte> d)
@@ -552,6 +602,7 @@ namespace ClassicUO.Game.Managers
                     }
 
                     CheckNobodyElse(rules);
+                    CheckNotHalted();
 
                     if (SerialHelper.IsMobile(serial))
                     {
