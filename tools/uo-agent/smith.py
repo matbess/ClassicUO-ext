@@ -254,12 +254,14 @@ def supplies(state):
     """What's left (the user, 2026-11-05: keep track of hammers broken and the hammers and ingots left): the iron
     ingots in the grey bag and in his pack, the spare hammers, the hammers broken so far. Kept in the state."""
     bag = sum(i.get('amount') or 1 for i in contents(BAG) if is_ingots(i))
+    loose = sum(i.get('amount') or 1 for i in contents(CHEST) if is_ingots(i))
     mine = sum(i.get('amount') or 1 for i in pack() if is_ingots(i))
     spare = len(spare_hammers())
     broken = len(state.get('broken', []))
-    state['supplies'] = {'time': time.strftime('%Y-%m-%d %H:%M:%S'), 'ingots_in_bag': bag, 'ingots_in_pack': mine,
-                         'spare_hammers': spare, 'hammers_broken': broken}
-    return f'supplies: {bag} ingots in the bag (+{mine} in his pack), {spare} spare hammers, {broken} broken so far'
+    state['supplies'] = {'time': time.strftime('%Y-%m-%d %H:%M:%S'), 'ingots_in_bag': bag, 'ingots_loose_in_chest': loose,
+                         'ingots_in_pack': mine, 'spare_hammers': spare, 'hammers_broken': broken}
+    return (f'supplies: {bag} ingots in the bag' + (f' and {loose} loose in the chest' if loose else '') +
+            f' (+{mine} in his pack), {spare} spare hammers, {broken} broken so far')
 
 
 def top_up_ingots(state, force=False):
@@ -269,7 +271,10 @@ def top_up_ingots(state, force=False):
     have = mine.get('amount', 1) if mine else 0
     if have >= PACK_LOW and not force:
         return mine
+    # from the grey bag, or a stack the user left loose in the chest (2026-11-05: moving all the ingots there)
     bag = ingot_stack(contents(BAG))
+    if not bag or bag.get('amount', 1) < PACK_INGOTS:
+        bag = ingot_stack(contents(CHEST)) or bag
     available = bag.get('amount', 1) if bag else 0
     want = min(PACK_INGOTS - have, available)
     if want > 0:
