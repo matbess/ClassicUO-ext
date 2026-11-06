@@ -40,13 +40,14 @@ This is the user's fork of ClassicUO (github.com/matbess/ClassicUO-ext). All of 
 | Effect recorder for studying buff signals (logs to `Logs/Effects`); can be dropped once the tracker is settled | `record_effects` | `Network/EffectRecorder.cs` |
 | **Agent bridge**: a local HTTP API that lets an agent such as Claude see the game and act as one character | `agent_bridge` (Options > Experimental) | `Game/Managers/AgentBridge.cs`, hooks in `World.cs` and `Network/PacketHandlers.cs` |
 
-The agent bridge and its tools are how Claude sorts the user's loot (as Johnny) and mines (as Icepick, with
-Burgers banking). Everything about the bridge and sorting lives in **`tools/uo-agent/AGENTS.md`**; mining is in
-**`tools/uo-agent/MINING.md`** (the user's rules, the route, the guard, everything tested) and `mine.py`.
+The agent bridge and its tools are how Claude sorts the user's loot (as Johnny), mines (as Icepick, with
+Burgers banking) and trains Cartography (as Clem). Everything about the bridge and sorting lives in
+**`tools/uo-agent/AGENTS.md`**; mining is in **`tools/uo-agent/MINING.md`** (the user's rules, the route, the guard,
+everything tested) and `mine.py`; cartography is in **`tools/uo-agent/CARTO.md`** and `carto.py`.
 
 ## Other tools in this repository
 
-- `tools/uo-agent/`: the sorting agent (see its AGENTS.md).
+- `tools/uo-agent/`: the agent tools for sorting, mining and cartography (see its AGENTS.md).
 - `tools/build/`: building, smoke testing and installing the client on the Mac.
 - `tools/effects/`: the effect recorder's log decoder and a replay harness for the buff tracker.
 

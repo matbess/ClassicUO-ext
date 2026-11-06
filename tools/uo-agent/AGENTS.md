@@ -6,6 +6,10 @@ it with, the house's labels and chest map, and the procedure.
 
 **Mining** (Icepick and Burgers, from 2026-11-01): read `MINING.md` first; the loop is `mine.py`.
 
+**Cartography** (Clem, from 2026-11-05: world maps from the map bags on the tower's second floor, outside the
+vault, and trips to the map vendor): read `CARTO.md` first; the tool is `carto.py`, Clem's rules
+`rules/rules-Clem.json` (no guard).
+
 **To sort loot, follow `skills/uo-sort/SKILL.md`.** It has the procedure, the safety rules, everything learned about
 the server, and the user's keep rules. It's installed as the user-level skill `uo-sort` through a symlink
 (`~/.claude/skills/uo-sort/SKILL.md` -> this repo's `tools/uo-agent/skills/uo-sort/SKILL.md`), so edit it here and
@@ -50,6 +54,7 @@ user's ClassicUO (Wine)                       this Mac
 | `survey.py`, `layout.py` | | open every chest and record the map in `layout.json` (`--known` sends nothing and checks labels against positions); print the map |
 | `tidy.py` | | re-lay a crowded chest's bags in one row with markers under them |
 | `moves.py`, `potions.py` | | a list of moves at the bridge's pace; potions by strength (the server hides strengths) |
+| `mine.py`, `carto.py` | | the mining loop (MINING.md) and Clem's cartography (CARTO.md) |
 
 Batch working files go in `~/claude/uo-agent-work/batchN/`. They're scratch: nothing there is needed later.
 
@@ -57,7 +62,8 @@ Batch working files go in `~/claude/uo-agent-work/batchN/`. They're scratch: not
 
 The chest room is on the second floor (z 26) of the user's stone house: x 1758-1763, y 1402-1412 (the rules area;
 floors above at z 46+ and below at z 6 hold other things, so filter by height). The green squares on the floor are cut
-cloth (decoration; never touched). The other room, with rows of bags on the floor, is at x 1751-1756: not ours.
+cloth (decoration; never touched). The other room, with rows of bags on the floor, is at x 1750-1756: Clem's map bags (CARTO.md), not
+Johnny's.
 
 **The chest wall** at y 1402: 6 columns (x 1758 to 1763, left to right) by 4 high (z 38 top, 34, 30, 26 bottom).
 Labels say "(col N, ROW)" with rows counted from the top.

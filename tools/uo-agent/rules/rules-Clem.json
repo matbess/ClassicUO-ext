@@ -1,0 +1,25 @@
+{
+  // Clem, the user's cartographer: makes world maps from the blank maps in the bags on the tower's floors
+  // (CARTO.md). The tower is a T2A Tower multi centred on 1756,1408; floors at z 6, 26 and 46.
+  // No guard (the user, 2026-11-05: he's safe inside the tower), so his bridge never raises, reads or writes
+  // Agent/alarm.json and can't set off Icepick's or Burgers' guards.
+  // The vault (the chest room behind the locked door at 1757,1412 on the second floor, x 1758-1763) is not his:
+  // no area covers it or the door's column (x 1757) on that floor.
+  "map": 0,
+  "areas": [
+    { "name": "ground floor hall", "box": [1750, 1410, 1763, 1413], "z": [0, 25] },
+    { "name": "ground floor stairs room", "box": [1750, 1402, 1753, 1409], "z": [0, 25] },
+    { "name": "bag room (2nd floor)", "box": [1750, 1402, 1756, 1413], "z": [26, 45] },
+    // overflow only, to be emptied (the user, 2026-11-05: the second floor holds the map bags; not the room above the
+    // vault, not the roof)
+    { "name": "3rd floor west (overflow)", "box": [1750, 1402, 1756, 1413], "z": [46, 65] }
+  ],
+  // bags of maps are put down at his feet: backpack, bag, pouch
+  "dropOnGround": ["0x0E75", "0x0E76", "0x0E79"],
+  // anyone else in his areas (the user's other characters too) pauses him
+  "ignorePeople": [],
+  // cut cloth on the floor is decoration
+  "neverTouch": ["0x1766", "0x1767"],
+  // indoors, the same pace as Johnny's sorting (milliseconds)
+  "pacing": { "gap": [1500, 2000], "burst": 5, "break": [3000, 5000] }
+}
