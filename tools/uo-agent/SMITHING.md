@@ -26,7 +26,9 @@ decided, so any session can pick it up. Newer notes win where they disagree with
 - **Ingots**: the user brings them (3,000 to start). Tell the user when the bag is running low.
 - **Hammers**: in a pouch in the grey bag. One sledge hammer to start; the user will add **smith's hammers** (not
   sledge hammers) from now on.
-- **Hammers break** (the user, 2026-11-05), so the user keeps a bag full of them stocked. Icepick carries one at a
+- **Hammers break** (the user, 2026-11-05), so the user keeps a bag full of them stocked. The first, a sledge
+  hammer, lasted 199 uses (broke 21:13). The hammers are found in any pouch or bag in the grey bag (the user swapped
+  the first pouch for one of smith's hammers, 99 of them by 21:16), so swapping containers needs nothing. Icepick carries one at a
   time; when it breaks he takes the next from the pouch. The loop counts crafts per hammer (to learn how long one
   lasts) and tells the user when the pouch is getting low, and stops if none is left.
 - Mining is parked while Icepick smiths (he can't do both); Burgers waits in the tower too.
@@ -121,12 +123,16 @@ Tinkering are set to rise, the rest to fall.
   `cd ~/claude/ClassicUO/tools/uo-agent; exec python3 -I ~/claude/ClassicUO/tools/uo-agent/smith.py run`.
   It needs Icepick logged in with the Agent bridge ticked, at his spot with the chest in reach.
 - **Watch** the log with a Monitor (30 minutes at most, re-arm at each expiry):
-  `tail -n 0 -F ~/claude/uo-agent-work/smith/smith.log | grep -E --line-buffered "start:|now making|STOPPED|-> [0-9]+ after|hammer|low|instead|not under|craft [0-9]+|ore smelted|Traceback|Error"`.
+  `tail -n 0 -F ~/claude/uo-agent-work/smith/smith.log | grep -E --line-buffered "start:|now making|STOPPED|-> [0-9]+ after|broke|supplies|low|instead|not under|craft [0-9]+|ore smelted|interrupted|Traceback|Error"`.
   Every 0.1 gained logs a "Blacksmithy A -> B" line (several a minute at first), so the filter takes only whole
   points ("-> 59 after").
 - **Stop**: `python3 -I smith.py stop` (after the craft it's on; waits for the loop to end). No hiding needed indoors.
-- **Tell the user**: every whole skill point (with the rate an hour), item changes, hammers breaking (and how many
-  uses one lasted), `hammers low`, `ingots low`, ore smelted, and every stop.
+- **Tell the user**: every whole skill point (with the rate an hour) and the supplies line that follows it, item
+  changes, hammers breaking (and how many uses one lasted), `hammers low`, `ingots low`, ore smelted, and every stop.
+- **Supplies** (the user, 2026-11-05: keep track of how many hammers break and how many hammers and ingots are
+  left): a `supplies:` line at the start, after every hammer that breaks and at every whole skill point: the
+  ingots in the grey bag and in his pack, the spare hammers, the hammers broken so far. Also in `smith.py report`
+  (with the average uses per hammer) and `supplies`/`broken` in the state.
 - **Totals**: `python3 -I smith.py report`.
 - After a server reboot the loop stops ("the server went quiet"); check `halted` in `uo --char Icepick status`,
   `uo --char Icepick resume` if set, and start it again (it opens the pack, chest, bag and pouch itself).

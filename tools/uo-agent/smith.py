@@ -42,7 +42,8 @@ STOP_FILE = os.path.join(WORK, 'stop')
 
 CHEST = '0x4074A4C1'    # the bottom wooden chest at 1757,1407 (holds any weight)
 BAG = '0x40BF2C73'      # the grey backpack in it: the ingots, ore to smelt, the hammer pouch
-POUCH = '0x40421216'    # the pouch of hammers in the grey bag
+# the hammers are in a pouch or bag inside the grey bag; found by what's in it (the user swaps containers: the
+# first pouch 0x40421216 was replaced by 0x408558AD on 2026-11-05)
 FORGE = '0x408A3611'    # 1755,1410
 ORE = ('0x19B7', '0x19B8', '0x19B9', '0x19BA')
 ORE_WEIGHT = 12         # stones per ore
@@ -207,8 +208,25 @@ def smelt_ore():
 
 def open_supplies():
     """After a login the client knows nothing inside containers until they're opened."""
-    for serial in (pack_serial(), CHEST, BAG, POUCH):
+    for serial in (pack_serial(), CHEST, BAG):
         call('POST', '/open', serial=serial)
+    spare_hammers()
+
+
+def spare_hammers():
+    """The hammers in the grey bag: loose, or in any pouch or bag in it (opened when the client doesn't know
+    what's inside)."""
+    found = []
+    for i in contents(BAG):
+        if i.get('graphic') in HAMMER_GRAPHICS:
+            found.append(i)
+        elif i.get('container'):
+            inner = contents(i['serial'])
+            if not inner and not i.get('knownItems'):
+                call('POST', '/open', serial=i['serial'])
+                inner = contents(i['serial'])
+            found += [h for h in inner if h.get('graphic') in HAMMER_GRAPHICS]
+    return found
 
 
 def hammer(state):
@@ -216,9 +234,13 @@ def hammer(state):
     for i in pack():
         if i.get('graphic') in HAMMER_GRAPHICS:
             return i['serial']
-    spares = [i for i in contents(POUCH) if i.get('graphic') in HAMMER_GRAPHICS]
+    spares = spare_hammers()
     if not spares:
-        raise Stop('no hammers left in the pouch: the user needs to add more')
+        # the user may have just swapped the bag: look again from the chest down
+        open_supplies()
+        spares = spare_hammers()
+    if not spares:
+        raise Stop('no hammers left in the grey bag: the user needs to add more')
     call('POST', '/move', serial=spares[0]['serial'], to=pack_serial())
     left = len(spares) - 1
     say(f"took hammer {spares[0]['serial']} ({spares[0].get('type')}) from the pouch; {left} left there")
@@ -226,6 +248,18 @@ def hammer(state):
         say(f'hammers low: {left} spare in the pouch')
     state.setdefault('hammers', {})[spares[0]['serial']] = 0
     return spares[0]['serial']
+
+
+def supplies(state):
+    """What's left (the user, 2026-11-05: keep track of hammers broken and the hammers and ingots left): the iron
+    ingots in the grey bag and in his pack, the spare hammers, the hammers broken so far. Kept in the state."""
+    bag = sum(i.get('amount') or 1 for i in contents(BAG) if is_ingots(i))
+    mine = sum(i.get('amount') or 1 for i in pack() if is_ingots(i))
+    spare = len(spare_hammers())
+    broken = len(state.get('broken', []))
+    state['supplies'] = {'time': time.strftime('%Y-%m-%d %H:%M:%S'), 'ingots_in_bag': bag, 'ingots_in_pack': mine,
+                         'spare_hammers': spare, 'hammers_broken': broken}
+    return f'supplies: {bag} ingots in the bag (+{mine} in his pack), {spare} spare hammers, {broken} broken so far'
 
 
 def top_up_ingots(state, force=False):
@@ -384,6 +418,7 @@ def run(forced_item):
         h = hammer(state)
         for m in leftovers:
             say(f"smelting {m.get('type')} {m['serial']} left in his pack: {smelt_item(h, m['serial'])}")
+    say(supplies(state))
     say(f"start: {SKILL} {value}; {ingots.get('amount')} ingots in his pack" +
         (f'; making {forced_item} (--item)' if forced_item else ''))
     since_ore = 0
@@ -420,8 +455,11 @@ def run(forced_item):
         state.setdefault('hammers', {})[h] = state.get('hammers', {}).get(h, 0) + 1
         # a hammer that broke is gone from the pack; the next one smelts
         if not any(i['serial'] == h for i in pack()):
+            state.setdefault('broken', []).append({'serial': h, 'uses': state['hammers'][h],
+                                                   'time': time.strftime('%Y-%m-%d %H:%M:%S')})
             say(f"hammer {h} broke after {state['hammers'][h]} uses: {text}")
             h = hammer(state)
+            say(supplies(state))
         low = text.lower()
         if 'you create' in low:
             t['made'] += 1
@@ -448,6 +486,8 @@ def run(forced_item):
             say(f"{SKILL} {value} -> {new} after {t['crafts']} crafts ({t['made']} made, {t['failed']} failed); "
                 f"{(new - started['skill']) / hours:.2f} an hour since the start" if hours > 0.05 else
                 f"{SKILL} {value} -> {new} after {t['crafts']} crafts ({t['made']} made, {t['failed']} failed)")
+            if int(new) > int(value):
+                say(supplies(state))
             value = new
         t['skill'] = value
         save_state(state)
@@ -456,7 +496,13 @@ def run(forced_item):
 def report():
     state = load_state()
     t = state.get('totals', {})
-    print(json.dumps({'totals': t, 'item': state.get('item'), 'hammers': state.get('hammers')}, indent=1))
+    broken = state.get('broken', [])
+    uses = [b['uses'] for b in broken]
+    print(json.dumps({'totals': t, 'item': state.get('item'), 'supplies': state.get('supplies'),
+                      'hammers broken': len(broken),
+                      'uses per hammer': round(sum(uses) / len(uses)) if uses else None,
+                      'hammer in use': {k: v for k, v in state.get('hammers', {}).items()
+                                        if k not in {b['serial'] for b in broken}}}, indent=1))
 
 
 def stop():
