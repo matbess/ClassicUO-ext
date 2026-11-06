@@ -535,7 +535,9 @@ def run(forced_item):
                 (f" in {minutes} minutes ({minutes * 60 / state['hammers'][h]:.1f} s a use)" if minutes else '') +
                 f": {text}")
             h = hammer(state)
-            say(supplies(state))
+            broke = True
+        else:
+            broke = False
         low = text.lower()
         if 'you create' in low:
             t['made'] += 1
@@ -561,6 +563,9 @@ def run(forced_item):
         t['ingots_spent'] = t.get('ingots_spent', 0) + max(0, before_craft - after_craft)
         t['ingots_returned'] = t.get('ingots_returned', 0) + max(0, after_smelt - after_craft)
         t['ingots_used'] = t.get('ingots_used', 0) + before_craft - after_smelt
+        if broke:
+            # after this craft's ingots are counted, so the totals agree
+            say(supplies(state))
         new = skill()
         if new != value:
             hours = (time.time() - started['time']) / 3600
