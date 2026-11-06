@@ -11,7 +11,7 @@ heals once clear when hurt, and uses a trapped pouch when paralysed. Bridge 7 (c
   python3 -I fight.py [--minutes N] [--resume]
 
 Starts where he is in the front yard (door.py out takes him there) and ends the fight when nothing has been left
-for 5 s, when there's no creature in the yard, or after N minutes (10). Then he goes straight back inside through the
+for 5 s, when there's no creature anywhere he looked, or after N minutes (10). Then he goes straight back inside through the
 door, locked and closed (door.go_in): he's never left out in the yard (the user, 2026-11-06: more creatures come
 along); if creatures block the door, it's back to the fight. The same when it's interrupted or something goes wrong:
 first clear of the creatures, then inside. If
@@ -37,8 +37,10 @@ WORK = os.path.expanduser('~/claude/uo-agent-work/combat')
 LOG = os.path.join(WORK, 'fight.log')
 ROWS = os.path.join(WORK, 'fights.jsonl')
 
-YARD = (1738, 1414, 1780, 1450)          # the front yard in his rules (x1, y1, x2, y2); the door is at y 1414
-PATROL = [(1759, 1426), (1770, 1438), (1748, 1428), (1758, 1444)]
+YARD = (1715, 1414, 1810, 1485)          # "outside" in his rules (x1, y1, x2, y2); the door is at y 1414
+# where to look for creatures: south first, back where the ratmen were (the user, 2026-11-06), then east
+PATROL = [(1745, 1440), (1738, 1455), (1750, 1468), (1740, 1480), (1770, 1450), (1788, 1440), (1798, 1462)]
+LOOK_AROUND = 3          # seconds at each lookout point
 
 TAMBOURINE = 0x0E9D
 POUCH = 0x0E79
@@ -210,6 +212,9 @@ class Fight:
         self.fought = False
         self.quiet_since = None
         self.patrol = list(PATROL)
+        self.goal = None         # the lookout point he's riding to
+        self.goal_sent = 0.0
+        self.arrived_at = None
         self.pending = None      # the last cast, for its damage once it has landed
 
     # ---- who's who ----
@@ -455,12 +460,31 @@ class Fight:
                 raise Stop('the fight is over', took_over=False)
             time.sleep(0.3)
             return
-        if not self.patrol:
-            raise Stop('no creature in the yard', took_over=False)
-        p = self.patrol.pop(0)
-        say(f'looking around from {p[0]},{p[1]}')
-        walk(p)
-        time.sleep(1.5)
+        # searching: ride all the way to each lookout point (watching all the way), look around, then the next
+        if self.goal is None:
+            if not self.patrol:
+                raise Stop('no creature anywhere he looked', took_over=False)
+            self.goal = self.patrol.pop(0)
+            self.goal_sent = time.time()
+            self.arrived_at = None
+            say(f'riding to {self.goal[0]},{self.goal[1]} to look around')
+            if not walk(self.goal):
+                say(f'no way to {self.goal[0]},{self.goal[1]}')
+                self.goal = None
+            return
+        if dist(me, self.goal) > 1:
+            if time.time() - self.goal_sent > 4:  # stopped short (a creature, a blocked step): send him on
+                self.goal_sent = time.time()
+                if not walk(self.goal):
+                    say(f'no way on to {self.goal[0]},{self.goal[1]}')
+                    self.goal = None
+            time.sleep(0.3)
+            return
+        if self.arrived_at is None:
+            self.arrived_at = time.time()
+        if time.time() - self.arrived_at >= LOOK_AROUND:
+            self.goal = None
+        time.sleep(0.3)
 
     def quiet(self):
         """Nothing coming or fighting for 5 s."""

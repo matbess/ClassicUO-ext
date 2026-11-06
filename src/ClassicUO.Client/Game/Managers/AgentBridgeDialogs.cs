@@ -626,15 +626,16 @@ namespace ClassicUO.Game.Managers
             // in a fight the answer is waited for briefly and never halts the bridge
             bool fight = SerialHelper.IsMobile(serial);
 
-            return AfterAnswer(serial != 0, before, dialogs, targets, $"targeting {Hex(serial)}", fight ? FIGHT_ANSWER : ANSWER_TIMEOUT, !fight);
+            // what was aimed at may answer itself: a door says "You unlock it." / "You lock it." to a key
+            return AfterAnswer(serial != 0, before, dialogs, targets, $"targeting {Hex(serial)}", fight ? FIGHT_ANSWER : ANSWER_TIMEOUT, !fight, serial);
         }
 
         // waits for the server's answer to a choice: another menu or gump, a target cursor or a message
-        private byte[] AfterAnswer(bool expectAnswer, long before, long dialogs, long targets, string what, int timeout = ANSWER_TIMEOUT, bool haltIfNone = true)
+        private byte[] AfterAnswer(bool expectAnswer, long before, long dialogs, long targets, string what, int timeout = ANSWER_TIMEOUT, bool haltIfNone = true, uint answerFrom = 0)
         {
             if (expectAnswer)
             {
-                if (!WaitFor(() => _dialogCount > dialogs || _targetCount > targets || HasAnswerAfter(before), timeout) && haltIfNone)
+                if (!WaitFor(() => _dialogCount > dialogs || _targetCount > targets || HasAnswerAfter(before) || answerFrom != 0 && HasMessageFrom(answerFrom, before), timeout) && haltIfNone)
                 {
                     Halt($"no answer after {what}");
                 }
