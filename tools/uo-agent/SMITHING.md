@@ -137,6 +137,11 @@ Tinkering are set to rise, the rest to fall.
   left): a `supplies:` line at the start, after every hammer that breaks and at every whole skill point: the
   ingots in the grey bag and in his pack, the spare hammers, the hammers broken so far. Also in `smith.py report`
   (with the average uses per hammer) and `supplies`/`broken` in the state.
+- **How long the hammers last** (the user, 2026-11-05): every break logs the hammer's uses and minutes and the
+  seconds a use; the supplies line gives the spare hammers in hours (average uses of the smith's hammers broken so
+  far times the loop's own seconds a craft, leaving out gaps over a minute). First measures: smith's hammers 50, 40,
+  70, 71, 66 uses (about 59), 10.5-10.7 s a use (a craft, and its smelt when made), about 10.5 minutes a hammer:
+  94 spares were about 16 hours at 22:09.
 - **Ingots used** (the user, 2026-11-05: "based on how many we started with and how many are remaining"): started
   with 3,309 plus every addition since, minus what's left in the grey bag and his pack. Additions (the user's, and
   ore smelted) are found as any rise in bag + pack beyond what he used, which the loop counts in his pack round each

@@ -247,6 +247,7 @@ def hammer(state):
     if left < HAMMERS_LOW:
         say(f'hammers low: {left} spare in the pouch')
     state.setdefault('hammers', {})[spares[0]['serial']] = 0
+    state.setdefault('hammer_taken', {})[spares[0]['serial']] = time.time()
     return spares[0]['serial']
 
 
@@ -274,8 +275,18 @@ def supplies(state):
     used = started - left
     state['supplies'] = {'ingots_started_with': started, 'ingots_left': left, 'ingots_used': used, 'time': time.strftime('%Y-%m-%d %H:%M:%S'), 'ingots_in_bag': bag, 'ingots_loose_in_chest': loose,
                          'ingots_in_pack': mine, 'spare_hammers': spare, 'hammers_broken': broken}
+    # how long the hammers last (the user, 2026-11-05): smith's hammers only (the first, a sledge hammer, lasted 198)
+    smith = [b['uses'] for b in state.get('broken', [])[1:]]
+    per_use = t.get('timed_seconds', 0) / t['timed_crafts'] if t.get('timed_crafts') else 10.7
+    hammers = ''
+    if smith:
+        uses = sum(smith) / len(smith)
+        hours = spare * uses * per_use / 3600
+        hammers = f" (about {uses:.0f} uses each at {per_use:.1f} s a use: {hours:.1f} hours of smithing)"
+        state['supplies_hammer_hours'] = round(hours, 1)
     return (f"supplies: ingots: started with {started} ({ing['start']} + {ing['added']} added), {left} left "
-            f"({bag} in the bag, {mine} in his pack), {used} used; {spare} spare hammers, {broken} broken so far")
+            f"({bag} in the bag, {mine} in his pack), {used} used; {spare} spare hammers{hammers}, "
+            f"{broken} broken so far")
 
 
 def top_up_ingots(state, force=False):
@@ -461,13 +472,17 @@ def run(forced_item):
     leftovers = made_items(pack())
     if leftovers:
         h = hammer(state)
+        before = pack_ingots()
         for m in leftovers:
             say(f"smelting {m.get('type')} {m['serial']} left in his pack: {smelt_item(h, m['serial'])}")
+        # the craft that made it counted its ingots as used; they're back now
+        t['ingots_used'] = t.get('ingots_used', 0) - (pack_ingots() - before)
     say(supplies(state))
     say(f"start: {SKILL} {value}; {ingots.get('amount')} ingots in his pack" +
         (f'; making {forced_item} (--item)' if forced_item else ''))
     since_ore = 0
     interrupted = 0
+    last_craft = None
     while True:
         if os.path.exists(STOP_FILE):
             os.remove(STOP_FILE)
@@ -504,12 +519,21 @@ def run(forced_item):
             continue
         t['crafts'] += 1
         since_ore += 1
+        now = time.time()
+        if last_craft and now - last_craft < 60:
+            t['timed_seconds'] = t.get('timed_seconds', 0) + now - last_craft
+            t['timed_crafts'] = t.get('timed_crafts', 0) + 1
+        last_craft = now
         state.setdefault('hammers', {})[h] = state.get('hammers', {}).get(h, 0) + 1
         # a hammer that broke is gone from the pack; the next one smelts
         if not any(i['serial'] == h for i in pack()):
-            state.setdefault('broken', []).append({'serial': h, 'uses': state['hammers'][h],
+            taken = state.get('hammer_taken', {}).get(h)
+            minutes = round((time.time() - taken) / 60, 1) if taken else None
+            state.setdefault('broken', []).append({'serial': h, 'uses': state['hammers'][h], 'minutes': minutes,
                                                    'time': time.strftime('%Y-%m-%d %H:%M:%S')})
-            say(f"hammer {h} broke after {state['hammers'][h]} uses: {text}")
+            say(f"hammer {h} broke after {state['hammers'][h]} uses" +
+                (f" in {minutes} minutes ({minutes * 60 / state['hammers'][h]:.1f} s a use)" if minutes else '') +
+                f": {text}")
             h = hammer(state)
             say(supplies(state))
         low = text.lower()
