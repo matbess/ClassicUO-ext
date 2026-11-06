@@ -19,8 +19,9 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
   over only), `--incidents`, `--reviewed`, `--park`, `--stop`.
 - Before starting: both characters logged in with the Agent bridge option ticked, Icepick near McGee or on him,
   Burgers by the forge with his four runes, or at the Ocllo bank (the start-up then finishes his bank trip).
-- Waiting for the next client build (needs the clients closed and the user's yes): "left the area" only on
-  leaving (below, 2026-11-05 09:38), dropping ore on the ground (2026-11-02 14:20), guild tags not speech.
+- To do in the bridge, not yet written: "left the area" only on leaving (below, 2026-11-05 09:38). It then needs
+  a new client build, installed with the clients closed and the user's yes. (The ground drop and the guild-tag
+  change were built into cuo-agent16 and are installed; checked 2026-11-05.)
 
 ## Running it from a Claude session
 
@@ -421,9 +422,10 @@ files further: they apply at once, without a new build.
   - If his own stamina is under a quarter on a ride, he hides on McGee until he's fresh, then rides on. That got
     him from 404 to the forge in three legs.
   - The user's rule for when he does go over: **drop an ore on the ground** at his feet and leave it (or pick it up
-    on coming back). The bridge can't put things on the ground yet: `/move?serial=&ground=1&amount=` with a
-    `dropOnGround` rule (ore graphics) is written in AgentBridge.cs for the next build, not built or installed (the
-    user can't install now). The loop's side (drop, note where, pick it up after the forge) is still to write.
+    on coming back). The bridge can do it since cuo-agent16 (`/move?serial=&ground=1&amount=`, allowed only for
+    the graphics in a `dropOnGround` rule), but Icepick's rules have no `dropOnGround` yet and the loop's side
+    (drop, note where, pick it up after the forge) isn't written: the weight limit above has kept him under 393
+    since, so it hasn't been needed.
 - **The new shovel bag** (the user, 2026-11-02 13:55): the loop had remembered the old empty bag's serial, so
   `bags.shovels` was cleared from the state and the next bank trip found the new bag (Burgers took 20).
 - **Clem is a partner of Burgers** (2026-11-02): the user trades with Burgers as Clem; Clem standing by Burgers set off
@@ -435,8 +437,8 @@ files further: they apply at once, without a new build.
   and he's hidden he stays put and waits it out. He recalls away (to the Mining Start rune, then back) only if he's in
   plain sight when it starts, or is revealed while waiting (detect hidden, say). Icepick hides where he is meanwhile.
 - **Guild tags are not speech** (the user, 2026-11-02): an alarm whose reason is only `said "[...]"` is cleared at
-  once and not counted. Someone standing close still sets off the loiter alarm. The bridge source now ignores them
-  too (for the next build).
+  once and not counted. Someone standing close still sets off the loiter alarm. The bridge ignores them too, from
+  build cuo-agent16.
 - **Burgers waits 10 tiles from the forge** (the user, 2026-11-02: people use the forge), at **1140,1849** on the grass
   at the foot of the mountain (his rules area is now [1136, 1844, 1153, 1863]). The forge rune still lands him by the
   forge, so after every Recall back he walks there and hides. Icepick smelts at the forge, then rides up to
