@@ -460,3 +460,7 @@ files further: they apply at once, without a new build.
   - While he has no spares and the bank isn't known to be empty, he skips gates to keep his mana for the bank trip.
     In the north half every gate takes all his mana, so the bank trip never came.
   - When Icepick runs out, the loop stops and says the bank is empty.
+- **Burgers carries 40 spare shovels** (the user, 2026-11-05 18:50, bringing 60 to the bank after the third bag
+  ran out: "put 40 in his pack"; it was 20). Each bank trip tops him up to 40. A shovel weighs about 5 stones, so
+  that's about 200 of his 390. The third bag gave 57 shovels from 14:43 to 18:49, about one every 4 minutes
+  counting the first top-up.

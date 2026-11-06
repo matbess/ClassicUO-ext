@@ -38,7 +38,8 @@ HEAVY = 380                 # go to the forge only once the pack weighs more tha
 LIMIT = 393                 # never go past this (the user, 2026-11-02): over it every step tires Icepick out. A dig
 BIGGEST_DIG = 24            # usually adds 12 but can bring two ore, so he stops digging once the next dig could pass it
 SHOVELS_WANTED = 3          # Icepick carries this many (the user: 5 at first, then 2, then 3 after he ran out, 2026-11-02)
-BURGERS_SPARES = 20         # Burgers keeps this many in his pack, from the shovel bag in his bank (the user, 2026-11-01)
+BURGERS_SPARES = 40         # Burgers keeps this many in his pack, from the shovel bag in his bank (the user: 20 on
+                            # 2026-11-01, 40 on 2026-11-05; 40 shovels weigh about 200 stones, well under his 390)
 BANK_AT_INGOTS = 300        # Burgers banks when he holds this many ingots (the user, 2026-11-01; ingots weigh
                             # next to nothing), when he's low on shovels, and at the end of every pass
 # Burgers' four reagents (Recall: black pearl, blood moss, mandrake root; Gate Travel: black pearl, mandrake root,
