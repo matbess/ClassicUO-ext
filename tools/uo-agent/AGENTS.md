@@ -10,6 +10,11 @@ it with, the house's labels and chest map, and the procedure.
 vault, and trips to the map vendor): read `CARTO.md` first; the tool is `carto.py`, Clem's rules
 `rules/rules-Clem.json` (no guard).
 
+**Blacksmithing** (Icepick, from 2026-11-05: training to 100 at the forge and anvil on the tower's ground floor,
+crafting and smelting back): read `SMITHING.md` first; the tool is `smith.py`, the rules
+`rules/rules-Icepick-smith.json` (no guard, no pacing). Bridge 6 (build cuo-agent19) adds menus, gumps, target
+cursors, skills and an event log that records what the user does by hand (`uo record`).
+
 **To sort loot, follow `skills/uo-sort/SKILL.md`.** It has the procedure, the safety rules, everything learned about
 the server, and the user's keep rules. It's installed as the user-level skill `uo-sort` through a symlink
 (`~/.claude/skills/uo-sort/SKILL.md` -> this repo's `tools/uo-agent/skills/uo-sort/SKILL.md`), so edit it here and

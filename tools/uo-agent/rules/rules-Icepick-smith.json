@@ -1,0 +1,22 @@
+{
+  // Icepick's rules while he trains Blacksmithing in the tower (SMITHING.md). smith.py copies this file into the
+  // client's Agent/rules-Icepick.json; mine.py puts the mining rules (rules-Icepick.json) back at its start.
+  // He stands at 1756,1409 on the ground floor: the forge (1755,1410), the anvil (1756,1410) and the ingot chest
+  // (the bottom wooden chest at 1757,1407, z 6) are all within a tile or two, so he never walks.
+  "map": 0,
+  "areas": [
+    { "name": "tower smithy", "box": [1755, 1407, 1757, 1410], "z": [0, 25] }
+  ],
+  // no guard and no pausing (the user, 2026-11-05: safe inside the tower, as with Clem); the user's other characters
+  // walk past
+  "pauseForPeople": false,
+  // the two chests stacked on the ingot chest aren't his
+  "offLimits": ["0x4073C9D0", "0x40531814"],
+  // ore (smelted at the forge), and the tools for crafting: smith's hammers (the user's from now on), the one sledge
+  // hammer and tongs, used from his pack
+  "useFromBackpack": ["0x19B7", "0x19B8", "0x19B9", "0x19BA", "0x13E3", "0x13E4", "0x0FB4", "0x0FB5", "0x0FBB", "0x0FBC"],
+  "mounts": ["0x00042FCB"],
+  // as fast as the server allows (the user, 2026-11-05: no pacing for blacksmithing); the bridge never goes below
+  // 1.1 s between actions
+  "pacing": { "gap": [1100, 1200], "burst": 1000, "break": [1100, 1200], "aim": [0, 0] }
+}

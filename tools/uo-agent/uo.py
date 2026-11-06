@@ -17,6 +17,8 @@
                                with --amount, only that many from a stack (the rest stays as a new item)
   uo equip SERIAL              put an item on (into the hands for a wand)
   uo use SERIAL TARGET         use an item held in the hands (a wand) on a target
+  uo use SERIAL                use a tool the rules allow (a smith's hammer) and show the menu, gump or cursor
+                               the server answers with (bridge 6)
   uo use SERIAL --at X Y Z [--graphic G] [--reach N]
                                use a tool on a spot on the map: a pickaxe on rock (graphic 0 = the ground),
                                ore on a forge (the forge's graphic)
@@ -41,6 +43,18 @@
   uo actions                   what the bridge sent and when, next to the server's "You must wait"
   uo clear                     is anyone else in the agent's area? (exit code 0 when clear)
   uo waitclear [--every SECS]  check every minute until the area is clear
+
+Bridge 6 (build cuo-agent19 on): menus, gumps, target cursors, skills and the event log
+  uo skills [NAME]             skills: value, base, cap, lock, and the total
+  uo gumps                     the menus and gumps open now, with their items, buttons and text
+  uo menu SERIAL ID INDEX      choose an item in a menu (from 1; 0 cancels)
+  uo gump SERIAL ID BUTTON [--switches 1,2]
+                               press a button in a gump (0 closes it)
+  uo target SERIAL | --cancel  answer the server's target cursor with an item in reach
+  uo events [--after ID]       what happened: messages, menus and gumps shown, cursors, skill changes, and what
+                               the client sent (double-clicks, menu choices, buttons, targets), the user's too
+  uo record FILE               follow the event log into FILE (JSON lines) until Ctrl-C: record a task done by
+                               hand
 
 Wherever a SERIAL is expected, a label (or a unique part of one) also works.
 
@@ -242,6 +256,17 @@ def is_alive(info):
         return False
 
 
+def _keep_both(pairs):
+    """Bridge 6's /events gave sent menu choices and gump buttons an "id" field (the menu's or gump's) beside the
+    event's own "id"; keep the event's, and the other as "menu" (renamed in the bridge from build cuo-agent20)."""
+    d = {}
+    for k, v in pairs:
+        if k in d:
+            k = 'menu' if k == 'id' else k + '2'
+        d[k] = v
+    return d
+
+
 def call(info, method, endpoint, **params):
     # (the endpoint isn't called "path": /travel takes a query parameter of that name)
     query = urllib.parse.urlencode({k: v for k, v in params.items() if v is not None})
@@ -250,7 +275,7 @@ def call(info, method, endpoint, **params):
     try:
         # paced actions are slow (a dozen names take half a minute), so allow plenty of time
         with urllib.request.urlopen(request, timeout=600) as response:
-            result = json.load(response)
+            result = json.load(response, object_pairs_hook=_keep_both)
             remember_names(result)
             return result
     except urllib.error.HTTPError as e:
@@ -381,6 +406,57 @@ def print_trade(trade):
             print(f"  {side}: {describe(item)}")
 
 
+def print_dialog(d, indent=''):
+    """A menu or gump from the bridge (bridge 6)."""
+    head = f"{indent}{d['kind']} {d['serial']} id {d['id']}"
+    if d['kind'] != 'gump':
+        print(f"{head}: {d.get('title')!r}")
+        for item in d['items']:
+            print(f"{indent}  {item['index']:3}  {item['name']}" + (f"  ({item['graphic']})" if item.get('graphic') else ''))
+        return
+    print(head)
+    for b in d['buttons']:
+        print(f"{indent}  button {b['button']:<6} {b.get('label') or ''}  @{b['x']},{b['y']}")
+    for s in d['switches']:
+        print(f"{indent}  switch {s['switch']:<6} {'on ' if s['on'] else 'off'} {s.get('label') or ''}")
+    for t in d['texts']:
+        print(f"{indent}  text  p{t['page']} @{t['x']},{t['y']}  {t['text']}")
+
+
+def describe_event(e):
+    """One line for an event from /events (bridge 6)."""
+    skip = ('id', 'time', 'kind', 'dialog')
+    fields = '  '.join(f'{k} {v}' for k, v in e.items() if k not in skip)
+    line = f"#{e['id']} {e['time']} {e['kind']}  {fields}"
+    d = e.get('dialog')
+    if d:
+        if d['kind'] == 'gump':
+            labels = ', '.join(f"{b['button']}={b.get('label') or '?'}" for b in d['buttons'])
+            line += f"{d['serial']} id {d['id']}  buttons: {labels}"
+        else:
+            line += f"{d['serial']} id {d['id']} {d.get('title')!r}: " + ', '.join(
+                f"{i['index']}={i['name']}" for i in d['items'])
+    return line
+
+
+def record(info, path, every=0.5):
+    """Follows the bridge's event log into a file of JSON lines (and prints each event) until Ctrl-C: for recording
+    a task the user does by hand, such as crafting one item, so a script can repeat the same steps."""
+    last = call(info, 'GET', '/events')['lastEventId']
+    print(f'recording into {path} from event #{last}; Ctrl-C to stop', flush=True)
+    try:
+        with open(path, 'a', encoding='utf-8') as fh:
+            while True:
+                for e in call(info, 'GET', '/events', after=last)['events']:
+                    last = e['id']
+                    fh.write(json.dumps(e) + '\n')
+                    fh.flush()
+                    print(describe_event(e), flush=True)
+                time.sleep(every)
+    except KeyboardInterrupt:
+        print(f'stopped at event #{last}')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--char')
@@ -442,6 +518,22 @@ def main():
     sub.add_parser('resume')
     sub.add_parser('actions')
     sub.add_parser('waitclear').add_argument('--every', type=int, default=60)
+    sub.add_parser('skills').add_argument('name', nargs='?')
+    sub.add_parser('gumps')
+    p = sub.add_parser('menu')
+    p.add_argument('serial')
+    p.add_argument('id')
+    p.add_argument('index', type=int)
+    p = sub.add_parser('gump')
+    p.add_argument('serial')
+    p.add_argument('id')
+    p.add_argument('button', type=int)
+    p.add_argument('--switches', default='')
+    p = sub.add_parser('target')
+    p.add_argument('serial', nargs='?')
+    p.add_argument('--cancel', action='store_true')
+    sub.add_parser('events').add_argument('--after', type=int, default=0)
+    sub.add_parser('record').add_argument('file')
     args = parser.parse_args()
 
     if args.command in ('label', 'labels'):
@@ -512,7 +604,8 @@ def main():
         elif args.target:
             result = call(info, 'POST', '/use', serial=args.serial, target=args.target)
         else:
-            sys.exit('use needs a TARGET or --at X Y Z')
+            result = call(info, 'POST', '/use', serial=args.serial)
+            c = 'answer'
     elif c == 'tiles':
         result = call(info, 'GET', '/tiles', range=args.range)
     elif c == 'give':
@@ -542,6 +635,27 @@ def main():
         result = call(info, 'GET', '/rules')
     elif c == 'resume':
         result = call(info, 'POST', '/resume')
+    elif c == 'skills':
+        result = call(info, 'GET', '/skills', name=args.name)
+    elif c == 'gumps':
+        result = call(info, 'GET', '/gumps')
+    elif c == 'menu':
+        result = call(info, 'POST', '/menu', serial=args.serial, id=args.id, index=args.index)
+        c = 'answer'
+    elif c == 'gump':
+        result = call(info, 'POST', '/gump', serial=args.serial, id=args.id, button=args.button,
+                      switches=args.switches or None)
+        c = 'answer'
+    elif c == 'target':
+        if not args.cancel and not args.serial:
+            sys.exit('target needs a SERIAL or --cancel')
+        result = call(info, 'POST', '/target', **({'cancel': 1} if args.cancel else {'serial': args.serial}))
+        c = 'answer'
+    elif c == 'events':
+        result = call(info, 'GET', '/events', after=args.after)
+    elif c == 'record':
+        record(info, args.file)
+        return
     elif c == 'actions':
         sent = call(info, 'GET', '/actions')
         waits = [m for m in call(info, 'GET', '/messages')['messages'] if 'must wait' in m['text'].lower()]
@@ -651,6 +765,21 @@ def main():
     elif c == 'name':
         for r in result:
             print(f"{r['serial']}  " + (' / '.join(r['lines']) if r['answered'] else '(no answer)'))
+    elif c == 'skills':
+        for s in result['skills']:
+            print(f"{s['id']:3}  {s['name']:<22} {s['value']:6.1f}  base {s['base']:5.1f}  cap {s['cap']:5.1f}  {s['lock']}")
+        print(f"total (base) {result['total']}")
+    elif c in ('gumps', 'answer'):
+        if c == 'answer':
+            print_messages(result['messages'])
+            if result.get('targeting'):
+                print('a target cursor is up')
+        for d in result['dialogs']:
+            print_dialog(d)
+    elif c == 'events':
+        for e in result['events']:
+            print(describe_event(e))
+        print(f"last event #{result['lastEventId']}")
     else:
         print_messages(result['messages'])
         print(f"last message #{result['lastMessageId']}")

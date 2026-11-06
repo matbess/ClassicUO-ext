@@ -54,5 +54,5 @@ everything tested) and `mine.py`; cartography is in **`tools/uo-agent/CARTO.md`*
 ## Building and installing
 
 See **`tools/build/README.md`**: `build.sh NAME`, `smoke.sh NAME`, `install.sh NAME BACKUP_NAME`. The installed build
-is the latest `cuo-agentN` in `~/claude/builds` (cuo-agent17 as of 2026-11-04 11:25); backups of every earlier install are in
+is the latest `cuo-agentN` in `~/claude/builds` (cuo-agent19, bridge 6, as of 2026-11-05 20:31); backups of every earlier install are in
 `~/Games/backups/classicuo-1.1.0.347-*`.

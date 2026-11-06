@@ -6,7 +6,7 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
 ## Status (2026-11-05)
 
 - **Running unattended, day and night**, `mine.py --passes 10`, since the night of 2026-11-01: 51,466 ingots
-  (40,629 iron) by 2026-11-05 16:10. Installed client: build cuo-agent17, bridge 4.
+  (40,629 iron) by 2026-11-05 16:10. Installed client: build cuo-agent19, bridge 6 (from 2026-11-05 20:31).
 - The pieces: the bridge, the rules files (`rules/rules-Icepick.json`, `rules/rules-Burgers.json`, copied into the
   client's `Agent/` folder), the route (`routes/route1.jsonl`, the recorded rides `routes/ride-*.jsonl`, the
   learned buildings `routes/obstacles.json`), the planner (`mining.py plan`: 92 ore blocks), the loop (`mine.py`)
@@ -19,9 +19,8 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
   over only), `--incidents`, `--reviewed`, `--park`, `--stop`.
 - Before starting: both characters logged in with the Agent bridge option ticked, Icepick near McGee or on him,
   Burgers by the forge with his four runes, or at the Ocllo bank (the start-up then finishes his bank trip).
-- Built, not installed yet: **cuo-agent18** (bridge 5), "left the area" only on leaving (below, 2026-11-05 09:38).
-  Installing needs the loop parked, the clients closed (smoke test first) and the user's yes. (The ground drop and
-  the guild-tag change were built into cuo-agent16 and are installed; checked 2026-11-05.)
+- **cuo-agent19** (bridge 6) installed 2026-11-05 20:31: bridge 5's "left the area" only on leaving (below,
+  2026-11-05 09:38) and bridge 6's menus, gumps and event log (SMITHING.md). cuo-agent18 was never installed.
 
 ## Running it from a Claude session
 

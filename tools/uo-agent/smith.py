@@ -1,0 +1,489 @@
+#!/usr/bin/env python3
+"""Icepick trains Blacksmithing in the tower (see SMITHING.md).
+
+  python3 -I smith.py run [--item NAME]   the loop: craft, smelt back, repeat until Blacksmithy is 99 (the item for
+                                          the skill comes from the user's table; --item makes one kind regardless)
+  python3 -I smith.py stop                the running loop stops after the craft it is on, and the command waits
+  python3 -I smith.py report              totals, skill gained, crafts per hour, hammers
+  python3 -I smith.py ore                 smelt the ore in the grey bag into ingots (the user: first, whenever there is)
+  python3 -I smith.py rules               put Icepick's smithing rules into the client (mine.py puts the mining ones back)
+
+Icepick stands on the tower's ground floor next to the forge, the anvil and the bottom wooden chest. The chest holds
+the grey bag with the ingots, ore now and then, and a pouch of hammers. He keeps one hammer and a working stack of
+ingots in his pack. Smithing runs as fast as the server allows (the user, 2026-11-05).
+
+How this server does it (recorded from the user, 2026-11-05): double-click the hammer: the "Blacksmithy Options"
+picture menu (Repair, Smelt, Shields, Armor, Weapons, and Make Last Item once something has been made). Weapons asks
+"What materials would you like to work with?" with a target cursor (the ingots), then the kind (Bladed, Axes,
+Polearms, Bashing), then the item ("cutlass: 8 Ingots"). About 4.5 s later "You create the item." or "You failed to
+create the item, and some of your materials are lost." Make Last Item crafts straight away. Smelt asks "Target an
+item to recycle." and answers "You melt the item down into ingots." (a cutlass gave all 8 back).
+
+His own leftovers in the pack (small coloured ore piles, a coloured ingot, three shovels) are left alone.
+Logs to ~/claude/uo-agent-work/smith/smith.log; state in state.json there.
+"""
+import argparse
+import json
+import os
+import shutil
+import sys
+import time
+
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+import uo  # noqa: E402
+
+CHAR = 'Icepick'
+HERE = os.path.dirname(os.path.realpath(__file__))
+WORK = os.path.expanduser('~/claude/uo-agent-work/smith')
+LOG = os.path.join(WORK, 'smith.log')
+STATE = os.path.join(WORK, 'state.json')
+PID = os.path.join(WORK, 'smith.pid')
+STOP_FILE = os.path.join(WORK, 'stop')
+
+CHEST = '0x4074A4C1'    # the bottom wooden chest at 1757,1407 (holds any weight)
+BAG = '0x40BF2C73'      # the grey backpack in it: the ingots, ore to smelt, the hammer pouch
+POUCH = '0x40421216'    # the pouch of hammers in the grey bag
+FORGE = '0x408A3611'    # 1755,1410
+ORE = ('0x19B7', '0x19B8', '0x19B9', '0x19BA')
+ORE_WEIGHT = 12         # stones per ore
+SMELT_AT_ONCE = 25      # ore per trip to the forge (300 stones)
+HAMMER_GRAPHICS = ('0x13E3', '0x13E4', '0x0FB4', '0x0FB5')  # smith's hammers, sledge hammers
+SKILL = 'Blacksmithy'
+STOP_AT = 99.0          # then the spear / plate gloves trial (SMITHING.md)
+
+# the user's table (2026-11-05): below each level, the item to make, and where it is in the menus
+ITEMS = [
+    (65.0, 'cutlass', ('Weapons', 'Bladed')),
+    (78.0, 'kryss', ('Weapons', 'Bladed')),
+    (88.0, 'short spear', ('Weapons', 'Polearms')),
+    (100.0, 'spear', ('Weapons', 'Polearms')),
+]
+OTHER_PLACES = {'plate gloves': ('Armor', None)}  # for the trial at 99; the second menu is found by looking
+
+PACK_INGOTS = 150       # the working stack in his pack, topped up from the bag
+PACK_LOW = 40
+BAG_LOW = 300           # tell the user when the bag gets down to this
+HAMMERS_LOW = 3         # tell the user when the pouch holds fewer spare hammers than this
+ORE_CHECK_EVERY = 50    # crafts between looks for ore in the bag
+
+info = None
+
+
+class Stop(Exception):
+    pass
+
+
+def say(text):
+    line = time.strftime('%Y-%m-%d %H:%M:%S ') + text
+    print(line, flush=True)
+    with open(LOG, 'a', encoding='utf-8') as fh:
+        fh.write(line + '\n')
+
+
+def call(method, endpoint, **params):
+    try:
+        return uo.call(info, method, endpoint, **params)
+    except uo.BridgeError as e:
+        raise Stop(f'{method} {endpoint} {params}: {e}')
+
+
+def status():
+    return call('GET', '/status')
+
+
+def contents(serial):
+    return call('GET', '/contents', serial=serial, depth=1)['items']
+
+
+def pack_serial():
+    return status()['backpack']['serial']
+
+
+def pack():
+    return contents(pack_serial())
+
+
+def load_state():
+    try:
+        with open(STATE, encoding='utf-8') as fh:
+            return json.load(fh)
+    except FileNotFoundError:
+        return {}
+
+
+def save_state(state):
+    uo.write_json(STATE, state, 1)
+
+
+def install_rules():
+    shutil.copyfile(os.path.join(HERE, 'rules', 'rules-Icepick-smith.json'),
+                    os.path.join(uo.AGENT_DIR, 'rules-Icepick.json'))
+
+
+def skill():
+    for s in call('GET', '/skills', name=SKILL)['skills']:
+        if s['name'] == SKILL:
+            return s['value']
+    raise Stop(f'no {SKILL} skill in /skills')
+
+
+def is_ingots(item):
+    return 'ingot' in (item.get('type') or '') and item.get('hue') == 0
+
+
+def ingot_stack(items):
+    """The plain iron ingot stack among these items (the biggest, if there are several)."""
+    stacks = [i for i in items if is_ingots(i)]
+    return max(stacks, key=lambda i: i.get('amount') or 1) if stacks else None
+
+
+# ---- ore ----
+
+def use_on_forge(serial):
+    """Uses ore on the forge; gets off the horse if the server won't have it while riding. Returns the answer."""
+    answer = '?'
+    for _ in range(3):
+        r = call('POST', '/use', serial=serial, target=FORGE)
+        texts = [m['text'] for m in r.get('messages', []) if 'select the forge' not in m['text'].lower()]
+        answer = texts[-1] if texts else '?'
+        if 'riding' in answer.lower():
+            call('POST', '/dismount')
+            continue
+        return answer
+    return answer
+
+
+def smelt_ore():
+    """Smelts every ore pile in the grey bag, a load at a time, and puts the ingots back on the bag's stack."""
+    smelted = 0
+    while True:
+        piles = [i for i in contents(BAG) if i.get('graphic') in ORE]
+        if not piles:
+            break
+        pile = piles[0]
+        s = status()
+        room = (s['weightMax'] - s['weight'] - 5) // ORE_WEIGHT
+        take = min(pile.get('amount') or 1, SMELT_AT_ONCE, room)
+        if take < 1:
+            raise Stop(f"Icepick is too heavy to carry ore ({s['weight']}/{s['weightMax']})")
+        before = {i['serial'] for i in pack()}
+        call('POST', '/move', serial=pile['serial'], to=s['backpack']['serial'], amount=take)
+        load = next((i for i in pack() if i['serial'] == pile['serial'] or
+                     i['serial'] not in before and i.get('graphic') in ORE), None)
+        if not load:
+            raise Stop("the ore didn't turn up in Icepick's pack")
+        answer = '?'
+        for _ in range(5):
+            answer = use_on_forge(load['serial'])
+            say(f"smelt ore {load['serial']} ({load.get('amount', 1)}): {answer}")
+            # a failed smelt burns away some ore; smelt what's left again
+            if 'burn away' not in answer.lower():
+                break
+            load = next((i for i in pack() if i['serial'] == load['serial']), None)
+            if not load:
+                break
+        if load and any(i['serial'] == load['serial'] for i in pack()):
+            raise Stop(f"ore {load['serial']} is still in Icepick's pack after smelting: {answer}")
+        # the new ingots go back onto the bag's stack
+        stack = ingot_stack(contents(BAG))
+        for i in pack():
+            if i['serial'] not in before and is_ingots(i):
+                call('POST', '/move', serial=i['serial'], to=stack['serial'] if stack else BAG)
+        smelted += take
+    if smelted:
+        stack = ingot_stack(contents(BAG))
+        say(f"ore smelted: {smelted}; ingots in the bag: {stack.get('amount') if stack else 0}")
+    return smelted
+
+
+# ---- supplies ----
+
+def open_supplies():
+    """After a login the client knows nothing inside containers until they're opened."""
+    for serial in (pack_serial(), CHEST, BAG, POUCH):
+        call('POST', '/open', serial=serial)
+
+
+def hammer(state):
+    """The hammer in his pack; takes the next one from the pouch when there's none."""
+    for i in pack():
+        if i.get('graphic') in HAMMER_GRAPHICS:
+            return i['serial']
+    spares = [i for i in contents(POUCH) if i.get('graphic') in HAMMER_GRAPHICS]
+    if not spares:
+        raise Stop('no hammers left in the pouch: the user needs to add more')
+    call('POST', '/move', serial=spares[0]['serial'], to=pack_serial())
+    left = len(spares) - 1
+    say(f"took hammer {spares[0]['serial']} ({spares[0].get('type')}) from the pouch; {left} left there")
+    if left < HAMMERS_LOW:
+        say(f'hammers low: {left} spare in the pouch')
+    state.setdefault('hammers', {})[spares[0]['serial']] = 0
+    return spares[0]['serial']
+
+
+def top_up_ingots(state, force=False):
+    """Keeps about PACK_INGOTS in his pack from the bag's stack. Returns the pack's stack."""
+    items = pack()
+    mine = ingot_stack(items)
+    have = mine.get('amount', 1) if mine else 0
+    if have >= PACK_LOW and not force:
+        return mine
+    bag = ingot_stack(contents(BAG))
+    available = bag.get('amount', 1) if bag else 0
+    want = min(PACK_INGOTS - have, available)
+    if want > 0:
+        call('POST', '/move', serial=bag['serial'], to=mine['serial'] if mine else pack_serial(), amount=want)
+        available -= want
+        warned = state.get('bag_warned', 10 ** 9)
+        if available < BAG_LOW and available < warned - 50:
+            say(f'ingots low: {available} left in the bag')
+            state['bag_warned'] = available
+        elif available >= BAG_LOW:
+            state.pop('bag_warned', None)
+    mine = ingot_stack(pack())
+    if not mine or mine.get('amount', 1) < 20:
+        raise Stop('out of ingots: the bag is empty')
+    return mine
+
+
+# ---- menus ----
+
+def menu_item(dialog, name):
+    """The index of the item called name ("cutlass" matches "cutlass: 8 Ingots"), or None."""
+    for item in dialog.get('items', []):
+        if item['name'].split(':')[0].strip().lower() == name.lower():
+            return item['index']
+    return None
+
+
+def last_menu(answer, title=None):
+    menus = [d for d in answer.get('dialogs', []) if d['kind'] != 'gump' and (not title or title.lower() in (d.get('title') or '').lower())]
+    return menus[-1] if menus else None
+
+
+def choose(dialog, index):
+    return call('POST', '/menu', serial=dialog['serial'], id=dialog['id'], index=index)
+
+
+def options_menu(hammer_serial):
+    answer = call('POST', '/use', serial=hammer_serial)
+    d = last_menu(answer, 'Blacksmithy')
+    if not d:
+        texts = [m['text'] for m in answer.get('messages', [])]
+        raise Stop(f"the hammer didn't show the Blacksmithy menu: {texts}")
+    return d
+
+
+def result_text(answer):
+    texts = [m['text'] for m in answer.get('messages', []) if not m.get('serial')]
+    return texts[-1] if texts else '?'
+
+
+def craft_full(hammer_serial, item, place, ingots):
+    """The whole way through the menus. Returns the server's answer, or None when the item isn't on that menu."""
+    top, kind = place
+    d = options_menu(hammer_serial)
+    answer = choose(d, menu_item(d, top))
+    if answer.get('targeting'):
+        answer = call('POST', '/target', serial=ingots['serial'])
+    kinds = last_menu(answer)
+    if not kinds:
+        raise Stop(f"no menu after choosing {top}: {result_text(answer)}")
+    order = [kind] if kind else []
+    order += [i['name'] for i in kinds['items'] if i['name'] not in order]
+    # the kind we expect first; if the item isn't there, look in the others (the menus come round again each time)
+    for n, k in enumerate(order):
+        if n:
+            d = options_menu(hammer_serial)
+            answer = choose(d, menu_item(d, top))
+            if answer.get('targeting'):
+                answer = call('POST', '/target', serial=ingots['serial'])
+            kinds = last_menu(answer)
+        answer = choose(kinds, menu_item(kinds, k))
+        items = last_menu(answer)
+        index = menu_item(items, item) if items else None
+        if index:
+            return choose(items, index)
+        if items:
+            choose(items, 0)
+        say(f'{item} is not under {top} / {k}')
+    return None
+
+
+def make(state, hammer_serial, item, ingots):
+    """One attempt at the item: Make Last Item when that's what it will make, else through the menus.
+    Returns (answer text, the new items in the pack)."""
+    before = {i['serial'] for i in pack()}
+    answer = None
+    if state.get('last_item') == item:
+        d = options_menu(hammer_serial)
+        last = menu_item(d, 'Make Last Item')
+        if last:
+            answer = choose(d, last)
+        else:
+            choose(d, 0)
+    if answer is None:
+        place = next((p for _, n, p in ITEMS if n == item), None) or OTHER_PLACES.get(item)
+        answer = craft_full(hammer_serial, item, place, ingots)
+        if answer is None:
+            raise Stop(f'{item} is not on any {place[0]} menu (skill too low, or a different name?)')
+        state['last_item'] = item
+    made = [i for i in pack() if i['serial'] not in before and not is_ingots(i)]
+    return result_text(answer), made
+
+
+def smelt_item(hammer_serial, serial):
+    d = options_menu(hammer_serial)
+    answer = choose(d, menu_item(d, 'Smelt'))
+    if not answer.get('targeting'):
+        raise Stop(f'no target cursor after Smelt: {result_text(answer)}')
+    return result_text(call('POST', '/target', serial=serial))
+
+
+# ---- the loop ----
+
+def item_for(value):
+    for below, name, _ in ITEMS:
+        if value < below:
+            return name
+    return ITEMS[-1][1]
+
+
+def run(forced_item):
+    if os.path.exists(STOP_FILE):
+        os.remove(STOP_FILE)
+    state = load_state()
+    t = state.setdefault('totals', {'crafts': 0, 'made': 0, 'failed': 0, 'smelted': 0})
+    open_supplies()
+    smelt_ore()
+    value = skill()
+    started = {'time': time.time(), 'skill': value, 'crafts': t['crafts']}
+    ingots = top_up_ingots(state, force=True)
+    say(f"start: {SKILL} {value}; {ingots.get('amount')} ingots in his pack" +
+        (f'; making {forced_item} (--item)' if forced_item else ''))
+    since_ore = 0
+    while True:
+        if os.path.exists(STOP_FILE):
+            os.remove(STOP_FILE)
+            say('STOPPED: asked to stop')
+            break
+        if value >= STOP_AT and not forced_item:
+            say(f'STOPPED: {SKILL} reached {value}: time for the spear / plate gloves trial (SMITHING.md)')
+            break
+        item = forced_item or item_for(value)
+        if item != state.get('item'):
+            say(f'now making {item} ({SKILL} {value})')
+            state['item'] = item
+        if since_ore >= ORE_CHECK_EVERY:
+            since_ore = 0
+            if smelt_ore():
+                state.pop('last_item', None)
+        h = hammer(state)
+        ingots = top_up_ingots(state)
+        text, made = make(state, h, item, ingots)
+        t['crafts'] += 1
+        since_ore += 1
+        state.setdefault('hammers', {})[h] = state.get('hammers', {}).get(h, 0) + 1
+        # a hammer that broke is gone from the pack; the next one smelts
+        if not any(i['serial'] == h for i in pack()):
+            say(f"hammer {h} broke after {state['hammers'][h]} uses: {text}")
+            h = hammer(state)
+        low = text.lower()
+        if 'you create' in low:
+            t['made'] += 1
+            t[item] = t.get(item, 0) + 1
+        elif 'failed' in low:
+            t['failed'] += 1
+        else:
+            say(f'craft {t["crafts"]} {item}: {text}')
+            if 'not enough' in low or 'ingots' in low:
+                top_up_ingots(state, force=True)
+        for m in made:
+            if item not in (m.get('type') or '').lower():
+                # Make Last Item made something else (the user crafted by hand in between?): the menus next time
+                say(f"made {m.get('type')} instead of {item}")
+                state.pop('last_item', None)
+            answer = smelt_item(h, m['serial'])
+            if 'melt' in answer.lower():
+                t['smelted'] += 1
+            else:
+                raise Stop(f"smelting {m['serial']} ({m.get('type')}) answered: {answer}")
+        new = skill()
+        if new != value:
+            hours = (time.time() - started['time']) / 3600
+            say(f"{SKILL} {value} -> {new} after {t['crafts']} crafts ({t['made']} made, {t['failed']} failed); "
+                f"{(new - started['skill']) / hours:.2f} an hour since the start" if hours > 0.05 else
+                f"{SKILL} {value} -> {new} after {t['crafts']} crafts ({t['made']} made, {t['failed']} failed)")
+            value = new
+        t['skill'] = value
+        save_state(state)
+
+
+def report():
+    state = load_state()
+    t = state.get('totals', {})
+    print(json.dumps({'totals': t, 'item': state.get('item'), 'hammers': state.get('hammers')}, indent=1))
+
+
+def stop():
+    with open(STOP_FILE, 'w') as fh:
+        fh.write(time.strftime('%Y-%m-%d %H:%M:%S'))
+    try:
+        with open(PID) as fh:
+            pid = int(fh.read().strip())
+    except (OSError, ValueError):
+        print('no loop running (no pid file)')
+        return
+    for _ in range(120):
+        try:
+            os.kill(pid, 0)
+        except OSError:
+            print('stopped')
+            return
+        time.sleep(1)
+    print('still running after 2 minutes')
+
+
+def main():
+    global info
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = p.add_subparsers(dest='cmd', required=True)
+    r = sub.add_parser('run')
+    r.add_argument('--item')
+    sub.add_parser('stop')
+    sub.add_parser('report')
+    sub.add_parser('ore')
+    sub.add_parser('rules')
+    args = p.parse_args()
+    os.makedirs(WORK, exist_ok=True)
+    if args.cmd == 'stop':
+        return stop()
+    if args.cmd == 'report':
+        return report()
+    info = uo.find_bridge(CHAR)
+    install_rules()
+    try:
+        if args.cmd == 'ore':
+            open_supplies()
+            smelt_ore()
+        elif args.cmd == 'run':
+            if os.path.exists(PID):
+                try:
+                    with open(PID) as fh:
+                        os.kill(int(fh.read().strip()), 0)
+                    sys.exit('a loop is already running')
+                except (OSError, ValueError):
+                    pass
+            with open(PID, 'w') as fh:
+                fh.write(str(os.getpid()))
+            try:
+                run(args.item)
+            finally:
+                os.remove(PID)
+    except Stop as e:
+        say(f'STOPPED: {e}')
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

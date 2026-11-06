@@ -20,6 +20,7 @@ import json
 import os
 import random
 import re
+import shutil
 import sys
 import time
 
@@ -1536,6 +1537,9 @@ class Miner:
 
     def preflight(self):
         burgers_rules(bank=False)  # in case a run stopped in the middle of a bank trip
+        # Icepick's mining rules, in case smith.py left his smithing rules in the client (SMITHING.md)
+        shutil.copyfile(os.path.join(mining.HERE, 'rules', 'rules-Icepick.json'),
+                        os.path.join(AGENT_DIR, 'rules-Icepick.json'))
         # after a login (a server reboot, say) the client knows nothing inside bags until they're opened
         for c in (self.ice, self.bur):
             pack = c.status()['backpack']

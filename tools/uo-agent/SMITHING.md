@@ -1,0 +1,131 @@
+# Blacksmithing with Icepick: the plan and the user's rules
+
+Started 2026-11-05. Like MINING.md and CARTO.md, this records what the user asked for, what was found and what was
+decided, so any session can pick it up. Newer notes win where they disagree with older ones.
+
+## The job (the user, 2026-11-05)
+
+- **Icepick** trains **Blacksmithing to 100**: craft an item, smelt it straight back into ingots, put the ingots back
+  on the pile, repeat. The loop is `smith.py`.
+- **What to craft at each level:**
+
+  | Blacksmithing | Item |
+  |---|---|
+  | 50-65 | cutlass |
+  | 65-78 | kryss |
+  | 78-88 | short spear |
+  | 88-99 | spear |
+  | 99-100 | spear, or plate gloves |
+
+- **At 99**: try both spears and plate gloves for a while and compare how quickly the skill rises (per hour). If
+  they're about the same, stay with spears: they fail less, so more items come back as ingots when smelted.
+- **Ore first**: whenever there is ore in the grey bag, smelt it into ingots before crafting.
+- **No pacing**: as fast as the server allows (the user: about 1 second between actions). The bridge never goes
+  below 1.1 s between actions, so `rules-Icepick-smith.json` sets 1.1-1.2 s and no breaks. Menu choices and
+  target clicks go at once (`aim` 0).
+- **Ingots**: the user brings them (3,000 to start). Tell the user when the bag is running low.
+- **Hammers**: in a pouch in the grey bag. One sledge hammer to start; the user will add **smith's hammers** (not
+  sledge hammers) from now on.
+- **Hammers break** (the user, 2026-11-05), so the user keeps a bag full of them stocked. Icepick carries one at a
+  time; when it breaks he takes the next from the pouch. The loop counts crafts per hammer (to learn how long one
+  lasts) and tells the user when the pouch is getting low, and stops if none is left.
+- Mining is parked while Icepick smiths (he can't do both); Burgers waits in the tower too.
+
+## The smithy (the tower's ground floor, map 0)
+
+- Icepick stands at **1757,1408** (z 6), mounted on McGee (the user moved him there from 1756,1409). Everything is
+  within 2 tiles, so he never walks.
+- **Forge** 0x408A3611 at 1755,1410; **anvil** 0x408A3775 at 1756,1410.
+- **The ingot chest**: the bottom wooden chest 0x4074A4C1 at 1757,1407 (z 6), which holds any weight. The two chests
+  stacked on it (0x4073C9D0 z 10, 0x40531814 z 14) are off limits. The chest also holds the user's own things (a
+  pouch of robes and boots, raw ribs, fish steaks, gold, a loose ingot and ore): left alone.
+- **The grey bag** (backpack 0x40BF2C73, hue 978) in that chest: the iron ingot stack (0x407F569C), ore to smelt
+  now and then, and the **hammer pouch** 0x40421216.
+- Icepick's own leftovers in his pack (six small coloured ore piles, a coloured ingot, three shovels): left alone
+  (the user, 2026-11-05).
+- The ground floor is also the way in for Clem (cartography) and the other characters; Icepick doesn't pause for
+  people, and he has no guard here (safe inside, as with Clem).
+
+## Rules file
+
+`rules/rules-Icepick-smith.json`: one small area round the forge, anvil and chest, no guard, no pausing, the ore and
+hammer graphics usable from the pack, and the quick pace. `smith.py` copies it into the client's
+`Agent/rules-Icepick.json` every time it starts; `mine.py` copies the mining rules (`rules-Icepick.json`) back in its
+preflight, so starting the mining loop again needs nothing by hand. The mining planner reads the repo's
+`rules-Icepick.json`, which is unchanged.
+
+## Done so far
+
+- 2026-11-05 20:16: the 137 iron ore in the grey bag smelted (6 loads of 25, through `smith.py ore`): 137 ingots,
+  the bag now 3,309. These piles (graphic 0x19B8) give one ingot per ore (the large piles Icepick digs give two).
+  Smelting works mounted.
+
+## The bridge (version 6, build cuo-agent19)
+
+Crafting needs what the bridge couldn't do before: answering the server's menus or gumps and reading skills. Bridge 6
+(`AgentBridgeDialogs.cs`) adds, for any character:
+- `GET /skills`: value, base, cap and lock of every skill, and the total (for the skill cap).
+- `GET /gumps`: the menus (the old picture and text menus, packet 0x7C) and gumps (0xB0/0xDD) open now, with their
+  items, buttons (with the text beside each), switches and texts.
+- `POST /use?serial=` with no target: double-click an allowed tool (the hammer) and return what the server showed.
+- `POST /menu`, `POST /gump`, `POST /target`: choose a menu item, press a gump button, answer a target cursor.
+- `GET /events`: one log of everything: messages, menus and gumps shown, target cursors, skill changes, and what the
+  client sent (double-clicks, menu choices, gump buttons, targets, picks, drops), whoever sent it. Only a fixed list
+  of packets is read on the way out, never their typed text and never the login.
+- `uo record FILE` follows the event log into a file: for recording a task the user does by hand.
+
+## How this server does it (recorded from the user, 2026-11-05 20:33)
+
+cuo-agent19 was installed at 20:31; the user crafted a cutlass and smelted it by hand while `uo record` ran
+(`~/claude/uo-agent-work/smith/record1-events.json`). Picture menus (packet 0x7C), not gumps:
+1. Double-click the hammer: the **"Blacksmithy Options"** menu: 1 Repair, 2 Smelt, 3 Shields, 4 Armor, 5 Weapons, and
+   6 **Make Last Item** once something has been made (it survives a smelt in between).
+2. Weapons: "What materials would you like to work with?" and a target cursor: target the ingots (in his pack).
+3. "What type of item do you want to craft?": 1 Bladed, 2 Axes, 3 Polearms, 4 Bashing.
+4. "What do you want to make?" (Bladed): broadsword 10 ingots, **cutlass 8**, dagger 3, **kryss 8**, longsword 12,
+   scimitar 10, viking sword 14. The menu's serial changes every time; its id is always 0.
+5. About 4.5 s later: "You create the item." or "You failed to create the item, and some of your materials are
+   lost." (a failed cutlass lost 4 ingots).
+6. **Make Last Item** crafts at once: no materials cursor, no further menus.
+7. Smelt: "Target an item to recycle.", target the item: "You melt the item down into ingots." at once. **A cutlass
+   gave all 8 ingots back**, so only failures cost metal.
+
+Skills (2026-11-05 20:33): Blacksmithy 57.8 (base 53.2), the total of all base skills 404.7, so no skill cap problem.
+Crafting goes by the 57.8. Hiding and Mining are locked at 100; Blacksmithy, Carpentry, Magery, Tailoring and
+Tinkering are set to rise, the rest to fall.
+
+## The loop (`smith.py run`, from 2026-11-05 20:39)
+
+- Each time round: the hammer (the next from the pouch when the last broke), the pack's ingots topped up to 150 from
+  the bag when under 40, then one attempt (Make Last Item when the last item is the one wanted, else the menus),
+  and every item made smelted at once. Every 50 crafts it looks for ore in the bag and smelts it first.
+- The item comes from the user's table by Blacksmithy's value; `--item NAME` makes one kind regardless (for the
+  trial at 99). Items not where expected (short spear, spear: Polearms is a guess) are looked for under the other
+  kinds, and the log says so.
+- It stops by itself at 99 ("time for the spear / plate gloves trial"), when the hammers or ingots run out, or on
+  anything it doesn't understand.
+- Pace, measured: dclick to menu 75 ms; the bridge answers a menu about 1 s after it shows (the 300 ms settle and
+  the game thread's ticks); the server crafts in 4.4-6.7 s; the next action waits at least 1.1 s. A failed attempt
+  takes about 7 s, a made-and-smelted one about 12: roughly 300-400 attempts an hour. The next build can skip the
+  settle when a menu or cursor is the answer (about a second a cycle).
+- The work folder `~/claude/uo-agent-work/smith` (not in git): `smith.log`, `state.json` (totals, crafts per hammer,
+  the last item, the item being made), `smith.pid`.
+
+## Running it from a Claude session
+
+- **Start** as a background task, with absolute paths:
+  `cd ~/claude/ClassicUO/tools/uo-agent; exec python3 -I ~/claude/ClassicUO/tools/uo-agent/smith.py run`.
+  It needs Icepick logged in with the Agent bridge ticked, at his spot with the chest in reach.
+- **Watch** the log with a Monitor (30 minutes at most, re-arm at each expiry):
+  `tail -n 0 -F ~/claude/uo-agent-work/smith/smith.log | grep -E --line-buffered "start:|now making|STOPPED|Blacksmithy|hammer|low|instead|not under|craft [0-9]+|ore smelted|Traceback|Error"`.
+  Every skill gain logs a "Blacksmithy A -> B" line, which is the heartbeat.
+- **Stop**: `python3 -I smith.py stop` (after the craft it's on; waits for the loop to end). No hiding needed indoors.
+- **Tell the user**: every whole skill point (with the rate an hour), item changes, hammers breaking (and how many
+  uses one lasted), `hammers low`, `ingots low`, ore smelted, and every stop.
+- **Totals**: `python3 -I smith.py report`.
+- After a server reboot the loop stops ("the server went quiet"); check `halted` in `uo --char Icepick status`,
+  `uo --char Icepick resume` if set, and start it again (it opens the pack, chest, bag and pouch itself).
+
+## Questions still open
+
+- The trial at 99: how long to run each of spears and plate gloves, and where plate gloves are in the Armor menus.
