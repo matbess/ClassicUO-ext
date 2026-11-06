@@ -159,6 +159,13 @@ Needs: Clem's pack cleared to about 20 items, and 5 empty bags on the third floo
   trimmed to 100, 0x409167B7 holds 72 (back on its spot at 1753,1411). Clem's pack: his 17 items plus the empty working
   bag 0x4098F2E7. To carry on: `python3 -I carto.py reorg` (it works the rest out from the bags).
 - 2026-11-05 evening: everything committed before another agent starts on other automation; the reorg resumed.
+  The user cleared Clem's pack and swapped the working bag: it's now **0x4098F2E4** (0x4098F2E7, the old one, is
+  the user's again, downstairs).
+- **2026-11-05 20:15: the reorganisation is done.** No bag holds more than 100. Second floor: 46 bags, 4,552 maps
+  (14 completed bags with 1,352; 32 blank bags with 3,200). Third floor overflow: 0x4045BFF9 (77) at 1752,1405,
+  0x405AE5DC (77) at 1753,1405, 0x409397D1 (76) at 1752,1404, 0x40832F5B (76) at 1753,1404. The working bag
+  0x4098F2E4 holds 100 blanks in Clem's pack (120 items in all). 4,958 maps, as at the start. 0x409397A3
+  (1752,1403,46) is still empty upstairs. Clem is standing in the gap in the wall (1753,1409).
 
 ## Running it (carto.py)
 
@@ -246,8 +253,9 @@ Needs: Clem's pack cleared to about 20 items, and 5 empty bags on the third floo
 
 ## Next steps (in order)
 
-1. Finish the reorganisation (Progress above), then add the two older third floor blank bags (0x409167C0: 85,
-   0x409167C1: 48) to the state as overflow blank bags.
+1. Add the two older third floor blank bags (0x409167C0: 85 at 1753,1402; 0x409167C1: 48 at 1752,1402; the client
+   has forgotten their contents, so open them first) to the state as overflow blank bags. The reorganisation itself
+   is done.
 2. The bridge additions (vendor, gumps and the recorder, Invisibility on himself, doors), with the user's go-ahead.
 3. With the new build: record the user drawing a map by hand; the user shows the vendor rune, the gold chest and the
    door; then write the drawing and vendor loop in `carto.py`.

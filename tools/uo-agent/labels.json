@@ -3,6 +3,7 @@
   "0x403FBB5F": "bag: GM set 3 (GM armour sets chest) - Lady Brigid James, plain gorget",
   "0x404005BF": "bag: GM set 2 (GM armour sets chest) - Lady Brigid James, plain gorget",
   "0x4045BFF2": "maps: blank (Clem's bag room)",
+  "0x4045BFF9": "maps: blank (overflow, 3rd floor)",
   "0x4045BFFE": "maps: blank (Clem's bag room)",
   "0x4045C010": "maps: completed (Clem's bag room)",
   "0x4045C018": "maps: blank (Clem's bag room)",
@@ -27,6 +28,7 @@
   "0x4053C008": "smelting 3 (crate by the door, 5th from bottom)",
   "0x4053CE6E": "smelting 4 (crate by the door, top)",
   "0x4053DA72": "smelting 2 (crate by the door, 4th from bottom)",
+  "0x405AE5DC": "maps: blank (overflow, 3rd floor)",
   "0x40687509": "bag: GM set 1 (GM armour sets chest) - Lord Bruche, all exceptional",
   "0x4068E2BB": "trash barrel (by the door; deletes what goes in)",
   "0x407B195C": "bag: circle 7 scrolls (scrolls chest)",
@@ -34,6 +36,7 @@
   "0x407D0B95": "bag: reagents (Burgers' bank)",
   "0x407D0BA0": "maps: completed (Clem's bag room)",
   "0x4080C375": "chest: scrolls (col 5, top)",
+  "0x40832F5B": "maps: blank (overflow, 3rd floor)",
   "0x40832F62": "maps: completed (Clem's bag room)",
   "0x40832F6B": "bag: circle 1 scrolls (scrolls chest)",
   "0x40836BEE": "maps: blank (Clem's bag room)",
@@ -111,6 +114,7 @@
   "0x409397CE": "bag: helms (helms chest)",
   "0x409397CF": "bag: healing wands (magic wands chest)",
   "0x409397D0": "bag: plate legs (plate chest)",
+  "0x409397D1": "maps: blank (overflow, 3rd floor)",
   "0x4098CCD0": "bag: fencing (fencing chest)",
   "0x4098CCD4": "bag: ringmail (chain & ring + coifs chest)",
   "0x4098CCE9": "bag: swords (swords chest)",
@@ -125,5 +129,5 @@
   "0x4098CD0F": "bag: rings (jewellery chest)",
   "0x4098F2D8": "bag: maces & staves (maces & staves chest)",
   "0x4098F2DC": "bag: shovels (Burgers' bank)",
-  "0x4098F2E7": "maps: blank (Clem's pack)"
+  "0x4098F2E4": "maps: blank (Clem's pack)"
 }
