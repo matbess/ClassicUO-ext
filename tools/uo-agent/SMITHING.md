@@ -137,6 +137,12 @@ Tinkering are set to rise, the rest to fall.
   left): a `supplies:` line at the start, after every hammer that breaks and at every whole skill point: the
   ingots in the grey bag and in his pack, the spare hammers, the hammers broken so far. Also in `smith.py report`
   (with the average uses per hammer) and `supplies`/`broken` in the state.
+- **Ingots used** (the user, 2026-11-05: "based on how many we started with and how many are remaining"): started
+  with 3,309 plus every addition since, minus what's left in the grey bag and his pack. Additions (the user's, and
+  ore smelted) are found as any rise in bag + pack beyond what he used, which the loop counts in his pack round each
+  craft and smelt (`ingots_spent`, `ingots_returned`, `ingots_used` in the totals; state `ingots`). The first 442
+  are exact (to 21:16); the 258 from 21:16 to 21:38, while the user was adding, are estimated from the failures
+  (4.97 lost a failure).
 - **Totals**: `python3 -I smith.py report`.
 - After a server reboot the loop stops ("the server went quiet"); check `halted` in `uo --char Icepick status`,
   `uo --char Icepick resume` if set, and start it again (it opens the pack, chest, bag and pouch itself).

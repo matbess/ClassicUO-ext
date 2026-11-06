@@ -250,6 +250,10 @@ def hammer(state):
     return spares[0]['serial']
 
 
+def pack_ingots():
+    return sum(i.get('amount') or 1 for i in pack() if is_ingots(i))
+
+
 def supplies(state):
     """What's left (the user, 2026-11-05: keep track of hammers broken and the hammers and ingots left): the iron
     ingots in the grey bag and in his pack, the spare hammers, the hammers broken so far. Kept in the state."""
@@ -258,10 +262,20 @@ def supplies(state):
     mine = sum(i.get('amount') or 1 for i in pack() if is_ingots(i))
     spare = len(spare_hammers())
     broken = len(state.get('broken', []))
-    state['supplies'] = {'time': time.strftime('%Y-%m-%d %H:%M:%S'), 'ingots_in_bag': bag, 'ingots_loose_in_chest': loose,
+    t = state.get('totals', {})
+    # the user's measure (2026-11-05): used = what we started with (3,309, plus every addition since) minus what's
+    # left in the bag and his pack. An addition is any rise in bag + pack beyond what the pack count says he used.
+    measured = t.get('ingots_used', 0) + t.get('ingots_used_before_counting', 0)
+    ing = state.setdefault('ingots', {'start': 3309, 'added': 0, 'last_total': 2867, 'last_used': 442})
+    left = bag + mine
+    ing['added'] += left - ing['last_total'] + (measured - ing['last_used'])
+    ing['last_total'], ing['last_used'] = left, measured
+    started = ing['start'] + ing['added']
+    used = started - left
+    state['supplies'] = {'ingots_started_with': started, 'ingots_left': left, 'ingots_used': used, 'time': time.strftime('%Y-%m-%d %H:%M:%S'), 'ingots_in_bag': bag, 'ingots_loose_in_chest': loose,
                          'ingots_in_pack': mine, 'spare_hammers': spare, 'hammers_broken': broken}
-    return (f'supplies: {bag} ingots in the bag' + (f' and {loose} loose in the chest' if loose else '') +
-            f' (+{mine} in his pack), {spare} spare hammers, {broken} broken so far')
+    return (f"supplies: ingots: started with {started} ({ing['start']} + {ing['added']} added), {left} left "
+            f"({bag} in the bag, {mine} in his pack), {used} used; {spare} spare hammers, {broken} broken so far")
 
 
 def top_up_ingots(state, force=False):
@@ -472,6 +486,9 @@ def run(forced_item):
                 state.pop('last_item', None)
         h = hammer(state)
         ingots = top_up_ingots(state)
+        # ingots used (the user, 2026-11-05): counted in his pack round each craft and smelt, so the user's
+        # additions to the bag don't count; spent on crafting, returned by smelting, and the difference used up
+        before_craft = pack_ingots()
         try:
             text, made = make(state, h, item, ingots)
             interrupted = 0
@@ -505,6 +522,7 @@ def run(forced_item):
             say(f'craft {t["crafts"]} {item}: {text}')
             if 'not enough' in low or 'ingots' in low:
                 top_up_ingots(state, force=True)
+        after_craft = pack_ingots()
         for m in made:
             if item not in (m.get('type') or '').lower():
                 # Make Last Item made something else (the user crafted by hand in between?): the menus next time
@@ -515,6 +533,10 @@ def run(forced_item):
                 t['smelted'] += 1
             else:
                 raise Stop(f"smelting {m['serial']} ({m.get('type')}) answered: {answer}")
+        after_smelt = pack_ingots() if made else after_craft
+        t['ingots_spent'] = t.get('ingots_spent', 0) + max(0, before_craft - after_craft)
+        t['ingots_returned'] = t.get('ingots_returned', 0) + max(0, after_smelt - after_craft)
+        t['ingots_used'] = t.get('ingots_used', 0) + before_craft - after_smelt
         new = skill()
         if new != value:
             hours = (time.time() - started['time']) / 3600
