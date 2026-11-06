@@ -83,7 +83,9 @@ CASTERS = {'water elemental', 'air elemental', 'lich', 'orc mage', 'ratman mage'
 # animals that don't come for anyone: partners to set a creature on, not threats
 PASSIVE = {'llama', 'sheep', 'horse', 'cow', 'bull', 'pig', 'boar', 'chicken', 'deer', 'hind', 'great hart', 'rabbit',
            'jack rabbit', 'cat', 'dog', 'bird', 'eagle', 'goat', 'mountain goat', 'rat', 'squirrel', 'ferret',
-           'pack horse', 'pack llama', 'walrus', 'dolphin', 'crane', 'raven', 'magpie', 'finch', 'tern', 'swallow'}
+           'pack horse', 'pack llama', 'walrus', 'dolphin', 'crane', 'raven', 'magpie', 'finch', 'tern', 'swallow',
+           'panther'}  # panthers: "they are grey", no need to fight them (the user, 2026-11-06)
+SAY_FOLLOW = 'all follow me'
 
 info = None
 
@@ -172,14 +174,23 @@ def look():
     return st, {m['serial']: m for m in near['mobiles']}
 
 
+_last_walk = {'p': None, 't': 0.0}
+
+
 def walk(p):
-    """Run to p, coming back as soon as he's on his way. False when there's no way there."""
+    """Run to p, coming back as soon as he's on his way. False when there's no way there. The same spot again (or
+    one next to it) within 1.5 s isn't sent: every new walk is more riding, and back-and-forth tires the horse
+    (2026-11-06)."""
+    if _last_walk['p'] and dist(p, _last_walk['p']) <= 1 and time.time() - _last_walk['t'] < 1.5:
+        return True
     try:
-        return bool(call('POST', '/walk', x=p[0], y=p[1], distance=0, run=1, wait=0))
+        ok = bool(call('POST', '/walk', x=p[0], y=p[1], distance=0, run=1, wait=0))
     except uo.BridgeError as e:
         if e.code in (403, 409):  # outside the area, or no path
             return False
         raise
+    _last_walk['p'], _last_walk['t'] = p, time.time()
+    return ok
 
 
 def go_somewhere(me, score, radii=(5, 8), allowed=None):
@@ -259,6 +270,10 @@ class Fight:
         self.ignored = set()     # creatures that never came when drawn
         self.luring = None
         self.lure_since = 0.0
+        self.seen_message = call('GET', '/status')['lastMessageId']
+        self.tired = None        # the horse said it's tired: 'very' (a warning) or 'too' (it won't move)
+        mounts = call('GET', '/rules').get('mounts', [])
+        self.horse = mounts[0] if mounts else None
 
     # ---- who's who ----
 
@@ -456,6 +471,10 @@ class Fight:
         self.note_damage(mobs)
         casting = time.time() < self.cast_until
 
+        self.read_messages()
+        if self.tired and not casting:
+            return self.rest_horse(me, mobs, st)
+
         if st.get('paralyzed') and not casting:
             found = carried(POUCH)
             if found:
@@ -559,9 +578,13 @@ class Fight:
         # drawing one: as close as it can see him, no closer; one that doesn't come within LURE_WAIT is left be
         lurable = [m for m in free if m['serial'] not in self.ignored]
         if lurable:
-            nearest = min(lurable, key=lambda m: dist(me, xy(m)))
+            # one at a time: the same one until it comes or is left be (switching to whichever was nearer had him
+            # going back and forth between two panthers)
+            current = [m for m in lurable if m['serial'] == self.luring]
+            nearest = current[0] if current else min(lurable, key=lambda m: dist(me, xy(m)))
             if self.luring != nearest['serial']:
                 self.luring, self.lure_since = nearest['serial'], time.time()
+                say(f'drawing {nearest["name"]} at {nearest["x"]},{nearest["y"]} ({dist(me, xy(nearest))} tiles)')
             elif time.time() - self.lure_since > LURE_WAIT:
                 say(f'{nearest["name"]} never came for him; leaving it be')
                 self.ignored.add(nearest['serial'])
@@ -576,6 +599,62 @@ class Fight:
             return False
 
         return self.search(me)
+
+    def read_messages(self):
+        """The server's word since the last look: the horse tiring."""
+        new = call('GET', '/messages', after=self.seen_message)['messages']
+        if new:
+            self.seen_message = max(m['id'] for m in new)
+        for m in new:
+            low = m['text'].lower()
+            if 'too fatigued' in low:
+                self.tired = 'too'
+            elif 'fatigued' in low and self.tired is None:
+                self.tired = 'very'
+            if 'fatigued' in low:
+                say(f'the horse: {m["text"]!r}')
+
+    def rest_horse(self, me, mobs, st):
+        """The user's trick for a tired horse (MINING.md): get away from every creature first while the horse can
+        still move, then dismount, say "all follow me", wait a second, mount again. Too tired to move: straight away."""
+        threats = [m for m in mobs.values() if attackable(m) and not passive(m) and not self.busy(m['serial'], mobs)]
+        dfree = min((dist(me, xy(m)) for m in threats), default=99)
+        if self.tired == 'very' and dfree <= CLEAR and st['mounted']:
+            run_from(me, [xy(m) for m in threats])
+            time.sleep(0.3)
+            return False
+        if not self.horse:
+            say('the horse is tired, and his rules name no horse to get back on: going home as he is')
+            self.tired = None
+            self.go_home('tired horse')
+            return False
+        if st['mounted']:
+            call('POST', '/dismount')
+        call('POST', '/say', text=SAY_FOLLOW)
+        time.sleep(1)
+        horse = mobs.get(self.horse) or next((m for m in call('GET', '/nearby', range=6)['mobiles']
+                                              if m['serial'] == self.horse), None)
+        if horse and dist(me, xy(horse)) > 1:
+            try:
+                call('POST', '/walk', x=horse['x'], y=horse['y'], distance=1)
+            except uo.BridgeError as e:
+                say(f'to the horse: {e}')
+        try:
+            call('POST', '/mount', serial=self.horse)
+        except uo.BridgeError as e:
+            say(f'mounting: {e}')
+        mounted = call('GET', '/status')['mounted']
+        say('horse rested: ' + ('back on' if mounted else 'NOT back on the horse'))
+        if mounted:
+            self.tired = None
+            self.mount_tries = 0
+            _last_walk['p'] = None
+        else:
+            self.mount_tries = getattr(self, 'mount_tries', 0) + 1
+            if self.mount_tries >= 3:
+                self.tired = None
+                self.go_home('could not get back on the horse')
+        return False
 
     def step_home(self, me, threats):
         """Short hops to the front door, then in (door.go_in). True once he's inside."""

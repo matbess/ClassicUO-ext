@@ -30,6 +30,10 @@
   "keys": ["0x4040A302"],
   // a trapped pouch, used when he's paralysed
   "useFromBackpack": ["0x0E79"],
+  // a tired horse (the user, 2026-11-06; MINING.md "Tired mount"): get away, dismount, say "all follow me", mount
+  // again. His horse's serial goes in "mounts" (it only shows while he's off it).
+  "say": ["all follow me"],
+  "mounts": [],
   // bags of maps are put down at his feet: backpack, bag, pouch
   "dropOnGround": ["0x0E75", "0x0E76", "0x0E79"],
   // no pausing (the user, 2026-11-05: people walk around the tower; nothing should stop because of that)
