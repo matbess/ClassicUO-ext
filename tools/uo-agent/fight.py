@@ -10,8 +10,11 @@ heals once clear when hurt, and uses a trapped pouch when paralysed. Bridge 7 (c
 
   python3 -I fight.py [--minutes N] [--resume]
 
-Starts where he is in the front yard (door.py takes him out and back in) and stops when nothing has been left for
-5 s after a fight, when there's no creature in the yard, or after N minutes (10); then he's left clear of them. If
+Starts where he is in the front yard (door.py out takes him there) and ends the fight when nothing has been left
+for 5 s, when there's no creature in the yard, or after N minutes (10). Then he goes straight back inside through the
+door, locked and closed (door.go_in): he's never left out in the yard (the user, 2026-11-06: more creatures come
+along); if creatures block the door, it's back to the fight. The same when it's interrupted or something goes wrong:
+first clear of the creatures, then inside. If
 the user gives him a command themselves the bridge refuses every action (handOver) and this stops at once, leaving him
 to them. Only the user hands him back: --resume clears a takeover, and is passed only when they say so.
 Logs to fight.log, and every cast (with the target's health before and after) and provoke to fights.jsonl, in
@@ -28,6 +31,7 @@ import time
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, HERE)
 import uo  # noqa: E402
+import door  # noqa: E402
 
 WORK = os.path.expanduser('~/claude/uo-agent-work/combat')
 LOG = os.path.join(WORK, 'fight.log')
@@ -504,21 +508,58 @@ def main():
         call('POST', '/resume')
         say(f'resumed, as the user said (was: {stopped})')
     try:
-        Fight(args.minutes).run()
+        fight_then_home(args.minutes)
     except Stop as e:
-        say(('STOPPED: ' if e.took_over else 'done: ') + str(e))
-        if not e.took_over:
-            get_clear()
-        sys.exit(1 if e.took_over else 0)
-    except KeyboardInterrupt:
-        say('STOPPED (interrupted)')
-        get_clear()
+        # only the user taking over (or the bridge stopping) gets here: he's theirs, nothing more is sent
+        say(f'STOPPED: {e}')
         sys.exit(1)
-    except Exception as e:  # anything unexpected: still don't leave him standing among them
-        say(f'STOPPED by an error: {e!r}')
-        get_clear()
+    except KeyboardInterrupt:
+        say('STOPPED (interrupted): getting him clear and home')
+        leave_safely()
+        sys.exit(1)
+    except Exception as e:  # anything unexpected: still don't leave him out there
+        say(f'STOPPED by an error: {e!r}; getting him clear and home')
+        leave_safely()
         raise
 
+
+def go_home():
+    """Back inside through the front door, locked and closed (door.py). True when he's in."""
+    door.info = info
+    try:
+        door.go_in()
+        return True
+    except door.Stop as e:
+        st = call('GET', '/status')
+        if st.get('takenOver') or st.get('halted'):
+            raise Stop(f'{st.get("takenOver") or st.get("halted")} (on the way in: {e})', took_over=True)
+        say(f'could not get in: {e}')
+        return False
+
+
+def fight_then_home(minutes):
+    """Fight, then park him inside (the user, 2026-11-06: never leave him outside, more creatures come along). When
+    the way in is blocked (creatures at the door), it's back to the fight."""
+    for attempt in range(3):
+        try:
+            Fight(minutes).run()
+        except Stop as e:
+            if e.took_over:
+                raise
+            say(f'fight done: {e}')
+        if go_home():
+            say('parked inside; the door is locked and closed')
+            return
+    raise Stop('could not get him inside after 3 tries; he is out in the yard', took_over=False)
+
+
+def leave_safely():
+    get_clear()
+    try:
+        if go_home():
+            say('parked inside; the door is locked and closed')
+    except (Stop, uo.BridgeError, OSError) as e:
+        say(f'could not get him home: {e}')
 
 if __name__ == '__main__':
     main()
