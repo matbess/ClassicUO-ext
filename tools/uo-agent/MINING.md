@@ -234,6 +234,9 @@ There are now a couple of other players on the server (2026-11-01), besides the 
 
 ## Pacing (the user, 2026-11-01)
 
+**Only mining is paced** (the user, 2026-11-05): everything else, the bank included (mine.py's quick bank pacing) and
+everything inside the tower or house, runs at full speed (1.1 s between requests, no breaks; root AGENTS.md).
+
 The server has no moderation now, but the moderator might come back and enforce old rules without the user hearing
 about it first. So nothing is ever done faster than a person might. The user first asked for 1-2 s between actions,
 then found dismount / "all follow me" / dig / remount at about 1.8 s gaps (and the aim 0.1 s after the cursor) still
@@ -243,7 +246,7 @@ too fast. Now, in Icepick's and Burgers' rules:
   cuo-agent10;
 - walks wait their turn like any other action, and the next action waits a full gap after arriving (cuo-agent10;
   mining.pause() covers the build before it).
-Johnny's sorting rules (rules.json) keep 1.5-2 s and 3-5 s. If the user says it's still too fast, slow the rules
+Johnny's sorting rules (rules.json) run at full speed since 2026-11-05. If the user says it's still too fast, slow the rules
 files further: they apply at once, without a new build.
 
 ## Tested 2026-11-01 night (build cuo-agent9)

@@ -26,7 +26,7 @@ wands and sort it into a house's chests.
      "neverTouch": ["0x1766"],     // item graphics never to pick up from the floor
      "useFromBackpack": ["0x0F9E"],// tools that may be used from the backpack (scissors)
      "ignorePeople": [],           // characters that don't pause the agent
-     "pacing": { "gap": [1500, 2000], "burst": 5, "break": [3000, 5000] }
+     "pacing": { "gap": [1100, 1100], "burst": 1000, "break": [1100, 1100] }  // full speed (1.1 s is the floor)
    }
    ```
 

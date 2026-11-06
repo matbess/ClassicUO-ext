@@ -16,10 +16,14 @@
   ],
   // bags of maps are put down at his feet: backpack, bag, pouch
   "dropOnGround": ["0x0E75", "0x0E76", "0x0E79"],
-  // anyone else in his areas (the user's other characters too) pauses him
+  // no pausing (the user, 2026-11-05: people walk around the tower; nothing should stop because of that)
+  "pauseForPeople": false,
   "ignorePeople": [],
   // cut cloth on the floor is decoration
   "neverTouch": ["0x1766", "0x1767"],
-  // indoors, the same pace as Johnny's sorting (milliseconds)
-  "pacing": { "gap": [1500, 2000], "burst": 5, "break": [3000, 5000] }
+  // Cartography (2026-11-05): the skill shows a menu, "What do you want to make?", 4 = world map
+  "skills": [12],
+  // full speed (the user, 2026-11-05: everything inside the tower runs at full speed, 1.1 s between requests; only
+  // mining, out in town, has pauses); the bridge never goes below 1.1 s (milliseconds)
+  "pacing": { "gap": [1100, 1100], "burst": 1000, "break": [1100, 1100], "aim": [0, 0] }
 }

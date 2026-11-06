@@ -57,10 +57,10 @@ Batch working files go in `~/claude/uo-agent-work/batchN` (scratch, not needed l
 
 ## Safety rules (these matter more than speed)
 
-- The bridge paces every action: a random 1.5-2 s gap (`rules.json`), plus a 3-5 s break after every 5. Never work around it.
+- Sorting runs at **full speed** (the user, 2026-11-05: pacing is for mining only): the bridge's floor of 1.1 s between actions and no breaks (`rules.json`). Don't add waits in scripts, and never go around the bridge.
   - This came from 2026-10-31, when about 55 fast opens came just before the server stalled for everyone.
   - Pacing is set in `rules.json` and has a floor of 1.1 s.
-- Paced batches are slow, so use background tasks for long ones and keep requests to a few dozen actions.
+- Long batches still take a while, so use background tasks for them and keep requests to a few dozen actions.
 - If the bridge stops because the server didn't answer, find out why before anything else. Never retry blindly.
   - World saves freeze the server for several seconds. They are routine. The bridge holds new actions while it knows a save is running, but an action already sent when the save starts can still stop it. Then wait for "world save complete", check whether the interrupted action went through, and carry on without asking. The scripts do this themselves (`uo.wait_out_world_save`).
   - A false stop with a clear cause, where the server did answer (see "Drops into a container not opened since login" below): resume and tell the user.
@@ -74,7 +74,7 @@ Batch working files go in `~/claude/uo-agent-work/batchN` (scratch, not needed l
 
 - **The client forgets container contents when it restarts.** After every restart, open each container before moving things into or out of it, including containers nested in chests (such as the ID spares pouch). Otherwise the bridge answers 404 "no such item nearby".
 - **Reopening a container can bring only its contents.** If the server still counts the container as open (closing a window is never sent to the server), it sends the contents without the "show window" message. The bridge counts either as an answer.
-- **The action delay also runs from drops.** "You must wait" can still show up now and then. The bridge retries once, which is harmless. The gap is set to 1.5-2 s in `rules.json`.
+- **The action delay also runs from drops.** "You must wait" can still show up now and then. The bridge retries once, which is harmless. The gap is 1.1 s in `rules.json`.
 - **Drops into a container not opened since login get no reply.** The server only reports a container's contents to someone who has opened it, so the bridge hears nothing and stops (2026-11-01, putting the wand in the spares pouch after a restart). `uo.move` now opens a target the client knows nothing about first. If it happens anyway, the weight change and empty hands show the drop worked.
 - **The trash barrel** (0x4068E2BB, by the door at 1758,1410; added 2026-11-01) deletes what goes in after three minutes, or at once when the 50th item goes in. Then the barrel itself says "The trash is full! Emptying!" and the item just dropped is deleted too. The bridge only counts system messages as an answer, so it stops ("no answer after dropping"). That's a known false stop: resume and carry on (`uo.resume_after_barrel_emptied`; sortbatch and idall do it themselves). Never put anything in the barrel the user might still want.
 - **Server-wide announcements can make a move look failed.** A broadcast ("The tournament is now over…") arriving just as a drop is answered counts as the server's reply, and the bridge reports the move as not done although the item went where it should (2026-11-04). sortbatch now checks where the item really is before calling a move failed (`landed_in`). If a script still stops with "did not go into", check `uo item S` before anything else.

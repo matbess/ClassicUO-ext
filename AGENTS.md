@@ -11,8 +11,9 @@ This is the user's fork of ClassicUO (github.com/matbess/ClassicUO-ext). All of 
   clients sharing one `settings.json`.
 - The server is a private one based on the UOSA (Second Age, T2A-era) server code, hosted elsewhere by someone who no
   longer plays. Besides the user's brother (who cooperates) there are now a couple of other players (2026-11-01).
-  There's no moderation now, but the user wants to be safe if old rules come back: everything the agent does is
-  paced slower than a person would bother to be (see MINING.md, "Pacing"). Staff get the normal guard like anyone
+  There's no moderation now, but the user wants to be safe if old rules come back: mining is paced slower than a
+  person would bother to be (see MINING.md, "Pacing"); nothing else is (see "Pacing is for mining only" below).
+  Staff get the normal guard like anyone
   else (the user, 2026-11-04: the old stand-still-and-tell-the-user rule for staff is gone).
 - `UOSecondAge.app` is the original UOSA launcher: leave it untouched. Game data files: `~/Games/UOSA-data`.
 - "Crashes" have turned out to be server-side disconnects before; check the macOS log (tcp_connection_summary) before
@@ -28,6 +29,11 @@ This is the user's fork of ClassicUO (github.com/matbess/ClassicUO-ext). All of 
   Commit identity is set in the repository: matbess <1884731+matbess@users.noreply.github.com>. Push access is a
   repo-only deploy key (`~/.ssh/github_classicuo`, ssh host alias `github-classicuo`). No `gh` CLI on the Mac.
 - Don't draft feedback reports about the session.
+- **Pacing is for mining only** (the user, 2026-11-05: "for johnny too, for everyone"). Only Icepick's digging out in
+  town has the slow, human-like pacing (MINING.md, "Pacing"). Everything else runs at **full speed**: inside the
+  tower or house (Johnny's sorting, Clem's cartography, Icepick's smithing) and the bank (mine.py switches Burgers to
+  quick pacing there). Full speed is the bridge's floor of 1.1 s between requests, no breaks, and no waits added in
+  scripts: in the rules file `"pacing": { "gap": [1100, 1100], "burst": 1000, "break": [1100, 1100], "aim": [0, 0] }`.
 
 ## What the fork adds (one commit per feature)
 

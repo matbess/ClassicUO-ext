@@ -49,6 +49,10 @@ back on its own spot.
 - **No guard for Clem**: he's safe inside the tower. The guard is per character already: it runs only when the
   character's rules file has a `guard` section, and the alarm file (Agent/alarm.json) is read and written only by a
   guard. Clem's `rules/rules-Clem.json` has none, so nothing Clem does can set off Icepick's or Burgers' guards.
+- **No pausing for people** (the user, 2026-11-05: people walk around the tower; nothing should stop because of
+  that): `"pauseForPeople": false` in his rules.
+- **Full speed** (the user, 2026-11-05: pacing is for mining only; root AGENTS.md): 1.1 s between requests, no
+  breaks, no waits added in scripts.
 - **In town at the vendor** (only briefly): if anyone who isn't a known NPC is about, cast **Invisibility** on himself,
   then work out while invisible whether they're an NPC (the fidget animations the guard already learns NPCs by) or a
   player. An NPC: carry on. A player: recall back to the tower and go inside.
@@ -173,7 +177,7 @@ Needs: Clem's pack cleared to about 20 items, and 5 empty bags on the third floo
   reorganisation. It only ever uses Clem's bridge (`CHAR = 'Clem'`), so it can't act as Johnny, Icepick or Burgers.
 - From a Claude session, run it in the background: `cd ~/claude/uo-agent && python3 -I carto.py reorg >
   ~/claude/uo-agent-work/carto/reorg.out 2>&1`, and watch `carto.log` (one line per bag; `reorg.out` also has the
-  bridge's send lines). It takes about 3.3 s a map at Clem's pace.
+  bridge's send lines). At the old 1.5-2 s pace it took about 3.3 s a map; he now runs at full speed (1.1 s).
 - **Files** (`~/claude/uo-agent-work/carto/`, outside the repo): `state.json` holds every bag (spot, kind, count),
   the 45 bag spots, and the reorg's plan (`empties` upstairs, `freed` bags, the `working` bag, and `home`: the spot
   each bag picked up goes back to). If it's lost, `labels.json` (committed) still has every bag's kind, and the
@@ -211,13 +215,28 @@ Needs: Clem's pack cleared to about 20 items, and 5 empty bags on the third floo
   always in reach); `move()` walks to it first.
 - The Mac's python3 is 3.9: no f-strings that reuse the outer quote inside `{}`.
 
+## Drawing a map (recorded 2026-11-05 21:58, the user by hand; `~/claude/uo-agent-work/carto/draw1.jsonl`)
+
+1. Use the skill Cartography (skill 12; `"skills": [12]` in his rules). No target cursor: the server shows a menu,
+   **"What do you want to make?"**: 1 local map, 2 city map, 3 sea chart, **4 world map**, each "1 Blank Maps or
+   Scrolls". It takes the blank from the bag in his pack.
+2. Choose world map (by name, not number). About 6 s later the server says either **"With great care, thou dost make
+   a chart of the geography."** (a world map lands loose in his pack) or **"Thy trembling hand results in an unusable
+   map."** (the blank is used up, nothing made). Either way one blank goes, so the pack's item count doesn't change.
+3. Again at once (no "must wait" seen at full speed so far): about 10-12 s a map, most of it the server's.
+- Cartography was 84.2 (85.6 with a bonus), cap 100, on 2026-11-05 22:00.
+- The loop is `~/claude/uo-agent-work/carto/draw.py` for now (outside the repo while the other agent works on the
+  code; to go into carto.py): it draws from the working bag until it's empty and logs each go to `draws.jsonl`.
+- `/skill` waits for a system message or a cursor, and a menu is neither, so it returns only after its timeout (about
+  3 s) each time. For a later build: count a menu as the skill's answer.
+
 ## What the bridge can't do yet (for the next client build, together with the miners' bridge 5)
+
+Bridge 6 (cuo-agent19, 2026-11-05) has menus, gumps, the target cursor, skills and an event log (`uo record`): the
+gump recorder and the cartography menu are done. Still to come:
 
 - **Vendors**: read the buy and sell windows, buy, sell (the client already has the packets: Send_BuyRequest,
   Send_SellRequest).
-- **A gump recorder**: every gump the server shows (layout and text), the button the player presses, and the
-  messages around them, so the user can draw a map by hand while Claude watches.
-- **Cartography**: reading and pressing the gumps it shows (Send_GumpResponse). Steps from the recording.
 - **Invisibility on himself**: /cast only aims at things the character carries.
 - Count the server's "I can't reach that." (and other refusals spoken by the character) as an answer, not silence.
 - **Doors**: open and close, lock and unlock with a key.
@@ -256,6 +275,6 @@ Needs: Clem's pack cleared to about 20 items, and 5 empty bags on the third floo
 1. Add the two older third floor blank bags (0x409167C0: 85 at 1753,1402; 0x409167C1: 48 at 1752,1402; the client
    has forgotten their contents, so open them first) to the state as overflow blank bags. The reorganisation itself
    is done.
-2. The bridge additions (vendor, gumps and the recorder, Invisibility on himself, doors), with the user's go-ahead.
-3. With the new build: record the user drawing a map by hand; the user shows the vendor rune, the gold chest and the
-   door; then write the drawing and vendor loop in `carto.py`.
+2. Draw the blanks (under way 2026-11-05 with draw.py), then the storage moves between bags (carto.py has them).
+3. The bridge additions (vendor, Invisibility on himself, doors), into the other agent's next build, with the user's
+   go-ahead; then the user shows the vendor rune, the gold chest and the door, and the vendor trips get written.

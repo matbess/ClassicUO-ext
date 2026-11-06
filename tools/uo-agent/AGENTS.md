@@ -34,7 +34,9 @@ user's ClassicUO (Wine)                       this Mac
 - **The bridge** runs inside the client when the character's profile has Options > Experimental > "Agent bridge"
   ticked (profile key `agent_bridge`; currently only on "Here's Johnny"). It starts on login and stops on logout or
   disconnect, so it survives server reboots without any setup. It costs no tokens and doesn't lag the game.
-- **Requests run on the game thread, one at a time, paced** (a random 1.5-2 s gap, a 3-5 s break after every 5),
+- **Requests run on the game thread, one at a time, paced** by the character's rules file: full speed (1.1 s, the
+  bridge's floor, no breaks) for everything but mining (the user, 2026-11-05; root AGENTS.md, "Pacing is for mining
+  only"),
   and are refused when unsafe: outside the rules area, out of reach (2 tiles, 12 for a wand target), someone else in
   the room (409 "paused"), double-clicking anything but a container or the item in the hands. If the server ever
   doesn't answer, the bridge stops (423) until `uo resume`. It holds actions during world saves.
