@@ -3,20 +3,69 @@
 Started 2026-11-01. This file records what the user asked for, what was tested and what was decided, so any session
 can pick it up. The newest decisions are near the bottom; where an earlier note disagrees, the later one wins.
 
-## Status (2026-11-01, end of the evening)
+## Status (2026-11-05)
 
-- Built and tested: the bridge (installed build cuo-agent17, bridge 4), the rules files (`rules/rules-Icepick.json`,
-  `rules/rules-Burgers.json`, copied into the client's `Agent/` folder), the route (`routes/route1.jsonl`), the
-  planner (`mining.py plan`: 92 ore blocks), and the loop (`mine.py`). Tested in the game with the user watching:
-  digging, smelting, trades both ways, Recall, the bank trip, Gate Travel, Hiding, the horse, and the guard
-  (talk, loitering, getting away straight and past the stranger in the canyon, waiting until they've gone).
-- Not yet run: a whole pass top to bottom, the gate inside the loop, the tired-horse trick inside the loop, the
-  wait between passes, and anything unattended. Run the first whole pass with the user around.
-- How to run: `python3 mine.py --passes 1` (from where the last run stopped; `--from N --to M` for a stretch;
-  `--bank` for a bank trip only), as a background task. It logs to `~/claude/uo-agent-work/mining/mine.log` and
-  stops on anything that needs the user (a stolen rune, a lost horse, a bridge gone). Before starting: both
-  characters logged in with the Agent bridge option ticked, Icepick near McGee, Burgers by the forge with his four
-  runes.
+- **Running unattended, day and night**, `mine.py --passes 10`, since the night of 2026-11-01: 51,466 ingots
+  (40,629 iron) by 2026-11-05 16:10. Installed client: build cuo-agent17, bridge 4.
+- The pieces: the bridge, the rules files (`rules/rules-Icepick.json`, `rules/rules-Burgers.json`, copied into the
+  client's `Agent/` folder), the route (`routes/route1.jsonl`, the recorded rides `routes/ride-*.jsonl`, the
+  learned buildings `routes/obstacles.json`), the planner (`mining.py plan`: 92 ore blocks), the loop (`mine.py`)
+  and `colours.py` (ingots by colour, from the log).
+- The work folder `~/claude/uo-agent-work/mining` (not in git) holds `mine.log`, `incidents.jsonl` and
+  `state.json`: `next` (the block to dig next), `totals` (with a `note` of every correction), `emptied` (blocks
+  found empty, with when), `bags` (the bank's ingot, shovel and reagent bags), `shovel_bag` (the bag in Burgers'
+  pack), `unreviewed` (run and hides), `bank_out_of_shovels`.
+- Options: `--passes N`, `--from N --to M` (a stretch), `--bank` (a bank trip only), `--empty` (smelt and hand
+  over only), `--incidents`, `--reviewed`, `--park`, `--stop`.
+- Before starting: both characters logged in with the Agent bridge option ticked, Icepick near McGee or on him,
+  Burgers by the forge with his four runes, or at the Ocllo bank (the start-up then finishes his bank trip).
+- Waiting for the next client build (needs the clients closed and the user's yes): "left the area" only on
+  leaving (below, 2026-11-05 09:38), dropping ore on the ground (2026-11-02 14:20), guild tags not speech.
+
+## Running it from a Claude session
+
+- **Start** it as a background task, with absolute paths: a background task may start in another folder (2026-11-05:
+  `cd tools/uo-agent && python3 -I mine.py` looked for `mine.py` in the work folder and exited):
+  `cd ~/claude/ClassicUO/tools/uo-agent; exec python3 -I ~/claude/ClassicUO/tools/uo-agent/mine.py --passes 10`.
+  It carries on from `next` in the state.
+- **Watch** the log with a Monitor (at most 30 minutes, so re-arm it at every expiry). Start each one from the
+  time of the last event seen, so nothing logged while re-arming is lost (re-arming with `tail -n 0` missed a
+  handoff on 2026-11-04 at 03:16). Fill in the last event's time and date:
+  ```
+  tail -n 40 -F ~/claude/uo-agent-work/mining/mine.log | awk '$2 > "HH:MM:SS" || $1 != "YYYY-MM-DD" { print; fflush() }' |
+    grep -E --line-buffered "Reagents:|from the bank|takes the ingots|ingot bag|Gate|gate opened|McGee|retame|ALARM|alarm|STOPPED|PARKED|reagents low|left in the bank|none left|no shovels|Traceback|Error|done:|incident|run and hide|pass [0-9]+:|Icepick at|runes checked|not responding|left the area|inside the area"
+  ```
+  Don't add a bare "shovel": every shovel that wears out logs a line.
+- **What to tell the user** (they follow on the phone through Remote Control: plain messages, no push
+  notifications):
+  - every forge trip, in a few lines: the ingots handed over (and how many iron), the shovels given, the totals,
+    the run and hides to review and all four of Burgers' reagents;
+  - bank trips (the shovels and reagents taken), McGee (tired, stuck, gone wild, retamed), every alarm and incident,
+    `reagents low` (any of the four under 20), a new pass, stops, parks and reboots;
+  - not worn-out shovels or a ride that replans and carries on.
+- **What the user's words mean:**
+  - "park it" (to play Burgers or Icepick, or for an install): `python3 -I mine.py --park` at once.
+  - "I'm done with Burgers", "he's ready", "I restocked": check both statuses, then start the loop and the Monitor
+    again. Bags they swapped in the bank are found on the next bank trip (by what's in them), and Burgers at the
+    bank finishes his trip at the start; if they ask for a check, read the bank with `/contents`.
+  - "I've reviewed it": `python3 -I mine.py --reviewed`.
+  - The totals of each ore colour: `python3 -I colours.py` (estimates; see its docstring).
+- **Out of shovels**, the loop parks both and stops. When the user restocks within 30 minutes of the bank being
+  found empty, set `bank_out_of_shovels` to null in the state first, or Burgers won't go back for them until the
+  30 minutes are up.
+- **The nightly reboot** (about 04:15; the server rolls the world back to its last save, about 15 minutes before).
+  The loop stops with "the game is not responding". Then:
+  1. Wait until both bridges answer again (about 04:19; the clients log back in on their own).
+  2. Anyone in sight is hidden at once (`uo --char Icepick skill 21`; a second try 10 s later if it fails).
+     Icepick on foot gets on McGee first (`uo --char Icepick mount 0x00042FCB`).
+  3. Don't open packs or bags by hand (it halted Icepick's bridge on 2026-11-04): the start-up does that. Check
+     `halted` in both statuses, and `uo --char NAME resume` where it's set.
+  4. Find the save point: the ingots Burgers holds match one handoff line in the log, the last one before the save
+     (Icepick's ore and ingots should agree).
+  5. Back up `state.json`, then take the later handoffs off `totals` (ingots and iron) and say so in `totals.note`;
+     set `next` to the block Icepick was on at the save; drop the `emptied` entries dated after it.
+  6. Start the loop and the Monitor again, add the reboot to this file and its window to `ROLLED_BACK` in
+     `colours.py`, and tell the user.
 
 ## The job
 
