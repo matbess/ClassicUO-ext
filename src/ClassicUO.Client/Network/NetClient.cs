@@ -234,6 +234,9 @@ namespace ClassicUO.Network
 
             PacketLogger.Default?.Log(message, true);
 
+            // the agent bridge's event log: a few kinds of packet only, never the login (AgentBridgeDialogs.cs)
+            ClassicUO.Game.Managers.AgentBridge.OnSent(message);
+
             if (!skipEncryption)
             {
                 Encryption?.Encrypt(!_isCompressionEnabled, message, message, message.Length);

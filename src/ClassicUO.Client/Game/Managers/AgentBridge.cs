@@ -35,11 +35,11 @@ namespace ClassicUO.Game.Managers
     // with, words it may say, spells and skills it may use, mounts it may ride). Its "guard" goes off the
     // moment someone talks nearby, loiters next to it, attacks it, opens a trade or takes a watched item:
     // work stops (only getting away and hiding are allowed) and Agent/alarm.json tells the partner's client.
-    internal sealed class AgentBridge
+    internal sealed partial class AgentBridge
     {
         private const int FIRST_PORT = 7780;
         private const int LAST_PORT = 7789;
-        private const int VERSION = 5; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in
+        private const int VERSION = 6; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs)
         private const int GUARD_INTERVAL = 250;  // milliseconds between the guard's checks
         private const int ALARM_FILE_INTERVAL = 1000;
         private const int CAST_TIMEOUT = 6000;   // from casting to the target cursor
@@ -161,6 +161,11 @@ namespace ClassicUO.Game.Managers
                 action();
             }
 
+            if (_listener != null)
+            {
+                TakeSent();
+            }
+
             if (_listener != null && _guardOn && _logoutRequest == null)
             {
                 GuardTick();
@@ -190,6 +195,21 @@ namespace ClassicUO.Game.Managers
             {
                 case 0x24:
                     _containerAnswers[BinaryPrimitives.ReadUInt32BigEndian(data.Slice(1))] = ++_packetCount;
+
+                    break;
+
+                case 0x7C: // a menu (AgentBridgeDialogs.cs)
+                    OnMenuPacket(data);
+
+                    break;
+
+                case 0x6C: // the server wants a target
+                    OnTargetPacket(data);
+
+                    break;
+
+                case 0x3A: // a skill changed
+                    OnSkillPacket(data);
 
                     break;
 
@@ -248,6 +268,13 @@ namespace ClassicUO.Game.Managers
             _seenCarried.Clear();
             _alarm = null;
             _threat = null;
+
+            if (_sending == this)
+            {
+                _sending = null;
+            }
+
+            ClearDialogs();
             DeleteInfoFile();
             Log.Info("Agent bridge stopped");
         }
@@ -300,6 +327,7 @@ namespace ClassicUO.Game.Managers
             _listener = listener;
             _playerSerial = player;
             _characterName = characterName;
+            _sending = this;
 
             new Thread(() => Listen(listener, Encoding.ASCII.GetBytes(Convert.ToHexString(token))))
             {
@@ -384,6 +412,8 @@ namespace ClassicUO.Game.Managers
             {
                 _messages.Dequeue();
             }
+
+            AddEvent("message", ("text", e.Text), ("type", e.Type.ToString()), ("serial", serial != 0 ? Hex(serial) : null), ("from", e.Name));
 
             if (_guardOn)
             {
@@ -684,6 +714,12 @@ namespace ClassicUO.Game.Managers
                         );
                     }
 
+                    // no target: a tool that answers with a menu, a gump or a cursor (a smith's hammer)
+                    if (!query.ContainsKey("target"))
+                    {
+                        return UseTool(GetSerial(query));
+                    }
+
                     return Use(GetSerial(query), GetSerial(query, "target"));
 
                 case "/give":
@@ -768,6 +804,13 @@ namespace ClassicUO.Game.Managers
                     int tileRange = Math.Clamp(GetInt(query, "range", 3), 0, MAX_TILE_RANGE);
 
                     return OnGame(() => Json(w => WriteTiles(w, tileRange)));
+            }
+
+            byte[] dialogAnswer = HandleDialogs(method, path, query);
+
+            if (dialogAnswer != null)
+            {
+                return dialogAnswer;
             }
 
             throw new BridgeException(404, $"unknown request {path}");
@@ -4167,8 +4210,10 @@ namespace ClassicUO.Game.Managers
             // a random gap between actions, and a longer break after every Burst actions (milliseconds)
             public int GapMin = 1200, GapMax = 2000, Burst = 5, BreakMin = 3000, BreakMax = 5000;
 
-            // between a target cursor appearing and the click on the target (milliseconds), as a person takes to aim
+            // between a target cursor appearing and the click on the target (milliseconds), as a person takes to aim;
+            // also before answering a menu or gump when given (AimGiven), else about half a second
             public int AimMin, AimMax;
+            public bool AimGiven;
 
             // the same stroke repeated (digging on at the same rock): the gap and the aim, instead of the above
             public int RepeatMin, RepeatMax, RepeatAimMin, RepeatAimMax;
@@ -4297,6 +4342,7 @@ namespace ClassicUO.Game.Managers
                     {
                         rules.AimMin = Math.Clamp(aim[0].GetInt32(), 0, 2500);
                         rules.AimMax = Math.Clamp(aim[1].GetInt32(), rules.AimMin, 2500);
+                        rules.AimGiven = true;
                     }
 
                     // never quicker than 200 ms: the server's own swing time does the rest

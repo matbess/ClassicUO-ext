@@ -6536,6 +6536,9 @@ namespace ClassicUO.Network
             string[] lines
         )
         {
+            // the agent bridge reads and answers server gumps (AgentBridgeDialogs.cs)
+            world.AgentBridge.OnServerGump(sender, gumpID, layout, lines);
+
             List<string> cmdlist = _parser.GetTokens(layout);
             int cmdlen = cmdlist.Count;
 
