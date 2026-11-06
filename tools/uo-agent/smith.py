@@ -345,7 +345,10 @@ def options_menu(hammer_serial):
     return d
 
 
-NOISE = ('world will save', 'world is saving', 'world save', 'save complete')
+# messages that aren't answers: world saves (one came in place of a craft result, 21:33) and the weather ("It begins
+# to rain." came after a smelt's answer and stopped the loop, 2026-11-06 01:10)
+NOISE = ('world will save', 'world is saving', 'world save', 'save complete', 'begins to rain', 'stops raining',
+         'begins to snow', 'stops snowing', 'rain', 'snow', 'storm', 'weather')
 
 
 def result_text(answer):
@@ -436,7 +439,15 @@ def smelt_item(hammer_serial, serial):
             answer = choose(d, menu_item(d, 'Smelt'))
             if not answer.get('targeting'):
                 raise Stop(f'no target cursor after Smelt: {result_text(answer)}')
-            return result_text(call('POST', '/target', serial=serial))
+            answer = call('POST', '/target', serial=serial)
+            texts = [m['text'] for m in answer.get('messages', [])]
+            melted = next((x for x in texts if 'melt' in x.lower()), None)
+            if melted:
+                return melted
+            # no "melt" among the answers: gone from the pack means it melted all the same
+            if not any(i['serial'] == serial for i in pack()):
+                return f"gone from the pack ({result_text(answer)})"
+            return result_text(answer)
         except Interrupted as e:
             say(f'smelting {serial} interrupted ({e}); again')
             if not any(i['serial'] == serial for i in pack()):
@@ -555,7 +566,7 @@ def run(forced_item):
                 say(f"made {m.get('type')} instead of {item}")
                 state.pop('last_item', None)
             answer = smelt_item(h, m['serial'])
-            if 'melt' in answer.lower():
+            if 'melt' in answer.lower() or answer.startswith('gone'):
                 t['smelted'] += 1
             else:
                 raise Stop(f"smelting {m['serial']} ({m.get('type')}) answered: {answer}")
