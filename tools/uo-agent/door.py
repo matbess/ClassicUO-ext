@@ -100,6 +100,12 @@ def key_on(door, want):
 
 
 def set_door(door, shut):
+    # walking up to the door can open it already: his client opens a door he faces (auto_open_doors), and a
+    # double-click on top of that shuts it again (2026-11-06 15:57)
+    time.sleep(0.8)
+    if (door_spot(door) == SHUT_AT[door]) == shut:
+        say(f'{door} {"closed" if shut else "open"} already')
+        return
     a = call('POST', '/use', serial=door)
     spot = door_spot(door)
     if (spot == SHUT_AT[door]) != shut:
