@@ -110,8 +110,8 @@ door, not the server).
 - Rules `"handOver": true`: the takeover above.
 - Clem's rules (`rules/rules-Clem.json`): the tower areas plus "outside" (x 1715-1810, y 1414-1485), fight,
   handOver, the doors and key, skills 12 (Cartography), 22 (Provocation), 46 (Meditation), spells 4, 11, 18, 29,
-  30, 32, 38, 42, the trapped pouches (useFromBackpack 0x0E79), "say": ["all follow me"], and "mounts" (still
-  empty: his horse's serial only shows while he's off it; until then the horse trick can't remount him).
+  30, 32, 38, 42, the trapped pouches (useFromBackpack 0x0E79), "say": ["all follow me"], and "mounts": his
+  horse, "a horse" 0x00043254 (his own pet: never a target).
 
 ## What the recordings showed
 
@@ -161,8 +161,6 @@ Home: short hops to the door, then `door.go_in`. Time up (10 min), interrupted o
 
 ## Open items
 
-- Put his horse's serial in "mounts" (rules-Clem.json and the live copy): dismount him once inside and read it from
-  `uo nearby` (his own pet).
 - "remove thyself" for creatures on the front steps: add to "say", and answer its cursor with the creature.
 - The creature lists (passive, tiers, casters) grow with the user's word.
 - Re-trapping pouches after a fight (Magic Trap, 13) and looting are left to the user.
