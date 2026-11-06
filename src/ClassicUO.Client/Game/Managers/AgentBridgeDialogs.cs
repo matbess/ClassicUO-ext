@@ -237,7 +237,7 @@ namespace ClassicUO.Game.Managers
                     (
                         "sent menu choice",
                         ("serial", Hex(U32(d, 1))),
-                        ("id", Hex(U16(d, 5))),
+                        ("menu", Hex(U16(d, 5))),
                         ("index", d.Length >= 9 ? (int)U16(d, 7) : 0),
                         ("graphic", d.Length >= 11 ? Hex(U16(d, 9)) : null)
                     );
@@ -257,7 +257,7 @@ namespace ClassicUO.Game.Managers
                     (
                         "sent gump button",
                         ("serial", Hex(U32(d, 3))),
-                        ("id", Hex(U32(d, 7))),
+                        ("gump", Hex(U32(d, 7))),
                         ("button", (long)U32(d, 11)),
                         ("switches", string.Join(",", switches))
                     );
@@ -290,7 +290,7 @@ namespace ClassicUO.Game.Managers
                 if (e.Kind == "sent menu choice" || e.Kind == "sent gump button")
                 {
                     string serial = Field(e, "serial");
-                    string id = Field(e, "id");
+                    string id = Field(e, e.Kind == "sent menu choice" ? "menu" : "gump");
                     _dialogs.RemoveAll(d => Hex(d.Serial) == serial && (d.Kind == "gump" ? Hex(d.Id) : Hex((ushort)d.Id)) == id);
                 }
 
@@ -597,14 +597,6 @@ namespace ClassicUO.Game.Managers
         private void WaitForReply(Rules rules)
         {
             CheckNotHalted();
-
-            int wait = (int)(_nextAction - DateTime.UtcNow).TotalMilliseconds;
-
-            // never straight on top of an action that hasn't had its gap yet
-            if (wait > 0 && wait < 1000)
-            {
-                Thread.Sleep(wait);
-            }
 
             while (OnGame(IsSaving))
             {
