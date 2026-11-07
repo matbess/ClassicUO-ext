@@ -72,6 +72,9 @@ CLEAR = 10              # free creatures further than this: he may cast or medit
 BACK_OFF = 9            # after a provoke, and from anything coming: get at least this far away
 FIGHT_GAP = 4           # keep this far from creatures fighting each other
 KEEP = 3                # one coming at him: get away once it's closer than this (the user: stay about 3 tiles away)
+CAST_WHEN = 0.40        # a creature fighting another: spells only once it's down to this share (or a caster, or
+                        # the stronger of an uneven pair); until then they wear each other down and he meditates
+LOOT_RANGE = 10         # after a fight: corpses this close that fell during it get looted
 SPELL_RANGE = 10        # a spell from further: "That is too far away." (Energy Bolt at 11 tiles, 2026-11-06 16:31)
 CAST_SPOT = 8           # out of spell range (or "That is too far away."): ride to this far from it first
 LONE_CAST = 4           # a lone one coming at him (nothing to set it on): cast at it from this far
@@ -377,6 +380,12 @@ class Fight:
         self.pending = None      # the last cast, for its damage once it has landed
         self.mover = Mover()
         self.killing = None      # the one he's killing with spells (no partner to set it on): all the way
+        self.looted = set()      # corpses already looted
+        try:  # corpses lying about before the fight aren't his to loot
+            self.corpses_before = {i['serial'] for i in call('GET', '/nearby', range=18)['items']
+                                   if int(i['graphic'], 16) == 0x2006}
+        except uo.BridgeError:
+            self.corpses_before = set()
         self.together_since = {}  # frozenset of two serials -> since when they've been within a tile of each other
         self.engaged_with = {}   # serial -> the creature it's locked in a fight with (one he didn't start)
         self.hits_seen = {}      # serial -> [(time, hits)]
@@ -575,21 +584,24 @@ class Fight:
                 return spell
         return None
 
-    def cast_target(self, me, busy):
-        """Casters first; at an uneven pair (one nearly dead, the other well), the stronger, before it's freed; else
-        the one with the least health, to finish it."""
+    def cast_target(self, me, busy, mobs):
+        """Mana sparingly: provoke is the first line of defence (the user, 2026-11-06: spending it all on one ettin
+        left nothing for the next; "it's ok to provoke 2 creatures and wait for them to do damage to each other for a
+        while (while maybe you are meditating) before you use any mana"). So a spell only at a caster (killed first),
+        at the stronger of an uneven pair (its partner nearly dead: before it's freed), or at one already low
+        (CAST_WHEN) to finish it; None means let them fight on."""
         reach = [m for m in busy if dist(me, xy(m)) <= SPELL_RANGE and self.visible(m['serial'])]
         if not reach:
             return None
         casters = [m for m in reach if kind(m) in CASTERS]
         if casters:
             return min(casters, key=lambda m: share(m) if share(m) is not None else 1.0)
-        by = {m['serial']: m for m in busy}
         for m in reach:
-            o = by.get(self.partner_of(m['serial']) or '')
+            o = mobs.get(self.partner_of(m['serial']) or '')
             if o and share(o) is not None and share(m) is not None and share(o) < 0.35 and share(m) - share(o) > 0.2:
                 return m
-        return min(reach, key=lambda m: share(m) if share(m) is not None else 1.0)
+        low = [m for m in reach if share(m) is not None and share(m) <= CAST_WHEN]
+        return min(low, key=share) if low else None
 
     def cast_at(self, m, spell):
         self.meditating = False
@@ -817,19 +829,20 @@ class Fight:
                 if path_clear(me, spot, [xy(t) for t in threats], FIGHT_GAP) and self.mover.go(me, spot, 'to cast'):
                     return False
             if dloose > CLEAR:
-                m = self.cast_target(me, busy)
+                m = self.cast_target(me, busy, mobs)
                 spell = self.spell_for(m, st['mana']) if m else None
                 if spell and m and (dist(me, xy(m)) > SPELL_RANGE or time.time() - self.too_far.get(m['serial'], 0) < 5):
                     if self.closer(me, m, threats):
                         return False
-                if spell and not (self.meditating and st['mana'] < 60):
+                if spell and not (self.meditating and st['mana'] < 60 and m and kind(m) not in CASTERS):
                     if not self.still(me):
                         time.sleep(0.15)  # let the ride finish first: no casting on the move
                         return False
                     self.cast_at(m, spell)
                     return False
                 nearly_dead = any(share(b) is not None and share(b) < 0.25 for b in busy)
-                if not self.meditating and not nearly_dead and st['mana'] < 60 and self.skill_ready():
+                if (not self.meditating and not nearly_dead and st['mana'] < st.get('manaMax', 100) - 10
+                        and self.skill_ready()):
                     self.last_skill = time.time()
                     a = call('POST', '/skill', id=MEDITATE)
                     self.meditating = said(a, 'meditative trance', 'at peace')
@@ -842,6 +855,8 @@ class Fight:
         if self.fought and not self.homeward:
             if self.quiet_since is None:
                 self.quiet_since = time.time()
+            if time.time() - self.quiet_since >= 2 and self.loot(me, st):
+                return False
             if time.time() - self.quiet_since >= 5:
                 self.go_home('nothing is coming after him')
             time.sleep(0.15)
@@ -953,6 +968,45 @@ class Fight:
                     and path_clear(me, p, [xy(a)], FOLLOWER_ROOM)):
                 if m.go(me, p, why, force=True):
                     return True
+        return False
+
+    def loot(self, me, st):
+        """After a fight, with nothing coming: everything in the corpses that fell during it, into his backpack (the
+        user, 2026-11-06: "Loot the corpse if you're able to"; they took a war hammer, a potion and gold). Only
+        corpses that appeared during this fight, within LOOT_RANGE; never a person's ("corpse of ..."). One corpse a
+        tick; True while there's looting to do."""
+        try:
+            near = call('GET', '/nearby', range=LOOT_RANGE)['items']
+        except uo.BridgeError:
+            return False
+        for c in near:
+            name = (c.get('type') or c.get('name') or '').lower()
+            if (int(c['graphic'], 16) != 0x2006 or c['serial'] in self.looted or c['serial'] in self.corpses_before
+                    or 'corpse of' in name):
+                continue
+            self.looted.add(c['serial'])
+            if dist(me, (c['x'], c['y'])) > 1:
+                r = call('POST', '/walk', to=c['serial'], distance=1)
+                if not r.get('arrived'):
+                    say(f'could not get to the corpse at {c["x"]},{c["y"]}')
+                    return True
+            pack = st['backpack']['serial']
+            try:
+                call('POST', '/open', serial=c['serial'])
+                items = call('GET', '/contents', serial=c['serial'], depth=1)['items']
+            except uo.BridgeError as e:
+                say(f'corpse {c["serial"]}: {e}')
+                return True
+            took = []
+            for i in items:
+                try:
+                    if call('POST', '/move', serial=i['serial'], to=pack).get('moved'):
+                        took.append(f'{i.get("amount", 1)} {i.get("type") or i["graphic"]}')
+                except uo.BridgeError as e:
+                    say(f'looting {i.get("type")}: {e}')
+            say(f'looted {name or "a corpse"}: ' + (', '.join(took) or 'nothing'))
+            self.quiet_since = time.time()  # looting took a while: look around again before going home
+            return True
         return False
 
     def closer(self, me, m, threats):

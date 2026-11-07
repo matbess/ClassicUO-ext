@@ -49,6 +49,16 @@ fight. Nothing goes to town until fighting works.
   2026-11-06: "just try to kill it all the way quickly"). fight.py: the next spell as soon as the last has landed,
   until it's dead; between spells only a short hop when it's right on him. (Before, he got away and waited for it to
   be 10 tiles off each time: two bolts 24 s apart at a skeleton.)
+- **Mana sparingly; provoke is the first line of defence** (the user, 2026-11-06, after he spent nearly all his mana
+  killing one ettin: fine for one, but no mana left for the next). "It's ok to provoke 2 creatures and wait for them
+  to do damage to each other for a while (while maybe you are meditating) before you use any mana." fight.py: at a
+  pair fighting, spells only at a caster, at the stronger of an uneven pair before it's freed, or at one already
+  down to 40% (CAST_WHEN); otherwise he meditates (mana not full) or waits. Killing with spells all the way is for
+  a lone one with nothing to set it on.
+- **Loot** the corpses if he's able to (the user, 2026-11-06; they took everything: a war hammer, a white potion,
+  gold, with the client's grid loot). fight.py, once the fight is over and nothing is coming: every corpse that fell
+  during the fight within 10 tiles, never a person's ("corpse of ..."): ride next to it, open it, move everything
+  into his backpack.
 - **Meditate** when mana is low and every creature is busy fighting.
 - **Hurt:** run out of their range, then heal.
 - **Paralysed:** use one of the 3 trapped pouches in his pack (a little damage, frees him); re-trap them after the

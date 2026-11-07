@@ -22,7 +22,7 @@ def fake_call(method, ep, **kw):
     if ep == '/status':
         return dict(scene['me'], serial='0x1', hitsMax=100, backpack={'serial': '0x2'}, lastMessageId=0, mounted=scene['me'].get('mounted', True))
     if ep == '/nearby':
-        return {'mobiles': list(scene['mobs'].values())}
+        return {'mobiles': list(scene['mobs'].values()), 'items': []}
     if ep == '/contents':  # a full reagent bag
         return {'items': [{'graphic': hex(g), 'amount': 50} for g in (0x0F7A, 0x0F7B, 0x0F84, 0x0F85, 0x0F86, 0x0F88,
                                                                       0x0F8D, 0x0F8C)]}
