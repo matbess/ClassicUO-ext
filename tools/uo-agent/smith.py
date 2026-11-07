@@ -527,6 +527,13 @@ def run(forced_item):
     if os.path.exists(STOP_FILE):
         os.remove(STOP_FILE)
     state = load_state()
+    # the hammer in hand from before a stop: its minutes count the smithing only (2026-11-06: one read 418 minutes
+    # over a 7-hour pause). The state is saved every craft, so the file's time is about when the loop stopped.
+    if os.path.exists(STATE):
+        gap = time.time() - os.path.getmtime(STATE)
+        if gap > 60:
+            for k in state.get('hammer_taken', {}):
+                state['hammer_taken'][k] += gap
     t = state.setdefault('totals', {'crafts': 0, 'made': 0, 'failed': 0, 'smelted': 0})
     open_supplies()
     smelt_ore()
