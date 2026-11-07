@@ -81,6 +81,10 @@ SPELL_FAILS = ('fizzles', 'concentration is disturbed', 'too far away', 'cannot 
                'insufficient mana', 'more reagents', 'already casting', 'must wait', 'not yet recovered',
                'will not adhere', 'target is not')
 SPELL_SETTLE = 3.0      # seconds: a spell with no word against it by then went off
+SPELL_GAP = 2.0         # seconds from one spell sent to the next (18:49:49-55: one a second, every other one came back
+                        # "You are already casting a spell.")
+HIT_AFTER = 1.0         # a target's health falling sooner than this after the cast is someone else's doing (it was
+                        # fighting an orc), not the spell landing
 PARTNER = None          # --partner KIND: set creatures on this kind first when there's one (the user, 2026-11-06 18:33:
                         # "put him on the panther")
 ROUND = 10              # leading a caster round to a partner when it's in the way: waypoints this far from the caster
@@ -473,6 +477,7 @@ class Fight:
         self.arrived_at = None
         self.pending = None      # the last cast, for its damage once it has landed
         self.spell = None        # the spell on its way: what, at whom, since when, the last message before it
+        self.last_cast = 0.0
         self.reflect_up = False  # Magic Reflection on him (the next spell at him bounces); down when a creature casts
         self.caster_since = {}   # caster serial -> since when it has been after him
         self.mover = Mover()
@@ -721,7 +726,7 @@ class Fight:
         in the messages (settle_spell), so he goes on moving and looking meanwhile. Bridge 7: it answers once the
         cursor is aimed (a late cursor is aimed here). Either way self.spell holds it until it's settled. The answer,
         or None when the bridge refused."""
-        if self.spell:
+        if self.spell or time.time() - self.last_cast < SPELL_GAP:
             time.sleep(0.1)  # one spell at a time ("You are already casting a spell."): this one settles first
             return None
         self.meditating = False
@@ -756,6 +761,7 @@ class Fight:
                 self.cast_until = time.time() + LAND_TIME
         self.spell = {'spell': spell, 'target': target, 'name': name, 'kind': kind, 'at': time.time(),
                       'before': before}
+        self.last_cast = time.time()
         return a
 
     def cast_at(self, m, spell):
@@ -807,7 +813,8 @@ class Fight:
             t = mobs.get(p['target'])
             if t is None or not attackable(t):
                 result, why = 'success', 'it is dead or gone'
-            elif p.get('hits') is not None and t.get('hits') is not None and t['hits'] < p['hits']:
+            elif (p.get('hits') is not None and t.get('hits') is not None and t['hits'] < p['hits']
+                  and time.time() - p['at'] >= HIT_AFTER):
                 result, why = 'success', f'{p["hits"]} -> {t["hits"]}/{t.get("hitsMax")}'
         if result is None and time.time() - p['at'] >= SPELL_SETTLE:
             result, why = 'success', 'nothing against it'
@@ -1191,6 +1198,10 @@ class Fight:
         d = dist(me, xy(a))
         p = self.partner_for(me, a, mobs, 18)
         if p and (a['serial'], p['serial']) in self.gave_up:
+            p = None
+        if p and self.coming(p):
+            # it's after him too: no riding to it (18:49:34, toward an orc on his heels and away again, over and over);
+            # both follow him, so they come together: keep off both and the provoke goes off once both are in range
             p = None
         if d < KEEP_CASTER:
             # too close for anything but getting away (toward the creature to set it on, if any): a pull ride from

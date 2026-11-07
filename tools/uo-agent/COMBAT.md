@@ -281,6 +281,22 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **18:48** (cuo-agent25; the gargoyle Criminal beside the steps at 1759,1415, behind the forge): **the first full
+  round against a caster.** Black pearl at 24, so a restock (all to 35-45); Magic Reflection inside; out to 1756,1415
+  and Paralyze at the gargoyle 3 tiles off, the door shut, "That is locked.". The gargoyle came out at 22/25 (its
+  first spell most likely bounced off the Reflection); he kept 14+ off it, it lost him for a moment, he drew an orc
+  (Nehrakgu), both turned on him, and the provoke went off: "You see a gargoyle attacking Nehrakgu!" (18:49:48).
+  Energy Bolts at the busy gargoyle 23 -> 22 -> 17 -> 12 -> 6, Lightning: dead (18:50:34). Then the orc onto a great
+  hart; he meditated to full while they wore each other down (4 min), one Energy Bolt at the orc on 5/25: dead.
+  Looted both (58 + 123 gold onto his gold stack: no stop; thigh boots, cider, bread, a Magic Reflection scroll),
+  home, "You unlock it." / "You lock it.", in. Health never below 87 (one spell, then melee from the orc chasing him).
+  Wrong: (1) "pulling" the gargoyle to the orc while the orc was itself on his heels: toward it, away again, over and
+  over (-> no pull to a partner that's after him: both follow him, so the provoke goes off once they're in range);
+  (2) the gargoyle's health falling from the orc's blows read as each Energy Bolt landing, so the next went too soon
+  ("You are already casting a spell.", half of them) (-> 2 s between spells; a drop in the first second doesn't
+  count); (3) Claude killed fight.py at 18:49:58 to load fix (1), going by alerts 20 s behind, while it was winning
+  (gargoyle at 6/25), and left him standing ~25 s; restarted, it finished the job. Check the live state first, and
+  never stop a running fight to load a fix.
 - **18:32** (bridge 8, cuo-agent24; a gargoyle by the forges and a panther at the steps): reagents fine, Magic
   Reflection inside ("In Jux Sanct"; again outside: "already in effect", 0.2 s); the door wouldn't shut over him in
   the doorway, so he shut it from 1756,1415 and the check said "That is locked.". The gargoyle turned on him at 11
