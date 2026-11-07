@@ -174,7 +174,14 @@ door, not the server).
   you don't have to worry about getting attacked while closing the door." (Until then door.py stepped out to
   1756,1416, off the bottom step, which let the creatures beside the steps round the forges.) If it ever won't shut
   over him, he steps to 1756,1415 and shuts it from there. Then **check**, from where he is: try to get back in; it
-  must say "That is locked." and stay shut. fight.py starts from the doorway. Only if it opens (someone forgot to lock it last time) does
+  must say "That is locked." and stay shut. fight.py starts from the doorway.
+  **Since 2026-11-07:** it wouldn't shut over him in the doorway (18:32:33), so he steps straight through to
+  1756,1415, right in front of the door, and shuts it from there. A caster in sight gets **Paralyze** (38) as soon
+  as he's out, before the door is shut (the user, 2026-11-07: "Since you know a magic caster is out there, as soon
+  as you step out of the door, cast paralyze on him, then proceed with locking and closing the door"); with bridge
+  8 the cast goes and the door is shut meanwhile, and the key ring (only if the door turned out unlocked) waits
+  2.5 s for the spell's cursor to be aimed first. Before the door: reagents (the bag opened to count them: right
+  after logging in the client knows nothing of its contents), Magic Reflection, the steps cleared. Only if it opens (someone forgot to lock it last time) does
   the key come out: lock it, close it. The user checks by walking into the door; his client then sends "open door"
   (auto_open_doors), the same as using it, and its path walker treats a shut door as a wall (smooth_doors off), so
   door.py uses the door instead.

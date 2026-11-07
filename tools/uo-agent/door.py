@@ -3,19 +3,20 @@
 the door's two halves and the key ring in his rules ("doors", "keys").
 
   python3 -I door.py out      from inside: reagents first (restock.py: any below 25 means restock at the chest),
-                              Magic Reflection, creatures off the front steps, then open, step into the doorway, close the door over
-                              him there, and check
+                              Magic Reflection, creatures off the front steps, then open, step out right in front of
+                              the door, Paralyze at a caster in sight, close, and check
   python3 -I door.py in       from outside: unlock, open, step into the doorway, lock, step in, close
   python3 -I door.py check    from outside: try to get back in through the door (it mustn't let him); if it opens,
                               lock it with the key and close it
 
 Going out needs no key: the door stays locked (the user, 2026-11-06: "you only need to walk out the door, it stays
-locked"), so out is open, step into the doorway, close, and check. He stays right at the door while he closes it, in
-the doorway, the door shutting over him (the user, 2026-11-06: "it looks like the door is closing over the top of you
-(it works)"): out on the steps or further, creatures put off the steps to either side get round the forges (x 1755
-and 1758, both step rows) and at him while he's busy with the door. The steps themselves (x 1756-1757, y 1415-1416,
-between the forges) are checked first: a creature there gets "remove thyself" and a click, which puts it off to the
-side. The key ring is locked down outside at 1758,1415;
+locked"), so out is open, step out, close, and check. He stays right at the door while he closes it, at 1756,1415
+right in front of it (the user, 2026-11-06: "stay right next to the door so that when you close the door it looks
+like the door is closing over the top of you"; in the doorway itself it wouldn't shut, 18:32:33): out on the steps
+or further, creatures put off the steps to either side get round the forges (x 1755 and 1758, both step rows) and
+at him while he's busy with the door. The steps themselves (x 1756-1757, y 1415-1416, between the forges) are
+checked first: a creature there gets "remove thyself" and a click, which puts it off to the side. A caster in sight
+gets Paralyze as soon as he's out, before the door is closed (the user, 2026-11-07). The key ring is locked down outside at 1758,1415;
 it reaches the door from outside (1756,1416) and the doorway (1756,1414), not from inside (1756,1413: "I can't reach
 that."). It turns the lock either way ("You unlock it." / "You lock it."). Creatures on the front steps have to go first: the
 house command "remove thyself" (not in his rules yet), so `in` stops when any are within 3 tiles of the door.
@@ -46,6 +47,7 @@ STEPS = {(x, y) for x in (1756, 1757) for y in (1415, 1416)}  # the front steps,
 HOSTILE = ('Gray', 'Criminal', 'Enemy', 'Murderer')
 
 info = None
+cast_at = 0.0  # when a spell went off here (Paralyze): the key ring waits for its cursor to be aimed first
 guard = None   # called between the steps through the door (fight.py: breaks off when a creature comes near)
 
 
@@ -96,6 +98,8 @@ def key_on(door, want):
     """The key ring aimed at a door until it says "You <want> it." (it turns the lock either way)."""
     if guard and want == 'unlock':
         guard()
+    # a spell's cursor still to come (Paralyze, cast and gone on): the key's own cursor would get mixed up with it
+    time.sleep(max(0.0, cast_at + 2.5 - time.time()))
     for _ in range(2):
         a = call('POST', '/use', serial=KEY)
         if not a.get('targeting'):
@@ -190,6 +194,32 @@ def reflect():
     say('Magic Reflection: ' + (' | '.join(m['text'] for m in words) or '-'))
 
 
+def paralyze_caster():
+    """Paralyze at a caster in sight as soon as he's out of the door, before the door is closed (the user,
+    2026-11-07: "Since you know a magic caster is out there, as soon as you step out of the door, cast paralyze on
+    him, then proceed with locking and closing the door"). Bridge 8 casts and goes on (the bridge aims the cursor
+    itself); the door is shut meanwhile."""
+    global cast_at
+    import fight  # the creature lists live there
+    st = call('GET', '/status')
+    near = [m for m in call('GET', '/nearby', range=12)['mobiles']
+            if fight.attackable(m) and fight.kind(m) in fight.CASTERS and m['distance'] <= fight.SPELL_RANGE]
+    if not near:
+        return
+    m = min(near, key=lambda m: m['distance'])
+    if st.get('mana', 0) < 14:
+        say(f'no mana for Paralyze at {m["name"]}')
+        return
+    extra = {'wait': 0} if st.get('bridge', 0) >= 8 else {}
+    try:
+        a = call('POST', '/cast', spell=38, target=m['serial'], **extra)
+    except uo.BridgeError as e:
+        say(f'Paralyze at {m["name"]}: {e}')
+        return
+    cast_at = time.time()
+    say(f'Paralyze at {m["name"]} ({m["distance"]} tiles)' + (f': {texts(a)}' if texts(a) else ''))
+
+
 def go_out(with_reflection=True):
     if where()[1] >= 1414:
         say('already outside')
@@ -210,17 +240,13 @@ def go_out(with_reflection=True):
     try:
         if not clear and not clear_steps(3):
             raise Stop('creatures still on the front steps: ' + ', '.join(m.get('name') or '?' for m in on_steps()))
-        step(DOORWAY, 'step into the doorway')
+        # right in front of the door (1756,1415), straight through the doorway; the door wouldn't shut over him in
+        # the doorway itself (2026-11-06 18:32:33)
+        step(FRONT, 'step out, right in front of the door')
+        paralyze_caster()
     finally:
-        # never leave it open, wherever he ended up; in the doorway it shuts over him (the user: "it works")
-        try:
-            set_door(DOOR, True)
-        except Stop:
-            if where() != DOORWAY:
-                raise
-            say("it wouldn't shut over him in the doorway: from right in front instead")
-            walk(FRONT)
-            set_door(DOOR, True)
+        # never leave it open, wherever he ended up
+        set_door(DOOR, True)
     say(f'out at {where()[0]},{where()[1]}, right at the door; the door is closed')
     check()
 
