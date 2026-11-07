@@ -71,7 +71,8 @@ PROVOKE_SPOT = 7        # how close he goes to the creature he'll set the follow
 ON_HIM = 3              # a free creature this close: run, nothing else
 CLEAR = 10              # free creatures further than this: he may cast or meditate
 BACK_OFF = 9            # after a provoke, and from anything coming: get at least this far away
-FIGHT_GAP = 4           # keep this far from creatures fighting each other
+FIGHT_GAP = 6           # keep this far from creatures fighting each other (spells need 6 clear: CAST_CLEAR)
+HEAL_CLEAR = 10         # healing only with every creature this far off; hurt, he rides 10 away first (the user)
 KEEP = 3                # one coming at him: get away once it's closer than this (the user: stay about 3 tiles away)
 CAST_WHEN = 0.40        # a creature fighting another: spells only once it's down to this share (or a caster, or
                         # the stronger of an uneven pair); until then they wear each other down and he meditates
@@ -733,16 +734,18 @@ class Fight:
             self.flee(me, [xy(m) for m in threats])
             return False
 
-        # hurt: away from whatever's near first, then heal
+        # hurt: ride 10 tiles away from every creature, fighting or not, then heal (the user, 2026-11-06: "If you need
+        # to heal run 10 tiles away and heal")
+        dany = min(dfree, dbusy)
         if hp < HURT:
-            if dloose <= CLEAR or dbusy < FIGHT_GAP:
+            if dany < HEAL_CLEAR:
                 self.meditating = False
-                self.flee(me, [xy(m) for m in threats])
+                self.flee(me, [xy(m) for m in threats], radii=(10, 8))
                 return False
             if self.can_cast(GREATER_HEAL, st['mana']):
                 self.heal_self(st, GREATER_HEAL)
                 return False
-        if st.get('poisoned') and dloose > CLEAR and self.can_cast(CURE, st['mana']):
+        if st.get('poisoned') and dany >= HEAL_CLEAR and self.can_cast(CURE, st['mana']):
             self.heal_self(st, CURE)
             return False
 
@@ -836,7 +839,7 @@ class Fight:
                 spot = clamp_area((round(me[0] + (n['x'] - me[0]) * f), round(me[1] + (n['y'] - me[1]) * f)))
                 if path_clear(me, spot, [xy(t) for t in threats], FIGHT_GAP) and self.mover.go(me, spot, 'to cast'):
                     return False
-            if dloose > CLEAR:
+            if dloose > CLEAR and dbusy >= CAST_CLEAR:  # no spell with any creature within 6, fighting or not
                 m = self.cast_target(me, busy, mobs)
                 spell = self.spell_for(m, st['mana']) if m else None
                 if spell and m and (dist(me, xy(m)) > SPELL_RANGE or time.time() - self.too_far.get(m['serial'], 0) < 5):

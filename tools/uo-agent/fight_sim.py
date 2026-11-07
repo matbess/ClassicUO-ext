@@ -41,6 +41,9 @@ def fake_call(method, ep, **kw):
         log.append(('walk', world['t'], (kw['x'], kw['y'])))
         return {'walking': True}
     log.append((ep, world['t'], kw))
+    if ep == '/cast':
+        me = world['me']
+        world['cast_gaps'].append(min([fight.dist((me['x'], me['y']), fight.xy(m)) for m in world['mobs']] or [99]))
     if ep == '/skill':
         return {'targeting': True, 'messages': [{'text': 'Whom do you wish to incite?'}]}
     if ep == '/target':
@@ -88,7 +91,7 @@ def run(name, me, mobs, ticks=40):
     fight.say = lambda t: log.append(('say', world['t'], t))
     fight.row = lambda **k: None
     fight._last_walk.update(p=None, t=0.0)
-    world.update(me=dict(me), mobs=mobs, goal=None, t=0, aims=[], provoked={})
+    world.update(me=dict(me), mobs=mobs, goal=None, t=0, aims=[], provoked={}, cast_gaps=[])
     del log[:]
     f = fight.Fight(10)
     path = [(world['me']['x'], world['me']['y'])]
@@ -102,7 +105,9 @@ def run(name, me, mobs, ticks=40):
     walks = [e for e in log if e[0] == 'walk']
     moves = [(b[0] - a[0], b[1] - a[1]) for a, b in zip(path, path[1:]) if a != b]
     reversals = sum(1 for u, v in zip(moves, moves[1:]) if u[0] * v[0] + u[1] * v[1] < 0)
-    print(f'--- {name}: {len(walks)} walks, {reversals} reversals, closest to a creature {closest}')
+    gaps = world['cast_gaps']
+    print(f'--- {name}: {len(walks)} walks, {reversals} reversals, closest to a creature {closest}'
+          + (f', nearest creature at a spell {min(gaps)}' if gaps else ''))
     for e in log:
         if e[0] != 'walk' or True:
             print('   ', e[1], e[0], e[2] if e[0] != 'walk' else f'to {e[2][0]},{e[2][1]}')
