@@ -71,6 +71,7 @@ user's ClassicUO (Wine)                       this Mac
 | `moves.py`, `potions.py` | | a list of moves at the bridge's pace; potions by strength (the server hides strengths) |
 | `mine.py`, `carto.py` | | the mining loop (MINING.md) and Clem's cartography (CARTO.md) |
 | `restock.py`, `door.py`, `fight.py`, `fight_scenes.py`, `fight_sim.py` | | Clem's reagents before he leaves (below 25: restock at the chest), the front door, his fights, and offline checks of the fight decisions (COMBAT.md) |
+| `blackbox.py` | | read-only recorder: copies every client's bridge event log (what was sent after Razor, messages) to `~/claude/uo-agent-work/blackbox/<Character>-<date>.jsonl`, across client restarts; `--show N`. Started 2026-11-06 for Razor's jammed drag queue (a pick-up the server took with no drop after it: Razor holds every later pick-up and double-click for up to 2 minutes; its "Drop What You are Currently Holding" hotkey frees it) |
 
 Batch working files go in `~/claude/uo-agent-work/batchN/`. They're scratch: nothing there is needed later.
 
