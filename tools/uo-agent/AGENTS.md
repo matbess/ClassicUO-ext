@@ -19,7 +19,7 @@ command themselves (`"handOver"`); only the user hands him back (`--resume`). Br
 2026-11-07) casts without waiting (`/cast wait=0`): the bridge aims the cursor, the outcome comes in the messages. Never leave Clem outside or unwatched.
 
 **Blacksmithing** (Icepick, from 2026-11-05: training to 100 at the forge and anvil on the tower's ground floor,
-crafting and smelting back): read `SMITHING.md` first; the tool is `smith.py`, the rules
+crafting and smelting back; **reached 100 on 2026-11-07**): read `SMITHING.md` first; the tool is `smith.py`, the rules
 `rules/rules-Icepick-smith.json` (no guard, no pacing). Bridge 6 (build cuo-agent19) adds menus, gumps, target
 cursors, skills and an event log that records what the user does by hand (`uo record`).
 

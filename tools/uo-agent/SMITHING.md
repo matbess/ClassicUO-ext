@@ -3,6 +3,16 @@
 Started 2026-11-05. Like MINING.md and CARTO.md, this records what the user asked for, what was found and what was
 decided, so any session can pick it up. Newer notes win where they disagree with older ones.
 
+## Done: Blacksmithy 100 on 2026-11-07 13:24
+
+From 57.8 (2026-11-05 20:39) to 100.0 base in about 40 hours of wall time: 11,932 crafts (8,620 made, 3,309
+failed; 665 cutlasses, 1,122 krysses, 1,302 short spears, 4,982 spears, 549 plate gloves, the rest in the first
+night's counting), all smelted back. 19,479 ingots used of the 43,028 brought (23,549 left: 23,488 in the grey bag,
+61 in his pack). 195 hammers broken (one sledge hammer, 199 uses; 194 smith's hammers, 40 to 80 uses, 60 on average,
+about 10 s a use); 34 spares left in the pouch and one in his pack (51 uses). From 99, plate gloves only (the trial
+below). The loop stopped by itself at the cap. Icepick's client still has the smithing rules; `mine.py` puts the
+mining ones back when it starts.
+
 ## The job (the user, 2026-11-05)
 
 - **Icepick** trains **Blacksmithing to 100**: craft an item, smelt it straight back into ingots, put the ingots back
