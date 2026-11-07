@@ -87,13 +87,45 @@ def say(text):
         fh.write(line + '\n')
 
 
+LAG_RESUMES = []    # when the loop resumed after the server lagged (at most 5 an hour)
+
+
 def call(method, endpoint, **params):
     try:
         return uo.call(info, method, endpoint, **params)
     except uo.BridgeError as e:
         if e.code in (404, 409) and ('no target cursor' in e.message or 'no such menu' in e.message):
             raise Interrupted(f'{method} {endpoint}: {e.message}')
+        if e.code == 423 and 'went quiet' in e.message and lag_over(e.message):
+            raise Interrupted(f'{method} {endpoint}: the server lagged; resumed')
         raise Stop(f'{method} {endpoint} {params}: {e}')
+
+
+def lag_over(why):
+    """The bridge stops when the server doesn't answer in time (2026-11-07 02:30: the hammer's menu came 22 s late,
+    with no world save). Wait up to 5 minutes for the server to show it's answering again (a menu, a target cursor
+    or a new message), then resume and cancel the late menu; the step is tried again. More than 5 an hour, or no
+    sign of the server, and the loop stops as before."""
+    now = time.time()
+    LAG_RESUMES[:] = [t for t in LAG_RESUMES if now - t < 3600]
+    if len(LAG_RESUMES) >= 5:
+        return False
+    say(f'the server lagged ({why}); waiting for it')
+    first = uo.call(info, 'GET', '/status').get('lastMessageId')
+    for _ in range(60):
+        s = uo.call(info, 'GET', '/status')
+        dialogs = [d for d in uo.call(info, 'GET', '/gumps').get('dialogs', []) if d['kind'] != 'gump']
+        if dialogs or s.get('targeting') or s.get('lastMessageId') != first:
+            uo.call(info, 'POST', '/resume')
+            LAG_RESUMES.append(time.time())
+            if s.get('targeting'):
+                uo.call(info, 'POST', '/target', cancel=1)
+            for d in dialogs:
+                uo.call(info, 'POST', '/menu', serial=d['serial'], id=d['id'], index=0)
+            say(f'the server answered again: resumed (lag {len(LAG_RESUMES)} this hour)')
+            return True
+        time.sleep(5)
+    return False
 
 
 def status():
@@ -612,12 +644,12 @@ def run(forced_item):
             if smelt_ore():
                 state.pop('last_item', None)
             smelt_gear(state)
-        h = hammer(state)
-        ingots = top_up_ingots(state)
-        # ingots used (the user, 2026-11-05): counted in his pack round each craft and smelt, so the user's
-        # additions to the bag don't count; spent on crafting, returned by smelting, and the difference used up
-        before_craft = pack_ingots()
         try:
+            h = hammer(state)
+            ingots = top_up_ingots(state)
+            # ingots used (the user, 2026-11-05): counted in his pack round each craft and smelt, so the user's
+            # additions to the bag don't count; spent on crafting, returned by smelting, and the difference used up
+            before_craft = pack_ingots()
             text, made = make(state, h, item, ingots)
             interrupted = 0
         except Interrupted as e:

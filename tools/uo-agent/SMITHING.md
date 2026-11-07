@@ -126,6 +126,11 @@ Tinkering are set to rise, the rest to fall.
 - **A world save can hold the server's answers back** (2026-11-06 20:32: the hammer's menu came 8 s after the save
   notice, and the loop stopped). It now waits up to 30 s for a menu, a target cursor or a smelted item to go, and
   double-clicks the hammer again if no menu comes; at the start it cancels a Blacksmithy menu left open.
+- **Server lag** (2026-11-07 02:30: the hammer's menu came 22 s late, no world save): the bridge stops (423, "the
+  server went quiet"). The loop then waits up to 5 minutes for the server to show it's answering (a late menu, a
+  target cursor or a new message), resumes, cancels the late menu and tries the step again ("the server lagged" /
+  "the server answered again" in the log). More than 5 in an hour, or no sign of the server in 5 minutes, and it
+  stops as before.
 - **Stops and the counts**: the state is saved at the end of each cycle, so a stop partway through loses that one
   cycle's craft and ingots; the item it made is smelted at the next start and the two cancel out. (Until 2026-11-06
   20:36 the start took the leftover's ingots off "used" as well, which undercounted by 12; corrected in the state.)
@@ -145,7 +150,7 @@ Tinkering are set to rise, the rest to fall.
   `cd ~/claude/ClassicUO/tools/uo-agent; exec python3 -I ~/claude/ClassicUO/tools/uo-agent/smith.py run`.
   It needs Icepick logged in with the Agent bridge ticked, at his spot with the chest in reach.
 - **Watch** the log with a Monitor (30 minutes at most, re-arm at each expiry):
-  `tail -n 0 -F ~/claude/uo-agent-work/smith/smith.log | grep -E --line-buffered "start:|now making|STOPPED|-> [0-9]+ after|broke|supplies|low|instead|not under|craft [0-9]+|ore smelted|interrupted|from the bag|couldn't|Traceback|Error"`.
+  `tail -n 0 -F ~/claude/uo-agent-work/smith/smith.log | grep -E --line-buffered "start:|now making|STOPPED|-> [0-9]+ after|broke|supplies|low|instead|not under|craft [0-9]+|ore smelted|interrupted|from the bag|couldn't|no Blacksmithy menu|cancelled|lagged|answered again|Traceback|Error"`.
   Every 0.1 gained logs a "Blacksmithy A -> B" line (several a minute at first), so the filter takes only whole
   points ("-> 59 after").
 - **Stop**: `python3 -I smith.py stop` (after the craft it's on; waits for the loop to end). No hiding needed indoors.
