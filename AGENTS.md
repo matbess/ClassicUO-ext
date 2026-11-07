@@ -65,5 +65,5 @@ about the bridge and sorting lives in **`tools/uo-agent/AGENTS.md`**; mining is 
 ## Building and installing
 
 See **`tools/build/README.md`**: `build.sh NAME`, `smoke.sh NAME`, `install.sh NAME BACKUP_NAME`. The installed build
-is the latest `cuo-agentN` in `~/claude/builds` (cuo-agent25, bridge 8, as of 2026-11-07 02:39); backups of every earlier install are in
+is the latest `cuo-agentN` in `~/claude/builds` (cuo-agent26, bridge 9, as of 2026-11-07 04:01); backups of every earlier install are in
 `~/Games/backups/classicuo-1.1.0.347-*`.
