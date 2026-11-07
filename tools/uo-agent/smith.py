@@ -6,6 +6,7 @@
   python3 -I smith.py stop                the running loop stops after the craft it is on, and the command waits
   python3 -I smith.py report              totals, skill gained, crafts per hour, hammers
   python3 -I smith.py ore                 smelt the ore in the grey bag into ingots (the user: first, whenever there is)
+                                          and any metal gear left loose in it (the user, 2026-11-06)
   python3 -I smith.py rules               put Icepick's smithing rules into the client (mine.py puts the mining ones back)
 
 Icepick stands on the tower's ground floor next to the forge, the anvil and the bottom wooden chest. The chest holds
@@ -204,6 +205,55 @@ def smelt_ore():
     return smelted
 
 
+# ---- gear to smelt ----
+
+def gear_in_bag(state):
+    """What the user leaves loose in the grey bag to be smelted (2026-11-06: a katana; old metal gear later): any
+    item there but the ingots, ore, hammers and containers, and things that wouldn't smelt before."""
+    skip = set(state.get('not_smeltable', []))
+    return [i for i in contents(BAG)
+            if not i.get('container') and 'ingot' not in (i.get('type') or '')
+            and i.get('graphic') not in ORE + HAMMER_GRAPHICS and i['serial'] not in skip]
+
+
+def smelt_gear(state):
+    """Smelts the gear in the grey bag one piece at a time in his pack; its ingots go onto the pile (the supplies
+    count them as added). Something that won't smelt goes back in the bag and is left alone after that."""
+    gear = gear_in_bag(state)
+    if not gear:
+        return 0
+    t = state.setdefault('totals', {})
+    done = 0
+    for g in gear:
+        name = g.get('type') or g.get('graphic')
+        h = hammer(state)
+        before = pack_ingots()
+        call('POST', '/move', serial=g['serial'], to=pack_serial())
+        if not any(i['serial'] == g['serial'] for i in pack()):
+            say(f"couldn't take {name} {g['serial']} out of the bag; left it")
+            state.setdefault('not_smeltable', []).append(g['serial'])
+            continue
+        answer = smelt_item(h, g['serial'])
+        got = pack_ingots() - before
+        if 'melt' in answer.lower() or answer.startswith('gone'):
+            done += 1
+            t['gear_smelted'] = t.get('gear_smelted', 0) + 1
+            t['gear_ingots'] = t.get('gear_ingots', 0) + got
+            say(f"smelted {name} {g['serial']} from the bag: {got} ingots ({answer})")
+        else:
+            if any(i['serial'] == g['serial'] for i in pack()):
+                call('POST', '/move', serial=g['serial'], to=BAG)
+            state.setdefault('not_smeltable', []).append(g['serial'])
+            say(f"couldn't smelt {name} {g['serial']}: {answer}; put it back in the bag and left it")
+    # the gear's ingots back onto the bag's stack, leaving his usual working stack
+    extra = pack_ingots() - PACK_INGOTS
+    mine, stack = ingot_stack(pack()), ingot_stack(contents(BAG))
+    if extra > 0 and mine and stack:
+        call('POST', '/move', serial=mine['serial'], to=stack['serial'], amount=min(extra, mine.get('amount', 1)))
+    save_state(state)
+    return done
+
+
 # ---- supplies ----
 
 def open_supplies():
@@ -284,7 +334,10 @@ def supplies(state):
         hours = spare * uses * per_use / 3600
         hammers = f" (about {uses:.0f} uses each at {per_use:.1f} s a use: {hours:.1f} hours of smithing)"
         state['supplies_hammer_hours'] = round(hours, 1)
-    return (f"supplies: ingots: started with {started} ({ing['start']} + {ing['added']} added), {left} left "
+    pieces = t.get('gear_smelted', 0)
+    gear = (f", {t['gear_ingots']} of them from {pieces} piece{'' if pieces == 1 else 's'} of gear smelted"
+            if t.get('gear_ingots') else '')
+    return (f"supplies: ingots: started with {started} ({ing['start']} + {ing['added']} added{gear}), {left} left "
             f"({bag} in the bag, {mine} in his pack), {used} used; {spare} spare hammers{hammers}, "
             f"{broken} broken so far")
 
@@ -477,6 +530,7 @@ def run(forced_item):
     t = state.setdefault('totals', {'crafts': 0, 'made': 0, 'failed': 0, 'smelted': 0})
     open_supplies()
     smelt_ore()
+    smelt_gear(state)
     value = skill()
     started = {'time': time.time(), 'skill': value, 'crafts': t['crafts']}
     ingots = top_up_ingots(state, force=True)
@@ -510,6 +564,7 @@ def run(forced_item):
             since_ore = 0
             if smelt_ore():
                 state.pop('last_item', None)
+            smelt_gear(state)
         h = hammer(state)
         ingots = top_up_ingots(state)
         # ingots used (the user, 2026-11-05): counted in his pack round each craft and smelt, so the user's
@@ -643,6 +698,7 @@ def main():
         if args.cmd == 'ore':
             open_supplies()
             smelt_ore()
+            smelt_gear(load_state())
         elif args.cmd == 'run':
             if os.path.exists(PID):
                 try:

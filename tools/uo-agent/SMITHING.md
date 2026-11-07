@@ -21,6 +21,8 @@ decided, so any session can pick it up. Newer notes win where they disagree with
 - **At 99**: try both spears and plate gloves for a while and compare how quickly the skill rises (per hour). If
   they're about the same, stay with spears: they fail less, so more items come back as ingots when smelted.
 - **Ore first**: whenever there is ore in the grey bag, smelt it into ingots before crafting.
+- **Gear to smelt** (the user, 2026-11-06): a weapon or armour left loose in the grey bag is smelted into ingots for
+  the pile (the first, a katana, gave 4). Later the user will bring old metal gear to smelt down.
 - **No pacing**: as fast as the server allows (the user: about 1 second between actions). The bridge never goes
   below 1.1 s between actions, so `rules-Icepick-smith.json` sets 1.1-1.2 s and no breaks. Menu choices and
   target clicks go at once (`aim` 0).
@@ -36,15 +38,16 @@ decided, so any session can pick it up. Newer notes win where they disagree with
 
 ## The smithy (the tower's ground floor, map 0)
 
-- Icepick stands at **1756,1409** or **1757,1408** (z 6), mounted on McGee; both have the chest, the forge and the
-  anvil within the bridge's reach of 2 tiles, so he never walks (the user, 2026-11-05: no walking to the chest).
+- Icepick stands at **1756,1409** (z 6) by the forge, mounted on McGee (the user, 2026-11-06: by the forge, not by
+  the chest; he had been seen at 1757,1408). The chest, the forge and the anvil are all within the bridge's reach of
+  2 tiles from there, so he never walks (the user, 2026-11-05: no walking to the chest).
   `smith.py` has no walk at all: if he's moved out of reach, the loop stops with "too far away".
 - **Forge** 0x408A3611 at 1755,1410; **anvil** 0x408A3775 at 1756,1410.
 - **The ingot chest**: the bottom wooden chest 0x4074A4C1 at 1757,1407 (z 6), which holds any weight. The two chests
   stacked on it (0x4073C9D0 z 10, 0x40531814 z 14) are off limits. The chest also holds the user's own things (a
   pouch of robes and boots, raw ribs, fish steaks, gold, a loose ingot and ore): left alone.
 - **The grey bag** (backpack 0x40BF2C73, hue 978) in that chest: the iron ingot stack (0x407F569C), ore to smelt
-  now and then, and the **hammer pouch** 0x40421216.
+  now and then, gear to smelt, and the **hammer pouch** (0x408558AD since 2026-11-05; first 0x40421216).
 - Icepick's own leftovers in his pack (six small coloured ore piles, a coloured ingot, three shovels): left alone
   (the user, 2026-11-05).
 - The ground floor is also the way in for Clem (cartography) and the other characters; Icepick doesn't pause for
@@ -103,7 +106,11 @@ Tinkering are set to rise, the rest to fall.
 
 - Each time round: the hammer (the next from the pouch when the last broke), the pack's ingots topped up to 150 from
   the bag when under 40, then one attempt (Make Last Item when the last item is the one wanted, else the menus),
-  and every item made smelted at once. Every 50 crafts it looks for ore in the bag and smelts it first.
+  and every item made smelted at once. Every 50 crafts (and at the start) it looks for ore in the bag and smelts it
+  first, then any gear lying loose in the bag: one piece at a time into his pack, Smelt, the ingots back onto the
+  bag's stack (logged "smelted katana ... from the bag: 4 ingots"). Something that won't smelt goes back in the bag
+  and is left alone (`not_smeltable` in the state). Gear ingots count as added in the supplies line ("N of them
+  from M pieces of gear smelted"). `smith.py ore` does both without the loop.
 - The item comes from the user's table by Blacksmithy's value; `--item NAME` makes one kind regardless (for the
   trial at 99). Items not where expected (short spear and spear are under Polearms, checked at 78) are looked for under the other
   kinds, and the log says so.
@@ -129,12 +136,12 @@ Tinkering are set to rise, the rest to fall.
   `cd ~/claude/ClassicUO/tools/uo-agent; exec python3 -I ~/claude/ClassicUO/tools/uo-agent/smith.py run`.
   It needs Icepick logged in with the Agent bridge ticked, at his spot with the chest in reach.
 - **Watch** the log with a Monitor (30 minutes at most, re-arm at each expiry):
-  `tail -n 0 -F ~/claude/uo-agent-work/smith/smith.log | grep -E --line-buffered "start:|now making|STOPPED|-> [0-9]+ after|broke|supplies|low|instead|not under|craft [0-9]+|ore smelted|interrupted|Traceback|Error"`.
+  `tail -n 0 -F ~/claude/uo-agent-work/smith/smith.log | grep -E --line-buffered "start:|now making|STOPPED|-> [0-9]+ after|broke|supplies|low|instead|not under|craft [0-9]+|ore smelted|interrupted|from the bag|couldn't|Traceback|Error"`.
   Every 0.1 gained logs a "Blacksmithy A -> B" line (several a minute at first), so the filter takes only whole
   points ("-> 59 after").
 - **Stop**: `python3 -I smith.py stop` (after the craft it's on; waits for the loop to end). No hiding needed indoors.
 - **Tell the user**: every whole skill point (with the rate an hour) and the supplies line that follows it, item
-  changes, hammers breaking (and how many uses one lasted), `hammers low`, `ingots low`, ore smelted, and every stop.
+  changes, hammers breaking (and how many uses one lasted), `hammers low`, `ingots low`, ore and gear smelted, and every stop.
 - **Supplies** (the user, 2026-11-05: keep track of how many hammers break and how many hammers and ingots are
   left): a `supplies:` line at the start, after every hammer that breaks and at every whole skill point: the
   ingots in the grey bag and in his pack, the spare hammers, the hammers broken so far. Also in `smith.py report`
