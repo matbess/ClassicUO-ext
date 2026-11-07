@@ -53,14 +53,14 @@ LOOK_AROUND = 3                   # seconds at each lookout point
 TAMBOURINE = 0x0E9D
 POUCH = 0x0E79
 PROVOKE, MEDITATE = 22, 46
-CURE, FIREBALL, GREATER_HEAL, LIGHTNING, ENERGY_BOLT = 11, 18, 29, 30, 42
-MANA = {CURE: 6, FIREBALL: 9, GREATER_HEAL: 11, LIGHTNING: 11, ENERGY_BOLT: 20}
-NAMES = {CURE: 'Cure', FIREBALL: 'Fireball', GREATER_HEAL: 'Greater Heal', LIGHTNING: 'Lightning',
+HEAL, CURE, FIREBALL, GREATER_HEAL, LIGHTNING, ENERGY_BOLT = 4, 11, 18, 29, 30, 42
+MANA = {HEAL: 4, CURE: 6, FIREBALL: 9, GREATER_HEAL: 11, LIGHTNING: 11, ENERGY_BOLT: 20}
+NAMES = {HEAL: 'Heal', CURE: 'Cure', FIREBALL: 'Fireball', GREATER_HEAL: 'Greater Heal', LIGHTNING: 'Lightning',
          ENERGY_BOLT: 'Energy Bolt'}
 REAGENT_BAG = '0x40677564'  # Razor's restock and scavenger hot bag in his pack
 BLACK_PEARL, BLOOD_MOSS, GARLIC, GINSENG, MANDRAKE, NIGHTSHADE, SPIDERS_SILK, SULFUROUS_ASH = (
     0x0F7A, 0x0F7B, 0x0F84, 0x0F85, 0x0F86, 0x0F88, 0x0F8D, 0x0F8C)
-REAGENTS = {CURE: (GARLIC, GINSENG), FIREBALL: (BLACK_PEARL,), GREATER_HEAL: (GARLIC, GINSENG, MANDRAKE, SPIDERS_SILK),
+REAGENTS = {HEAL: (GARLIC, GINSENG, SPIDERS_SILK), CURE: (GARLIC, GINSENG), FIREBALL: (BLACK_PEARL,), GREATER_HEAL: (GARLIC, GINSENG, MANDRAKE, SPIDERS_SILK),
             LIGHTNING: (MANDRAKE, SULFUROUS_ASH), ENERGY_BOLT: (BLACK_PEARL, NIGHTSHADE)}
 LAND_TIME = 1.0         # seconds after the aim for a spell to land: no moving (casting freezes him; a step then
                         # gets "You are frozen and cannot move.", which cut the bridge's wait for the cursor short)
@@ -98,7 +98,8 @@ LURE_WAIT = 30          # seconds there: one that hasn't turned on him by then i
                         # one that doesn't attack)
 ENGAGED_AFTER = 2       # seconds within a tile of another creature: locked in a fight with it
 PROVOKED_BUSY = 6       # seconds after a provoke the pair counts as busy even before they meet
-HURT = 0.6              # his share of health: get clear, then heal
+HURT = 0.75             # below this: ride 10 tiles from every creature at once, then Greater Heal (the user)
+SCRATCHED = 0.85        # below this: Heal where he is (quick; only a step away first if something is within 3)
 LOW, VERY_LOW = 0.15, 0.05   # a target's share: Lightning below LOW, Fireball below VERY_LOW (the user, 2026-11-06)
 
 ATTACKABLE = {'Gray', 'Criminal', 'Enemy', 'Murderer'}
@@ -748,14 +749,19 @@ class Fight:
         # hurt: ride 10 tiles away from every creature, fighting or not, then heal (the user, 2026-11-06: "If you need
         # to heal run 10 tiles away and heal")
         dany = min(dfree, dbusy)
+        # the user, 2026-11-06: "If you get below 85% health you should use heal on yourself where you are, if you get
+        # below 75% HP it is important that you immediately run away 10 tiles and heal yourself with greater heal"
         if hp < HURT:
             if dany < HEAL_CLEAR:
                 self.meditating = False
-                self.flee(me, [xy(m) for m in threats], radii=(10, 8))
+                self.flee(me, [xy(m) for m in threats], radii=(12, 10, 8), need=HEAL_CLEAR)
                 return False
             if self.can_cast(GREATER_HEAL, st['mana']):
                 self.heal_self(st, GREATER_HEAL)
                 return False
+        elif hp < SCRATCHED and self.can_cast(HEAL, st['mana']) and self.still(me):
+            self.heal_self(st, HEAL)
+            return False
         if st.get('poisoned') and dany >= HEAL_CLEAR and self.can_cast(CURE, st['mana']):
             self.heal_self(st, CURE)
             return False
@@ -922,7 +928,7 @@ class Fight:
 
         return self.search(me)
 
-    def flee(self, me, threats, toward=None, fresh=False, radii=(8, 5)):
+    def flee(self, me, threats, toward=None, fresh=False, radii=(8, 5), need=None):
         """Get away: one spot about 8 tiles off, never nearer anything within 12, leaning toward the tower (or toward
         `toward`, something to set the follower on). The spot is kept until he's there; a new one only when something
         is right on him and the spot doesn't take him away from it (or `fresh`)."""
@@ -945,10 +951,12 @@ class Fight:
                 a = i * math.pi / 8
                 p = clamp_area((round(me[0] + r * math.cos(a)), round(me[1] + r * math.sin(a))))
                 if dist(p, me) >= 3:
-                    spots.append((all(dist(p, t) > dist(me, t) for t in near) and path_clear(me, p, near, SPACE),
-                                  score(p), p))
+                    # need: a spot at least that far from every creature comes first (hurt: 10 tiles, the user)
+                    far_enough = need is None or min((dist(p, t) for t in threats), default=99) >= need
+                    spots.append((far_enough, all(dist(p, t) > dist(me, t) for t in near)
+                                  and path_clear(me, p, near, SPACE), score(p), p))
         spots.sort(reverse=True)
-        for _, _, p in spots[:8]:
+        for _, _, _, p in spots[:8]:
             if m.go(me, p, 'flee', force=True, urgent=any(dist(me, t) <= ON_HIM for t in threats)):
                 return
 

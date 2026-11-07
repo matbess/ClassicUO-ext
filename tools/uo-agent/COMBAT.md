@@ -73,8 +73,9 @@ fight. Nothing goes to town until fighting works.
   during the fight within 10 tiles, never a person's ("corpse of ..."): ride next to it, open it, move everything
   into his backpack.
 - **Meditate** when mana is low and every creature is busy fighting.
-- **Hurt:** run out of their range, then heal: ride 10 tiles away from every creature, then heal (the user,
-  2026-11-06). No spell of any kind, heal or attack, with any creature within 6, fighting another or not: "it is NOT
+- **Hurt** (the user, 2026-11-06): below **85%** health, Heal (spell 4, quick) on himself where he is (a step away
+  first only if something is within 3); below **75%**, immediately ride 10 tiles away from every creature and Greater
+  Heal there. No spell of any kind, heal or attack, with any creature within 6, fighting another or not: "it is NOT
   time to cast any spells, get distance first". fight_sim.py reports the nearest creature at every spell.
 - **Paralysed:** use one of the 3 trapped pouches in his pack (a little damage, frees him); re-trap them after the
   fight (Magic Trap; not automated).
