@@ -43,7 +43,9 @@ LOG = os.path.join(WORK, 'fight.log')
 ROWS = os.path.join(WORK, 'fights.jsonl')
 TRAPPED = os.path.join(HERE, 'trapped.json')  # creatures never to draw again (kept in the repo)
 
-AREA = (1715, 1414, 1830, 1485)   # "outside" in his rules (x1, y1, x2, y2); the door is at y 1414
+AREA = (1745, 1414, 1830, 1485)   # "outside" in his rules (x1, y1, x2, y2); the door is at y 1414
+# never north, west or north-west of the tower: that's toward the road, where there may be other players (the user,
+# 2026-11-06); north is outside the area already (y1 is the front of the tower), west stops at x 1745
 HOME = door.OUTSIDE               # in front of the door (1756,1416)
 FRONT_YARD = 10                   # the front yard: this close to the door, no fights (lead them away)
 NEAR_HOME = 25                    # further out than this, every move pulls him back toward the tower
@@ -52,7 +54,7 @@ NEAR_HOME = 25                    # further out than this, every move pulls him 
 # then go down to south east"); --route picks one
 ROUTES = {
     'east': [(1772, 1420), (1792, 1420), (1812, 1422), (1820, 1440), (1808, 1458), (1790, 1468)],
-    'south': [(1745, 1440), (1738, 1455), (1750, 1468), (1770, 1450), (1788, 1440)],
+    'southeast': [(1768, 1430), (1782, 1442), (1796, 1454), (1808, 1466), (1818, 1478)],
 }
 PATROL = ROUTES['east']
 LOOK_AROUND = 3                   # seconds at each lookout point

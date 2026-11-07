@@ -18,6 +18,9 @@ fight. Nothing goes to town until fighting works.
   anything else, the door steps, looting, healing and "remove thyself" included (the way in breaks off between steps
   when a creature comes near). **No spell with anything close**: it closes in during the words, hits him and ruins
   the spell; a full getaway first, then cast with every free creature 6+ tiles off.
+- **Never north, west or north-west of the tower** (the user, 2026-11-06): that's toward the road, where there may be
+  other players. His outside area starts at x 1745 (a little west of the door) and at the front of the tower; the
+  search routes go east and south-east.
 - **Keep the front yard clear** (the user, 2026-11-06): don't leave creatures at the front door; lead them away from
   it and kill them there. Getting away prefers spots 10-25 tiles from the door (out of the yard, near the tower).
 - **Drawing**: get a bit closer (4 tiles) and wait a bit longer (30 s) for it to attack.
