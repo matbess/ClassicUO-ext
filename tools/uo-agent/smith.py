@@ -389,13 +389,50 @@ def choose(dialog, index):
     return call('POST', '/menu', serial=dialog['serial'], id=dialog['id'], index=index)
 
 
+def wait_answer(answer):
+    """The answer to a menu choice or a target click should bring a menu or a target cursor. When it has neither (a
+    world save held it back, 2026-11-06 20:32), wait up to 30 s for one to turn up."""
+    if answer.get('targeting') or last_menu(answer):
+        return answer
+    for _ in range(30):
+        time.sleep(1)
+        if status().get('targeting'):
+            return dict(answer, targeting=True)
+        menus = [d for d in call('GET', '/gumps').get('dialogs', []) if d['kind'] != 'gump']
+        if menus:
+            return dict(answer, dialogs=menus)
+    return answer
+
+
+def open_menus():
+    return [d for d in call('GET', '/gumps').get('dialogs', [])
+            if d['kind'] != 'gump' and 'blacksmithy' in (d.get('title') or '').lower()]
+
+
+def cancel_open_menus():
+    """A Blacksmithy menu left open by a stop (2026-11-06 20:32) is answered with 0, which cancels it."""
+    for d in open_menus():
+        call('POST', '/menu', serial=d['serial'], id=d['id'], index=0)
+        say(f"cancelled a Blacksmithy menu left open ({d['serial']})")
+
+
 def options_menu(hammer_serial):
-    answer = call('POST', '/use', serial=hammer_serial)
-    d = last_menu(answer, 'Blacksmithy')
-    if not d:
+    """Double-clicks the hammer for the Blacksmithy Options menu. A world save can hold the menu back (2026-11-06
+    20:32: the save notice came as the answer and the menu 8 s later), so it waits up to 30 s for it and
+    double-clicks again if it never comes."""
+    texts = []
+    for attempt in range(3):
+        answer = call('POST', '/use', serial=hammer_serial)
+        d = last_menu(answer, 'Blacksmithy')
         texts = [m['text'] for m in answer.get('messages', [])]
-        raise Stop(f"the hammer didn't show the Blacksmithy menu: {texts}")
-    return d
+        for _ in range(30):
+            if d:
+                return d
+            time.sleep(1)
+            menus = open_menus()
+            d = menus[-1] if menus else None
+        say(f"no Blacksmithy menu 30 s after the hammer ({texts}); again")
+    raise Stop(f"the hammer didn't show the Blacksmithy menu three times: {texts}")
 
 
 # messages that aren't answers: world saves (one came in place of a craft result, 21:33) and the weather ("It begins
@@ -432,9 +469,9 @@ def craft_full(hammer_serial, item, place, ingots):
     """The whole way through the menus. Returns the server's answer, or None when the item isn't on that menu."""
     top, kind = place
     d = options_menu(hammer_serial)
-    answer = choose(d, menu_item(d, top))
+    answer = wait_answer(choose(d, menu_item(d, top)))
     if answer.get('targeting'):
-        answer = call('POST', '/target', serial=ingots['serial'])
+        answer = wait_answer(call('POST', '/target', serial=ingots['serial']))
     kinds = last_menu(answer)
     if not kinds:
         raise Stop(f"no menu after choosing {top}: {result_text(answer)}")
@@ -444,11 +481,11 @@ def craft_full(hammer_serial, item, place, ingots):
     for n, k in enumerate(order):
         if n:
             d = options_menu(hammer_serial)
-            answer = choose(d, menu_item(d, top))
+            answer = wait_answer(choose(d, menu_item(d, top)))
             if answer.get('targeting'):
-                answer = call('POST', '/target', serial=ingots['serial'])
+                answer = wait_answer(call('POST', '/target', serial=ingots['serial']))
             kinds = last_menu(answer)
-        answer = choose(kinds, menu_item(kinds, k))
+        answer = wait_answer(choose(kinds, menu_item(kinds, k)))
         items = last_menu(answer)
         index = menu_item(items, item) if items else None
         if index:
@@ -489,7 +526,7 @@ def smelt_item(hammer_serial, serial):
     for attempt in range(3):
         try:
             d = options_menu(hammer_serial)
-            answer = choose(d, menu_item(d, 'Smelt'))
+            answer = wait_answer(choose(d, menu_item(d, 'Smelt')))
             if not answer.get('targeting'):
                 raise Stop(f'no target cursor after Smelt: {result_text(answer)}')
             answer = call('POST', '/target', serial=serial)
@@ -497,9 +534,12 @@ def smelt_item(hammer_serial, serial):
             melted = next((x for x in texts if 'melt' in x.lower()), None)
             if melted:
                 return melted
-            # no "melt" among the answers: gone from the pack means it melted all the same
-            if not any(i['serial'] == serial for i in pack()):
-                return f"gone from the pack ({result_text(answer)})"
+            # no "melt" among the answers: gone from the pack means it melted all the same (a world save can hold
+            # the answer back for several seconds)
+            for _ in range(30):
+                if not any(i['serial'] == serial for i in pack()):
+                    return f"gone from the pack ({result_text(answer)})"
+                time.sleep(1)
             return result_text(answer)
         except Interrupted as e:
             say(f'smelting {serial} interrupted ({e}); again')
@@ -535,6 +575,7 @@ def run(forced_item):
             for k in state.get('hammer_taken', {}):
                 state['hammer_taken'][k] += gap
     t = state.setdefault('totals', {'crafts': 0, 'made': 0, 'failed': 0, 'smelted': 0})
+    cancel_open_menus()
     open_supplies()
     smelt_ore()
     smelt_gear(state)
@@ -544,11 +585,10 @@ def run(forced_item):
     leftovers = made_items(pack())
     if leftovers:
         h = hammer(state)
-        before = pack_ingots()
         for m in leftovers:
             say(f"smelting {m.get('type')} {m['serial']} left in his pack: {smelt_item(h, m['serial'])}")
-        # the craft that made it counted its ingots as used; they're back now
-        t['ingots_used'] = t.get('ingots_used', 0) - (pack_ingots() - before)
+        # nothing to count: the state is saved at the end of a cycle, so the cycle that made it never counted its
+        # ingots as used, and the smelt gives them back (2026-11-06: taking them off here undercounted by 12)
     say(supplies(state))
     say(f"start: {SKILL} {value}; {ingots.get('amount')} ingots in his pack" +
         (f'; making {forced_item} (--item)' if forced_item else ''))

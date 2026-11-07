@@ -121,6 +121,13 @@ Tinkering are set to rise, the rest to fall.
   the server may answer "You must wait to perform another action". The loop leaves the notices out, waits up to a
   minute for the real result, doesn't count a refused attempt, and smelts any crafted item it finds lying in his
   pack every time round.
+- **A world save can hold the server's answers back** (2026-11-06 20:32: the hammer's menu came 8 s after the save
+  notice, and the loop stopped). It now waits up to 30 s for a menu, a target cursor or a smelted item to go, and
+  double-clicks the hammer again if no menu comes; at the start it cancels a Blacksmithy menu left open.
+- **Stops and the counts**: the state is saved at the end of each cycle, so a stop partway through loses that one
+  cycle's craft and ingots; the item it made is smelted at the next start and the two cancel out. (Until 2026-11-06
+  20:36 the start took the leftover's ingots off "used" as well, which undercounted by 12; corrected in the state.)
+  A hammer's minutes leave out the time the loop was stopped.
 - It stops by itself at 99 ("time for the spear / plate gloves trial"), when the hammers or ingots run out, or on
   anything it doesn't understand.
 - Pace, measured: dclick to menu 75 ms; the bridge answers a menu about 1 s after it shows (the 300 ms settle and
