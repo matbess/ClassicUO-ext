@@ -135,3 +135,44 @@ recovery('drop landed in his pack', {'halted': drop, 'backpack': pack}, {'inside
 recovery('drop went elsewhere', {'halted': drop, 'backpack': pack}, {'insideOf': [{'serial': '0x5'}]})
 recovery('the user took over', {'halted': drop, 'takenOver': 'a step', 'backpack': pack}, None)
 recovery('another stop', {'halted': 'stopped because the server went quiet (no answer to a skill)', 'backpack': pack}, None)
+
+# a gargoyle (caster) after him (the user, 2026-11-06): Magic Reflection whenever it isn't up; nothing to set it on:
+# 15+ tiles away; something to set it on: pull it there; provoke as soon as both are in range (before reflection)
+fight.call = fake_call
+fight.ASYNC = True
+up = lambda f: setattr(f, 'reflect_up', True)
+run('gargoyle coming 12 off, reflection not up: Magic Reflection', me, [mob('0xG', 'a gargoyle', 1802, 1430, True)])
+run('gargoyle coming 9 off, reflection up, nothing else: 15+ away', me, [mob('0xG', 'a gargoyle', 1799, 1430, True)], setup=up)
+run('gargoyle coming 16 off, reflection up, nothing else: holds', me, [mob('0xG', 'a gargoyle', 1806, 1430, True)], setup=up)
+run('gargoyle coming 12 off, an ogre 8 the other way: pull it to the ogre', me,
+    [mob('0xG', 'a gargoyle', 1802, 1430, True), mob('0xB', 'an ogre', 1782, 1432)], setup=up)
+run('gargoyle 7 off and an ogre 5 off near it, provoke ready: provoke first (no reflection)', me,
+    [mob('0xG', 'a gargoyle', 1797, 1430, True), mob('0xB', 'an ogre', 1794, 1433)])
+run('gargoyle after him 70 s with nobody to set it on: spells', me, [mob('0xG', 'a gargoyle', 1799, 1430, True)],
+    setup=lambda f: (up(f), f.caster_since.update({'0xG': time.time() - 70})))
+run('bridge 8: a spell on its way: no second spell, no provoke', me, [mob('0xG', 'a gargoyle', 1806, 1430, True)],
+    setup=lambda f: setattr(f, 'spell', {'spell': 42, 'target': '0xG', 'name': 'a gargoyle', 'kind': 'attack',
+                                         'at': time.time(), 'before': 0}))
+fight.ASYNC = False
+run('bridge 7: gargoyle 12 off, reflection not up: no reflection (it would hold the bridge 6 s)', me,
+    [mob('0xG', 'a gargoyle', 1802, 1430, True)])
+
+# a spell's outcome, settled from what follows it
+def settle(name, kind, messages, hits_after=None, age=0.5):
+    f = fight.Fight(10)
+    f.spell = {'spell': 42 if kind == 'attack' else 36, 'target': '0xG', 'name': 'a gargoyle', 'kind': kind,
+               'at': time.time() - age, 'before': 10, 'hits': 20}
+    said = []
+    fight.say = said.append
+    g = mob('0xG', 'a gargoyle', 1802, 1430, True, hits=hits_after if hits_after is not None else 20)
+    f.settle_spell({'0xG': g}, [{'id': 11 + i, 'text': t} for i, t in enumerate(messages)])
+    fight.say = lambda t: None
+    print(f'--- settle: {name}:', said[0] if said else 'still on its way',
+          '| too far noted' if '0xG' in f.too_far else '', '| reflection up' if f.reflect_up else '')
+settle('too far away', 'attack', ['That is too far away.'])
+settle('concentration disturbed', 'attack', ['Your concentration is disturbed, thus ruining thy spell.'])
+settle('its health fell', 'attack', [], hits_after=12)
+settle('nothing yet', 'attack', [])
+settle('nothing against it after 3 s', 'attack', [], age=3.5)
+settle('reflection: already in effect', 'reflect', ['This spell is already in effect.'])
+settle('reflection: nothing against it', 'reflect', [], age=3.5)

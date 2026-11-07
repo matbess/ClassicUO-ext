@@ -3,7 +3,8 @@
 last sent to (2 tiles a moment), creatures move toward him once they've turned on him (Criminal), and every walk he's
 sent and every reversal of direction is counted. Nothing is sent to the game.
 
-  python3 -I fight_sim.py
+  python3 -I fight_sim.py             as with bridge 7 (cuo-agent23): spells only standing still, waiting for the cursor
+  python3 -I fight_sim.py --bridge8   as with bridge 8 (cuo-agent24): cast and go on
 """
 import math
 import os
@@ -11,6 +12,7 @@ import sys
 import time
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 import fight  # noqa: E402
+fight.ASYNC = '--bridge8' in sys.argv
 
 world = {}
 log = []

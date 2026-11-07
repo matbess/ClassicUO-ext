@@ -39,6 +39,10 @@ namespace ClassicUO.Game.Managers
         private volatile bool _inWork;      // game thread: the bridge's own work is running, so what it sends is its own
         private volatile string _userActed; // a command the user sent themselves (OnSent), for Update to act on
         private string _takenOver;          // game thread: the user took over (what and when); no actions until /resume
+        // game thread: a spell cast with wait=0, the creature its cursor goes to when the cursor comes, and until when;
+        // any other action clears it, so a later cursor (a skill's, a key's) is never aimed with it
+        private uint _aimTarget;
+        private DateTime _aimUntil;
         private readonly ConcurrentQueue<BridgeEvent> _sent = new ConcurrentQueue<BridgeEvent>();
 
         // only touched on the game thread

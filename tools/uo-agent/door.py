@@ -3,7 +3,7 @@
 the door's two halves and the key ring in his rules ("doors", "keys").
 
   python3 -I door.py out      from inside: reagents first (restock.py: any below 25 means restock at the chest),
-                              creatures off the front steps, then open, step into the doorway, close the door over
+                              Magic Reflection, creatures off the front steps, then open, step into the doorway, close the door over
                               him there, and check
   python3 -I door.py in       from outside: unlock, open, step into the doorway, lock, step in, close
   python3 -I door.py check    from outside: try to get back in through the door (it mustn't let him); if it opens,
@@ -173,7 +173,24 @@ def clear_steps(tries):
     return not on_steps()
 
 
-def go_out():
+def reflect():
+    """Magic Reflection on him before the door opens (the user, 2026-11-06: "use reflect before you go out the door,
+    reflect will help with the first spell it casts at you"); it never fizzles (the user). Bridge 8 answers at once
+    (a short wait here for the server's word); bridge 7 waits for a cursor that never comes, up to 6 s: harmless
+    inside."""
+    st = call('GET', '/status')
+    if st.get('mana', 0) < 14:
+        say(f'no mana for Magic Reflection ({st.get("mana")})')
+        return
+    extra = {'wait': 0, 'cursor': 0} if st.get('bridge', 0) >= 8 else {}
+    call('POST', '/cast', spell=36, target=st['serial'], **extra)
+    if extra:
+        time.sleep(1.5)
+    words = call('GET', '/messages', after=st['lastMessageId'])['messages']
+    say('Magic Reflection: ' + (' | '.join(m['text'] for m in words) or '-'))
+
+
+def go_out(with_reflection=True):
     if where()[1] >= 1414:
         say('already outside')
         return
@@ -183,6 +200,8 @@ def go_out():
         restock.ensure()
     except restock.Stop as e:
         raise Stop(f'reagents: {e}')
+    if with_reflection:
+        reflect()
     step(INSIDE, 'get to the door')
     # creatures on the steps first (the user, 2026-11-06): with the door shut if the click gets through, else with it
     # open; still there after that, he stays in

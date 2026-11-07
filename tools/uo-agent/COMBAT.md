@@ -44,6 +44,28 @@ fight. Nothing goes to town until fighting works.
   follower (it closes in meanwhile), and provokes as soon as both are within 8 of him and within 9 of each other.
 - **Casters first** (they hit from a distance); then the strong ones (water elemental, troll, dire wolf); weak ones
   like a mongbat last.
+- **A caster after him** (the user, 2026-11-06, a gargoyle outside the door): "He's going to attack you with spells
+  immediately so you need to lock the door quickly and run far away, for a spellcaster when there's no other enemy
+  to provoke it to, you need to get like 15+ tiles away and pull him to someone else quickly, use reflect before you
+  go out the door, reflect will help with the first spell it casts at you, reapply reflect as much as you have time
+  to, then stay far away from it and pull it toward some other animal or monster and provoke it soon to get it 'off
+  of you'". **Magic Reflection** (36: garlic, mandrake root, spider's silk; 14 mana) never fizzles (the user); one
+  spell at him bounces and uses it up. fight.py: Reflection before the door (door.py out) and whenever a caster is
+  about and it may be down (a creature's spell words take it as used), never with anything within 6, and a provoke
+  that can go off now comes first; a caster that can't be provoked yet: one ride to 4 tiles past another creature
+  (on the far side from the caster), stand and let it come into provoke range; nothing to set it on, or no clear
+  way there: get 15+ tiles from it (one long ride once it's under 13, no hops); within 7: get away first. After 60 s
+  with nobody to set it on: spells at it like any other. (Pulling is the least tried part: fight_sim's gargoyle
+  scene gets the provoke off with bridge 7 timing, but with bridge 8 the gargoyle sat between him and the wolf and
+  he kept riding off instead.)
+- **Combat is multi-tasking** (the user, 2026-11-06): "you don't just cast a spell and sit there and wait ... You
+  cast and keep moving at the same time, you can check for system messages in parallel to figure out what happened
+  with the spell"; "never 'wait for result' that would block, more like 'Cast' .. then do all the other normal stuff
+  and when a result from the spell shows up 'result=success/fail'". Bridge 8 below; fight.py keeps the spell on its
+  way in `self.spell` and settles it from the messages on every look (SPELL_FAILS: fizzles, too far away, can't be
+  seen, concentration disturbed, no mana or reagents, already casting; "already in effect" and "have been healed"
+  are a success, so is the target's health falling, or nothing against it within 3 s), logged as
+  `result=success/fail (why)`. One spell at a time, and no skill while one is on its way (their cursors would mix).
 - **Uneven pairs: even the fight out.** When one is losing, cast at the one winning (the stronger), never the one
   losing, so it's low or dead before it's freed (fight 1: the user bolted the headless one while its mongbat was
   dying; 2026-11-06 16:58: "You killed the wrong one first ... your job is to even out the fight", the dire wolf,
@@ -177,6 +199,18 @@ door, not the server).
   pack); any other stop ends the run, and **he is then standing out there with nothing running him**: act at once.
 - **Before any command by hand while he's out, look at the live state** (`uo nearby`, `uo status`), never at the
   alerts: they run behind (17:11, below: Claude sent "meditate" with a gargoyle already hitting him).
+
+## Bridge 8 (build cuo-agent24, 2026-11-06; NOT installed yet: the clients have to be closed)
+
+- `/cast?spell=&target=&wait=0`: sends the spell and answers at once (`{"cast": true, "messageId", hits, mana}`); the
+  bridge aims the spell's cursor itself from its update loop when the cursor comes (within 6 s; a creature that died
+  meanwhile gets the cursor cancelled; never when the user has taken over). `cursor=0`: a spell with no cursor
+  (Magic Reflection): nothing is aimed. With the old wait (bridge 7, and `wait=1`) a spell with no cursor held the
+  bridge, which serves one request at a time, for the whole 6 s cursor timeout: no looks, no walks.
+- While a spell's cursor is still to come, `/skill`, `/use` and `/say` (which can bring cursors of their own) are
+  refused with 409 ("a spell's target cursor is still to come").
+- fight.py turns cast-and-go on when `/status` says bridge 8; with bridge 7 it casts standing still as before, and
+  Magic Reflection only with nothing within 15. `fight_sim.py --bridge8` simulates the new way.
 
 ## Bridge 7 (builds cuo-agent20-22; installed cuo-agent22, 2026-11-06 23:27)
 

@@ -39,10 +39,11 @@ namespace ClassicUO.Game.Managers
     {
         private const int FIRST_PORT = 7780;
         private const int LAST_PORT = 7789;
-        private const int VERSION = 7; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs); 7: fights (creatures' health, skills and spells aimed at creatures, running walks that don't wait, doors and keys; the user takes over by giving a command of their own)
+        private const int VERSION = 8; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs); 7: fights (creatures' health, skills and spells aimed at creatures, running walks that don't wait, doors and keys; the user takes over by giving a command of their own); 8: /cast wait=0 answers at once and the bridge aims the spell's cursor itself when it comes, so the agent keeps moving and looking while the spell goes off, and reads the outcome from the messages (the user, 2026-11-06: "Cast .. then do all the other normal stuff and when a result from the spell shows up result=success/fail"); cursor=0 for a spell with no target (Magic Reflection)
         private const int GUARD_INTERVAL = 250;  // milliseconds between the guard's checks
         private const int ALARM_FILE_INTERVAL = 1000;
         private const int CAST_TIMEOUT = 6000;   // from casting to the target cursor
+        private const int NO_CURSOR_TIMEOUT = 1500; // a spell with no cursor: from casting to his words
         private const int LAND_RESULT_TIMEOUT = 6000; // mining and smelting answer after the swing
         private const int RECALL_TIMEOUT = 6000;
         private const int TRADE_TIMEOUT = 3000;
@@ -190,6 +191,11 @@ namespace ClassicUO.Game.Managers
                         _world.Player.Pathfinder.StopAutoWalk();
                     }
                 }
+            }
+
+            if (_aimTarget != 0)
+            {
+                AimPending();
             }
 
             if (_listener != null)
@@ -791,7 +797,7 @@ namespace ClassicUO.Game.Managers
                         _evading = true;
                     }
 
-                    return Cast(GetRequiredInt(query, "spell"), GetSerial(query, "target"));
+                    return Cast(GetRequiredInt(query, "spell"), GetSerial(query, "target"), GetInt(query, "cursor", 1) != 0, GetInt(query, "wait", 1) != 0);
 
                 case "/say":
                     RequireMethod(method, "POST");
@@ -1660,6 +1666,7 @@ namespace ClassicUO.Game.Managers
         private byte[] Use(uint serial, uint target)
         {
             Rules rules = RequireRules();
+            CheckNoPendingAim();
             long before = 0;
             bool targeting = false;
 
@@ -2170,7 +2177,7 @@ namespace ClassicUO.Game.Managers
         }
 
         // casts a spell the rules allow (Recall is 32) on something the character carries (a rune)
-        private byte[] Cast(int spell, uint target)
+        private byte[] Cast(int spell, uint target, bool cursor = true, bool wait = true)
         {
             Rules rules = RequireRules();
 
@@ -2181,7 +2188,7 @@ namespace ClassicUO.Game.Managers
 
             if (SerialHelper.IsMobile(target))
             {
-                return CastAt(spell, target, rules);
+                return CastAt(spell, target, rules, cursor, wait);
             }
 
             WaitForActionSlot();
@@ -2276,7 +2283,12 @@ namespace ClassicUO.Game.Managers
         // a spell at a creature (a bolt) or at the character himself (a heal), in a fight: casts, aims the moment the
         // cursor shows and comes back; the spell lands (or fizzles) a moment later. Never halts: whatever the server
         // says is in the answer's messages ("More reagents are needed for this spell.", "Target is not in line of sight.")
-        private byte[] CastAt(int spell, uint target, Rules rules)
+        // cursor false: a spell that brings no target cursor (Magic Reflection on himself, target = the character):
+        // answered as soon as he has said the words or the server has said something, instead of waiting out
+        // CAST_TIMEOUT for a cursor that never comes (the spell takes about half a second; the user, 2026-11-06).
+        // wait false: answered as soon as the spell is sent; its cursor is aimed from Update when it comes (AimPending)
+        // and the outcome is left to the messages, so the agent goes on moving and looking meanwhile
+        private byte[] CastAt(int spell, uint target, Rules rules, bool cursor = true, bool wait = true)
         {
             OnGame(() => CheckFightTarget(target, rules));
             WaitForActionSlot();
@@ -2294,16 +2306,53 @@ namespace ClassicUO.Game.Managers
 
                     LogAction($"cast spell {spell}", target);
                     long id = _lastMessageId;
+                    _aimTarget = 0;
                     GameActions.CastSpell(spell);
+
+                    if (!wait && cursor)
+                    {
+                        _aimTarget = target;
+                        _aimUntil = DateTime.UtcNow.AddMilliseconds(CAST_TIMEOUT);
+                    }
 
                     return id;
                 }
             );
 
-            WaitFor(() => _world.TargetManager.IsTargeting || HasSystemMessageAfter(before), CAST_TIMEOUT);
+            if (!wait)
+            {
+                PaceFromNow();
+
+                return OnGame
+                (
+                    () => Json
+                    (
+                        w =>
+                        {
+                            w.WriteStartObject();
+                            w.WriteBoolean("cast", true);
+                            w.WriteNumber("messageId", before);
+                            w.WriteNumber("hits", _world.Player.Hits);
+                            w.WriteNumber("mana", _world.Player.Mana);
+                            w.WriteEndObject();
+                        }
+                    )
+                );
+            }
+
+            if (!cursor)
+            {
+                WaitFor(() => HasSystemMessageAfter(before) || HasMessageFrom(_world.Player.Serial, before), NO_CURSOR_TIMEOUT);
+                Thread.Sleep(SETTLE_TIME);
+            }
+            else
+            {
+                WaitFor(() => _world.TargetManager.IsTargeting || HasSystemMessageAfter(before), CAST_TIMEOUT);
+            }
+
             bool aimed = false;
 
-            if (OnGame(() => _world.TargetManager.IsTargeting))
+            if (cursor && OnGame(() => _world.TargetManager.IsTargeting))
             {
                 Aim(rules);
 
@@ -2359,6 +2408,39 @@ namespace ClassicUO.Game.Managers
                     }
                 )
             );
+        }
+
+        // game thread, from Update: a spell cast with wait=0 has brought its cursor: aim it at the creature (or him).
+        // Given up when the time is out or the user takes over (the cursor may be theirs); a creature that died or
+        // went meanwhile gets the cursor cancelled
+        private void AimPending()
+        {
+            if (_takenOver != null || _userActed != null || DateTime.UtcNow > _aimUntil)
+            {
+                _aimTarget = 0;
+
+                return;
+            }
+
+            if (!_world.TargetManager.IsTargeting)
+            {
+                return;
+            }
+
+            uint target = _aimTarget;
+            _aimTarget = 0;
+            Mobile m = _world.Mobiles.Get(target);
+
+            if (m == null || m.IsDestroyed || m.IsDead && m != _world.Player)
+            {
+                LogAction("cancel target (gone)", target);
+                _world.TargetManager.CancelTarget();
+
+                return;
+            }
+
+            LogAction("target", target);
+            _world.TargetManager.Target(target);
         }
 
         // game thread: a creature the rules let the character aim skills and spells at: one anybody may attack (gray,
@@ -2470,6 +2552,7 @@ namespace ClassicUO.Game.Managers
         private byte[] Say(string text)
         {
             Rules rules = RequireRules();
+            CheckNoPendingAim();
             text = text.Trim();
 
             if (text.Length == 0 || !rules.Say.Contains(text))
@@ -3156,6 +3239,7 @@ namespace ClassicUO.Game.Managers
         private byte[] UseSkill(int skill, uint target = 0, bool keepCursor = false)
         {
             Rules rules = RequireRules();
+            CheckNoPendingAim();
 
             if (!rules.Skills.Contains(skill))
             {
@@ -3715,6 +3799,16 @@ namespace ClassicUO.Game.Managers
             if (next > _nextAction)
             {
                 _nextAction = next;
+            }
+        }
+
+        // on the listener thread: an action that can bring a cursor of its own (a skill, a key, "remove thyself") waits
+        // until a spell cast with wait=0 has had its cursor aimed, or the two cursors would get mixed up (409: try again)
+        private void CheckNoPendingAim()
+        {
+            if (OnGame(() => _aimTarget != 0 && DateTime.UtcNow <= _aimUntil))
+            {
+                throw new BridgeException(409, "a spell's target cursor is still to come");
             }
         }
 

@@ -65,15 +65,23 @@ LOOK_AROUND = 3                   # seconds at each lookout point
 TAMBOURINE = 0x0E9D
 POUCH = 0x0E79
 PROVOKE, MEDITATE = 22, 46
-HEAL, CURE, FIREBALL, GREATER_HEAL, LIGHTNING, ENERGY_BOLT = 4, 11, 18, 29, 30, 42
-MANA = {HEAL: 4, CURE: 6, FIREBALL: 9, GREATER_HEAL: 11, LIGHTNING: 11, ENERGY_BOLT: 20}
+HEAL, CURE, FIREBALL, GREATER_HEAL, LIGHTNING, MAGIC_REFLECTION, ENERGY_BOLT = 4, 11, 18, 29, 30, 36, 42
+MANA = {HEAL: 4, CURE: 6, FIREBALL: 9, GREATER_HEAL: 11, LIGHTNING: 11, MAGIC_REFLECTION: 14, ENERGY_BOLT: 20}
 NAMES = {HEAL: 'Heal', CURE: 'Cure', FIREBALL: 'Fireball', GREATER_HEAL: 'Greater Heal', LIGHTNING: 'Lightning',
-         ENERGY_BOLT: 'Energy Bolt'}
+         MAGIC_REFLECTION: 'Magic Reflection', ENERGY_BOLT: 'Energy Bolt'}
 REAGENT_BAG = '0x40677564'  # Razor's restock and scavenger hot bag in his pack
 BLACK_PEARL, BLOOD_MOSS, GARLIC, GINSENG, MANDRAKE, NIGHTSHADE, SPIDERS_SILK, SULFUROUS_ASH = (
     0x0F7A, 0x0F7B, 0x0F84, 0x0F85, 0x0F86, 0x0F88, 0x0F8D, 0x0F8C)
 REAGENTS = {HEAL: (GARLIC, GINSENG, SPIDERS_SILK), CURE: (GARLIC, GINSENG), FIREBALL: (BLACK_PEARL,), GREATER_HEAL: (GARLIC, GINSENG, MANDRAKE, SPIDERS_SILK),
-            LIGHTNING: (MANDRAKE, SULFUROUS_ASH), ENERGY_BOLT: (BLACK_PEARL, NIGHTSHADE)}
+            LIGHTNING: (MANDRAKE, SULFUROUS_ASH), ENERGY_BOLT: (BLACK_PEARL, NIGHTSHADE),
+            MAGIC_REFLECTION: (GARLIC, MANDRAKE, SPIDERS_SILK)}
+# a spell's outcome, read from the messages that follow it (bridge 8 casts and goes on; the user, 2026-11-06: "Cast ..
+# then do all the other normal stuff and when a result from the spell shows up result=success/fail")
+SPELL_FAILS = ('fizzles', 'concentration is disturbed', 'too far away', 'cannot be seen', 'line of sight',
+               'insufficient mana', 'more reagents', 'already casting', 'must wait', 'not yet recovered',
+               'will not adhere', 'target is not')
+SPELL_SETTLE = 3.0      # seconds: a spell with no word against it by then went off
+ASYNC = False           # bridge 8 (cuo-agent24): /cast wait=0, the cursor aimed by the bridge when it comes
 LAND_TIME = 1.0         # seconds after the aim for a spell to land: no moving (casting freezes him; a step then
                         # gets "You are frozen and cannot move.", which cut the bridge's wait for the cursor short)
 
@@ -82,6 +90,11 @@ PROVOKE_RANGE = 8       # both creatures within this of him (fight 1: the llama 
 PROVOKE_SPOT = 7        # how close he goes to the creature he'll set the follower on
 ON_HIM = 3              # a free creature this close: run, nothing else
 CLEAR = 10              # free creatures further than this: he may cast or meditate
+CASTER_CLEAR = 15       # a caster after him with nothing to set it on: keep this far (the user, 2026-11-06: "for a
+                        # spellcaster when there's no other enemy to provoke it to, you need to get like 15+ tiles
+                        # away and pull him to someone else quickly")
+CASTER_PULL_FOR = 60    # seconds of that with nobody turning up to set it on: then spells at it, as with any other
+PULL_SPOT = 4           # pulling a caster to another creature: wait this far beyond it, on the far side from the caster
 MEDITATE_FOR = 150      # after a fight, at most this long getting mana back before going home
 BACK_OFF = 9            # after a provoke, and from anything coming: get at least this far away
 FIGHT_GAP = 6           # keep this far from creatures fighting each other (spells need 6 clear: CAST_CLEAR)
@@ -453,6 +466,9 @@ class Fight:
         self.goal_sent = 0.0
         self.arrived_at = None
         self.pending = None      # the last cast, for its damage once it has landed
+        self.spell = None        # the spell on its way: what, at whom, since when, the last message before it
+        self.reflect_up = False  # Magic Reflection on him (the next spell at him bounces); down when a creature casts
+        self.caster_since = {}   # caster serial -> since when it has been after him
         self.mover = Mover()
         self.killing = None      # the one he's killing with spells (no partner to set it on): all the way
         self.looted = set()      # corpses already looted
@@ -478,7 +494,9 @@ class Fight:
         self.walled = set(load_trapped(walled_only=True))
         self.luring = None
         self.lure_since = 0.0
-        self.seen_message = call('GET', '/status')['lastMessageId']
+        st0 = call('GET', '/status')
+        self.seen_message = st0['lastMessageId']
+        self.me_serial = st0.get('serial')
         self.tired = None        # the horse said it's tired: 'very' (a warning) or 'too' (it won't move)
         mounts = call('GET', '/rules').get('mounts', [])
         self.horse = mounts[0] if mounts else None
@@ -550,6 +568,11 @@ class Fight:
     def visible(self, serial):
         return self.unseen.get(serial, 0) < time.time()
 
+    def cast_ready(self, me):
+        """Bridge 8 casts on the move (the user, 2026-11-06: "You cast and keep moving at the same time"); bridge 7
+        only standing still (casting during a step lost the cursor)."""
+        return ASYNC or self.still(me)
+
     def still(self, me):
         """Standing still: the same tile on the last two looks and no ride under way. Casting while a step is under
         way gets "You are frozen and cannot move." and the spell goes astray."""
@@ -569,7 +592,8 @@ class Fight:
             self.pairs = {a: b for a, b in self.pairs.items() if a not in gone and b not in gone}
 
     def skill_ready(self):
-        return time.time() - self.last_skill >= SKILL_COOLDOWN
+        # not with a spell on its way: its cursor and the skill's would get mixed up (bridge 8 refuses then)
+        return time.time() - self.last_skill >= SKILL_COOLDOWN and not self.spell
 
     # ---- provoking ----
 
@@ -684,40 +708,59 @@ class Fight:
                 return m
         return None
 
-    def cast_at(self, m, spell):
+    def cast(self, spell, target, name, kind):
+        """Send a spell. Bridge 8: it answers at once, aims the cursor itself when it comes, and the outcome turns up
+        in the messages (settle_spell), so he goes on moving and looking meanwhile. Bridge 7: it answers once the
+        cursor is aimed (a late cursor is aimed here). Either way self.spell holds it until it's settled. The answer,
+        or None when the bridge refused."""
+        if self.spell:
+            time.sleep(0.1)  # one spell at a time ("You are already casting a spell."): this one settles first
+            return None
         self.meditating = False
-        self.cast_at_time[m['serial']] = time.time()
+        before = self.seen_message
         try:
-            a = call('POST', '/cast', spell=spell, target=m['serial'])  # comes back once it's aimed (about 2 s)
-            if not a.get('aimed'):
-                # the bridge came back on a message before the cursor ("You are frozen and cannot move." when a step
-                # was still under way, 2026-11-06): the cursor still comes; aim it, or the next cast gets "You must
-                # wait for that spell to have an effect."
-                end = time.time() + 2.5
-                while time.time() < end:
-                    if call('GET', '/status').get('targeting'):
-                        try:
-                            aim(m['serial'])
-                            a['aimed'] = 'late'
-                        except uo.BridgeError as e:
-                            say(f'{NAMES[spell]}: the late cursor: {e}')
-                            cancel_cursor()
-                        break
-                    time.sleep(0.1)
-        except uo.BridgeError as e:  # it died or went out of sight meanwhile
-            say(f'{NAMES[spell]} at {m["name"]}: {e}')
-            return
+            if ASYNC:
+                a = call('POST', '/cast', spell=spell, target=target, wait=0,
+                         cursor=0 if spell == MAGIC_REFLECTION else None)
+                before = a.get('messageId', before)
+            else:
+                a = call('POST', '/cast', spell=spell, target=target)  # comes back once it's aimed (about 2 s)
+                if not a.get('aimed') and spell != MAGIC_REFLECTION:
+                    # the bridge came back on a message before the cursor ("You are frozen and cannot move." when a
+                    # step was still under way, 2026-11-06): the cursor still comes; aim it, or the next cast gets
+                    # "You must wait for that spell to have an effect."
+                    end = time.time() + 2.5
+                    while time.time() < end:
+                        if call('GET', '/status').get('targeting'):
+                            try:
+                                aim(target)
+                                a['aimed'] = 'late'
+                            except uo.BridgeError as e:
+                                say(f'{NAMES[spell]}: the late cursor: {e}')
+                                cancel_cursor()
+                            break
+                        time.sleep(0.1)
+        except uo.BridgeError as e:  # it died or went out of sight meanwhile, or the bridge said not now
+            say(f'{NAMES[spell]} at {name}: {e}')
+            return None
         finally:
-            self.cast_until = time.time() + LAND_TIME
-        if said(a, 'cannot be seen', 'line of sight'):
-            self.unseen[m['serial']] = time.time() + UNSEEN_FOR
-        if said(a, 'too far away'):
-            # the user: "get closer to cast if it says 'that is too far away'": ride to CAST_SPOT from it first
-            self.too_far[m['serial']] = time.time()
+            if not ASYNC:
+                self.cast_until = time.time() + LAND_TIME
+        self.spell = {'spell': spell, 'target': target, 'name': name, 'kind': kind, 'at': time.time(),
+                      'before': before}
+        return a
+
+    def cast_at(self, m, spell):
+        self.cast_at_time[m['serial']] = time.time()
+        a = self.cast(spell, m['serial'], m['name'], 'attack')
+        if a is None:
+            return
+        if self.spell:
+            self.spell['hits'] = m.get('hits')
         self.pending = {'spell': NAMES[spell], 'serial': m['serial'], 'name': m['name'], 'before': m.get('hits'),
                         'max': m.get('hitsMax'), 'at': time.time(), 'aimed': a.get('aimed'), 'text': texts(a),
                         'mana': a.get('mana')}
-        say(f'{NAMES[spell]} at {m["name"]} ({health(m)}), mana {a.get("mana")}: {texts(a) or "-"}')
+        say(f'{NAMES[spell]} at {m["name"]} ({health(m)}), mana {a.get("mana")}' + (f': {texts(a)}' if texts(a) else ''))
 
     def note_damage(self, mobs):
         p = self.pending
@@ -728,15 +771,69 @@ class Fight:
             self.pending = None
 
     def heal_self(self, st, spell):
-        self.meditating = False
-        try:
-            a = call('POST', '/cast', spell=spell, target=st['serial'])
-        except uo.BridgeError as e:
-            say(f'{NAMES[spell]} on himself: {e}')
+        a = self.cast(spell, st['serial'], 'himself', 'heal')
+        if a is not None:
+            say(f'{NAMES[spell]} on himself ({st["hits"]}/{st["hitsMax"]})' + (f': {texts(a)}' if texts(a) else ''))
+
+    def settle_spell(self, mobs, new):
+        """The spell on its way, settled from what followed it (the user: "when a result from the spell shows up
+        result=success/fail"): a word against it (fizzled, too far, can't be seen, concentration disturbed ...) is a
+        fail; "already in effect" (Magic Reflection), a heal's "points of damage have been healed", or the target's
+        health falling is a success; nothing against it within SPELL_SETTLE, a success too."""
+        p = self.spell
+        if not p:
             return
-        finally:
-            self.cast_until = time.time() + LAND_TIME
-        say(f'{NAMES[spell]} on himself ({st["hits"]}/{st["hitsMax"]}): {texts(a) or "-"}')
+        result = why = None
+        for m in new:
+            if m['id'] <= p['before']:
+                continue
+            low = m['text'].lower()
+            if 'already in effect' in low or 'have been healed' in low:
+                result, why = 'success', m['text']
+                break
+            fail = next((f for f in SPELL_FAILS if f in low), None)
+            if fail:
+                result, why = 'fail', m['text']
+                break
+        if result is None and p['kind'] == 'attack':
+            t = mobs.get(p['target'])
+            if t is None or not attackable(t):
+                result, why = 'success', 'it is dead or gone'
+            elif p.get('hits') is not None and t.get('hits') is not None and t['hits'] < p['hits']:
+                result, why = 'success', f'{p["hits"]} -> {t["hits"]}/{t.get("hitsMax")}'
+        if result is None and time.time() - p['at'] >= SPELL_SETTLE:
+            result, why = 'success', 'nothing against it'
+        if result is None:
+            return
+        low = why.lower()
+        if 'cannot be seen' in low or 'line of sight' in low:
+            self.unseen[p['target']] = time.time() + UNSEEN_FOR
+        if 'too far away' in low:
+            # the user: "get closer to cast if it says 'that is too far away'": ride to CAST_SPOT from it first
+            self.too_far[p['target']] = time.time()
+        if p['spell'] == MAGIC_REFLECTION and result == 'success':
+            self.reflect_up = True
+        say(f'{NAMES[p["spell"]]} at {p["name"]}: result={result} ({why}, {time.time() - p["at"]:.1f} s)')
+        self.spell = None
+
+    def keep_reflect(self, st, mobs, dany):
+        """Magic Reflection whenever a caster is about and it isn't up (the user, 2026-11-06: "use reflect before you
+        go out the door, reflect will help with the first spell it casts at you, reapply reflect as much as you have
+        time to"). Never fizzles (the user). Bridge 7 holds every request for up to 6 s on it (no cursor ever comes),
+        so there only with nothing within CASTER_CLEAR. Like any spell, never with a creature within FIGHT_GAP (the
+        user: closer than 6 is not the time for any spell). True when cast."""
+        if self.reflect_up or self.spell or dany < FIGHT_GAP:
+            return False
+        if not any(attackable(m) and kind(m) in CASTERS for m in mobs.values()):
+            return False
+        if st['mana'] < MANA[MAGIC_REFLECTION] + MANA[GREATER_HEAL] or not self.can_cast(MAGIC_REFLECTION, st['mana']):
+            return False
+        if not ASYNC and dany < CASTER_CLEAR:
+            return False
+        a = self.cast(MAGIC_REFLECTION, st['serial'], 'himself', 'reflect')
+        if a is not None:
+            say(f'Magic Reflection (mana {st["mana"]})' + (f': {texts(a)}' if texts(a) else ''))
+        return a is not None
 
     # ---- the loop ----
 
@@ -771,9 +868,10 @@ class Fight:
         hp = st['hits'] / max(st['hitsMax'], 1)
         self.remember(me, mobs)
         self.note_damage(mobs)
+        new = self.read_messages()
+        self.settle_spell(mobs, new)
+        # bridge 7: frozen while the spell goes off (it came back once aimed); bridge 8 goes on moving and looking
         casting = time.time() < self.cast_until
-
-        self.read_messages()
         if self.tired and not casting:
             return self.rest_horse(me, mobs, st)
 
@@ -826,11 +924,21 @@ class Fight:
             if self.can_cast(GREATER_HEAL, st['mana']):
                 self.heal_self(st, GREATER_HEAL)
                 return False
-        elif hp < SCRATCHED and self.can_cast(HEAL, st['mana']) and self.still(me):
+        elif hp < SCRATCHED and self.can_cast(HEAL, st['mana']) and self.cast_ready(me):
             self.heal_self(st, HEAL)
             return False
         if st.get('poisoned') and dany >= HEAL_CLEAR and self.can_cast(CURE, st['mana']):
             self.heal_self(st, CURE)
+            return False
+
+        # Magic Reflection up while a caster is about, unless a provoke can go off right now (that first: it gets the
+        # caster "off of him", the user)
+        provoke_now = False
+        if coming:
+            a0 = sorted(coming, key=lambda m: (kind(m) not in CASTERS, dist(me, xy(m))))[0]
+            provoke_now = (dist(me, xy(a0)) <= PROVOKE_RANGE and self.skill_ready()
+                           and self.partner_for(me, a0, mobs, PROVOKE_RANGE, pair=PAIR_RANGE) is not None)
+        if not provoke_now and self.keep_reflect(st, mobs, min(dfree, dbusy)):
             return False
 
         # coming at him (turned Criminal): casters first. Provoke it onto something as soon as both are in range;
@@ -856,7 +964,7 @@ class Fight:
                     if dist(me, xy(k)) > SPELL_RANGE or time.time() - self.too_far.get(k['serial'], 0) < 5:
                         if self.closer(me, k, threats):
                             return False
-                    if self.mover.going(me) or not self.still(me):
+                    if not ASYNC and (self.mover.going(me) or not self.still(me)):
                         time.sleep(0.1)  # the hop first: no casting on the move
                         return False
                     self.cast_at(k, spell)
@@ -880,6 +988,8 @@ class Fight:
                 # a getaway is ridden to the end (switching between getting away and leading was the wiggle)
                 self.flee(me, [xy(m) for m in threats])
                 return False
+            if kind(a) in CASTERS and self.caster_moves(me, a, mobs, threats):
+                return False
             # bringing it round to a partner only once it's close and following him; one that turned on him from
             # far off is met standing still (the user, 2026-11-06: circling when nothing is attacking him only tires
             # the horse)
@@ -902,7 +1012,7 @@ class Fight:
             if usable and (a['serial'], usable['serial']) in self.gave_up:
                 usable = None
             if spell and not usable:
-                if dfree >= LONE_CLEAR and self.still(me):
+                if dfree >= LONE_CLEAR and self.cast_ready(me):
                     self.mover.clear()
                     self.killing = a['serial']
                     self.fought = True
@@ -939,8 +1049,8 @@ class Fight:
                     if self.closer(me, m, threats):
                         return False
                 if spell and not (self.meditating and st['mana'] < 60 and m and kind(m) not in CASTERS):
-                    if not self.still(me):
-                        time.sleep(0.15)  # let the ride finish first: no casting on the move
+                    if not self.cast_ready(me):
+                        time.sleep(0.15)  # bridge 7: let the ride finish first, no casting on the move
                         return False
                     self.cast_at(m, spell)
                     return False
@@ -1050,6 +1160,54 @@ class Fight:
         for _, _, _, p in spots[:8]:
             if m.go(me, p, 'flee', force=True, urgent=any(dist(me, t) <= ON_HIM for t in threats)):
                 return
+
+    def caster_moves(self, me, a, mobs, threats):
+        """A caster after him that can't be set on anything right now (the user, 2026-11-06: "for a spellcaster when
+        there's no other enemy to provoke it to, you need to get like 15+ tiles away and pull him to someone else
+        quickly ... stay far away from it and pull it toward some other animal or monster and provoke it soon to get it
+        'off of you'"). With something in sight to set it on: one ride to the far side of that creature from the
+        caster (PULL_SPOT tiles from it), then stand and let the caster come; the provoke (checked first every tick)
+        goes off once both are in range. Nothing to set it on, or no clear way there: CASTER_CLEAR tiles from it.
+        After CASTER_PULL_FOR seconds with nobody to set it on, False: spells at it, as at any other. True when this
+        has dealt with the moment."""
+        since = self.caster_since.setdefault(a['serial'], time.time())
+        if time.time() - since > CASTER_PULL_FOR:
+            return False
+        d = dist(me, xy(a))
+        p = self.partner_for(me, a, mobs, 18)
+        if p and (a['serial'], p['serial']) in self.gave_up:
+            p = None
+        if d < KEEP_CASTER:
+            # too close for anything but getting away (toward the creature to set it on, if any): a pull ride from
+            # here went past it (fight_sim)
+            self.flee(me, [xy(m) for m in threats], radii=(12, 10, 8), toward=xy(p) if p else None)
+            return True
+        if p:
+            px, py = xy(p)
+            ax, ay = xy(a)
+            n = max(dist((px, py), (ax, ay)), 1)
+            spot = clamp_area((round(px + (px - ax) * PULL_SPOT / n), round(py + (py - ay) * PULL_SPOT / n)))
+            why = 'pull to ' + p['serial']
+            if dist(me, spot) > 2:
+                if self.mover.why == why and self.mover.going(me):
+                    time.sleep(0.15)
+                    return True
+                others = [xy(t) for t in threats if t['serial'] != p['serial']] + [xy(p)]
+                if (path_clear(me, spot, [xy(a)], KEEP_CASTER) and path_clear(me, spot, others, SPACE)
+                        and self.mover.go(me, spot, why)):
+                    say(f'pulling {a["name"]} ({d} tiles) to {p["name"]} at {px},{py}')
+                    return True
+            else:
+                time.sleep(0.15)  # there: let it come into provoke range
+                return True
+        if d < CASTER_CLEAR - 2:
+            # one long ride to well past 15 (getting away only once it's under 13: hops of a tile or two to stay at
+            # exactly 15 were a wiggle in fight_sim)
+            self.flee(me, [xy(m) for m in threats], radii=(14, 12, 10), need=CASTER_CLEAR + 2,
+                      toward=xy(p) if p else None)
+            return True
+        time.sleep(0.15)
+        return True
 
     def circle(self, me, a, b, threats):
         """Bring follower a near b without going near either (the user, 2026-11-06): ride to about ORBIT tiles from b,
@@ -1182,12 +1340,16 @@ class Fight:
         return False
 
     def read_messages(self):
-        """The server's word since the last look: the horse tiring."""
+        """The server's word since the last look: the horse tiring, meditation ending, a creature casting (its spell
+        may have used his Magic Reflection up: cast again when there's time). Returns the new messages."""
         new = call('GET', '/messages', after=self.seen_message)['messages']
         if new:
             self.seen_message = max(m['id'] for m in new)
         for m in new:
             low = m['text'].lower()
+            if m.get('type') == 'Spell' and m.get('serial') and m.get('serial') != self.me_serial and self.reflect_up:
+                self.reflect_up = False
+                say(f'{m.get("from") or m.get("serial")} cast ({m["text"]!r}): Magic Reflection may be used up')
             if 'stop meditating' in low:
                 self.meditating = False  # a step or a spell ends the trance
             if 'too fatigued' in low:
@@ -1196,6 +1358,7 @@ class Fight:
                 self.tired = 'very'
             if 'fatigued' in low:
                 say(f'the horse: {m["text"]!r}')
+        return new
 
     def rest_horse(self, me, mobs, st):
         """The user's trick for a tired horse (MINING.md): get away from every creature first while the horse can
@@ -1326,7 +1489,7 @@ def on_term(signum, frame):
 
 
 def main():
-    global info
+    global info, ASYNC
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--minutes', type=float, default=10, help='then home')
     parser.add_argument('--route', choices=sorted(ROUTES), help='where to look (default: one at random)')
@@ -1339,6 +1502,7 @@ def main():
     st = call('GET', '/status')
     if st.get('bridge', 0) < 7:
         sys.exit('needs bridge 7 (cuo-agent23)')
+    ASYNC = st['bridge'] >= 8  # cast and go on (cuo-agent24)
     stopped = st.get('takenOver') or st.get('halted')
     if stopped and not args.resume:
         sys.exit(f'the user has him ({stopped}); --resume only once they hand him back')
