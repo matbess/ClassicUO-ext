@@ -214,6 +214,11 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **17:05** (east route): an ettin north of the front line; the spot to draw it from fell on his own tile and he
+  "rode" there over and over (fixed: then he's there and waits); it came at him, nothing to set it on, so spells all
+  the way: Energy Bolt x4 and Lightning at 2/25, every spell from 8 tiles, getaways in between: dead, no damage taken.
+  Looting failed: the bridge's /open refuses a corpse ("only containers can be opened"); his client opens corpses
+  within 2 tiles by itself, so fight.py now just waits for the contents next to it. Home and in, locked.
 - **16:57**: the first full round on his own: reagents, out, a mongbat at the door nipped him (97) and he got away,
   provoked it onto the dire wolf, circled a timber wolf and provoked the dire wolf onto it, bolted the dire wolf dead
   (24 -> 14 -> 6 -> dead), home, in, locked. But he bolted the mongbat first (losing to the wolf: the wrong one), rode

@@ -920,10 +920,11 @@ class Fight:
             near_enough = DRAW_CASTER if kind(target) in CASTERS else LURE
             d = dist(me, xy(target))
             if self.lure_since is None:
-                if d > near_enough + 1:
-                    f = (d - near_enough) / d
-                    spot = clamp_area((round(me[0] + (target['x'] - me[0]) * f),
-                                       round(me[1] + (target['y'] - me[1]) * f)))
+                f = (d - near_enough) / d if d > near_enough + 1 else 0
+                spot = clamp_area((round(me[0] + (target['x'] - me[0]) * f), round(me[1] + (target['y'] - me[1]) * f)))
+                # as close as his area lets him (an ettin north of the front line: the spot came back onto his own
+                # tile and he "rode" there over and over, 2026-11-06 17:05): then he's there
+                if d > near_enough + 1 and dist(spot, me) > 1:
                     if not self.mover.go(me, spot, 'draw ' + target['serial']):
                         say(f'no way toward {target["name"]}; leaving it be')
                         self.ignored.add(target['serial'])
@@ -1042,12 +1043,19 @@ class Fight:
                     say(f'could not get to the corpse at {c["x"]},{c["y"]}')
                     return True
             pack = st['backpack']['serial']
-            try:
-                call('POST', '/open', serial=c['serial'])
-                items = call('GET', '/contents', serial=c['serial'], depth=1)['items']
-            except uo.BridgeError as e:
-                say(f'corpse {c["serial"]}: {e}')
-                return True
+            # the bridge's /open takes containers only and a corpse isn't one to it ("only containers can be opened");
+            # his client opens a corpse within 2 tiles by itself (auto_open_corpses), so next to it, wait for that
+            items = []
+            end = time.time() + 3
+            while time.time() < end:
+                try:
+                    items = call('GET', '/contents', serial=c['serial'], depth=1)['items']
+                except uo.BridgeError as e:
+                    say(f'corpse {c["serial"]}: {e}')
+                    return True
+                if items:
+                    break
+                time.sleep(0.3)
             took = []
             for i in items:
                 try:
