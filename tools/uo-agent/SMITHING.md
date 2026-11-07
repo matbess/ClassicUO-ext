@@ -196,8 +196,10 @@ Tinkering are set to rise, the rest to fall.
   turn it logs "trial: spear -> plate gloves; so far spear: +0.2 in 1.00 h (0.20 an hour) ...". Gains come 0.1 at
   a time and slowly at 99, so it takes several turns before the two can be told apart; if they're about the same,
   spears (the user).
-- Where plate gloves are: under Armor, the kind not known yet; the menus are searched (each kind in turn) and the
-  name matched loosely, so "platemail gloves" counts.
+- Where plate gloves are (found 2026-11-07 10:42): **Armor → Platemail → "platemail gloves: 12 Ingots"** (index
+  2; the kinds are Ringmail, Chainmail, Platemail, Helmets; Platemail also has arms 18, gorget 10, legs 20, tunic 25,
+  female 20). The item is called "platemail gloves"; names match loosely, so "plate gloves" finds it.
+- Started 2026-11-07 10:42 at 99.0, plate gloves first (seeded in the state's `trial`), turns of 60 minutes.
 
 ## Questions still open
 

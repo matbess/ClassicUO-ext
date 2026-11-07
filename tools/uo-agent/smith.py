@@ -64,7 +64,7 @@ ITEMS = [
     (88.0, 'short spear', ('Weapons', 'Polearms')),
     (100.0, 'spear', ('Weapons', 'Polearms')),
 ]
-OTHER_PLACES = {'plate gloves': ('Armor', None)}  # for the trial at 99; the second menu is found by looking
+OTHER_PLACES = {'plate gloves': ('Armor', 'Platemail')}  # "platemail gloves: 12 Ingots" (found 2026-11-07)
 
 PACK_INGOTS = 150       # the working stack in his pack, topped up from the bag
 PACK_LOW = 40
