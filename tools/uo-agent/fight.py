@@ -88,6 +88,7 @@ LOOT_CLEAR = 6          # no looting with any creature this close to the corpse 
 LOOT_RANGE = 10         # after a fight: corpses this close that fell during it get looted
 SPELL_RANGE = 10        # a spell from further: "That is too far away." (Energy Bolt at 11 tiles, 2026-11-06 16:31)
 CAST_SPOT = 8           # out of spell range (or "That is too far away."): ride to this far from it first
+LONE_CLEAR = 8          # a creature not busy with another: no spell at it closer than this (8-10, the user)
 CAST_CLEAR = 6          # no spell starts with any free creature closer than this (it would close in and hit him)
 LONE_CAST = 4           # a lone one coming at him (nothing to set it on): cast at it from this far
 PAIR_RANGE = 9          # the two to provoke onto each other: at most this far apart (the server's limit isn't known;
@@ -756,7 +757,7 @@ class Fight:
         if dfree <= ON_HIM or dany_creature <= ON_HIM - 1:
             threats = threats + [m for m in biters if dist(me, xy(m)) <= ON_HIM and m not in threats]
             self.meditating = False
-            self.flee(me, [xy(m) for m in threats])
+            self.flee(me, [xy(m) for m in threats], radii=(10, 8))
             return False
 
         # hurt: ride 10 tiles away from every creature, fighting or not, then heal (the user, 2026-11-06: "If you need
@@ -792,8 +793,10 @@ class Fight:
                 if spell:
                     # never a spell with anything close: it closes in during the words, hits him and ruins it (the
                     # user, 2026-11-06); a full getaway first, then the spell
-                    if dfree < CAST_CLEAR:
-                        self.flee(me, [xy(m) for m in threats])
+                    # one that isn't busy with another keeps coming during the words: 8-10 tiles first (the user,
+                    # 2026-11-06: the ettin got a bit close while he was casting)
+                    if dfree < LONE_CLEAR:
+                        self.flee(me, [xy(m) for m in threats], radii=(12, 10), need=LONE_CLEAR + 2)
                         return False
                     if dist(me, xy(k)) > SPELL_RANGE or time.time() - self.too_far.get(k['serial'], 0) < 5:
                         if self.closer(me, k, threats):
@@ -843,13 +846,18 @@ class Fight:
             usable = self.partner_for(me, a, mobs, 18)
             if usable and (a['serial'], usable['serial']) in self.gave_up:
                 usable = None
-            if (spell and not usable and dfree >= CAST_CLEAR and self.still(me)):
-                self.mover.clear()
-                self.killing = a['serial']
-                self.fought = True
-                say(f'killing {a["name"]} with spells, all the way')
-                self.cast_at(a, spell)
-                return False
+            if spell and not usable:
+                if dfree >= LONE_CLEAR and self.still(me):
+                    self.mover.clear()
+                    self.killing = a['serial']
+                    self.fought = True
+                    say(f'killing {a["name"]} with spells, all the way')
+                    self.cast_at(a, spell)
+                    return False
+                if dfree < LONE_CLEAR:
+                    # room to cast first: away to 10 (standing while it closed back in left him never 8 clear)
+                    self.flee(me, [xy(m) for m in threats], radii=(12, 10), need=LONE_CLEAR + 2)
+                    return False
             time.sleep(0.15)
             return False
 

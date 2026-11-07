@@ -58,6 +58,10 @@ fight. Nothing goes to town until fighting works.
 - **Spells while they're busy** (the user's thresholds of the target's health): Energy Bolt while it has plenty;
   Lightning below 15%; Fireball below 5%. Energy Bolt costs much more mana but does much more damage. Watch how much
   each takes off (fights.jsonl records it).
+- **Casting at one that isn't busy with another creature: from 8-10 tiles** (the user, 2026-11-06: the ettin got a
+  bit close while he was casting). It keeps coming during the words (an ettin closed about 3 tiles a second), so he
+  gets away to 10 first and starts the spell with it at 8 or more. At creatures provoked onto each other, 6 is
+  enough.
 - **Fighting one with spells** (when there's nothing to provoke it onto): don't go half way (the user,
   2026-11-06: "just try to kill it all the way quickly"). fight.py: the next spell as soon as the last has landed,
   until it's dead; between spells only a short hop when it's right on him. (Before, he got away and waited for it to
