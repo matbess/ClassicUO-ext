@@ -135,10 +135,16 @@ the door (dire wolf, water elemental, troll, skeleton, headless one, mongbat), a
   -> creature -> "'You play your music, inciting anger, and it begins to look furious. Whom do you wish it to
   attack?" -> creature -> "Your music succeeds, as you start a fight." + "*looks furious*" + "You see X attacking Y!".
   Targeting a creature at the instrument prompt: "That is too far away." Out of sight: "Target cannot be seen."
+  **The two must be close to each other**: "The creatures you are trying to provoke are too far away from each other
+  for your music to have an effect." (an orc 15 tiles from a panther, 2026-11-06). So he leads the follower right
+  past the other one first (the user: "You have to lead 2 creatures to be close enough together to provoke them")."
 - **Skills share one cooldown of about 10 s** ("You must wait a few moments to use another skill." at 7.7-9.8 s,
   fine at 10.8 s), Meditation included.
 - Casting: Energy Bolt's cursor 1.7 s after the words, Fireball's 0.8 s. **Casting freezes him**: a step then gets
-  "You are frozen and cannot move." Mana: Energy Bolt 20, Paralyze 14, Fireball 9, Heal 4; about 1 a second back,
+  "You are frozen and cannot move." That includes the rest of a ride still under way when the words are said: the
+  bridge's /cast then comes back on that message before the cursor, the cursor goes unanswered and the next cast
+  gets "You must wait for that spell to have an effect." (2026-11-06 16:13). So: only cast standing still. Hit while
+  casting: "Your concentration is disturbed, thus ruining thy spell." Mana: Energy Bolt 20, Paralyze 14, Fireball 9, Heal 4; about 1 a second back,
   2 a second meditating ("You enter a meditative trance." ... "You are at peace.").
 - Reagents are in bag 0x40677564 (Razor's restock and scavenger hot bag). After a login the client knows nothing in
   bags: open it once; after that the counts stay current while it's closed (checked). Black pearls run out first
@@ -156,6 +162,10 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **16:13**: drew an orc (Ulmragha) from 5 tiles, standing still: it turned Criminal and came, good. The provoke onto
+  a panther 15 tiles from it failed ("too far away from each other"), the word "far" dropped the panther as a partner,
+  so he cast at the orc on the move (ruined, frozen, a lost cursor); the user took over at 84 health. -> pairs within
+  7 of each other, lead the follower past the partner, cast only standing still, a late cursor still aimed.
 - **16:06**: drew a gargoyle (it turned Criminal from far off), tried to set it on the ogre shut in the castle
   ("Target cannot be seen."), then wiggled between leading toward the ogre and keeping away from the gargoyle; the
   user said stop, Claude stopped the script and sent him toward the tower, the gargoyle caught him (down to 46)
