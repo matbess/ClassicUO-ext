@@ -185,6 +185,9 @@ Tinkering are set to rise, the rest to fall.
   4. Start the loop and the Monitor again, and tell the user.
   2026-11-06: back at 04:19:19, rolled back to about 04:00:30 (76.2 -> 75.8; hammer 0x40860DDD, broken at 04:06:35,
   back in his pack; 133 ingots returned), the loop running again at 04:20:15.
+  2026-11-07: stopped 04:15:17, back at 04:19:03, rolled back to about 04:00 (Blacksmithy 96.1 kept; hammer
+  0x4094AC9F, broken at 04:07:18, back in his pack; no save notice survives the relog, so the save point came from
+  the ingots: bag and pack matched the top-up at 03:56, and 20 of the 150 were gone), running again at 04:20:14.
 
 ## Questions still open
 
