@@ -55,6 +55,11 @@ CURE, FIREBALL, GREATER_HEAL, LIGHTNING, ENERGY_BOLT = 11, 18, 29, 30, 42
 MANA = {CURE: 6, FIREBALL: 9, GREATER_HEAL: 11, LIGHTNING: 11, ENERGY_BOLT: 20}
 NAMES = {CURE: 'Cure', FIREBALL: 'Fireball', GREATER_HEAL: 'Greater Heal', LIGHTNING: 'Lightning',
          ENERGY_BOLT: 'Energy Bolt'}
+REAGENT_BAG = '0x40677564'  # Razor's restock and scavenger hot bag in his pack
+BLACK_PEARL, BLOOD_MOSS, GARLIC, GINSENG, MANDRAKE, NIGHTSHADE, SPIDERS_SILK, SULFUROUS_ASH = (
+    0x0F7A, 0x0F7B, 0x0F84, 0x0F85, 0x0F86, 0x0F88, 0x0F8D, 0x0F8C)
+REAGENTS = {CURE: (GARLIC, GINSENG), FIREBALL: (BLACK_PEARL,), GREATER_HEAL: (GARLIC, GINSENG, MANDRAKE, SPIDERS_SILK),
+            LIGHTNING: (MANDRAKE, SULFUROUS_ASH), ENERGY_BOLT: (BLACK_PEARL, NIGHTSHADE)}
 LAND_TIME = 1.0         # seconds after the aim for a spell to land: no moving (casting freezes him; a step then
                         # gets "You are frozen and cannot move.", which cut the bridge's wait for the cursor short)
 
@@ -66,7 +71,8 @@ CLEAR = 10              # free creatures further than this: he may cast or medit
 BACK_OFF = 9            # after a provoke, and from anything coming: get at least this far away
 FIGHT_GAP = 8           # keep this far from creatures fighting each other
 KEEP = 3                # one coming at him: get away once it's closer than this (the user: stay about 3 tiles away)
-LONE_CAST = 10           # a lone one coming at him (nothing to set it on): cast at it from this far
+CAST_SPOT = 10          # creatures fighting each other out of spell range (12): ride to this far from them
+LONE_CAST = 4           # a lone one coming at him (nothing to set it on): cast at it from this far
 PAIR_RANGE = 9          # the two to provoke onto each other: at most this far apart (the server's limit isn't known;
                         # each "too far away from each other" is logged with the distance, to tune)
 ORBIT = 5               # bringing a follower near another creature: circle the other one this far off (the user)
@@ -330,6 +336,9 @@ class Fight:
         self.arrived_at = None
         self.pending = None      # the last cast, for its damage once it has landed
         self.mover = Mover()
+        self.killing = None      # the one he's killing with spells (no partner to set it on): all the way
+        self.reagents_at = 0.0
+        self.reagent_counts = collections.Counter()
         self.orbit_dir = {}      # (follower, partner): which way round he circles the partner (kept: never back)
         self.orbit_since = {}    # (follower, partner): when he started circling
         self.gave_up = set()     # (follower, partner): circled ORBIT_FOR without getting them close
@@ -371,10 +380,10 @@ class Fight:
         return self.unseen.get(serial, 0) < time.time()
 
     def still(self, me):
-        """Standing still: the same tile on the last three looks and no ride under way. Casting while a step is under
+        """Standing still: the same tile on the last two looks and no ride under way. Casting while a step is under
         way gets "You are frozen and cannot move." and the spell goes astray."""
-        h = self.positions[-3:]
-        return len(h) == 3 and all(p == me for p in h) and not self.mover.going(me)
+        h = self.positions[-2:]
+        return len(h) == 2 and all(p == me for p in h) and not self.mover.going(me)
 
     def remember(self, me, mobs):
         self.positions = (getattr(self, 'positions', []) + [me])[-5:]
@@ -452,14 +461,31 @@ class Fight:
 
     # ---- spells ----
 
+    def reagents(self):
+        """What's in his reagent bag, by graphic (read at most every 3 s; the client keeps the counts current)."""
+        if time.time() - self.reagents_at > 3:
+            self.reagents_at = time.time()
+            counts = collections.Counter()
+            try:
+                for i in call('GET', '/contents', serial=REAGENT_BAG, depth=1)['items']:
+                    counts[int(i['graphic'], 16)] += i.get('amount', 1)
+                self.reagent_counts = counts
+            except uo.BridgeError as e:
+                say(f'reagent bag: {e}')
+        return self.reagent_counts
+
+    def can_cast(self, spell, mana):
+        have = self.reagents()
+        return mana >= MANA[spell] and all(have[r] >= 1 for r in REAGENTS[spell])
+
     def spell_for(self, m, mana):
+        """Energy Bolt while it has plenty of health, Lightning when it's low, Fireball when it's very low (the user);
+        another one when that's short of mana or reagents (black pearls run out first)."""
         s = share(m)
         choice = ENERGY_BOLT if s is None or s > LOW else LIGHTNING if s > VERY_LOW else FIREBALL
-        if mana >= MANA[choice]:
-            return choice
-        for cheaper in (LIGHTNING, FIREBALL):
-            if MANA[cheaper] < MANA[choice] and mana >= MANA[cheaper]:
-                return cheaper
+        for spell in (choice, ENERGY_BOLT, LIGHTNING, FIREBALL):
+            if self.can_cast(spell, mana):
+                return spell
         return None
 
     def cast_target(self, me, busy):
@@ -602,10 +628,10 @@ class Fight:
                 self.meditating = False
                 self.flee(me, [xy(m) for m in threats])
                 return False
-            if st['mana'] >= MANA[GREATER_HEAL]:
+            if self.can_cast(GREATER_HEAL, st['mana']):
                 self.heal_self(st, GREATER_HEAL)
                 return False
-        if st.get('poisoned') and dloose > CLEAR and st['mana'] >= MANA[CURE]:
+        if st.get('poisoned') and dloose > CLEAR and self.can_cast(CURE, st['mana']):
             self.heal_self(st, CURE)
             return False
 
@@ -614,6 +640,22 @@ class Fight:
         # otherwise stand still and let it come
         if coming:
             self.luring = None
+            # once he has started on one with spells, he doesn't go half way (the user, 2026-11-06): the next spell
+            # as soon as the last has landed, until it's dead; between spells only a short hop when it's right on him
+            k = mobs.get(self.killing or '')
+            if k and attackable(k):
+                spell = self.spell_for(k, st['mana'])
+                if spell:
+                    if dist(me, xy(k)) <= 2:
+                        self.flee(me, [xy(m) for m in threats], radii=(4, 3))
+                        return False
+                    if self.mover.going(me) or not self.still(me):
+                        time.sleep(0.1)  # the hop first: no casting on the move
+                        return False
+                    self.cast_at(k, spell)
+                    return False
+                say(f'no mana or reagents left for {k["name"]}')
+            self.killing = None
             a = sorted(coming, key=lambda m: (kind(m) not in CASTERS, dist(me, xy(m))))[0]
             # both within PROVOKE_RANGE of him and within PAIR_RANGE of each other ("The creatures you are trying to
             # provoke are too far away from each other for your music to have an effect.": an orc 15 from a panther)
@@ -649,6 +691,8 @@ class Fight:
             if (spell and not usable and dist(me, xy(a)) >= LONE_CAST and self.still(me)
                     and min((dist(me, xy(m)) for m in coming if m is not a), default=99) >= LONE_CAST):
                 self.mover.clear()
+                self.killing = a['serial']
+                say(f'killing {a["name"]} with spells, all the way')
                 self.cast_at(a, spell)
                 return False
             time.sleep(0.15)
@@ -662,6 +706,14 @@ class Fight:
 
         # fights going on and nothing loose near him: spells (casters first), then meditation
         if busy:
+            if dloose > CLEAR and dbusy > 12:
+                # too far off to cast at them: one ride to about CAST_SPOT tiles from the nearest of them
+                n = min(busy, key=lambda b: dist(me, xy(b)))
+                d = dist(me, xy(n))
+                f = (d - CAST_SPOT) / d
+                spot = clamp_area((round(me[0] + (n['x'] - me[0]) * f), round(me[1] + (n['y'] - me[1]) * f)))
+                if path_clear(me, spot, [xy(t) for t in threats], FIGHT_GAP) and self.mover.go(me, spot, 'to cast'):
+                    return False
             if dloose > CLEAR:
                 m = self.cast_target(me, busy)
                 spell = self.spell_for(m, st['mana']) if m else None
@@ -728,7 +780,7 @@ class Fight:
 
         return self.search(me)
 
-    def flee(self, me, threats, toward=None, fresh=False):
+    def flee(self, me, threats, toward=None, fresh=False, radii=(8, 5)):
         """Get away: one spot about 8 tiles off, never nearer anything within 12, leaning toward the tower (or toward
         `toward`, something to set the follower on). The spot is kept until he's there; a new one only when something
         is right on him and the spot doesn't take him away from it (or `fresh`)."""
@@ -746,7 +798,7 @@ class Fight:
                 v -= 1.5 * abs(dist(p, toward) - PROVOKE_SPOT)
             return v
         spots = []
-        for r in (8, 5):
+        for r in radii:
             for i in range(16):
                 a = i * math.pi / 8
                 p = clamp_area((round(me[0] + r * math.cos(a)), round(me[1] + r * math.sin(a))))

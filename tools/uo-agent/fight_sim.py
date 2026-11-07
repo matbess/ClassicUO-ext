@@ -29,6 +29,9 @@ def fake_call(method, ep, **kw):
                     targeting=False)
     if ep == '/nearby':
         return {'mobiles': [{k: v for k, v in m.items() if not k.startswith('_')} for m in world['mobs']]}
+    if ep == '/contents':  # a full reagent bag
+        return {'items': [{'graphic': hex(g), 'amount': 50} for g in (0x0F7A, 0x0F7B, 0x0F84, 0x0F85, 0x0F86, 0x0F88,
+                                                                      0x0F8D, 0x0F8C)]}
     if ep == '/messages':
         return {'messages': []}
     if ep == '/rules':
@@ -81,6 +84,7 @@ def step_world():
 def run(name, me, mobs, ticks=40):
     fight.call = fake_call
     fight.time.sleep = lambda s: None
+    fight.time.time = lambda: 1000000.0 + world['t'] * 0.3  # the made-up world's clock: a moment is 0.3 s
     fight.say = lambda t: log.append(('say', world['t'], t))
     fight.row = lambda **k: None
     fight._last_walk.update(p=None, t=0.0)
@@ -112,3 +116,5 @@ run('a gargoyle (caster) 18 off, a dire wolf off to the side', me,
 
 run('an orc 15 off, a panther 15 off to the side (the two far apart)', me,
     [mob('0xR', 'Ulmragha', 1756, 1445, sees=5), mob('0xP', 'a panther', 1745, 1440, stays=True)], ticks=45)
+
+run('a lone skeleton coming (nothing to set it on)', me, [mob('0xS', 'a skeleton', 1756, 1442, sees=8)], ticks=40)

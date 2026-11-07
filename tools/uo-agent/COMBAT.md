@@ -39,6 +39,10 @@ fight. Nothing goes to town until fighting works.
 - **Spells while they're busy** (the user's thresholds of the target's health): Energy Bolt while it has plenty;
   Lightning below 15%; Fireball below 5%. Energy Bolt costs much more mana but does much more damage. Watch how much
   each takes off (fights.jsonl records it).
+- **Fighting one with spells** (when there's nothing to provoke it onto): don't go half way (the user,
+  2026-11-06: "just try to kill it all the way quickly"). fight.py: the next spell as soon as the last has landed,
+  until it's dead; between spells only a short hop when it's right on him. (Before, he got away and waited for it to
+  be 10 tiles off each time: two bolts 24 s apart at a skeleton.)
 - **Meditate** when mana is low and every creature is busy fighting.
 - **Hurt:** run out of their range, then heal.
 - **Paralysed:** use one of the 3 trapped pouches in his pack (a little damage, frees him); re-trap them after the
@@ -166,6 +170,11 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **16:23**: a skeleton was Criminal by the door as he came out; he got away from it, no wiggling, and bolted it
+  twice standing still (25 -> 12) but 24 s apart, and it reached him in between. Black pearls ran down to 2 (Razor:
+  "Warning: Black Pearl amount is now 3!") and the reagent bag had no sulfurous ash or blood moss left (no Lightning,
+  no Recall). The user took over. -> killing all the way; spells chosen by the reagents he has (REAGENTS; the bag
+  read every 3 s); a fight out of spell range: ride back to 10 tiles to cast.
 - **16:13**: drew an orc (Ulmragha) from 5 tiles, standing still: it turned Criminal and came, good. The provoke onto
   a panther 15 tiles from it failed ("too far away from each other"), the word "far" dropped the panther as a partner,
   so he cast at the orc on the move (ruined, frozen, a lost cursor); the user took over at 84 health. -> pairs within
