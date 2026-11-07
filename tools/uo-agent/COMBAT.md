@@ -156,28 +156,44 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **16:06**: drew a gargoyle (it turned Criminal from far off), tried to set it on the ogre shut in the castle
+  ("Target cannot be seen."), then wiggled between leading toward the ogre and keeping away from the gargoyle; the
+  user said stop, Claude stopped the script and sent him toward the tower, the gargoyle caught him (down to 46)
+  and the user took over. -> the Mover (one spot at a time), casters drawn from 11 and kept off, out-of-sight
+  creatures left out, a lone pursuer cast at from 8 tiles, fight_sim.py.
 - **15:58**: drew the ogre from 12 tiles; it wandered a tile nearer, which counted as "coming", so he tried to lead
   it to a panther 4 tiles from him and wiggled between two tiles. The ogre was shut inside the castle. The user then
   showed how: ride to about 5 tiles and wait for it to target him (a gargoyle there turned Criminal and came). ->
   coming = Criminal; draw from 5 tiles, left be after 15 s; a picked spot is kept (no re-picking every moment).
 
-## fight.py as it stands (2026-11-06)
+## fight.py as it stands (2026-11-06, evening)
+
+**Moving (the user: "Stop wiggling!!"; it tires the horse).** Standing still is the default. He moves only for a
+reason (drawing a creature, getting away from one, getting a partner into provoke range), and then rides straight to
+one spot, picked once and kept until he's there (the Mover); a getaway is ridden to the end. The old way picked the
+best spot afresh several times a second, and as creatures moved the best spot flipped: that was the wiggling, twice.
 
 Each tick (a few a second) it reads his status, every creature within 18 tiles and the new messages, then:
-1. Tired horse: away from everything first (unless too tired to move), then the trick.
-2. Paralysed: a pouch.
-3. A free creature within 3: run away from all of them, toward the tower, never past one within 12.
-4. Hurt (below 60%): get clear, then Greater Heal; poisoned and clear: Cure.
-5. One coming for him (Criminal): when provoke is ready and both are within 8, provoke it onto the most similar creature
-   (casters first), then back off; otherwise lead it to about 7 tiles from a partner, keeping away from it; else run.
-6. Clear of the fighting (8) and of anything free (10): one spell at a time at the fighting (casters, then the
-   stronger of an uneven pair, else the weakest), no moving while it goes off; meditate when mana is short.
-7. Nothing coming or fighting: after a fight, home once it has been quiet 5 s; before one, draw the nearest creature:
-   one ride to 5 tiles from it, then wait for it to turn Criminal (left be after 15 s); nothing in sight: ride to the
-   lookout points (south first, then east) and look around 3 s at each.
-Moving: a spot picked is kept for a while (2.5 s) unless it becomes clearly worse or unsafe, and the same walk isn't
-resent, so he never goes back and forth between tiles (it tires the horse).
-Home: short hops to the door, then `door.go_in`. Time up (10 min), interrupted or an error: home all the same.
+1. Tired horse: away from everything first (unless too tired to move), then the trick. Paralysed: a pouch.
+2. A free creature within 3: get away, away from all of them, toward the tower, never past one within 12.
+3. Hurt (below 60%): get clear, then Greater Heal; poisoned and clear: Cure.
+4. One coming at him (turned Criminal; casters first): provoke it onto something as soon as both are within 8 (the
+   most similar creature; never one out of sight or left be); with the partner further off, ride to about 7 tiles
+   from it on his side (never toward the follower); closer than 5 (casters 7): get away, toward a partner if any;
+   nothing anywhere to set it on: cast at it once a getaway has left it 8 tiles behind; otherwise stand still and
+   let it come.
+5. Keep 8 from creatures fighting each other; with nothing loose within 10: one spell at a time at the fighting
+   (casters, then the stronger of an uneven pair, else the weakest), no moving while it goes off; meditate when
+   mana is short.
+6. Nothing coming or fighting: after a fight, home once it has been quiet 5 s; before one, draw the nearest creature:
+   ride straight to 5 tiles from it (casters 11: they notice him from far off), stand still and wait for it to turn
+   Criminal (left be after 15 s); nothing in sight: ride to the lookout points (south first, then east) and look
+   around 3 s at each.
+"Target cannot be seen." leaves that creature out for a minute (the ogre shut in the castle). Home: hops of 8 to the
+door (each kept until reached), then `door.go_in`. Time up (10 min), interrupted or an error: home all the same.
+
+`fight_scenes.py` checks single decisions; `fight_sim.py` runs them over time in a made-up world (Clem riding to his
+spot, creatures coming once they've turned) and counts his walks and reversals: run both after changing fight.py.
 
 ## Open items
 

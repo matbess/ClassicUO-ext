@@ -64,8 +64,12 @@ ON_HIM = 3              # a free creature this close: run, nothing else
 CLEAR = 10              # free creatures further than this: he may cast or meditate
 BACK_OFF = 9            # after a provoke, and from anything coming: get at least this far away
 FIGHT_GAP = 8           # keep this far from creatures fighting each other
-AWAY = 12               # one coming at him that he can't provoke yet: keep at least this far from it
+KEEP = 5                # one coming at him that he can't provoke yet: get away once it's closer than this
+LONE_CAST = 8           # a lone one coming at him (nothing to set it on): cast at it from this far
+KEEP_CASTER = 7         # the same for casters (gargoyles, gazers: dangerous; provoked first, killed first)
+DRAW_CASTER = 11        # drawing a caster: they notice him from far off (the user); no nearer than this
 LURE = 5                # drawing one: ride to about this far from it and wait for it to target him (the user)
+UNSEEN_FOR = 60         # "Target cannot be seen.": left out this long (shut in a building, like the ogre)
 LURE_WAIT = 15          # seconds there: one that hasn't turned on him by then is left be (trapped in a building, or
                         # one that doesn't attack)
 PROVOKED_BUSY = 6       # seconds after a provoke the pair counts as busy even before they meet
@@ -81,7 +85,8 @@ STRONG = {'ogre', 'troll', 'frost troll', 'ettin', 'water elemental', 'earth ele
           'fire elemental', 'ogre lord', 'orc lord', 'gargoyle', 'wyvern', 'drake', 'lich', 'giant serpent',
           'ice fiend', 'daemon', 'dragon', 'cyclops', 'titan'}
 CASTERS = {'water elemental', 'air elemental', 'lich', 'orc mage', 'ratman mage', 'gargoyle', 'imp', 'daemon',
-           'ice fiend', 'evil mage', 'lizardman mage', 'wisp', 'dragon', 'drake'}
+           'ice fiend', 'evil mage', 'lizardman mage', 'wisp', 'dragon', 'drake', 'gazer'}
+# casters: dangerous from a distance; stay away, provoke them onto something first and kill them first (the user)
 # animals that don't come for anyone: partners to set a creature on, not threats
 PASSIVE = {'llama', 'sheep', 'horse', 'cow', 'bull', 'pig', 'boar', 'chicken', 'deer', 'hind', 'great hart', 'rabbit',
            'jack rabbit', 'cat', 'dog', 'bird', 'eagle', 'goat', 'mountain goat', 'rat', 'squirrel', 'ferret',
@@ -227,6 +232,29 @@ def go_somewhere(me, score, radii=(5, 8), allowed=None):
     return None
 
 
+class Mover:
+    """One destination at a time (the user, 2026-11-06: "Stop wiggling!!", it tires the horse). He stands still unless
+    there's a reason to move; when he moves he rides straight to one spot, and another is only picked when he's
+    there, the reason changes, or the caller forces it (getting away from something on him)."""
+
+    def __init__(self):
+        self.goal, self.why, self.at = None, None, 0.0
+
+    def going(self, me):
+        return self.goal is not None and dist(me, self.goal) > 1 and time.time() - self.at < 8
+
+    def go(self, me, p, why, force=False):
+        if not force and self.why == why and self.going(me):
+            return True
+        if walk(p, keep=0):
+            self.goal, self.why, self.at = p, why, time.time()
+            return True
+        return False
+
+    def clear(self):
+        self.goal, self.why = None, None
+
+
 def homeward(p):
     """How much a spot leans toward the tower: a little near it, a lot once he's out past NEAR_HOME."""
     d = dist(p, HOME)
@@ -282,6 +310,7 @@ class Fight:
         self.goal_sent = 0.0
         self.arrived_at = None
         self.pending = None      # the last cast, for its damage once it has landed
+        self.mover = Mover()
         self.ignored = set()     # creatures that never came when drawn
         self.luring = None
         self.lure_since = 0.0
@@ -338,7 +367,7 @@ class Fight:
         """Something to set a on, within reach of him: like it first (the same tier), free before busy, then
         nearest to a; an animal will do."""
         cands = [m for m in mobs.values() if attackable(m) and m['serial'] != a['serial']
-                 and self.visible(m['serial']) and dist(me, xy(m)) <= reach]
+                 and self.visible(m['serial']) and m['serial'] not in self.ignored and dist(me, xy(m)) <= reach]
         if not cands:
             return None
         return min(cands, key=lambda m: (abs(tier(m) - tier(a)), self.busy(m['serial'], mobs), dist(xy(a), xy(m))))
@@ -368,7 +397,7 @@ class Fight:
             r1 = aim(a['serial'])
             if not r1.get('targeting'):
                 if said(r1, 'cannot be seen', 'line of sight', 'too far'):
-                    self.unseen[a['serial']] = time.time() + 3
+                    self.unseen[a['serial']] = time.time() + UNSEEN_FOR
                 say(f'provoke {a["name"]}: {texts(r1)!r}')
                 cancel_cursor()
                 return False
@@ -378,7 +407,7 @@ class Fight:
             cancel_cursor()
             return False
         if said(r2, 'cannot be seen', 'line of sight', 'too far'):
-            self.unseen[b['serial']] = time.time() + 3
+            self.unseen[b['serial']] = time.time() + UNSEEN_FOR
         ok = said(r2, 'your music succeeds')
         row(event='provoke', a=a['name'], a_serial=a['serial'], a_health=health(a), b=b['name'], b_serial=b['serial'],
             b_health=health(b), ok=ok, text=texts(r1) + ' || ' + texts(r2))
@@ -427,7 +456,7 @@ class Fight:
         finally:
             self.cast_until = time.time() + LAND_TIME
         if said(a, 'cannot be seen', 'line of sight', 'too far'):
-            self.unseen[m['serial']] = time.time() + 3
+            self.unseen[m['serial']] = time.time() + UNSEEN_FOR
         self.pending = {'spell': NAMES[spell], 'serial': m['serial'], 'name': m['name'], 'before': m.get('hits'),
                         'max': m.get('hitsMax'), 'at': time.time(), 'aimed': a.get('aimed'), 'text': texts(a),
                         'mana': a.get('mana')}
@@ -506,76 +535,98 @@ class Fight:
         coming = [m for m in free if self.coming(m)]
         dfree = min((dist(me, xy(m)) for m in free), default=99)
         dbusy = min((dist(me, xy(m)) for m in busy), default=99)
+        # free creatures that matter for casting: not ones left be (shut in a building, never came)
+        dloose = min((dist(me, xy(m)) for m in free if m['serial'] not in self.ignored), default=99)
         if coming or busy:
             self.quiet_since = None
         if casting:
             time.sleep(0.15)  # frozen while the spell goes off: just watch
             return False
 
-        # anything free close to him: run, away from all of them and toward the tower
+        # something right on him: get away, away from all of them and toward the tower
         if dfree <= ON_HIM:
             self.meditating = False
-            run_from(me, [xy(m) for m in threats])
+            self.flee(me, [xy(m) for m in threats])
             return False
 
         # hurt: away from whatever's near first, then heal
         if hp < HURT:
-            if dfree <= CLEAR or dbusy < FIGHT_GAP:
+            if dloose <= CLEAR or dbusy < FIGHT_GAP:
                 self.meditating = False
-                run_from(me, [xy(m) for m in threats])
+                self.flee(me, [xy(m) for m in threats])
                 return False
             if st['mana'] >= MANA[GREATER_HEAL]:
                 self.heal_self(st, GREATER_HEAL)
                 return False
-        if st.get('poisoned') and dfree > CLEAR and st['mana'] >= MANA[CURE]:
+        if st.get('poisoned') and dloose > CLEAR and st['mana'] >= MANA[CURE]:
             self.heal_self(st, CURE)
             return False
 
-        # one coming for him: set it on something, from no closer than provoking needs
+        # coming at him (turned Criminal): casters first. Provoke it onto something as soon as both are in range;
+        # too close (casters: closer than KEEP_CASTER) means get away, toward something to set it on if there is one;
+        # otherwise stand still and let it come
         if coming:
+            self.luring = None
             a = sorted(coming, key=lambda m: (kind(m) not in CASTERS, dist(me, xy(m))))[0]
-            if self.skill_ready() and dist(me, xy(a)) <= PROVOKE_RANGE and self.visible(a['serial']):
-                b = self.partner_for(me, a, mobs, PROVOKE_RANGE)
-                if b:
-                    if self.provoke(a, b):
-                        run_from(me, [xy(m) for m in threats])  # and back off from both
-                    return False
-            b = self.partner_for(me, a, mobs, 18)
-            if b and self.skill_ready():
-                # lead it toward b: to about PROVOKE_SPOT from b, keeping away from a and the rest
-                def score(p):
-                    others = [t for t in threats if t['serial'] not in (a['serial'], b['serial'])]
-                    return (-2.0 * abs(dist(p, xy(b)) - PROVOKE_SPOT) + min(dist(p, xy(a)), 8)
-                            + 0.5 * min((dist(p, xy(t)) for t in others), default=8) + 0.5 * homeward(p))
-                go_somewhere(me, score)
+            b = self.partner_for(me, a, mobs, PROVOKE_RANGE)
+            if self.skill_ready() and dist(me, xy(a)) <= PROVOKE_RANGE and b:
+                self.mover.clear()
+                if self.provoke(a, b):
+                    self.flee(me, [xy(m) for m in threats], fresh=True)  # and back off from both
                 return False
-            # nothing to set it on, or the skill isn't ready: keep well away from it, toward the tower
-            if dist(me, xy(a)) < AWAY:
-                run_from(me, [xy(m) for m in threats])
-            else:
-                time.sleep(0.15)
+            keep = KEEP_CASTER if kind(a) in CASTERS else KEEP
+            if self.mover.why == 'flee' and self.mover.going(me):
+                # a getaway is ridden to the end (switching between getting away and leading was the wiggle)
+                self.flee(me, [xy(m) for m in threats])
+                return False
+            if self.skill_ready() and not b and dist(me, xy(a)) >= keep:
+                far = self.partner_for(me, a, mobs, 18)
+                if far:
+                    # it's following him: ride to about PROVOKE_SPOT from the other one, on his side (away from the
+                    # follower), so both are in range; one spot, kept until he's there
+                    d = dist(me, xy(far))
+                    f = max(d - PROVOKE_SPOT, 0) / max(d, 1)
+                    spot = clamp_area((round(me[0] + (far['x'] - me[0]) * f), round(me[1] + (far['y'] - me[1]) * f)))
+                    # never a way that takes him nearer the one following him
+                    if (dist(spot, me) >= 2 and dist(spot, xy(a)) >= dist(me, xy(a))
+                            and self.mover.go(me, spot, 'lead to ' + far['serial'])):
+                        return False
+            if dist(me, xy(a)) < keep:
+                far = b or self.partner_for(me, a, mobs, 18)
+                self.flee(me, [xy(m) for m in threats], toward=xy(far) if far else None)
+                return False
+            # nothing anywhere to set it on: the last one keeps coming; cast at it once a getaway has left it
+            # LONE_CAST tiles behind (the user: keep running away while casting spells)
+            spell = self.spell_for(a, st['mana'])
+            if (spell and not self.partner_for(me, a, mobs, 18) and dist(me, xy(a)) >= LONE_CAST
+                    and min((dist(me, xy(m)) for m in coming if m is not a), default=99) >= LONE_CAST):
+                self.mover.clear()
+                self.cast_at(a, spell)
+                return False
+            time.sleep(0.15)
             return False
 
-        # nothing coming: stay clear of the fighting
-        if dbusy < FIGHT_GAP or dfree < BACK_OFF:
+        # stay clear of the fighting
+        if dbusy < FIGHT_GAP:
             self.meditating = False
-            run_from(me, [xy(m) for m in threats])
+            self.flee(me, [xy(m) for m in busy] + [xy(m) for m in free if dist(me, xy(m)) <= 10])
             return False
 
-        # clear of everything: spells at the fighting, then meditation
-        if busy and dfree > CLEAR:
-            m = self.cast_target(me, busy)
-            spell = self.spell_for(m, st['mana']) if m else None
-            if spell and not (self.meditating and st['mana'] < 60):
-                self.cast_at(m, spell)
-                return False
-            nearly_dead = any(share(b) is not None and share(b) < 0.25 for b in busy)
-            if not self.meditating and not nearly_dead and st['mana'] < 60 and self.skill_ready():
-                self.last_skill = time.time()
-                a = call('POST', '/skill', id=MEDITATE)
-                self.meditating = said(a, 'meditative trance', 'at peace')
-                say(f'meditate (mana {st["mana"]}): {texts(a)!r}')
-                return False
+        # fights going on and nothing loose near him: spells (casters first), then meditation
+        if busy:
+            if dloose > CLEAR:
+                m = self.cast_target(me, busy)
+                spell = self.spell_for(m, st['mana']) if m else None
+                if spell and not (self.meditating and st['mana'] < 60):
+                    self.cast_at(m, spell)
+                    return False
+                nearly_dead = any(share(b) is not None and share(b) < 0.25 for b in busy)
+                if not self.meditating and not nearly_dead and st['mana'] < 60 and self.skill_ready():
+                    self.last_skill = time.time()
+                    a = call('POST', '/skill', id=MEDITATE)
+                    self.meditating = said(a, 'meditative trance', 'at peace')
+                    say(f'meditate (mana {st["mana"]}): {texts(a)!r}')
+                    return False
             time.sleep(0.15)
             return False
 
@@ -591,35 +642,69 @@ class Fight:
         if self.homeward:
             return self.step_home(me, threats)
 
-        # drawing one (the user): ride to about 5 tiles from it and wait for it to target him (turn Criminal); one
-        # that hasn't by LURE_WAIT after he got there is left be (the ogre shut in the castle)
-        lurable = [m for m in free if m['serial'] not in self.ignored]
+        # drawing one (the user): ride straight to where it'll notice him (5 tiles; casters notice from far, 11) and
+        # stand still there until it targets him (turns Criminal); left be if it hasn't by LURE_WAIT (shut in a
+        # building, or it doesn't attack). No moving about while waiting.
+        lurable = [m for m in free if m['serial'] not in self.ignored and self.visible(m['serial'])]
         if lurable:
-            # one at a time: the same one until it comes or is left be (switching to whichever was nearer had him
-            # going back and forth between two panthers)
             current = [m for m in lurable if m['serial'] == self.luring]
-            nearest = current[0] if current else min(lurable, key=lambda m: dist(me, xy(m)))
-            if self.luring != nearest['serial']:
-                self.luring, self.lure_since = nearest['serial'], None
-                say(f'drawing {nearest["name"]} at {nearest["x"]},{nearest["y"]} ({dist(me, xy(nearest))} tiles)')
-            d = dist(me, xy(nearest))
-            if d > LURE + 1:
-                # one ride to the spot LURE tiles short of it, on his side (no re-picking every moment: no wiggling)
-                f = (d - LURE) / d
-                spot = clamp_area((round(me[0] + (nearest['x'] - me[0]) * f), round(me[1] + (nearest['y'] - me[1]) * f)))
-                walk(spot, keep=4.0)
-                time.sleep(0.2)
-                return False
+            target = current[0] if current else min(lurable, key=lambda m: dist(me, xy(m)))
+            if self.luring != target['serial']:
+                self.luring, self.lure_since = target['serial'], None
+                self.mover.clear()
+                say(f'drawing {target["name"]} at {target["x"]},{target["y"]} ({dist(me, xy(target))} tiles)')
+            near_enough = DRAW_CASTER if kind(target) in CASTERS else LURE
+            d = dist(me, xy(target))
             if self.lure_since is None:
+                if d > near_enough + 1:
+                    f = (d - near_enough) / d
+                    spot = clamp_area((round(me[0] + (target['x'] - me[0]) * f),
+                                       round(me[1] + (target['y'] - me[1]) * f)))
+                    if not self.mover.go(me, spot, 'draw ' + target['serial']):
+                        say(f'no way toward {target["name"]}; leaving it be')
+                        self.ignored.add(target['serial'])
+                    time.sleep(0.2)
+                    return False
                 self.lure_since = time.time()
+                say(f'standing {d} tiles from {target["name"]}, waiting for it to come')
             if time.time() - self.lure_since > LURE_WAIT:
-                say(f'{nearest["name"]} never turned on him from {d} tiles; leaving it be')
-                self.ignored.add(nearest['serial'])
+                say(f'{target["name"]} never turned on him from {d} tiles; leaving it be')
+                self.ignored.add(target['serial'])
+                self.luring = None
                 return False
-            time.sleep(0.2)  # there: wait for it to target him
+            time.sleep(0.2)
             return False
 
         return self.search(me)
+
+    def flee(self, me, threats, toward=None, fresh=False):
+        """Get away: one spot about 8 tiles off, never nearer anything within 12, leaning toward the tower (or toward
+        `toward`, something to set the follower on). The spot is kept until he's there; a new one only when something
+        is right on him and the spot doesn't take him away from it (or `fresh`)."""
+        m = self.mover
+        if not fresh and m.why == 'flee' and m.going(me):
+            on_him = [t for t in threats if dist(me, t) <= ON_HIM - 1]
+            if all(dist(m.goal, t) > dist(me, t) for t in on_him):
+                return
+        near = [t for t in threats if dist(me, t) <= 12]
+
+        def score(p):
+            nearest = min((dist(p, t) for t in threats), default=20)
+            v = 2.0 * min(nearest, 14) + homeward(p)
+            if toward:
+                v -= 1.5 * abs(dist(p, toward) - PROVOKE_SPOT)
+            return v
+        spots = []
+        for r in (8, 5):
+            for i in range(16):
+                a = i * math.pi / 8
+                p = clamp_area((round(me[0] + r * math.cos(a)), round(me[1] + r * math.sin(a))))
+                if dist(p, me) >= 3:
+                    spots.append((all(dist(p, t) > dist(me, t) for t in near), score(p), p))
+        spots.sort(reverse=True)
+        for _, _, p in spots[:8]:
+            if m.go(me, p, 'flee', force=True):
+                return
 
     def read_messages(self):
         """The server's word since the last look: the horse tiring."""
@@ -694,7 +779,7 @@ class Fight:
         d = dist(me, HOME)
         f = min(8, d) / d
         p = (round(me[0] + (HOME[0] - me[0]) * f), round(me[1] + (HOME[1] - me[1]) * f))
-        if not walk(p if dist(p, HOME) > 1 else HOME):
+        if not self.mover.go(me, p if dist(p, HOME) > 1 else HOME, 'home'):
             go_somewhere(me, lambda q: -dist(q, HOME), radii=(3, 6))
         time.sleep(0.3)
         return False
