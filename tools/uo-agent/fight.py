@@ -296,15 +296,16 @@ class Mover:
         self.goal, self.why = None, None
 
 
-def load_trapped():
+def load_trapped(walled_only=False):
     """Creatures never to draw again: shut inside a building (the ogre in the castle south-west of the tower, which
     he drew run after run: the user, 2026-11-06, "again with the Ogre that's behind the wall????"), or ones that
     never come."""
     try:
         with open(TRAPPED, encoding='utf-8') as fh:
-            return set(json.load(fh))
+            known = json.load(fh)
     except (OSError, ValueError):
         return set()
+    return {s for s, v in known.items() if not walled_only or 'wall' in (v.get('why') or '')}
 
 
 def remember_trapped(m):
@@ -381,7 +382,10 @@ class Fight:
         self.orbit_dir = {}      # (follower, partner): which way round he circles the partner (kept: never back)
         self.orbit_since = {}    # (follower, partner): when he started circling
         self.gave_up = set()     # (follower, partner): circled ORBIT_FOR without getting them close
-        self.ignored = set(load_trapped())  # creatures that never came when drawn (shut in a building): remembered
+        self.ignored = set(load_trapped())  # never drawn again: they never came (remembered in trapped.json)
+        # never a partner either: shut behind a wall (a provoke onto one: "Target cannot be seen."); ones that just
+        # don't attack (a bear, a panther) still make good partners
+        self.walled = set(load_trapped(walled_only=True))
         self.luring = None
         self.lure_since = 0.0
         self.seen_message = call('GET', '/status')['lastMessageId']
@@ -444,7 +448,7 @@ class Fight:
         """Something to set a on, within reach of him: like it first (the same tier), free before busy, then
         nearest to a; an animal will do."""
         cands = [m for m in mobs.values() if attackable(m) and m['serial'] != a['serial']
-                 and self.visible(m['serial']) and m['serial'] not in self.ignored and dist(me, xy(m)) <= reach
+                 and self.visible(m['serial']) and m['serial'] not in self.walled and dist(me, xy(m)) <= reach
                  and (pair is None or dist(xy(a), xy(m)) <= pair)]
         if not cands:
             return None
@@ -744,6 +748,7 @@ class Fight:
                     and min((dist(me, xy(m)) for m in coming if m is not a), default=99) >= LONE_CAST):
                 self.mover.clear()
                 self.killing = a['serial']
+                self.fought = True
                 say(f'killing {a["name"]} with spells, all the way')
                 self.cast_at(a, spell)
                 return False

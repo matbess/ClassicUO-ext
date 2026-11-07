@@ -182,6 +182,14 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **16:37**: the best run so far. Drew the castle ogre once more (-> trapped.json: never drawn again), then a grizzly
+  bear (never came); a dire wolf came and, with the bear wrongly left out as a partner (it had "never come"), he
+  killed it with spells all the way: Energy Bolt, Energy Bolt, Lightning in 7 s, no damage taken. Then he drew an
+  ettin and provoked it onto a panther ("You see a panther attacking an ettin!") and bolted it while it was busy
+  (the user: "when it's fighting something else is your chance to attack it and lower its HP") - and Claude, going
+  by alerts that arrived late, stopped the run there and took him home. door.py in went straight in. -> creatures
+  that just don't attack stay partners (only ones behind a wall are left out); a spell kill counts as a fight (home
+  afterwards); check the latest state before stopping a run.
 - **16:31**: the restock check passed (35-45 each); drew the castle ogre again (it never came: left be after 15 s;
   trapped ones aren't remembered between runs yet), then a grizzly bear; a dire wolf turned Criminal 13-17 tiles off
   and he circled round the bear though nothing was attacking him yet (the user: "Stop running around in a circle
