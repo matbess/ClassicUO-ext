@@ -136,14 +136,24 @@ outside at 1758,1415,22; it reaches the door from outside (1756,1416) and the do
 (1756,1413: "I can't reach that."). It turns the lock either way: "You unlock it." / "You lock it." (said by the
 door, not the server).
 
-- **Out** (`door.py out`): no key. From inside the locked door opens for him ("That is locked, but is usable from
-  the inside."): open it, step out to 1756,1416, close it. Then **check**: from right in front (1756,1415) try to get
-  back in; it must say "That is locked." and stay shut. Only if it opens (someone forgot to lock it last time) does
+- **The front steps** are x 1756-1757, y 1415-1416, between four forges (1755 and 1758, on both rows). Creatures
+  put off the steps end up beside them and are kept off by the forges, but they get round the forges as soon as he
+  steps away from the door (the user, 2026-11-06).
+- **Out** (`door.py out`): no key. From inside (1756,1413) first look at the steps: a creature on them gets "remove
+  thyself" and a click (tried with the door shut, then with it open; one that won't go keeps him in, door shut).
+  The locked door opens for him from inside ("That is locked, but is usable from the inside."): open it, step into
+  the doorway (1756,1414) and close it there, the door shutting over him: the user, 2026-11-06, "stay right next to
+  the door so that when you close the door it looks like the door is closing over the top of you (it works). Then
+  you don't have to worry about getting attacked while closing the door." (Until then door.py stepped out to
+  1756,1416, off the bottom step, which let the creatures beside the steps round the forges.) If it ever won't shut
+  over him, he steps to 1756,1415 and shuts it from there. Then **check**, from where he is: try to get back in; it
+  must say "That is locked." and stay shut. fight.py starts from the doorway. Only if it opens (someone forgot to lock it last time) does
   the key come out: lock it, close it. The user checks by walking into the door; his client then sends "open door"
   (auto_open_doors), the same as using it, and its path walker treats a shut door as a wall (smooth_doors off), so
   door.py uses the door instead.
-- **In** (`door.py in`, also fight.py's way home): from 1756,1416 unlock with the key, open, step into the doorway
-  (1756,1414), lock with the key, step in (1756,1413), close.
+- **In** (`door.py in`, also fight.py's way home): from 1756,1416 straight to 1756,1415, unlock with the key, open,
+  step into the doorway (1756,1414), lock with the key, step in (1756,1413), close. From the doorway (just out),
+  straight to the key.
 - **Creatures on the front steps:** the house command "remove thyself" and a click on the creature ejects it from
   the house region, steps included (in his rules' "say"; fight.py uses it on one within 3 of the door before going
   in); `door.py in` stops when any are within 3 tiles of the door.

@@ -3,13 +3,19 @@
 the door's two halves and the key ring in his rules ("doors", "keys").
 
   python3 -I door.py out      from inside: reagents first (restock.py: any below 25 means restock at the chest),
-                              then open, step out, close, and check
+                              creatures off the front steps, then open, step into the doorway, close the door over
+                              him there, and check
   python3 -I door.py in       from outside: unlock, open, step into the doorway, lock, step in, close
   python3 -I door.py check    from outside: try to get back in through the door (it mustn't let him); if it opens,
                               lock it with the key and close it
 
 Going out needs no key: the door stays locked (the user, 2026-11-06: "you only need to walk out the door, it stays
-locked"), so out is open, step out, close, and check from outside. The key ring is locked down outside at 1758,1415;
+locked"), so out is open, step into the doorway, close, and check. He stays right at the door while he closes it, in
+the doorway, the door shutting over him (the user, 2026-11-06: "it looks like the door is closing over the top of you
+(it works)"): out on the steps or further, creatures put off the steps to either side get round the forges (x 1755
+and 1758, both step rows) and at him while he's busy with the door. The steps themselves (x 1756-1757, y 1415-1416,
+between the forges) are checked first: a creature there gets "remove thyself" and a click, which puts it off to the
+side. The key ring is locked down outside at 1758,1415;
 it reaches the door from outside (1756,1416) and the doorway (1756,1414), not from inside (1756,1413: "I can't reach
 that."). It turns the lock either way ("You unlock it." / "You lock it."). Creatures on the front steps have to go first: the
 house command "remove thyself" (not in his rules yet), so `in` stops when any are within 3 tiles of the door.
@@ -36,6 +42,8 @@ INSIDE = (1756, 1413)
 DOORWAY = (1756, 1414)       # where the west half stands shut; free when it's open (it swings to 1755,1415)
 FRONT = (1756, 1415)         # right in front of the shut door, outside
 OUTSIDE = (1756, 1416)
+STEPS = {(x, y) for x in (1756, 1757) for y in (1415, 1416)}  # the front steps, between the forges at x 1755 and 1758
+HOSTILE = ('Gray', 'Criminal', 'Enemy', 'Murderer')
 
 info = None
 guard = None   # called between the steps through the door (fight.py: breaks off when a creature comes near)
@@ -126,8 +134,47 @@ def step(p, what):
         raise Stop(f'could not {what} ({p[0]},{p[1]}): {r}')
 
 
+def on_steps():
+    """Creatures on the front steps (between the forges)."""
+    return [m for m in call('GET', '/nearby', range=8)['mobiles']
+            if m.get('notoriety') in HOSTILE and not m.get('dead') and not m.get('human') and not m.get('yourPet')
+            and (m['x'], m['y']) in STEPS]
+
+
+def remove(m):
+    """The house command "remove thyself" on one creature: the words, then the house's cursor on it."""
+    a = call('POST', '/say', text='remove thyself')
+    end = time.time() + 1.5  # the cursor comes a moment after the words
+    while time.time() < end and not call('GET', '/status').get('targeting'):
+        time.sleep(0.1)
+    if not call('GET', '/status').get('targeting'):
+        say(f'"remove thyself": no cursor ({texts(a) or "-"})')
+        return
+    try:
+        t = call('POST', '/target', serial=m['serial'])
+        say(f'"remove thyself" on {m.get("name") or m["serial"]} at {m["x"]},{m["y"]}: {texts(t) or "-"}')
+    except uo.BridgeError as e:
+        say(f'"remove thyself" on {m["serial"]}: {e}')
+        try:
+            call('POST', '/target', cancel=1)
+        except uo.BridgeError:
+            pass
+
+
+def clear_steps(tries):
+    """Put every creature on the steps off them (remove), up to `tries` rounds. True when the steps are clear."""
+    for _ in range(tries):
+        there = on_steps()
+        if not there:
+            return True
+        for m in there:
+            remove(m)
+        time.sleep(1.0)
+    return not on_steps()
+
+
 def go_out():
-    if where()[1] >= 1415:
+    if where()[1] >= 1414:
         say('already outside')
         return
     # never out without enough reagents (the user, 2026-11-06: restock if any is below 25)
@@ -137,31 +184,46 @@ def go_out():
     except restock.Stop as e:
         raise Stop(f'reagents: {e}')
     step(INSIDE, 'get to the door')
+    # creatures on the steps first (the user, 2026-11-06): with the door shut if the click gets through, else with it
+    # open; still there after that, he stays in
+    clear = clear_steps(2)
     set_door(DOOR, False)
     try:
-        step(OUTSIDE, 'step out')
+        if not clear and not clear_steps(3):
+            raise Stop('creatures still on the front steps: ' + ', '.join(m.get('name') or '?' for m in on_steps()))
+        step(DOORWAY, 'step into the doorway')
     finally:
-        # never leave it open, wherever he ended up
-        set_door(DOOR, True)
-    say('out; the door is closed')
+        # never leave it open, wherever he ended up; in the doorway it shuts over him (the user: "it works")
+        try:
+            set_door(DOOR, True)
+        except Stop:
+            if where() != DOORWAY:
+                raise
+            say("it wouldn't shut over him in the doorway: from right in front instead")
+            walk(FRONT)
+            set_door(DOOR, True)
+    say(f'out at {where()[0]},{where()[1]}, right at the door; the door is closed')
     check()
 
 
 def go_in():
-    if where()[1] <= 1413:
+    here = where()
+    if here[1] <= 1413:
         say('already inside')
         return
-    step(OUTSIDE, 'get to the door')
-    near = call('GET', '/nearby', range=6)['mobiles']
-    close = [m for m in near if m.get('notoriety') in ('Gray', 'Criminal', 'Enemy', 'Murderer') and not m.get('dead')
-             and max(abs(m['x'] - OUTSIDE[0]), abs(m['y'] - OUTSIDE[1])) <= 3]
-    if close:
-        raise Stop('creatures at the door: ' + ', '.join(m['name'] or '?' for m in close) + ' ("remove thyself")')
-    step(FRONT, 'get right in front of the door')  # straight on from here: a diagonal into the doorway catches on the frame
+    if here != DOORWAY:  # in the doorway already (just out, the door shut over him): straight to the key
+        step(OUTSIDE, 'get to the door')
+        near = call('GET', '/nearby', range=6)['mobiles']
+        close = [m for m in near if m.get('notoriety') in HOSTILE and not m.get('dead')
+                 and max(abs(m['x'] - OUTSIDE[0]), abs(m['y'] - OUTSIDE[1])) <= 3]
+        if close:
+            raise Stop('creatures at the door: ' + ', '.join(m['name'] or '?' for m in close) + ' ("remove thyself")')
+        step(FRONT, 'get right in front of the door')  # straight on: a diagonal into the doorway catches on the frame
     key_on(DOOR, 'unlock')
     set_door(DOOR, False)
     try:
-        step(DOORWAY, 'step into the doorway')
+        if where() != DOORWAY:
+            step(DOORWAY, 'step into the doorway')
         key_on(DOOR, 'lock')
         step(INSIDE, 'step in')
     finally:
@@ -182,7 +244,8 @@ def check():
     shut. One that opens wasn't locked (someone forgot when they came in): lock it with the key and close it."""
     if where()[1] <= 1413:
         raise Stop('check is done from outside')
-    step(FRONT, 'get in front of the door')
+    if where() not in (DOORWAY, FRONT):  # right at the door: from the doorway (going out) or right in front
+        step(FRONT, 'get in front of the door')
     a = call('POST', '/use', serial=DOOR)
     if door_spot(DOOR) == SHUT_AT[DOOR]:
         say(f'it won\'t let him in: {texts(a) or "(no message)"}; the door is locked')

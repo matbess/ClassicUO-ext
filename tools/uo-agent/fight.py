@@ -1342,7 +1342,7 @@ def main():
     stopped = st.get('takenOver') or st.get('halted')
     if stopped and not args.resume:
         sys.exit(f'the user has him ({stopped}); --resume only once they hand him back')
-    if st['y'] < AREA[1] + 1:
+    if st['y'] < AREA[1]:  # the doorway (y 1414), where door.py out leaves him, counts
         sys.exit('he is not outside (door.py out first)')
     if stopped:
         call('POST', '/resume')
