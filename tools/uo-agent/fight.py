@@ -29,6 +29,7 @@ import json
 import math
 import os
 import random
+import re
 import signal
 import sys
 import time
@@ -81,6 +82,7 @@ PROVOKE_RANGE = 8       # both creatures within this of him (fight 1: the llama 
 PROVOKE_SPOT = 7        # how close he goes to the creature he'll set the follower on
 ON_HIM = 3              # a free creature this close: run, nothing else
 CLEAR = 10              # free creatures further than this: he may cast or meditate
+MEDITATE_FOR = 150      # after a fight, at most this long getting mana back before going home
 BACK_OFF = 9            # after a provoke, and from anything coming: get at least this far away
 FIGHT_GAP = 6           # keep this far from creatures fighting each other (spells need 6 clear: CAST_CLEAR)
 HEAL_CLEAR = 10         # healing only with every creature this far off; hurt, he rides 10 away first (the user)
@@ -160,13 +162,56 @@ def row(**fields):
         fh.write(json.dumps(fields) + '\n')
 
 
+DROP_HALT = re.compile(r'no answer after dropping (0x[0-9A-Fa-f]+)')
+
+
 def call(method, endpoint, **params):
+    """A bridge request. 423 (the user took over, or the bridge stopped) ends the run with Stop, except for the one
+    stop that is safe to get past alone: a dropped item that did land (recover_drop)."""
     try:
         return uo.call(info, method, endpoint, **params)
     except uo.BridgeError as e:
-        if e.code == 423:  # the user took over, or the bridge stopped
+        if e.code != 423:
+            raise
+        if not recover_drop():
+            raise Stop(e.message)
+    if endpoint == '/move':
+        return {'moved': True, 'recovered': True}  # the drop that stopped the bridge landed
+    try:
+        return uo.call(info, method, endpoint, **params)
+    except uo.BridgeError as e:
+        if e.code == 423:
             raise Stop(e.message)
         raise
+
+
+def recover_drop():
+    """The bridge stops itself when a dropped item never comes back, and then refuses everything: out in the wild that
+    left him standing with nothing running him (2026-11-06 17:10:46: looted gold dropped into his pack merged into his
+    gold there, the coins' serial vanished, the bridge took it for the server going quiet; a gargoyle walked up and hit
+    him from 100 to 69 before the user took over). Resumed here only when nobody took over, the stop is that drop's,
+    and the item landed: gone (merged into a stack) or in his pack. Anything else stays stopped."""
+    try:
+        st = uo.call(info, 'GET', '/status')
+    except uo.BridgeError:
+        return False
+    found = DROP_HALT.search(st.get('halted') or '')
+    if st.get('takenOver') or not found:
+        return False
+    serial = found.group(1)
+    try:
+        where = uo.call(info, 'GET', '/item', serial=serial).get('insideOf') or []
+        landed = any(c.get('serial') == st['backpack']['serial'] for c in where)
+    except uo.BridgeError as e:
+        landed = e.code == 404  # gone: merged into a stack
+    if not landed:
+        return False
+    try:
+        uo.call(info, 'POST', '/resume')
+    except uo.BridgeError:
+        return False
+    say(f'the bridge stopped after a drop that landed ({st["halted"]}); resumed')
+    return True
 
 
 def texts(answer):
@@ -804,6 +849,8 @@ class Fight:
                     # one that isn't busy with another keeps coming during the words: 8-10 tiles first (the user,
                     # 2026-11-06: the ettin got a bit close while he was casting)
                     if dfree < LONE_CLEAR:
+                        # a getaway to 10 clear: one that kept within spell range had it catch him up every time
+                        # in fight_sim (it follows while he rides) and he never got to cast
                         self.flee(me, [xy(m) for m in threats], radii=(12, 10), need=LONE_CLEAR + 2)
                         return False
                     if dist(me, xy(k)) > SPELL_RANGE or time.time() - self.too_far.get(k['serial'], 0) < 5:
@@ -914,7 +961,21 @@ class Fight:
                 self.quiet_since = time.time()
             if time.time() - self.quiet_since >= 2 and self.loot(me, st):
                 return False
-            if time.time() - self.quiet_since >= 5:
+            # back to full mana before anything else (the user, 2026-11-06 17:11: "You should be meditating to get back
+            # your mana, you just used a lot"), only with no creature within CLEAR; every tick still looks, and one
+            # that turns on him or comes near ends it (the branches above, or riding home)
+            quiet_for = time.time() - self.quiet_since
+            if (quiet_for >= 2 and quiet_for < MEDITATE_FOR and st['mana'] < st.get('manaMax', 100) - 5
+                    and min(dfree, dany_creature) > CLEAR):
+                if not self.meditating and self.skill_ready() and self.still(me):
+                    self.mover.clear()
+                    self.last_skill = time.time()
+                    a = call('POST', '/skill', id=MEDITATE)
+                    self.meditating = said(a, 'meditative trance', 'at peace')
+                    say(f'meditate after the fight (mana {st["mana"]}): {texts(a)!r}')
+                time.sleep(0.3)
+                return False
+            if quiet_for >= 5:
                 self.go_home('nothing is coming after him')
             time.sleep(0.15)
             return False
@@ -1075,7 +1136,13 @@ class Fight:
             took = []
             for i in items:
                 try:
-                    if call('POST', '/move', serial=i['serial'], to=pack).get('moved'):
+                    # onto a stack of the same kind already in his pack, or the server merges it there itself and the
+                    # bridge, waiting for the item to show up in the pack, stops (17:10:46: the orc's 41 gold)
+                    stack = self.stack_in(pack, i)
+                    r = call('POST', '/move', serial=i['serial'], to=stack or pack)
+                    if stack and not r.get('moved'):
+                        r = call('POST', '/move', serial=i['serial'], to=pack)  # not one that stacks: back, so in
+                    if r.get('moved'):
                         took.append(f'{i.get("amount", 1)} {i.get("type") or i["graphic"]}')
                 except uo.BridgeError as e:
                     say(f'looting {i.get("type")}: {e}')
@@ -1083,6 +1150,17 @@ class Fight:
             self.quiet_since = time.time()  # looting took a while: look around again before going home
             return True
         return False
+
+    def stack_in(self, pack, item):
+        """The serial of a stack in his pack (top level, where the server merges) of the same kind as item: graphic
+        and hue, not a container. None if there's none."""
+        try:
+            mine = call('GET', '/contents', serial=pack, depth=1)['items']
+        except uo.BridgeError:
+            return None
+        same = [i for i in mine if i['graphic'] == item['graphic'] and i.get('hue') == item.get('hue')
+                and not i.get('container')]
+        return max(same, key=lambda i: i.get('amount', 1))['serial'] if same else None
 
     def closer(self, me, m, threats):
         """One straight ride to CAST_SPOT tiles from m, to cast at it, clear of everything free. True when he's on his
@@ -1094,7 +1172,11 @@ class Fight:
         f = (d - CAST_SPOT) / d
         spot = clamp_area((round(me[0] + (m['x'] - me[0]) * f), round(me[1] + (m['y'] - me[1]) * f)))
         others = [xy(t) for t in threats if t['serial'] != m['serial']]
-        if path_clear(me, spot, others, SPACE) and self.mover.go(me, spot, 'closer to ' + m['serial']):
+        why = 'closer to ' + m['serial']
+        if self.mover.why == why and self.mover.going(me):
+            time.sleep(0.15)  # on his way already (this said so 30 times a second, 2026-11-06 17:10:32)
+            return True
+        if path_clear(me, spot, others, SPACE) and self.mover.go(me, spot, why):
             say(f'closer to {m["name"]} to cast ({d} -> {CAST_SPOT} tiles)')
             return True
         return False
@@ -1106,6 +1188,8 @@ class Fight:
             self.seen_message = max(m['id'] for m in new)
         for m in new:
             low = m['text'].lower()
+            if 'stop meditating' in low:
+                self.meditating = False  # a step or a spell ends the trance
             if 'too fatigued' in low:
                 self.tired = 'too'
             elif 'fatigued' in low and self.tired is None:

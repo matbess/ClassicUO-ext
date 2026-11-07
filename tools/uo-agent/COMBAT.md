@@ -162,7 +162,11 @@ door, not the server).
 - **Never just stop a fight**: an error or a vanished creature mustn't end the script with him standing there; it
   carries on and goes home.
 - A halted bridge (423 "stopped because the server went quiet") is a safety stop: Claude Code's permission check
-  may refuse a `uo resume` for it; tell the user, who can run it (`! … uo.py --char Clem resume`).
+  may refuse a `uo resume` for it; tell the user, who can run it (`! … uo.py --char Clem resume`). fight.py gets past
+  one kind itself: "no answer after dropping X" when nobody took over and X did land (merged into a stack, or in his
+  pack); any other stop ends the run, and **he is then standing out there with nothing running him**: act at once.
+- **Before any command by hand while he's out, look at the live state** (`uo nearby`, `uo status`), never at the
+  alerts: they run behind (17:11, below: Claude sent "meditate" with a gargoyle already hitting him).
 
 ## Bridge 7 (builds cuo-agent20-22; installed cuo-agent22, 2026-11-06 23:27)
 
@@ -221,6 +225,19 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **17:10** (south-east route): drew an orc (Romarod) and killed it with spells all the way: Energy Bolt x3 (25 ->
+  16 -> 7) and Fireball, no damage taken. Then the loot: 41 gold dropped into his pack merged into the 158 gold
+  already there, the dropped coins' serial vanished, and the bridge (waiting for them to show up in the pack) stopped
+  itself, "no answer after dropping 0x406D57D9" (17:10:46). fight.py stopped with it, leaving him standing at
+  1780,1433, 25 tiles out, with nothing running him; Claude's alert watcher ran behind and nobody looked. A gargoyle
+  came into sight at 17:10:56 (18 tiles, Gray), turned Criminal at 13 tiles at 17:11:10, was next to him at 17:11:17
+  and hit him from 100 to 69 by 17:11:21; then Claude resumed the bridge and sent Meditation, going by stale alerts
+  with the gargoyle on him (wrong: look first). The user took over at 17:11:22 and rode him in (48 at the door,
+  Greater Heal inside). Also: while riding closer to cast, "closer to Romarod" was logged 30 times a second (a busy
+  loop). -> looting drops onto a stack of the same kind in his pack (graphic and hue) when there is one, so the
+  bridge watches the stack grow; fight.py resumes a stop after a drop that landed; after a fight he meditates back
+  to full mana with nothing within 10 (the user: "You should be meditating to get back your mana, you just used a
+  lot"), then home; closer() waits while the ride is on.
 - **17:05** (east route): an ettin north of the front line; the spot to draw it from fell on his own tile and he
   "rode" there over and over (fixed: then he's there and waits); it came at him, nothing to set it on, so spells all
   the way: Energy Bolt x4 and Lightning at 2/25, every spell from 8 tiles, getaways in between: dead, no damage taken.
@@ -304,7 +321,9 @@ Each tick (a few a second) it reads his status, every creature within 18 tiles a
 5. Keep 8 from creatures fighting each other; with nothing loose within 10: one spell at a time at the fighting
    (casters, then the stronger of an uneven pair, else the weakest), no moving while it goes off; meditate when
    mana is short.
-6. Nothing coming or fighting: after a fight, home once it has been quiet 5 s; before one, draw the nearest creature:
+6. Nothing coming or fighting: after a fight, loot the corpses that fell (onto matching stacks in his pack; never
+   with a creature within 6 of the corpse or him), meditate back to full mana while nothing is within 10 (at most
+   150 s), then home once it has been quiet 5 s; before one, draw the nearest creature:
    ride straight to 5 tiles from it (casters 11: they notice him from far off), stand still and wait for it to turn
    Criminal (left be after 15 s); nothing in sight: ride to the lookout points (south first, then east) and look
    around 3 s at each.
@@ -318,7 +337,7 @@ spot, creatures coming once they've turned) and counts his walks and reversals: 
 
 - "remove thyself" for creatures on the front steps: add to "say", and answer its cursor with the creature.
 - The creature lists (passive, tiers, casters) grow with the user's word.
-- Re-trapping pouches after a fight (Magic Trap, 13) and looting are left to the user.
+- Re-trapping pouches after a fight (Magic Trap, 13) is left to the user.
 - fight.py hasn't yet finished a real provoke-and-kill: the next tries will tell how its leading, spells and
   thresholds work out; fights.jsonl's casts give the damage per spell.
 - Town trips (selling maps, CARTO.md) come after fighting works.

@@ -91,3 +91,47 @@ run('dire wolf winning against a mongbat', me, [mob('0xA', 'a dire wolf', 1781, 
 run('dire wolf and ogre evenly matched', me, [mob('0xA', 'a dire wolf', 1781, 1430, True, hits=18), mob('0xB', 'an ogre', 1782, 1431, True, hits=17)], setup=lambda f: (f.pairs.update({'0xA': '0xB'}), f.provoked_at.update({'0xA': time.time()})))
 # a harmless-looking timber wolf at his feet: get away from it
 run('timber wolf at his feet', me, [mob('0xT', 'a timber wolf', 1791, 1430)])
+
+# after the fight (2026-11-06 17:11, the user: "You should be meditating to get back your mana, you just used a lot"):
+# nothing near, mana down: meditate; a creature within 10: no standing about, home
+after = lambda f: (setattr(f, 'fought', True), setattr(f, 'quiet_since', time.time() - 6), setattr(f, 'looted', set()))
+low = dict(me, mana=40)
+run('after the fight, mana 40, nothing near: meditate', low, [], setup=after)
+run('after the fight, mana 40, a timber wolf 8 off: home, no meditating', low, [mob('0xT', 'a timber wolf', 1782, 1430)], setup=after)
+run('after the fight, mana full: home', me, [], setup=after)
+# killing one with spells (nothing to set it on): an ogre 5 off: a getaway first, no spell
+run('killing an ogre, it is 5 off: away first', me, [mob('0xB', 'an ogre', 1795, 1430, True)],
+    setup=lambda f: setattr(f, 'killing', '0xB'))
+
+# looting onto a stack of the same kind in his pack (17:10:46: the orc's gold merged into his gold, the bridge stopped)
+pack_items = [{'serial': '0xG', 'graphic': '0x0EED', 'hue': 0, 'amount': 158},
+              {'serial': '0xR', 'graphic': '0x0E76', 'hue': 34, 'container': True},
+              {'serial': '0xW', 'graphic': '0x1439', 'hue': 0}]
+fight.call = lambda method, ep, **kw: {'items': pack_items, 'lastMessageId': 0}
+f = fight.Fight(10)
+for item in ({'serial': '0x9', 'graphic': '0x0EED', 'hue': 0, 'amount': 41}, {'serial': '0x8', 'graphic': '0x0E76', 'hue': 34},
+             {'serial': '0x7', 'graphic': '0x0F3F', 'hue': 0}):
+    print(f'--- loot {item["graphic"]}: onto', f.stack_in('0x2', item) or 'the pack')
+
+# the bridge stopped after a drop: resumed only when it landed and nobody took over
+def recovery(name, status, item):
+    sent = []
+    def fake(info, method, ep, **kw):
+        if ep == '/status': return status
+        if ep == '/item':
+            if item is None: raise fight.uo.BridgeError(404, 'unknown item')
+            return item
+        sent.append(ep)
+        return {}
+    real, fight.uo.call = fight.uo.call, fake
+    try:
+        print(f'--- {name}:', 'resumed' if fight.recover_drop() and sent == ['/resume'] else 'stays stopped')
+    finally:
+        fight.uo.call = real
+pack = {'serial': '0x2'}
+drop = 'no answer after dropping 0x406D57D9'
+recovery('drop merged (item gone)', {'halted': drop, 'backpack': pack}, None)
+recovery('drop landed in his pack', {'halted': drop, 'backpack': pack}, {'insideOf': [{'serial': '0x2'}]})
+recovery('drop went elsewhere', {'halted': drop, 'backpack': pack}, {'insideOf': [{'serial': '0x5'}]})
+recovery('the user took over', {'halted': drop, 'takenOver': 'a step', 'backpack': pack}, None)
+recovery('another stop', {'halted': 'stopped because the server went quiet (no answer to a skill)', 'backpack': pack}, None)
