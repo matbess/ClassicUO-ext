@@ -203,7 +203,7 @@ def main():
     info = uo.find_bridge('Clem')
     st = call('GET', '/status')
     if st.get('bridge', 0) < 7:
-        sys.exit('needs bridge 7 (cuo-agent22)')
+        sys.exit('needs bridge 7 (cuo-agent23)')
     stopped = st.get('takenOver') or st.get('halted')
     if stopped and not args.resume:
         sys.exit(f'the user has him ({stopped}); --resume only once they hand him back')
