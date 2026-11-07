@@ -65,11 +65,14 @@ ON_HIM = 3              # a free creature this close: run, nothing else
 CLEAR = 10              # free creatures further than this: he may cast or meditate
 BACK_OFF = 9            # after a provoke, and from anything coming: get at least this far away
 FIGHT_GAP = 8           # keep this far from creatures fighting each other
-KEEP = 5                # one coming at him that he can't provoke yet: get away once it's closer than this
+KEEP = 3                # one coming at him: get away once it's closer than this (the user: stay about 3 tiles away)
 LONE_CAST = 10           # a lone one coming at him (nothing to set it on): cast at it from this far
-PAIR_RANGE = 7          # the two to provoke onto each other: at most this far apart (to tune)
-MAX_LEADS = 3           # leads toward one partner per follower
-PAST_PARTNER = 4        # leading a follower to a partner: ride this far past the partner
+PAIR_RANGE = 9          # the two to provoke onto each other: at most this far apart (the server's limit isn't known;
+                        # each "too far away from each other" is logged with the distance, to tune)
+ORBIT = 5               # bringing a follower near another creature: circle the other one this far off (the user)
+SPACE = 3               # and keep at least this far from every creature while doing it (the user: "like 3 tiles")
+FOLLOWER_ROOM = 5       # a ride while bringing the follower round keeps this far from it (it closes in meanwhile)
+ORBIT_FOR = 40          # seconds circling one pair before giving up on it
 KEEP_CASTER = 7         # the same for casters (gargoyles, gazers: dangerous; provoked first, killed first)
 DRAW_CASTER = 11        # drawing a caster: they notice him from far off (the user); no nearer than this
 LURE = 5                # drawing one: ride to about this far from it and wait for it to target him (the user)
@@ -236,6 +239,18 @@ def go_somewhere(me, score, radii=(5, 8), allowed=None):
     return None
 
 
+def path_clear(me, p, spots, space):
+    """Every tile of the straight ride from me to p stays at least `space` from each of `spots` (beyond those he's
+    already closer to than that, which he's getting away from)."""
+    n = max(dist(me, p), 1)
+    for i in range(1, n + 1):
+        q = (round(me[0] + (p[0] - me[0]) * i / n), round(me[1] + (p[1] - me[1]) * i / n))
+        for t in spots:
+            if dist(q, t) < space and dist(q, t) < dist(me, t):
+                return False
+    return True
+
+
 class Mover:
     """One destination at a time (the user, 2026-11-06: "Stop wiggling!!", it tires the horse). He stands still unless
     there's a reason to move; when he moves he rides straight to one spot, and another is only picked when he's
@@ -315,8 +330,9 @@ class Fight:
         self.arrived_at = None
         self.pending = None      # the last cast, for its damage once it has landed
         self.mover = Mover()
-        self.led = collections.Counter()  # (follower, partner): leads begun (each one ridden to the end or broken
-                                          # off by a getaway; at most MAX_LEADS, so no back and forth)
+        self.orbit_dir = {}      # (follower, partner): which way round he circles the partner (kept: never back)
+        self.orbit_since = {}    # (follower, partner): when he started circling
+        self.gave_up = set()     # (follower, partner): circled ORBIT_FOR without getting them close
         self.ignored = set()     # creatures that never came when drawn
         self.luring = None
         self.lure_since = 0.0
@@ -424,7 +440,9 @@ class Fight:
             self.unseen[b['serial']] = time.time() + UNSEEN_FOR
         ok = said(r2, 'your music succeeds')
         row(event='provoke', a=a['name'], a_serial=a['serial'], a_health=health(a), b=b['name'], b_serial=b['serial'],
-            b_health=health(b), ok=ok, text=texts(r1) + ' || ' + texts(r2))
+            b_health=health(b), ok=ok, apart=dist(xy(a), xy(b)), text=texts(r1) + ' || ' + texts(r2))
+        if said(r2, 'too far away from each other'):
+            say(f'too far apart at {dist(xy(a), xy(b))} tiles')
         say(f'provoke {a["name"]} onto {b["name"]}: {"worked" if ok else "failed"} ({texts(r2)!r})')
         if ok:
             self.pairs[a['serial']] = b['serial']
@@ -610,28 +628,14 @@ class Fight:
                 # a getaway is ridden to the end (switching between getting away and leading was the wiggle)
                 self.flee(me, [xy(m) for m in threats])
                 return False
-            if self.skill_ready() and not b and dist(me, xy(a)) >= keep:
+            if not b and dist(me, xy(a)) >= keep:
                 far = self.partner_for(me, a, mobs, 18)
-                # one lead per follower and partner, whether he gets there or has to break off and get away: after
-                # that he stands still and lets it come (leading again from wherever the follower had got to, and
-                # breaking off again, was another wiggle)
-                leading = far and self.mover.why == 'lead to ' + far['serial'] and self.mover.going(me)
-                if far and not leading and (self.led[(a['serial'], far['serial'])] >= MAX_LEADS
-                                            or dist(me, xy(a)) < keep + 2):
-                    far = None
-                if far:
-                    # it's following him: ride a few tiles past the other one (on the far side from the follower), so
-                    # the follower comes right by it and the two are close enough to set on each other; one spot,
-                    # kept until he's there
-                    vx, vy = far['x'] - a['x'], far['y'] - a['y']
-                    n = max(abs(vx), abs(vy), 1)
-                    spot = clamp_area((round(far['x'] + vx / n * PAST_PARTNER), round(far['y'] + vy / n * PAST_PARTNER)))
-                    # never a way that takes him nearer the one following him
-                    if (dist(spot, me) >= 2 and dist(spot, xy(a)) >= dist(me, xy(a))
-                            and self.mover.go(me, spot, 'lead to ' + far['serial'])):
-                        if not leading:
-                            self.led[(a['serial'], far['serial'])] += 1
-                        return False
+                if far and time.time() - self.orbit_since.setdefault((a['serial'], far['serial']), time.time()) > ORBIT_FOR:
+                    self.gave_up.add((a['serial'], far['serial']))
+                if far and (a['serial'], far['serial']) in self.gave_up:
+                    far = None  # circled long enough without getting them close: given up on that pair
+                if far and self.circle(me, a, far, threats):
+                    return False
             if dist(me, xy(a)) < keep:
                 far = b or self.partner_for(me, a, mobs, 18)
                 self.flee(me, [xy(m) for m in threats], toward=xy(far) if far else None)
@@ -639,7 +643,10 @@ class Fight:
             # nothing anywhere to set it on: the last one keeps coming; cast at it once a getaway has left it
             # LONE_CAST tiles behind (the user: keep running away while casting spells)
             spell = self.spell_for(a, st['mana'])
-            if (spell and not self.partner_for(me, a, mobs, 18) and dist(me, xy(a)) >= LONE_CAST and self.still(me)
+            usable = self.partner_for(me, a, mobs, 18)
+            if usable and (a['serial'], usable['serial']) in self.gave_up:
+                usable = None
+            if (spell and not usable and dist(me, xy(a)) >= LONE_CAST and self.still(me)
                     and min((dist(me, xy(m)) for m in coming if m is not a), default=99) >= LONE_CAST):
                 self.mover.clear()
                 self.cast_at(a, spell)
@@ -744,11 +751,51 @@ class Fight:
                 a = i * math.pi / 8
                 p = clamp_area((round(me[0] + r * math.cos(a)), round(me[1] + r * math.sin(a))))
                 if dist(p, me) >= 3:
-                    spots.append((all(dist(p, t) > dist(me, t) for t in near), score(p), p))
+                    spots.append((all(dist(p, t) > dist(me, t) for t in near) and path_clear(me, p, near, SPACE),
+                                  score(p), p))
         spots.sort(reverse=True)
         for _, _, p in spots[:8]:
             if m.go(me, p, 'flee', force=True):
                 return
+
+    def circle(self, me, a, b, threats):
+        """Bring follower a near b without going near either (the user, 2026-11-06): ride to about ORBIT tiles from b,
+        then circle b at that distance, always the same way round, a stretch at a time, at least SPACE tiles from every
+        creature; a, chasing him, gets dragged round close to b, and the provoke (checked first every tick) goes off as
+        soon as both are in range. One stretch at a time, kept until he's there: no back and forth."""
+        m = self.mover
+        why = 'circle ' + b['serial']
+        if m.why == why and m.going(me):
+            return True
+        key = (a['serial'], b['serial'])
+        bx, by = xy(b)
+        here = math.atan2(me[1] - by, me[0] - bx)
+        if key not in self.orbit_dir:
+            # the way round that takes him further from the follower to start with
+            def gap(sign):
+                p = (round(bx + ORBIT * math.cos(here + sign * 0.8)), round(by + ORBIT * math.sin(here + sign * 0.8)))
+                return dist(p, xy(a))
+            self.orbit_dir[key] = 1 if gap(1) >= gap(-1) else -1
+        sign = self.orbit_dir[key]
+        approaching = dist(me, xy(b)) > ORBIT + 2
+        steps = (0.0, 0.4, -0.4, 0.8, -0.8, 1.2, -1.2, 1.6, -1.6) if approaching else (0.8, 1.1, 0.5)
+        for step in steps:
+            ang = here + (sign * step if not approaching else step)
+            p = clamp_area((round(bx + ORBIT * math.cos(ang)), round(by + ORBIT * math.sin(ang))))
+            if dist(p, me) < 2:
+                continue
+            # getting there never brings him nearer the follower; circling keeps a bit more room from it
+            if approaching and dist(p, xy(a)) < dist(me, xy(a)):
+                continue
+            if not approaching and dist(p, xy(a)) < SPACE + 1:
+                continue
+            # the whole ride clear of every creature, and with more room from the follower, which closes in meanwhile
+            if (all(dist(p, xy(t)) >= SPACE for t in threats + [a, b])
+                    and path_clear(me, p, [xy(t) for t in threats + [b]], SPACE)
+                    and path_clear(me, p, [xy(a)], FOLLOWER_ROOM)):
+                if m.go(me, p, why, force=True):
+                    return True
+        return False
 
     def read_messages(self):
         """The server's word since the last look: the horse tiring."""

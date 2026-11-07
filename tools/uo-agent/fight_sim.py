@@ -41,10 +41,14 @@ def fake_call(method, ep, **kw):
     if ep == '/skill':
         return {'targeting': True, 'messages': [{'text': 'Whom do you wish to incite?'}]}
     if ep == '/target':
+        world.setdefault('aims', []).append(kw.get('serial'))
         if world.get('pair_check'):
             a, b = world['provoking']
             if fight.dist(fight.xy(a), fight.xy(b)) > 7:
                 return {'targeting': False, 'messages': [{'text': 'The creatures you are trying to provoke are too far away from each other for your music to have an effect.'}]}
+        aims = world['aims']
+        if len(aims) >= 2:
+            world.setdefault('provoked', {})[aims[-2]] = aims[-1]  # the first now goes for the second
         return {'targeting': True, 'messages': [{'text': 'Your music succeeds, as you start a fight.'}]}
     if ep == '/cast':
         return {'aimed': True, 'mana': 80, 'messages': []}
@@ -63,9 +67,15 @@ def step_world():
         d = fight.dist((me['x'], me['y']), fight.xy(m))
         if m['notoriety'] == 'Gray' and d <= m['_sees'] and not m['_stays']:
             m['notoriety'] = 'Criminal'
+        goal = (me['x'], me['y'])
+        other = world.get('provoked', {}).get(m['serial'])
+        if other:
+            o = next(x for x in world['mobs'] if x['serial'] == other)
+            goal = fight.xy(o)
+            d = fight.dist(fight.xy(m), goal)
         if m['notoriety'] == 'Criminal' and d > 1 and world['t'] % m['_speed'] == 0:
-            m['x'] += (me['x'] > m['x']) - (me['x'] < m['x'])
-            m['y'] += (me['y'] > m['y']) - (me['y'] < m['y'])
+            m['x'] += (goal[0] > m['x']) - (goal[0] < m['x'])
+            m['y'] += (goal[1] > m['y']) - (goal[1] < m['y'])
 
 
 def run(name, me, mobs, ticks=40):
@@ -74,19 +84,21 @@ def run(name, me, mobs, ticks=40):
     fight.say = lambda t: log.append(('say', world['t'], t))
     fight.row = lambda **k: None
     fight._last_walk.update(p=None, t=0.0)
-    world.update(me=dict(me), mobs=mobs, goal=None, t=0)
+    world.update(me=dict(me), mobs=mobs, goal=None, t=0, aims=[], provoked={})
     del log[:]
     f = fight.Fight(10)
     path = [(world['me']['x'], world['me']['y'])]
+    closest = 99
     for t in range(ticks):
         world['t'] = t
         f.tick()
         step_world()
         path.append((world['me']['x'], world['me']['y']))
+        closest = min([closest] + [fight.dist(path[-1], fight.xy(m)) for m in world['mobs']])
     walks = [e for e in log if e[0] == 'walk']
     moves = [(b[0] - a[0], b[1] - a[1]) for a, b in zip(path, path[1:]) if a != b]
     reversals = sum(1 for u, v in zip(moves, moves[1:]) if u[0] * v[0] + u[1] * v[1] < 0)
-    print(f'--- {name}: {len(walks)} walks, {reversals} reversals')
+    print(f'--- {name}: {len(walks)} walks, {reversals} reversals, closest to a creature {closest}')
     for e in log:
         if e[0] != 'walk' or True:
             print('   ', e[1], e[0], e[2] if e[0] != 'walk' else f'to {e[2][0]},{e[2][1]}')

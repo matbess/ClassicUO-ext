@@ -25,7 +25,11 @@ fight. Nothing goes to town until fighting works.
   after a login; the tambourine in his pack), then target the two creatures. Pair creatures of similar strength.
   Several can be set on one strong one, or all on each other, just to keep them off him.
   With one following him (e.g. a dire wolf), go only as close to another (e.g. an ogre) as provoking needs, provoke
-  the follower onto it, then get back away until he's sure nothing is coming after him.
+  the follower onto it, then get back away until he's sure nothing is coming after him. **Bringing two together**
+  (the user, 2026-11-06): stay far enough from both not to get hit, never right next to either; start trying to
+  provoke before getting close to either; circle round them, about 3 tiles from any of them. fight.py circles the
+  other one at about 5 tiles, always the same way round, every ride at least 3 from every creature and 5 from the
+  follower (it closes in meanwhile), and provokes as soon as both are within 8 of him and within 9 of each other.
 - **Casters first** (they hit from a distance); then the strong ones (water elemental, troll, dire wolf); weak ones
   like a mongbat last.
 - **Uneven pairs:** when one is about to die, its opponent will turn on him; cast at the stronger one so it's low or
