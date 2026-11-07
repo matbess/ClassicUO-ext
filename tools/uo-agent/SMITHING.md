@@ -201,6 +201,7 @@ Tinkering are set to rise, the rest to fall.
   female 20). The item is called "platemail gloves"; names match loosely, so "plate gloves" finds it.
 - Started 2026-11-07 10:42 at 99.0, plate gloves first (seeded in the state's `trial`), turns of 60 minutes.
 
-## Questions still open
-
-- How the trial comes out.
+- **The result** (2026-11-07): plate gloves +0.6 in their hour (99.0 -> 99.6; 363 crafts, 46 failed, 947 ingots);
+  spears +0.0 in theirs (353 crafts, **none failed**, 167 ingots). A craft that can't fail gives almost nothing at
+  this level, so they weren't "about the same": from 12:42 he makes plate gloves only (`run --item "plate gloves"`,
+  which stops by itself at 100), about 950 ingots an hour.
