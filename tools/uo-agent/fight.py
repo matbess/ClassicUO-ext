@@ -24,6 +24,7 @@ Logs to fight.log, and every cast (with the target's health before and after) an
 ~/claude/uo-agent-work/combat.
 """
 import argparse
+import collections
 import json
 import math
 import os
@@ -65,7 +66,10 @@ CLEAR = 10              # free creatures further than this: he may cast or medit
 BACK_OFF = 9            # after a provoke, and from anything coming: get at least this far away
 FIGHT_GAP = 8           # keep this far from creatures fighting each other
 KEEP = 5                # one coming at him that he can't provoke yet: get away once it's closer than this
-LONE_CAST = 8           # a lone one coming at him (nothing to set it on): cast at it from this far
+LONE_CAST = 10           # a lone one coming at him (nothing to set it on): cast at it from this far
+PAIR_RANGE = 7          # the two to provoke onto each other: at most this far apart (to tune)
+MAX_LEADS = 3           # leads toward one partner per follower
+PAST_PARTNER = 4        # leading a follower to a partner: ride this far past the partner
 KEEP_CASTER = 7         # the same for casters (gargoyles, gazers: dangerous; provoked first, killed first)
 DRAW_CASTER = 11        # drawing a caster: they notice him from far off (the user); no nearer than this
 LURE = 5                # drawing one: ride to about this far from it and wait for it to target him (the user)
@@ -311,6 +315,8 @@ class Fight:
         self.arrived_at = None
         self.pending = None      # the last cast, for its damage once it has landed
         self.mover = Mover()
+        self.led = collections.Counter()  # (follower, partner): leads begun (each one ridden to the end or broken
+                                          # off by a getaway; at most MAX_LEADS, so no back and forth)
         self.ignored = set()     # creatures that never came when drawn
         self.luring = None
         self.lure_since = 0.0
@@ -348,7 +354,14 @@ class Fight:
     def visible(self, serial):
         return self.unseen.get(serial, 0) < time.time()
 
+    def still(self, me):
+        """Standing still: the same tile on the last three looks and no ride under way. Casting while a step is under
+        way gets "You are frozen and cannot move." and the spell goes astray."""
+        h = self.positions[-3:]
+        return len(h) == 3 and all(p == me for p in h) and not self.mover.going(me)
+
     def remember(self, me, mobs):
+        self.positions = (getattr(self, 'positions', []) + [me])[-5:]
         now = time.time()
         for s, m in mobs.items():
             h = self.history.setdefault(s, [])
@@ -363,11 +376,12 @@ class Fight:
 
     # ---- provoking ----
 
-    def partner_for(self, me, a, mobs, reach):
+    def partner_for(self, me, a, mobs, reach, pair=None):
         """Something to set a on, within reach of him: like it first (the same tier), free before busy, then
         nearest to a; an animal will do."""
         cands = [m for m in mobs.values() if attackable(m) and m['serial'] != a['serial']
-                 and self.visible(m['serial']) and m['serial'] not in self.ignored and dist(me, xy(m)) <= reach]
+                 and self.visible(m['serial']) and m['serial'] not in self.ignored and dist(me, xy(m)) <= reach
+                 and (pair is None or dist(xy(a), xy(m)) <= pair)]
         if not cands:
             return None
         return min(cands, key=lambda m: (abs(tier(m) - tier(a)), self.busy(m['serial'], mobs), dist(xy(a), xy(m))))
@@ -396,7 +410,7 @@ class Fight:
         try:
             r1 = aim(a['serial'])
             if not r1.get('targeting'):
-                if said(r1, 'cannot be seen', 'line of sight', 'too far'):
+                if said(r1, 'cannot be seen', 'line of sight'):
                     self.unseen[a['serial']] = time.time() + UNSEEN_FOR
                 say(f'provoke {a["name"]}: {texts(r1)!r}')
                 cancel_cursor()
@@ -406,7 +420,7 @@ class Fight:
             say(f'provoke refused: {e}')
             cancel_cursor()
             return False
-        if said(r2, 'cannot be seen', 'line of sight', 'too far'):
+        if said(r2, 'cannot be seen', 'line of sight'):
             self.unseen[b['serial']] = time.time() + UNSEEN_FOR
         ok = said(r2, 'your music succeeds')
         row(event='provoke', a=a['name'], a_serial=a['serial'], a_health=health(a), b=b['name'], b_serial=b['serial'],
@@ -450,12 +464,27 @@ class Fight:
         self.meditating = False
         try:
             a = call('POST', '/cast', spell=spell, target=m['serial'])  # comes back once it's aimed (about 2 s)
+            if not a.get('aimed'):
+                # the bridge came back on a message before the cursor ("You are frozen and cannot move." when a step
+                # was still under way, 2026-11-06): the cursor still comes; aim it, or the next cast gets "You must
+                # wait for that spell to have an effect."
+                end = time.time() + 2.5
+                while time.time() < end:
+                    if call('GET', '/status').get('targeting'):
+                        try:
+                            aim(m['serial'])
+                            a['aimed'] = 'late'
+                        except uo.BridgeError as e:
+                            say(f'{NAMES[spell]}: the late cursor: {e}')
+                            cancel_cursor()
+                        break
+                    time.sleep(0.1)
         except uo.BridgeError as e:  # it died or went out of sight meanwhile
             say(f'{NAMES[spell]} at {m["name"]}: {e}')
             return
         finally:
             self.cast_until = time.time() + LAND_TIME
-        if said(a, 'cannot be seen', 'line of sight', 'too far'):
+        if said(a, 'cannot be seen', 'line of sight'):
             self.unseen[m['serial']] = time.time() + UNSEEN_FOR
         self.pending = {'spell': NAMES[spell], 'serial': m['serial'], 'name': m['name'], 'before': m.get('hits'),
                         'max': m.get('hitsMax'), 'at': time.time(), 'aimed': a.get('aimed'), 'text': texts(a),
@@ -568,7 +597,9 @@ class Fight:
         if coming:
             self.luring = None
             a = sorted(coming, key=lambda m: (kind(m) not in CASTERS, dist(me, xy(m))))[0]
-            b = self.partner_for(me, a, mobs, PROVOKE_RANGE)
+            # both within PROVOKE_RANGE of him and within PAIR_RANGE of each other ("The creatures you are trying to
+            # provoke are too far away from each other for your music to have an effect.": an orc 15 from a panther)
+            b = self.partner_for(me, a, mobs, PROVOKE_RANGE, pair=PAIR_RANGE)
             if self.skill_ready() and dist(me, xy(a)) <= PROVOKE_RANGE and b:
                 self.mover.clear()
                 if self.provoke(a, b):
@@ -581,15 +612,25 @@ class Fight:
                 return False
             if self.skill_ready() and not b and dist(me, xy(a)) >= keep:
                 far = self.partner_for(me, a, mobs, 18)
+                # one lead per follower and partner, whether he gets there or has to break off and get away: after
+                # that he stands still and lets it come (leading again from wherever the follower had got to, and
+                # breaking off again, was another wiggle)
+                leading = far and self.mover.why == 'lead to ' + far['serial'] and self.mover.going(me)
+                if far and not leading and (self.led[(a['serial'], far['serial'])] >= MAX_LEADS
+                                            or dist(me, xy(a)) < keep + 2):
+                    far = None
                 if far:
-                    # it's following him: ride to about PROVOKE_SPOT from the other one, on his side (away from the
-                    # follower), so both are in range; one spot, kept until he's there
-                    d = dist(me, xy(far))
-                    f = max(d - PROVOKE_SPOT, 0) / max(d, 1)
-                    spot = clamp_area((round(me[0] + (far['x'] - me[0]) * f), round(me[1] + (far['y'] - me[1]) * f)))
+                    # it's following him: ride a few tiles past the other one (on the far side from the follower), so
+                    # the follower comes right by it and the two are close enough to set on each other; one spot,
+                    # kept until he's there
+                    vx, vy = far['x'] - a['x'], far['y'] - a['y']
+                    n = max(abs(vx), abs(vy), 1)
+                    spot = clamp_area((round(far['x'] + vx / n * PAST_PARTNER), round(far['y'] + vy / n * PAST_PARTNER)))
                     # never a way that takes him nearer the one following him
                     if (dist(spot, me) >= 2 and dist(spot, xy(a)) >= dist(me, xy(a))
                             and self.mover.go(me, spot, 'lead to ' + far['serial'])):
+                        if not leading:
+                            self.led[(a['serial'], far['serial'])] += 1
                         return False
             if dist(me, xy(a)) < keep:
                 far = b or self.partner_for(me, a, mobs, 18)
@@ -598,7 +639,7 @@ class Fight:
             # nothing anywhere to set it on: the last one keeps coming; cast at it once a getaway has left it
             # LONE_CAST tiles behind (the user: keep running away while casting spells)
             spell = self.spell_for(a, st['mana'])
-            if (spell and not self.partner_for(me, a, mobs, 18) and dist(me, xy(a)) >= LONE_CAST
+            if (spell and not self.partner_for(me, a, mobs, 18) and dist(me, xy(a)) >= LONE_CAST and self.still(me)
                     and min((dist(me, xy(m)) for m in coming if m is not a), default=99) >= LONE_CAST):
                 self.mover.clear()
                 self.cast_at(a, spell)
@@ -618,6 +659,9 @@ class Fight:
                 m = self.cast_target(me, busy)
                 spell = self.spell_for(m, st['mana']) if m else None
                 if spell and not (self.meditating and st['mana'] < 60):
+                    if not self.still(me):
+                        time.sleep(0.15)  # let the ride finish first: no casting on the move
+                        return False
                     self.cast_at(m, spell)
                     return False
                 nearly_dead = any(share(b) is not None and share(b) < 0.25 for b in busy)

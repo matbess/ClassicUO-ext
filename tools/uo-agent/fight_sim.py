@@ -25,7 +25,8 @@ def mob(serial, name, x, y, sees=12, speed=1, stays=False):
 def fake_call(method, ep, **kw):
     me = world['me']
     if ep == '/status':
-        return dict(me, serial='0x1', hitsMax=100, backpack={'serial': '0x2'}, lastMessageId=0, mounted=True)
+        return dict(me, serial='0x1', hitsMax=100, backpack={'serial': '0x2'}, lastMessageId=0, mounted=True,
+                    targeting=False)
     if ep == '/nearby':
         return {'mobiles': [{k: v for k, v in m.items() if not k.startswith('_')} for m in world['mobs']]}
     if ep == '/messages':
@@ -40,6 +41,10 @@ def fake_call(method, ep, **kw):
     if ep == '/skill':
         return {'targeting': True, 'messages': [{'text': 'Whom do you wish to incite?'}]}
     if ep == '/target':
+        if world.get('pair_check'):
+            a, b = world['provoking']
+            if fight.dist(fight.xy(a), fight.xy(b)) > 7:
+                return {'targeting': False, 'messages': [{'text': 'The creatures you are trying to provoke are too far away from each other for your music to have an effect.'}]}
         return {'targeting': True, 'messages': [{'text': 'Your music succeeds, as you start a fight.'}]}
     if ep == '/cast':
         return {'aimed': True, 'mana': 80, 'messages': []}
@@ -92,3 +97,6 @@ run('a dire wolf 15 off, an ogre 12 beyond it', me,
     [mob('0xD', 'a dire wolf', 1756, 1445, sees=5), mob('0xO', 'an ogre', 1768, 1452, stays=True)])
 run('a gargoyle (caster) 18 off, a dire wolf off to the side', me,
     [mob('0xG', 'a gargoyle', 1756, 1448, sees=14), mob('0xD', 'a dire wolf', 1745, 1440, stays=True)])
+
+run('an orc 15 off, a panther 15 off to the side (the two far apart)', me,
+    [mob('0xR', 'Ulmragha', 1756, 1445, sees=5), mob('0xP', 'a panther', 1745, 1440, stays=True)], ticks=45)

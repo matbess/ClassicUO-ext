@@ -42,6 +42,7 @@ def run(name, me, mobs, setup=None):
     scene['me'] = me; scene['mobs'] = {m['serial']: m for m in mobs}
     fight._last_walk.update(p=None, t=0.0)  # each scene starts fresh (no walk from the one before)
     f = fight.Fight(10)
+    f.positions = [(me['x'], me['y'])] * 3  # he has been standing here (casting needs that)
     if setup: setup(f)
     acts = []
     f.tick()
