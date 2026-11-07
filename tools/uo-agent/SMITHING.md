@@ -150,7 +150,7 @@ Tinkering are set to rise, the rest to fall.
   `cd ~/claude/ClassicUO/tools/uo-agent; exec python3 -I ~/claude/ClassicUO/tools/uo-agent/smith.py run`.
   It needs Icepick logged in with the Agent bridge ticked, at his spot with the chest in reach.
 - **Watch** the log with a Monitor (30 minutes at most, re-arm at each expiry):
-  `tail -n 0 -F ~/claude/uo-agent-work/smith/smith.log | grep -E --line-buffered "start:|now making|STOPPED|-> [0-9]+ after|broke|supplies|low|instead|not under|craft [0-9]+|ore smelted|interrupted|from the bag|couldn't|no Blacksmithy menu|cancelled|lagged|answered again|Traceback|Error"`.
+  `tail -n 0 -F ~/claude/uo-agent-work/smith/smith.log | grep -E --line-buffered "start:|now making|STOPPED|-> [0-9]+ after|broke|supplies|low|instead|not under|craft [0-9]+|ore smelted|interrupted|from the bag|couldn't|no Blacksmithy menu|cancelled|lagged|answered again|trial|Traceback|Error"`.
   Every 0.1 gained logs a "Blacksmithy A -> B" line (several a minute at first), so the filter takes only whole
   points ("-> 59 after").
 - **Stop**: `python3 -I smith.py stop` (after the craft it's on; waits for the loop to end). No hiding needed indoors.
@@ -189,6 +189,16 @@ Tinkering are set to rise, the rest to fall.
   0x4094AC9F, broken at 04:07:18, back in his pack; no save notice survives the relog, so the save point came from
   the ingots: bag and pack matched the top-up at 03:56, and 20 of the 150 were gone), running again at 04:20:14.
 
+## The trial at 99 (`smith.py run --trial MINUTES`)
+
+- The loop stops at 99. Then `run --trial 60` makes spears and plate gloves in turns of 60 minutes and keeps, for
+  each, the time smithing, the skill gained, crafts, failures and ingots used (state `trial`), until 100. At each
+  turn it logs "trial: spear -> plate gloves; so far spear: +0.2 in 1.00 h (0.20 an hour) ...". Gains come 0.1 at
+  a time and slowly at 99, so it takes several turns before the two can be told apart; if they're about the same,
+  spears (the user).
+- Where plate gloves are: under Armor, the kind not known yet; the menus are searched (each kind in turn) and the
+  name matched loosely, so "platemail gloves" counts.
+
 ## Questions still open
 
-- The trial at 99: how long to run each of spears and plate gloves, and where plate gloves are in the Armor menus.
+- How the trial comes out.

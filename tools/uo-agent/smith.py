@@ -3,6 +3,8 @@
 
   python3 -I smith.py run [--item NAME]   the loop: craft, smelt back, repeat until Blacksmithy is 99 (the item for
                                           the skill comes from the user's table; --item makes one kind regardless)
+  python3 -I smith.py run --trial 60      at 99: spear and plate gloves in turns of 60 minutes, each one's gain,
+                                          time, crafts and ingots kept (state 'trial'), until 100
   python3 -I smith.py stop                the running loop stops after the craft it is on, and the command waits
   python3 -I smith.py report              totals, skill gained, crafts per hour, hammers
   python3 -I smith.py ore                 smelt the ore in the grey bag into ingots (the user: first, whenever there is)
@@ -52,6 +54,8 @@ SMELT_AT_ONCE = 25      # ore per trip to the forge (300 stones)
 HAMMER_GRAPHICS = ('0x13E3', '0x13E4', '0x0FB4', '0x0FB5')  # smith's hammers, sledge hammers
 SKILL = 'Blacksmithy'
 STOP_AT = 99.0          # then the spear / plate gloves trial (SMITHING.md)
+CAP = 100.0
+TRIAL_ITEMS = ('spear', 'plate gloves')  # the user, 2026-11-05: at 99 try both; about the same -> spears
 
 # the user's table (2026-11-05): below each level, the item to make, and where it is in the menus
 ITEMS = [
@@ -404,10 +408,22 @@ def top_up_ingots(state, force=False):
 
 # ---- menus ----
 
+def same_item(name, other):
+    """Whether other names the item called name: the same words, or every word of name inside it ("plate gloves"
+    for "platemail gloves", the server's name being unknown until the trial at 99)."""
+    other = (other or '').split(':')[0].strip().lower()
+    return other == name.lower() or all(w in other for w in name.lower().split())
+
+
 def menu_item(dialog, name):
-    """The index of the item called name ("cutlass" matches "cutlass: 8 Ingots"), or None."""
-    for item in dialog.get('items', []):
+    """The index of the item called name ("cutlass" matches "cutlass: 8 Ingots"), or None. An exact name first,
+    then one with all its words (same_item)."""
+    items = dialog.get('items', [])
+    for item in items:
         if item['name'].split(':')[0].strip().lower() == name.lower():
+            return item['index']
+    for item in items:
+        if same_item(name, item['name']):
             return item['index']
     return None
 
@@ -583,7 +599,7 @@ def smelt_item(hammer_serial, serial):
 def made_items(items):
     """Crafted things in his pack (any item from the table, or plate gloves), e.g. one left after a stop."""
     names = [n for _, n, _ in ITEMS] + list(OTHER_PLACES)
-    return [i for i in items if (i.get('type') or '').lower() in names]
+    return [i for i in items if any(same_item(n, i.get('type')) for n in names)]
 
 
 # ---- the loop ----
@@ -595,7 +611,20 @@ def item_for(value):
     return ITEMS[-1][1]
 
 
-def run(forced_item):
+def trial_note(state):
+    """The trial's totals so far, one item after the other."""
+    parts = []
+    for name in TRIAL_ITEMS:
+        x = state.get('trial', {}).get('items', {}).get(name)
+        if not x or not x.get('seconds'):
+            continue
+        hours = x['seconds'] / 3600
+        parts.append(f"{name}: +{x['gain']:.1f} in {hours:.2f} h ({x['gain'] / hours:.2f} an hour), {x['crafts']} "
+                     f"crafts ({x['failed']} failed), {x['ingots']} ingots used")
+    return '; '.join(parts) or 'nothing yet'
+
+
+def run(forced_item, trial_minutes=None):
     if os.path.exists(STOP_FILE):
         os.remove(STOP_FILE)
     state = load_state()
@@ -623,7 +652,11 @@ def run(forced_item):
         # ingots as used, and the smelt gives them back (2026-11-06: taking them off here undercounted by 12)
     say(supplies(state))
     say(f"start: {SKILL} {value}; {ingots.get('amount')} ingots in his pack" +
-        (f'; making {forced_item} (--item)' if forced_item else ''))
+        (f'; making {forced_item} (--item)' if forced_item else '') +
+        (f'; trial: {" and ".join(TRIAL_ITEMS)} in turns of {trial_minutes} minutes' if trial_minutes else ''))
+    trial = state.setdefault('trial', {'items': {}}) if trial_minutes else None
+    if trial is not None and trial.get('block_item') not in TRIAL_ITEMS:
+        trial['block_item'], trial['block_start'] = TRIAL_ITEMS[0], time.time()
     since_ore = 0
     interrupted = 0
     last_craft = None
@@ -632,10 +665,17 @@ def run(forced_item):
             os.remove(STOP_FILE)
             say('STOPPED: asked to stop')
             break
-        if value >= STOP_AT and not forced_item:
+        if value >= CAP:
+            say(f'STOPPED: {SKILL} reached {value}, the cap' + (f'; trial: {trial_note(state)}' if trial else ''))
+            break
+        if value >= STOP_AT and not forced_item and trial is None:
             say(f'STOPPED: {SKILL} reached {value}: time for the spear / plate gloves trial (SMITHING.md)')
             break
-        item = forced_item or item_for(value)
+        if trial is not None and time.time() - trial['block_start'] >= trial_minutes * 60:
+            other = TRIAL_ITEMS[(TRIAL_ITEMS.index(trial['block_item']) + 1) % len(TRIAL_ITEMS)]
+            say(f"trial: {trial['block_item']} -> {other}; so far {trial_note(state)}")
+            trial['block_item'], trial['block_start'] = other, time.time()
+        item = forced_item or (trial['block_item'] if trial is not None else item_for(value))
         if item != state.get('item'):
             say(f'now making {item} ({SKILL} {value})')
             state['item'] = item
@@ -665,8 +705,9 @@ def run(forced_item):
         t['crafts'] += 1
         since_ore += 1
         now = time.time()
-        if last_craft and now - last_craft < 60:
-            t['timed_seconds'] = t.get('timed_seconds', 0) + now - last_craft
+        cycle = now - last_craft if last_craft and now - last_craft < 60 else None
+        if cycle:
+            t['timed_seconds'] = t.get('timed_seconds', 0) + cycle
             t['timed_crafts'] = t.get('timed_crafts', 0) + 1
         last_craft = now
         state.setdefault('hammers', {})[h] = state.get('hammers', {}).get(h, 0) + 1
@@ -695,7 +736,7 @@ def run(forced_item):
                 top_up_ingots(state, force=True)
         after_craft = pack_ingots()
         for m in made:
-            if item not in (m.get('type') or '').lower():
+            if not same_item(item, m.get('type')):
                 # Make Last Item made something else (the user crafted by hand in between?): the menus next time
                 say(f"made {m.get('type')} instead of {item}")
                 state.pop('last_item', None)
@@ -708,6 +749,13 @@ def run(forced_item):
         t['ingots_spent'] = t.get('ingots_spent', 0) + max(0, before_craft - after_craft)
         t['ingots_returned'] = t.get('ingots_returned', 0) + max(0, after_smelt - after_craft)
         t['ingots_used'] = t.get('ingots_used', 0) + before_craft - after_smelt
+        if trial is not None:
+            x = trial['items'].setdefault(item, {'seconds': 0, 'gain': 0, 'crafts': 0, 'failed': 0, 'ingots': 0})
+            if cycle:
+                x['seconds'] += cycle
+            x['crafts'] += 1
+            x['failed'] += 'failed' in low
+            x['ingots'] += before_craft - after_smelt
         if broke:
             # after this craft's ingots are counted, so the totals agree
             say(supplies(state))
@@ -719,6 +767,9 @@ def run(forced_item):
                 f"{SKILL} {value} -> {new} after {t['crafts']} crafts ({t['made']} made, {t['failed']} failed)")
             if int(new) > int(value):
                 say(supplies(state))
+            if trial is not None:
+                x = trial['items'].setdefault(item, {'seconds': 0, 'gain': 0, 'crafts': 0, 'failed': 0, 'ingots': 0})
+                x['gain'] = round(x['gain'] + new - value, 1)
             value = new
         t['skill'] = value
         save_state(state)
@@ -761,6 +812,8 @@ def main():
     sub = p.add_subparsers(dest='cmd', required=True)
     r = sub.add_parser('run')
     r.add_argument('--item')
+    r.add_argument('--trial', type=int, metavar='MINUTES',
+                   help='at 99: spear and plate gloves in turns of MINUTES, totals for each, until 100')
     sub.add_parser('stop')
     sub.add_parser('report')
     sub.add_parser('ore')
@@ -789,7 +842,7 @@ def main():
             with open(PID, 'w') as fh:
                 fh.write(str(os.getpid()))
             try:
-                run(args.item)
+                run(args.item, args.trial)
             finally:
                 os.remove(PID)
     except Stop as e:
