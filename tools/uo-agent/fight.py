@@ -74,8 +74,10 @@ BACK_OFF = 9            # after a provoke, and from anything coming: get at leas
 FIGHT_GAP = 6           # keep this far from creatures fighting each other (spells need 6 clear: CAST_CLEAR)
 HEAL_CLEAR = 10         # healing only with every creature this far off; hurt, he rides 10 away first (the user)
 KEEP = 3                # one coming at him: get away once it's closer than this (the user: stay about 3 tiles away)
+UNEVEN = 0.2            # a fight is uneven (bolt the one winning) when its health share leads by this much
 CAST_WHEN = 0.40        # a creature fighting another: spells only once it's down to this share (or a caster, or
                         # the stronger of an uneven pair); until then they wear each other down and he meditates
+LOOT_CLEAR = 6          # no looting with any creature this close to the corpse or to him
 LOOT_RANGE = 10         # after a fight: corpses this close that fell during it get looted
 SPELL_RANGE = 10        # a spell from further: "That is too far away." (Energy Bolt at 11 tiles, 2026-11-06 16:31)
 CAST_SPOT = 8           # out of spell range (or "That is too far away."): ride to this far from it first
@@ -602,12 +604,17 @@ class Fight:
         casters = [m for m in reach if kind(m) in CASTERS]
         if casters:
             return min(casters, key=lambda m: share(m) if share(m) is not None else 1.0)
-        for m in reach:
+        # even the fight out (the user, 2026-11-06: a mongbat losing to a dire wolf: "your job is to even out the
+        # fight", bolt the dire wolf, the strongest, never the one losing): at a pair where one is clearly winning,
+        # the winner; an even fight is left to wear both down
+        for m in sorted(reach, key=lambda m: (-(share(m) or 0), -tier(m))):
             o = mobs.get(self.partner_of(m['serial']) or '')
-            if o and share(o) is not None and share(m) is not None and share(o) < 0.35 and share(m) - share(o) > 0.2:
+            if not (o and attackable(o)):
+                continue
+            sm, so = share(m) or 0, share(o) or 0
+            if sm - so >= UNEVEN or (sm >= so and tier(m) > tier(o)):
                 return m
-        low = [m for m in reach if share(m) is not None and share(m) <= CAST_WHEN]
-        return min(low, key=share) if low else None
+        return None
 
     def cast_at(self, m, spell):
         self.meditating = False
@@ -728,8 +735,12 @@ class Fight:
             time.sleep(0.15)  # frozen while the spell goes off: just watch
             return False
 
-        # something right on him: get away, away from all of them and toward the tower
-        if dfree <= ON_HIM:
+        # something right on him, any creature at all (a timber wolf "left alone" bit him at his feet, 2026-11-06):
+        # get away first (the user: "#1 priority is always maintain distance")
+        dany_creature = min((dist(me, xy(m)) for m in mobs.values() if attackable(m)), default=99)
+        if dfree <= ON_HIM or dany_creature <= ON_HIM - 1:
+            threats = threats + [m for m in mobs.values() if attackable(m) and dist(me, xy(m)) <= ON_HIM
+                                 and m not in threats]
             self.meditating = False
             self.flee(me, [xy(m) for m in threats])
             return False
@@ -993,6 +1004,14 @@ class Fight:
             name = (c.get('type') or c.get('name') or '').lower()
             if (int(c['graphic'], 16) != 0x2006 or c['serial'] in self.looted or c['serial'] in self.corpses_before
                     or 'corpse of' in name):
+                continue
+            # never in to a corpse with a creature near it or him, any creature (the user, 2026-11-06: "you just ran
+            # in to loot when the wolf was right next to the corpse"): wait for it to go
+            try:
+                creatures = [m for m in call('GET', '/nearby', range=18)['mobiles'] if attackable(m)]
+            except uo.BridgeError:
+                return False
+            if any(dist(xy(m), (c['x'], c['y'])) < LOOT_CLEAR or dist(xy(m), me) < LOOT_CLEAR for m in creatures):
                 continue
             self.looted.add(c['serial'])
             if dist(me, (c['x'], c['y'])) > 1:

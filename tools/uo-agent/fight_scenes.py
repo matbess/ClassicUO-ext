@@ -84,3 +84,10 @@ run('two panthers 14 off: left be (search instead)', me, [mob('0xP', 'a panther'
 run('timber wolf 8 off, not attacking: left be', me, [mob('0xT', 'a timber wolf', 1782, 1430)])
 run('panther attacking him (war mode, 5 off): a threat after all', me, [mob('0xP', 'a panther', 1785, 1430, True)])
 run('dire wolf 15 off: drawn', me, [mob('0xD', 'a dire wolf', 1805, 1430)])
+
+# a dire wolf beating a mongbat (provoked): bolt the dire wolf, the one winning, never the mongbat
+run('dire wolf winning against a mongbat', me, [mob('0xA', 'a dire wolf', 1781, 1430, True, hits=22), mob('0xM', 'a mongbat', 1782, 1431, True, hits=10)], setup=lambda f: (f.pairs.update({'0xM': '0xA'}), f.provoked_at.update({'0xM': time.time()})))
+# an even fight: let them wear each other down (no spell)
+run('dire wolf and ogre evenly matched', me, [mob('0xA', 'a dire wolf', 1781, 1430, True, hits=18), mob('0xB', 'an ogre', 1782, 1431, True, hits=17)], setup=lambda f: (f.pairs.update({'0xA': '0xB'}), f.provoked_at.update({'0xA': time.time()})))
+# a harmless-looking timber wolf at his feet: get away from it
+run('timber wolf at his feet', me, [mob('0xT', 'a timber wolf', 1791, 1430)])

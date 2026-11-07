@@ -41,8 +41,13 @@ fight. Nothing goes to town until fighting works.
   follower (it closes in meanwhile), and provokes as soon as both are within 8 of him and within 9 of each other.
 - **Casters first** (they hit from a distance); then the strong ones (water elemental, troll, dire wolf); weak ones
   like a mongbat last.
-- **Uneven pairs:** when one is about to die, its opponent will turn on him; cast at the stronger one so it's low or
-  dead before it's freed (fight 1: the user bolted the headless one while its mongbat was dying).
+- **Uneven pairs: even the fight out.** When one is losing, cast at the one winning (the stronger), never the one
+  losing, so it's low or dead before it's freed (fight 1: the user bolted the headless one while its mongbat was
+  dying; 2026-11-06 16:58: "You killed the wrong one first ... your job is to even out the fight", the dire wolf,
+  not the mongbat). An even fight is left to wear both down (mana sparingly).
+- **Looting**: never ride in to a corpse with a creature near it or him (the user, 2026-11-06: "you just ran in to
+  loot when the wolf was right next to the corpse"): wait for it to go.
+- **Distance from every creature**, harmless-looking ones too: a timber wolf "left alone" bit him at his feet.
 - **When one dies** its opponents turn on him: provoke them onto another creature. The last one alive: keep running
   and cast at it, or provoke it onto an animal or another creature (fight 1: a llama 15 tiles off).
 - **A creature already fighting something else is the chance to attack it** (the user, 2026-11-06: he stood waiting
@@ -208,6 +213,12 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **16:57**: the first full round on his own: reagents, out, a mongbat at the door nipped him (97) and he got away,
+  provoked it onto the dire wolf, circled a timber wolf and provoked the dire wolf onto it, bolted the dire wolf dead
+  (24 -> 14 -> 6 -> dead), home, in, locked. But he bolted the mongbat first (losing to the wolf: the wrong one), rode
+  in to loot with the timber wolf next to the corpse (it bit him) and never got to the corpses. -> even the fight out
+  (bolt the winner, never the loser; leave an even fight be); distance from every creature, harmless-looking or not;
+  no looting with a creature within 6 of the corpse or him.
 - **16:50** (cuo-agent23): a dire wolf by the tower never turned on him in 15 s, so it was left be (and wrongly
   written into trapped.json for good); nothing else anywhere, so home; the wolf was at the front door, he went back
   and forth trying to get in, it turned on him there, and being "left be" it was also left out of the "anything near
