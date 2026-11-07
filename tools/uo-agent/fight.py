@@ -81,10 +81,15 @@ SPELL_FAILS = ('fizzles', 'concentration is disturbed', 'too far away', 'cannot 
                'insufficient mana', 'more reagents', 'already casting', 'must wait', 'not yet recovered',
                'will not adhere', 'target is not')
 SPELL_SETTLE = 3.0      # seconds: a spell with no word against it by then went off
-SPELL_GAP = 2.0         # seconds from one spell sent to the next (18:49:49-55: one a second, every other one came back
-                        # "You are already casting a spell.")
-HIT_AFTER = 1.0         # a target's health falling sooner than this after the cast is someone else's doing (it was
-                        # fighting an orc), not the spell landing
+CIRCLE = {HEAL: 1, CURE: 2, FIREBALL: 3, GREATER_HEAL: 4, LIGHTNING: 4, MAGIC_REFLECTION: 5, 38: 5, ENERGY_BOLT: 6}
+
+
+def land_time(spell):
+    """Seconds from sending a spell to it landing, by its circle: seen 2.7-3.0 s for Energy Bolt, 2.3 for Lightning,
+    1.9-2.2 for Fireball (2026-11-06 19:01-19:03). The next spell waits for it (18:49:49-55, one a second: every other
+    one "You are already casting a spell."; 19:02:48, 2 s after a bolt: "You must wait for that spell to have an
+    effect."), and a target's health falling well before it is someone else's doing (it was fighting an orc)."""
+    return 1.25 + 0.25 * CIRCLE.get(spell, 6)
 PARTNER = None          # --partner KIND: set creatures on this kind first when there's one (the user, 2026-11-06 18:33:
                         # "put him on the panther")
 ROUND = 10              # leading a caster round to a partner when it's in the way: waypoints this far from the caster
@@ -480,6 +485,7 @@ class Fight:
         self.pending = None      # the last cast, for its damage once it has landed
         self.spell = None        # the spell on its way: what, at whom, since when, the last message before it
         self.last_cast = 0.0
+        self.last_gap = 0.0
         self.reflect_up = False  # Magic Reflection on him (the next spell at him bounces); down when a creature casts
         self.caster_since = {}   # caster serial -> since when it has been after him
         self.fought_with = set() # creatures he set fighting or cast at: threats from then on, however harmless their
@@ -715,6 +721,11 @@ class Fight:
         casters = [m for m in reach if kind(m) in CASTERS]
         if casters:
             return min(casters, key=lambda m: share(m) if share(m) is not None else 1.0)
+        # one nearly dead: finish it now with a cheap spell, no waiting for full mana (19:03:03-44: both at 0-1/25 for
+        # 40 s while he waited); the one after him first
+        dying = [m for m in reach if share(m) is not None and share(m) <= LOW]
+        if dying:
+            return min(dying, key=lambda m: (not self.coming(m), share(m)))
         # even the fight out (the user, 2026-11-06: a mongbat losing to a dire wolf: "your job is to even out the
         # fight", bolt the dire wolf, the strongest, never the one losing): at a pair where one is clearly winning,
         # the winner; an even fight is left to wear both down
@@ -740,7 +751,7 @@ class Fight:
         in the messages (settle_spell), so he goes on moving and looking meanwhile. Bridge 7: it answers once the
         cursor is aimed (a late cursor is aimed here). Either way self.spell holds it until it's settled. The answer,
         or None when the bridge refused."""
-        if self.spell or time.time() - self.last_cast < SPELL_GAP:
+        if self.spell or time.time() - self.last_cast < self.last_gap:
             time.sleep(0.1)  # one spell at a time ("You are already casting a spell."): this one settles first
             return None
         self.meditating = False
@@ -776,6 +787,7 @@ class Fight:
         self.spell = {'spell': spell, 'target': target, 'name': name, 'kind': kind, 'at': time.time(),
                       'before': before}
         self.last_cast = time.time()
+        self.last_gap = land_time(spell) + 0.2
         return a
 
     def cast_at(self, m, spell):
@@ -829,7 +841,7 @@ class Fight:
             if t is None or not attackable(t):
                 result, why = 'success', 'it is dead or gone'
             elif (p.get('hits') is not None and t.get('hits') is not None and t['hits'] < p['hits']
-                  and time.time() - p['at'] >= HIT_AFTER):
+                  and time.time() - p['at'] >= land_time(p['spell']) - 0.6):
                 result, why = 'success', f'{p["hits"]} -> {t["hits"]}/{t.get("hitsMax")}'
         if result is None and time.time() - p['at'] >= SPELL_SETTLE:
             result, why = 'success', 'nothing against it'
@@ -1087,8 +1099,11 @@ class Fight:
                     self.cast_at(m, spell)
                     return False
                 nearly_dead = any(share(b) is not None and share(b) < 0.25 for b in busy)
-                if (not self.meditating and not nearly_dead and st['mana'] < st.get('manaMax', 100) - 10
-                        and self.skill_ready()):
+                # never with one after him close by, fighting or not (19:02:23: a dire wolf 5 off, after him, counted
+                # as busy with a timber wolf, and he sat down to meditate)
+                after_him = any(self.coming(t) and dist(me, xy(t)) <= CLEAR for t in threats)
+                if (not self.meditating and not nearly_dead and not after_him
+                        and st['mana'] < st.get('manaMax', 100) - 10 and self.skill_ready()):
                     self.last_skill = time.time()
                     a = call('POST', '/skill', id=MEDITATE)
                     self.meditating = said(a, 'meditative trance', 'at peace')

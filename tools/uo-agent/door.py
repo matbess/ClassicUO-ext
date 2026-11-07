@@ -150,11 +150,21 @@ def close_east():
         say(f'the east half: {e}')
 
 
+SAFE = (1753, 1405, 1761, 1411)  # inside the red cloth line (x1, y1, x2, y2)
+
+
+def in_safe_zone(p):
+    return SAFE[0] <= p[0] <= SAFE[2] and SAFE[1] <= p[1] <= SAFE[3]
+
+
 def park():
-    """Into the safe zone, away from the door."""
-    if where() != PARK:
-        r = walk(PARK)
-        say('parked in the safe zone' if r.get('arrived') else f'could not get to the safe zone: {r}')
+    """Into the safe zone, away from the door (anywhere inside the red line will do: the walk to 1757,1410 stopped a
+    tile short at 1757,1411 once)."""
+    if not in_safe_zone(where()):
+        walk(PARK)
+    here = where()
+    say(f'parked in the safe zone at {here[0]},{here[1]}' if in_safe_zone(here)
+        else f'NOT in the safe zone: at {here[0]},{here[1]}')
 
 
 def step(p, what):

@@ -250,3 +250,15 @@ run('after the fight, the hart left at 1/25, 8 off: finish it before looting', m
     [mob('0xH', 'a great hart', 1798, 1430, False, hits=1)], setup=survivor)
 run('after the fight, the hart left at 1/25, 2 off: get away from it first', me,
     [mob('0xH', 'a great hart', 1792, 1430, False, hits=1)], setup=survivor)
+
+# 19:01-19:04 run: finish one nearly dead straight away; no meditating with one after him close by
+fight.ASYNC = True
+fight.call = fake_call
+dying = [mob('0xD', 'a dire wolf', 1800, 1430, True, hits=1), mob('0xT', 'a timber wolf', 1801, 1431, False, hits=2)]
+pair_dying = lambda f: (f.pairs.update({'0xD': '0xT'}), f.provoked_at.update({'0xD': time.time()}),
+                        f.fought_with.update({'0xD', '0xT'}))
+run('dire wolf 1/25 and timber wolf 2/25 fighting, mana 60: finish the dire wolf now', dict(me, mana=60), dying,
+    setup=pair_dying)
+busy_close = [mob('0xD', 'a dire wolf', 1797, 1430, True, hits=10), mob('0xT', 'a timber wolf', 1798, 1430, False, hits=20)]
+run('dire wolf after him 7 off, busy with a timber wolf, mana 37: no meditating', dict(me, mana=37), busy_close,
+    setup=lambda f: (f.pairs.update({'0xD': '0xT'}), f.provoked_at.update({'0xD': time.time()})))

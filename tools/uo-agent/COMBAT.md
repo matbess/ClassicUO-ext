@@ -285,6 +285,20 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **19:01** (the user brought a dire wolf and a gargoyle to the steps, both after him, a gazer north): Reflection
+  still up ("already in effect"); out, Paralyze at the gargoyle 4 off, door shut and locked, the east half untouched.
+  Two seconds later: "provoke a gargoyle onto a dire wolf: worked". Energy Bolts at the busy gargoyle 24 -> 20 -> 14
+  -> 8, Lightning -> 4, Fireball -> 2, Fireball: dead (19:01:58), none of them "already casting"; mana kept above 30.
+  The dire wolf (18/25) then came at him: away south, killing it with spells (one bolt, 18 -> 10), mana down to 35
+  (the reserve: no more), then led round to a timber wolf and provoked onto it (19:02:45); evened the fight (spells
+  at the timber wolf while it was winning, then at the dire wolf), meditated while they fought. The dire wolf ran
+  off at 1/25 out of sight; looted the gargoyle (113 gold, a Mana Vampire scroll), home, locked, in the safe zone
+  (1757,1411). **Health 100 the whole run.** Wrong: (1) at 19:02:23 he sat down to meditate with the dire wolf after
+  him 5-7 off (it counted as busy with a timber wolf): never meditate with one after him within 10; (2) a Lightning
+  2 s after a bolt: "You must wait for that spell to have an effect." (a bolt takes 2.7-3 s to land): the wait now
+  goes by the spell's circle (land_time); (3) both at 0-1/25 for 40 s (19:03:03-44) while he waited for full mana:
+  one nearly dead (15% or less) is finished at once with a cheap spell, the one after him first; (4) the walk to
+  the parking spot stopped a tile short: anywhere inside the red line counts.
 - **18:48** (cuo-agent25; the gargoyle Criminal beside the steps at 1759,1415, behind the forge): **the first full
   round against a caster.** Black pearl at 24, so a restock (all to 35-45); Magic Reflection inside; out to 1756,1415
   and Paralyze at the gargoyle 3 tiles off, the door shut, "That is locked.". The gargoyle came out at 22/25 (its
