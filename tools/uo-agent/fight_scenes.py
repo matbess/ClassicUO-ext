@@ -234,3 +234,19 @@ run('--partner panther: the panther before an orc nearer the gargoyle', me,
     [mob('0xG', 'a gargoyle', 1799, 1430, True), mob('0xR', 'Nehrakgu', 1800, 1437), mob('0xP', 'a panther', 1781, 1433)],
     setup=up)
 fight.PARTNER = None
+
+# 2026-11-07, the user's list: hit both of an even pair when health and mana are full; finish the survivor (a great
+# hart left at 1/25) before looting; keep 4 from one on his heels
+fight.ASYNC = True
+fight.call = fake_call
+even = [mob('0xR', 'Nehrakgu', 1799, 1430, True, hits=13), mob('0xH', 'a great hart', 1800, 1431, False, hits=15)]
+pair_up = lambda f: (f.pairs.update({'0xR': '0xH'}), f.provoked_at.update({'0xR': time.time()}),
+                     f.fought_with.update({'0xR', '0xH'}))
+run('orc 13 and hart 15 even, health and mana full: a spell at the healthier (the hart)', me, even, setup=pair_up)
+run('the same, mana 60: let them fight on', dict(me, mana=60), even, setup=pair_up)
+survivor = lambda f: (setattr(f, 'fought', True), setattr(f, 'quiet_since', time.time() - 6),
+                      f.fought_with.update({'0xH'}))
+run('after the fight, the hart left at 1/25, 8 off: finish it before looting', me,
+    [mob('0xH', 'a great hart', 1798, 1430, False, hits=1)], setup=survivor)
+run('after the fight, the hart left at 1/25, 2 off: get away from it first', me,
+    [mob('0xH', 'a great hart', 1792, 1430, False, hits=1)], setup=survivor)

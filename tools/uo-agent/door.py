@@ -43,6 +43,9 @@ INSIDE = (1756, 1413)
 DOORWAY = (1756, 1414)       # where the west half stands shut; free when it's open (it swings to 1755,1415)
 FRONT = (1756, 1415)         # right in front of the shut door, outside
 OUTSIDE = (1756, 1416)
+PARK = (1757, 1410)          # where he's left inside: in the safe zone (the user, 2026-11-07: 3 tiles in from the
+                             # outside of the tower, marked with red cloth on the ground floor, x 1752-1762, y 1404-1412,
+                             # and the same on every floor), in the part of it his rules let him walk (the hall)
 STEPS = {(x, y) for x in (1756, 1757) for y in (1415, 1416)}  # the front steps, between the forges at x 1755 and 1758
 HOSTILE = ('Gray', 'Criminal', 'Enemy', 'Murderer')
 
@@ -128,6 +131,30 @@ def set_door(door, shut):
     if (spot == SHUT_AT[door]) != shut:
         raise Stop(f'{door} should be {"shut" if shut else "open"} but stands at {spot[0]},{spot[1]}: {texts(a)!r}')
     say(f'{door} {"closed" if shut else "open"}')
+
+
+def close_east():
+    """Only the west half is ever used (the user, 2026-11-07: "don't go through both doors, only one of them"). His
+    client opens a door he walks up to by itself (auto_open_doors: "Opening door..." at 18:48:47, the east half), and
+    that half was left open: shut it whenever it's open."""
+    try:
+        if door_spot(DOOR_EAST) != SHUT_AT[DOOR_EAST]:
+            say('the east half is open (his client opened it): closing it')
+            call('POST', '/use', serial=DOOR_EAST)
+            time.sleep(0.6)
+            if door_spot(DOOR_EAST) != SHUT_AT[DOOR_EAST]:
+                raise Stop('the east half of the door stays open')
+    except uo.BridgeError as e:
+        if e.code == 423:
+            raise
+        say(f'the east half: {e}')
+
+
+def park():
+    """Into the safe zone, away from the door."""
+    if where() != PARK:
+        r = walk(PARK)
+        say('parked in the safe zone' if r.get('arrived') else f'could not get to the safe zone: {r}')
 
 
 def step(p, what):
@@ -233,6 +260,7 @@ def go_out(with_reflection=True):
     if with_reflection:
         reflect()
     step(INSIDE, 'get to the door')
+    close_east()
     # creatures on the steps first (the user, 2026-11-06): with the door shut if the click gets through, else with it
     # open; still there after that, he stays in
     clear = clear_steps(2)
@@ -245,8 +273,9 @@ def go_out(with_reflection=True):
         step(FRONT, 'step out, right in front of the door')
         paralyze_caster()
     finally:
-        # never leave it open, wherever he ended up
+        # never leave it open, wherever he ended up, either half
         set_door(DOOR, True)
+        close_east()
     say(f'out at {where()[0]},{where()[1]}, right at the door; the door is closed')
     check()
 
@@ -255,6 +284,7 @@ def go_in():
     here = where()
     if here[1] <= 1413:
         say('already inside')
+        park()
         return
     if here != DOORWAY:  # in the doorway already (just out, the door shut over him): straight to the key
         step(OUTSIDE, 'get to the door')
@@ -279,7 +309,9 @@ def go_in():
             except Stop:
                 pass
         set_door(DOOR, True)
+        close_east()
     say('in; the door is locked and closed')
+    park()
 
 
 def check():

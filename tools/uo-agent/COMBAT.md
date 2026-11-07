@@ -185,6 +185,10 @@ door, not the server).
   the key come out: lock it, close it. The user checks by walking into the door; his client then sends "open door"
   (auto_open_doors), the same as using it, and its path walker treats a shut door as a wall (smooth_doors off), so
   door.py uses the door instead.
+- **Only the west half** (0x408AEA54) is used; his client opens a door he walks up to by itself (auto_open_doors), and
+  once that was the east half (0x408AEA55, shut at 1757,1414), left open: door.py shuts it whenever it isn't shut.
+- **Parked in the safe zone** after coming in: 1757,1410 (the safe zone is 3 tiles in from the outside of the tower,
+  red cloth on the ground floor, x 1752-1762, y 1404-1412; the user, 2026-11-07).
 - **In** (`door.py in`, also fight.py's way home): from 1756,1416 straight to 1756,1415, unlock with the key, open,
   step into the doorway (1756,1414), lock with the key, step in (1756,1413), close. From the doorway (just out),
   straight to the key.
@@ -297,6 +301,20 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   count); (3) Claude killed fight.py at 18:49:58 to load fix (1), going by alerts 20 s behind, while it was winning
   (gargoyle at 6/25), and left him standing ~25 s; restarted, it finished the job. Check the live state first, and
   never stop a running fight to load a fix.
+  The user afterwards ("pretty good, getting better"), and what changed: (1) an enemy right next to him, hitting him
+  twice (the orc on his heels): KEEP 3 -> 4, and no riding toward a partner that's after him; (2) meditation while
+  they fight: he did, at 18:50:48 (52 -> 100 mana in 25 s, the orc and the hart fighting); (3) **one of the doors was
+  left open**: walking up to the door from inside, his client opened the east half by itself (auto_open_doors,
+  "Opening door..." 18:48:47) and door.py only ever shut the west one; "make sure you don't go through both doors,
+  only one of them": door.py shuts the east half whenever it's open (after reaching the door, and when done, out and
+  in); (4) "you had full mana but didn't use it to bring both the orc and the hart down equally (you can hit both of
+  them once to bring them both down and speed it up since your HP and MP are full)": health and mana at 85%+, a
+  spell at the healthier of an even pair (so at both in turn); below that, they fight on while he meditates; (5)/(6)
+  the hart was never engaged and was left at 1/25 next to the orc's corpse while he looted ("any normal mob would
+  have" attacked): anything he set fighting or cast at is a threat from then on whatever its kind, the survivors are
+  finished before looting (getting 6 off first), and looting waits for them; (7) **park him in the safe zone**: 3
+  tiles in from the outside of the tower, marked with red cloth on the ground floor (x 1752-1762, y 1404-1412; the
+  same on every floor); door.py in ends at 1757,1410 (inside it, in the hall his rules let him walk).
 - **18:32** (bridge 8, cuo-agent24; a gargoyle by the forges and a panther at the steps): reagents fine, Magic
   Reflection inside ("In Jux Sanct"; again outside: "already in effect", 0.2 s); the door wouldn't shut over him in
   the doorway, so he shut it from 1756,1415 and the check said "That is locked.". The gargoyle turned on him at 11

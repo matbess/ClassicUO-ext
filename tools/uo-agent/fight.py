@@ -97,6 +97,7 @@ PROVOKE_RANGE = 8       # both creatures within this of him (fight 1: the llama 
 PROVOKE_SPOT = 7        # how close he goes to the creature he'll set the follower on
 ON_HIM = 3              # a free creature this close: run, nothing else
 CLEAR = 10              # free creatures further than this: he may cast or meditate
+FULL = 0.85             # health and mana at least this share count as full: then spells to speed up an even fight
 MANA_RESERVE = 30       # attack spells never take him below this: mana for healing (the user, 2026-11-06: "don't use
                         # all your mana! save mana for healing and for attacking when it's opportune, but mostly
                         # provoke"); two Greater Heals and a Heal
@@ -109,7 +110,8 @@ MEDITATE_FOR = 150      # after a fight, at most this long getting mana back bef
 BACK_OFF = 9            # after a provoke, and from anything coming: get at least this far away
 FIGHT_GAP = 6           # keep this far from creatures fighting each other (spells need 6 clear: CAST_CLEAR)
 HEAL_CLEAR = 10         # healing only with every creature this far off; hurt, he rides 10 away first (the user)
-KEEP = 3                # one coming at him: get away once it's closer than this (the user: stay about 3 tiles away)
+KEEP = 4                # one coming at him: get away once it's closer than this (the user: stay about 3 tiles away;
+                        # at 3 an orc on his heels still hit him twice, 2026-11-06 18:49)
 UNEVEN = 0.2            # a fight is uneven (bolt the one winning) when its health share leads by this much
 CAST_WHEN = 0.40        # a creature fighting another: spells only once it's down to this share (or a caster, or
                         # the stronger of an uneven pair); until then they wear each other down and he meditates
@@ -480,6 +482,9 @@ class Fight:
         self.last_cast = 0.0
         self.reflect_up = False  # Magic Reflection on him (the next spell at him bounces); down when a creature casts
         self.caster_since = {}   # caster serial -> since when it has been after him
+        self.fought_with = set() # creatures he set fighting or cast at: threats from then on, however harmless their
+                                 # kind (the great hart left at 1/25 next to the orc's corpse: "any normal mob would
+                                 # have" attacked him, the user, 2026-11-07); finished before looting
         self.mover = Mover()
         self.killing = None      # the one he's killing with spells (no partner to set it on): all the way
         self.looted = set()      # corpses already looted
@@ -666,6 +671,7 @@ class Fight:
             self.pairs[a['serial']] = b['serial']
             self.provoked_at[a['serial']] = time.time()
             self.fought = True
+            self.fought_with.update((a['serial'], b['serial']))
         return ok
 
     # ---- spells ----
@@ -697,7 +703,7 @@ class Fight:
                 return spell
         return None
 
-    def cast_target(self, me, busy, mobs):
+    def cast_target(self, me, busy, mobs, st=None):
         """Mana sparingly: provoke is the first line of defence (the user, 2026-11-06: spending it all on one ettin
         left nothing for the next; "it's ok to provoke 2 creatures and wait for them to do damage to each other for a
         while (while maybe you are meditating) before you use any mana"). So a spell only at a caster (killed first),
@@ -719,6 +725,14 @@ class Fight:
             sm, so = share(m) or 0, share(o) or 0
             if sm - so >= UNEVEN or (sm >= so and tier(m) > tier(o)):
                 return m
+        # health and mana full: bring an even pair down together, a spell at whichever is healthier (so at both in
+        # turn), to speed it up (the user, 2026-11-07: "you had full mana but didn't use it to bring both the orc and
+        # the hart down equally (you can hit both of them once to bring them both down and speed it up since your HP
+        # and MP are full)")
+        if st and st['mana'] >= FULL * st.get('manaMax', 100) and st['hits'] >= FULL * st.get('hitsMax', 100):
+            paired = [m for m in reach if (o := mobs.get(self.partner_of(m['serial']) or '')) and attackable(o)]
+            if paired:
+                return max(paired, key=lambda m: (share(m) or 0, tier(m)))
         return None
 
     def cast(self, spell, target, name, kind):
@@ -766,6 +780,7 @@ class Fight:
 
     def cast_at(self, m, spell):
         self.cast_at_time[m['serial']] = time.time()
+        self.fought_with.add(m['serial'])
         a = self.cast(spell, m['serial'], m['name'], 'attack')
         if a is None:
             return
@@ -898,7 +913,8 @@ class Fight:
                 return False
             say('paralysed, and no pouch left')
 
-        threats = [m for m in mobs.values() if attackable(m) and (not passive(m) or self.coming(m))]
+        threats = [m for m in mobs.values() if attackable(m)
+                   and (not passive(m) or self.coming(m) or m['serial'] in self.fought_with)]
         busy = [m for m in threats if self.busy(m['serial'], mobs)]
         busy_ids = {m['serial'] for m in busy}
         free = [m for m in threats if m['serial'] not in busy_ids]
@@ -918,7 +934,8 @@ class Fight:
 
         # something right on him, any creature at all (a timber wolf "left alone" bit him at his feet, 2026-11-06):
         # get away first (the user: "#1 priority is always maintain distance")
-        biters = [m for m in mobs.values() if attackable(m) and kind(m) not in HARMLESS]
+        biters = [m for m in mobs.values() if attackable(m)
+                  and (kind(m) not in HARMLESS or m['serial'] in self.fought_with)]
         dany_creature = min((dist(me, xy(m)) for m in biters), default=99)
         if dfree <= ON_HIM or dany_creature <= ON_HIM - 1:
             threats = threats + [m for m in biters if dist(me, xy(m)) <= ON_HIM and m not in threats]
@@ -1058,7 +1075,7 @@ class Fight:
                 if path_clear(me, spot, [xy(t) for t in threats], FIGHT_GAP) and self.mover.go(me, spot, 'to cast'):
                     return False
             if dloose > CLEAR and dbusy >= CAST_CLEAR:  # no spell with any creature within 6, fighting or not
-                m = self.cast_target(me, busy, mobs)
+                m = self.cast_target(me, busy, mobs, st)
                 spell = self.spell_for(m, st['mana']) if m else None
                 if spell and m and (dist(me, xy(m)) > SPELL_RANGE or time.time() - self.too_far.get(m['serial'], 0) < 5):
                     if self.closer(me, m, threats):
@@ -1082,6 +1099,28 @@ class Fight:
 
         # nothing coming and nothing fighting
         if self.fought and not self.homeward:
+            # the survivors of the fight first (the user, 2026-11-07: "You waited for the orc to be gone before
+            # engaging the hart at all"; it was left at 1/25 next to the orc's corpse while he looted): spells from
+            # 6-10 tiles, mana to spare only
+            left = [m for m in free if m['serial'] in self.fought_with]
+            if left:
+                self.quiet_since = None
+                m = min(left, key=lambda m: dist(me, xy(m)))
+                d = dist(me, xy(m))
+                spell = self.spell_for(m, st['mana'])
+                if spell:
+                    if d < CAST_CLEAR:
+                        self.flee(me, [xy(t) for t in threats], radii=(8, 6))
+                        return False
+                    if d > SPELL_RANGE or time.time() - self.too_far.get(m['serial'], 0) < 5:
+                        if self.closer(me, m, threats):
+                            return False
+                    if self.cast_ready(me):
+                        self.cast_at(m, spell)
+                        return False
+                    time.sleep(0.15)
+                    return False
+                # nothing to spare for it: keep off it (below), loot only with it well away
             if self.quiet_since is None:
                 self.quiet_since = time.time()
             if time.time() - self.quiet_since >= 2 and self.loot(me, st):
@@ -1313,7 +1352,7 @@ class Fight:
             # never in to a corpse with a creature near it or him, any creature (the user, 2026-11-06: "you just ran
             # in to loot when the wolf was right next to the corpse"): wait for it to go
             if any(dist(xy(m), (c['x'], c['y'])) < LOOT_CLEAR or dist(xy(m), me) < LOOT_CLEAR
-                   for m in creatures if kind(m) not in HARMLESS):
+                   for m in creatures if kind(m) not in HARMLESS or m['serial'] in self.fought_with):
                 self.looting = None
                 continue
             lt = self.looting
