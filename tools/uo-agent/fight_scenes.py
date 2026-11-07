@@ -176,3 +176,49 @@ settle('nothing yet', 'attack', [])
 settle('nothing against it after 3 s', 'attack', [], age=3.5)
 settle('reflection: already in effect', 'reflect', ['This spell is already in effect.'])
 settle('reflection: nothing against it', 'reflect', [], age=3.5)
+
+# mana kept for healing (the user, 2026-11-06: "don't use all your mana! save mana for healing")
+fight.ASYNC = True
+fight.call = fake_call
+both = lambda f: (f.pairs.update({'0xA': '0xB'}), f.provoked_at.update({'0xA': time.time()}))
+pair = [mob('0xA', 'a dire wolf', 1801, 1430, True, hits=20), mob('0xB', 'an ogre', 1802, 1431, True, hits=24)]
+run('wolf and ogre fighting 11 off, mana 100: a spell', dict(me, x=1793), pair, setup=both)
+run('the same, mana 40: only Fireball keeps 30', dict(me, x=1793, mana=40), pair, setup=both)
+run('the same, mana 35: no spell (keeps 30), meditate', dict(me, x=1793, mana=35), pair, setup=both)
+
+# looting, one step per look
+def loot_scene(name, me_at, corpse_items, creatures=()):
+    state = {'items': list(corpse_items), 'moves': []}
+    corpse = {'serial': '0xC', 'graphic': '0x2006', 'type': 'corpse', 'name': 'an orcish corpse', 'x': 1790, 'y': 1432}
+    def call(method, ep, **kw):
+        if ep == '/nearby':
+            return {'items': [corpse], 'mobiles': list(creatures)}
+        if ep == '/contents':
+            return {'items': state['items'] if kw['serial'] == '0xC' else [], 'lastMessageId': 0}
+        if ep == '/status':
+            return {'lastMessageId': 0, 'serial': '0x1'}
+        if ep == '/rules':
+            return {'mounts': []}
+        if ep == '/move':
+            state['moves'].append(kw['serial'])
+            state['items'] = [i for i in state['items'] if i['serial'] != kw['serial']]
+            return {'moved': True}
+        if ep == '/walk':
+            state['moves'].append(f'walk {kw["x"]},{kw["y"]}')
+            return {'walking': True}
+        return {}
+    fight.call = call
+    f = fight.Fight(10)
+    f.corpses_before = set()  # it fell during the fight
+    steps = []
+    for _ in range(4):
+        state['moves'] = []
+        more = f.loot(me_at, {'backpack': {'serial': '0x2'}})
+        steps.append(('/'.join(state['moves']) or '-') if more else 'done')
+    print(f'--- loot: {name}:', ' | '.join(steps))
+    fight.call = fake_call
+gold = {'serial': '0xI1', 'graphic': '0x0EED', 'hue': 0, 'amount': 41, 'type': 'gold coin'}
+hammer = {'serial': '0xI2', 'graphic': '0x1439', 'hue': 0, 'type': 'war hammer'}
+loot_scene('corpse 2 off: ride, then one item a look', (1790, 1430), [gold, hammer])
+loot_scene('a wolf 4 from the corpse: nothing', (1790, 1431), [gold], [mob('0xW', 'a dire wolf', 1793, 1434)])
+loot_scene('next to the corpse: one item a look, then done', (1790, 1431), [gold, hammer])

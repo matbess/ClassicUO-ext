@@ -58,6 +58,11 @@ fight. Nothing goes to town until fighting works.
   with nobody to set it on: spells at it like any other. (Pulling is the least tried part: fight_sim's gargoyle
   scene gets the provoke off with bridge 7 timing, but with bridge 8 the gargoyle sat between him and the wolf and
   he kept riding off instead.)
+- **Priorities for a run** (the user, 2026-11-07): "1. safety (stay away from them, don't use all your mana! save mana
+  for healing and for attacking when it's opportune, but mostly provoke) 2. performance (always be ready to move,
+  don't get caught stuck doing something else)". Attack spells never take him below 30 mana (MANA_RESERVE: two
+  Greater Heals and a Heal; cheaper spells first when that's short); Magic Reflection keeps 11. Looting is one step
+  a look (a ride that doesn't wait, then one item a look, creatures checked every look), so nothing holds him up.
 - **Combat is multi-tasking** (the user, 2026-11-06): "you don't just cast a spell and sit there and wait ... You
   cast and keep moving at the same time, you can check for system messages in parallel to figure out what happened
   with the spell"; "never 'wait for result' that would block, more like 'Cast' .. then do all the other normal stuff

@@ -90,6 +90,9 @@ PROVOKE_RANGE = 8       # both creatures within this of him (fight 1: the llama 
 PROVOKE_SPOT = 7        # how close he goes to the creature he'll set the follower on
 ON_HIM = 3              # a free creature this close: run, nothing else
 CLEAR = 10              # free creatures further than this: he may cast or meditate
+MANA_RESERVE = 30       # attack spells never take him below this: mana for healing (the user, 2026-11-06: "don't use
+                        # all your mana! save mana for healing and for attacking when it's opportune, but mostly
+                        # provoke"); two Greater Heals and a Heal
 CASTER_CLEAR = 15       # a caster after him with nothing to set it on: keep this far (the user, 2026-11-06: "for a
                         # spellcaster when there's no other enemy to provoke it to, you need to get like 15+ tiles
                         # away and pull him to someone else quickly")
@@ -472,6 +475,7 @@ class Fight:
         self.mover = Mover()
         self.killing = None      # the one he's killing with spells (no partner to set it on): all the way
         self.looted = set()      # corpses already looted
+        self.looting = None      # the corpse being looted: serial, name, what's been taken, since when
         self.removed_at = {}     # serial -> when "remove thyself" was last used on it
         try:  # corpses lying about before the fight aren't his to loot
             self.corpses_before = {i['serial'] for i in call('GET', '/nearby', range=18)['items']
@@ -680,7 +684,7 @@ class Fight:
         s = share(m)
         choice = ENERGY_BOLT if s is None or s > LOW else LIGHTNING if s > VERY_LOW else FIREBALL
         for spell in (choice, ENERGY_BOLT, LIGHTNING, FIREBALL):
-            if self.can_cast(spell, mana):
+            if mana - MANA[spell] >= MANA_RESERVE and self.can_cast(spell, mana):
                 return spell
         return None
 
@@ -969,7 +973,7 @@ class Fight:
                         return False
                     self.cast_at(k, spell)
                     return False
-                say(f'no mana or reagents left for {k["name"]}')
+                say(f'no mana to spare (keeping {MANA_RESERVE} for healing) or no reagents for {k["name"]}')
             self.killing = None
             a = sorted(coming, key=lambda m: (kind(m) not in CASTERS, dist(me, xy(m))))[0]
             # both within PROVOKE_RANGE of him and within PAIR_RANGE of each other ("The creatures you are trying to
@@ -1251,10 +1255,13 @@ class Fight:
     def loot(self, me, st):
         """After a fight, with nothing coming: everything in the corpses that fell during it, into his backpack (the
         user, 2026-11-06: "Loot the corpse if you're able to"; they took a war hammer, a potion and gold). Only
-        corpses that appeared during this fight, within LOOT_RANGE; never a person's ("corpse of ..."). One corpse a
-        tick; True while there's looting to do."""
+        corpses that appeared during this fight, within LOOT_RANGE; never a person's ("corpse of ..."). One step per
+        look, nothing that waits (the user: "always be ready to move, don't get caught stuck doing something else"):
+        a ride to it, then one item a look, and every look checks for creatures first. True while there's looting
+        to do."""
         try:
             near = call('GET', '/nearby', range=LOOT_RANGE)['items']
+            creatures = [m for m in call('GET', '/nearby', range=18)['mobiles'] if attackable(m)]
         except uo.BridgeError:
             return False
         for c in near:
@@ -1264,48 +1271,62 @@ class Fight:
                 continue
             # never in to a corpse with a creature near it or him, any creature (the user, 2026-11-06: "you just ran
             # in to loot when the wolf was right next to the corpse"): wait for it to go
-            try:
-                creatures = [m for m in call('GET', '/nearby', range=18)['mobiles'] if attackable(m)]
-            except uo.BridgeError:
-                return False
             if any(dist(xy(m), (c['x'], c['y'])) < LOOT_CLEAR or dist(xy(m), me) < LOOT_CLEAR
                    for m in creatures if kind(m) not in HARMLESS):
+                self.looting = None
                 continue
-            self.looted.add(c['serial'])
+            lt = self.looting
+            if not lt or lt['serial'] != c['serial']:
+                lt = self.looting = {'serial': c['serial'], 'name': name, 'took': [], 'since': time.time(),
+                                     'next_to': None}
+            if time.time() - lt['since'] > 40:
+                say(f'gave up on {name or "a corpse"} after 40 s: ' + (', '.join(lt['took']) or 'nothing taken'))
+                self.looted.add(c['serial'])
+                self.looting = None
+                return True
             if dist(me, (c['x'], c['y'])) > 1:
-                r = call('POST', '/walk', to=c['serial'], distance=1)
-                if not r.get('arrived'):
+                if not self.mover.go(me, (c['x'], c['y']), 'loot ' + c['serial']):
                     say(f'could not get to the corpse at {c["x"]},{c["y"]}')
-                    return True
+                    self.looted.add(c['serial'])
+                    self.looting = None
+                return True
+            # his client opens a corpse within 2 tiles by itself (auto_open_corpses; the bridge's /open refuses
+            # corpses): its contents show up a moment after he gets there
+            lt['next_to'] = lt['next_to'] or time.time()
+            try:
+                items = call('GET', '/contents', serial=c['serial'], depth=1)['items']
+            except uo.BridgeError as e:
+                say(f'corpse {c["serial"]}: {e}')
+                self.looted.add(c['serial'])
+                self.looting = None
+                return True
+            if not items:
+                if not lt['took'] and time.time() - lt['next_to'] < 3:
+                    return True  # not shown yet: look again next time
+                say(f'looted {name or "a corpse"}: ' + (', '.join(lt['took']) or 'nothing'))
+                self.looted.add(c['serial'])
+                self.looting = None
+                self.quiet_since = time.time()  # looting took a while: look around again before going home
+                return True
+            i = items[0]
             pack = st['backpack']['serial']
-            # the bridge's /open takes containers only and a corpse isn't one to it ("only containers can be opened");
-            # his client opens a corpse within 2 tiles by itself (auto_open_corpses), so next to it, wait for that
-            items = []
-            end = time.time() + 3
-            while time.time() < end:
-                try:
-                    items = call('GET', '/contents', serial=c['serial'], depth=1)['items']
-                except uo.BridgeError as e:
-                    say(f'corpse {c["serial"]}: {e}')
-                    return True
-                if items:
-                    break
-                time.sleep(0.3)
-            took = []
-            for i in items:
-                try:
-                    # onto a stack of the same kind already in his pack, or the server merges it there itself and the
-                    # bridge, waiting for the item to show up in the pack, stops (17:10:46: the orc's 41 gold)
-                    stack = self.stack_in(pack, i)
-                    r = call('POST', '/move', serial=i['serial'], to=stack or pack)
-                    if stack and not r.get('moved'):
-                        r = call('POST', '/move', serial=i['serial'], to=pack)  # not one that stacks: back, so in
-                    if r.get('moved'):
-                        took.append(f'{i.get("amount", 1)} {i.get("type") or i["graphic"]}')
-                except uo.BridgeError as e:
-                    say(f'looting {i.get("type")}: {e}')
-            say(f'looted {name or "a corpse"}: ' + (', '.join(took) or 'nothing'))
-            self.quiet_since = time.time()  # looting took a while: look around again before going home
+            try:
+                # onto a stack of the same kind already in his pack, or the server merges it there itself and the
+                # bridge, waiting for the item to show up in the pack, stops (17:10:46: the orc's 41 gold)
+                stack = self.stack_in(pack, i)
+                r = call('POST', '/move', serial=i['serial'], to=stack or pack)
+                if stack and not r.get('moved'):
+                    r = call('POST', '/move', serial=i['serial'], to=pack)  # not one that stacks: back, so in
+                if r.get('moved'):
+                    lt['took'].append(f'{i.get("amount", 1)} {i.get("type") or i["graphic"]}')
+                else:
+                    say(f'looting {i.get("type")}: not moved; leaving the rest')
+                    self.looted.add(c['serial'])
+                    self.looting = None
+            except uo.BridgeError as e:
+                say(f'looting {i.get("type")}: {e}; leaving the rest')
+                self.looted.add(c['serial'])
+                self.looting = None
             return True
         return False
 
