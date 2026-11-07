@@ -294,6 +294,24 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **19:48** (east route; a lone gargoyle at the edge of his area): drawn from 11, provoked onto a goat, but the first
+  bolt went at the goat (a tie went to whichever came first) and the goat died at once; the gargoyle came on, he kept
+  15+ off it but it reached him with spells (hit to 66 from 17 tiles; Reflection was down and fight.py didn't know:
+  it never heard the words); after 60 s with nobody to set it on, spells: the gargoyle 18 -> 12 -> 7, **but it
+  stayed "busy" with the dead goat** (an engaged_with entry never cleared), so the "8 clear before a spell" rule
+  didn't apply and he cast with it 1-5 tiles off; a bolt cast during a getaway froze him and the ride died, and the
+  Mover went on thinking he was riding: 8 s standing still under its blows (19:50:14-22, 78 -> 40 -> 29), paralysed
+  by it from 19:50:16 (no word from the server, the paralysed flag not set). The user took over at 19:50:22, broke
+  the paralysis with a trapped pouch, healed and finished it. The user: "Why did the gargoyle get so close that it
+  could hit you twice? You forgot about using the trapped pouch to get unfrozen, that's a high priority ... it
+  should all be done very fast and high priority inside fight.py". Fixes: busy only with a live partner next to
+  it; a ride with no movement for 1.5 s counts as stopped and is sent again; no attack spell with any creature
+  within 6, busy or not; below 50% health a Greater Heal as soon as nothing is right next to him even without 10
+  clear; a hit with nothing next to him means Reflection is down; a tie goes to the stronger; getaways stay inside
+  his areas (one cut across 1742,1424); **paralysis**: a step refused "You are frozen and cannot move." while no
+  spell of his own has him frozen, "You cannot move!", or the paralysed flag: a trapped pouch at once, first thing
+  each look (`/use wait=0`, bridge 9, cuo-agent26: a trapped pouch goes off without a word and bridge 8 stopped
+  itself waiting for one; with bridge 8 fight.py resumes that stop itself).
 - **19:01** (the user brought a dire wolf and a gargoyle to the steps, both after him, a gazer north): Reflection
   still up ("already in effect"); out, Paralyze at the gargoyle 4 off, door shut and locked, the east half untouched.
   Two seconds later: "provoke a gargoyle onto a dire wolf: worked". Energy Bolts at the busy gargoyle 24 -> 20 -> 14

@@ -457,7 +457,7 @@ namespace ClassicUO.Game.Managers
 
         // double-clicks a tool the rules allow (a smith's hammer) and waits for what the server shows: a menu, a gump,
         // a target cursor or a message
-        private byte[] UseTool(uint serial)
+        private byte[] UseTool(uint serial, bool wait = true)
         {
             Rules rules = RequireRules();
 
@@ -492,6 +492,16 @@ namespace ClassicUO.Game.Managers
                         return (_lastMessageId, _dialogCount, _targetCount);
                     }
                 );
+
+                // wait=0: sent and answered at once (a trapped pouch going off says nothing; the agent watches what
+                // happens itself)
+                if (!wait)
+                {
+                    PaceFromNow();
+                    long sent = before;
+
+                    return OnGame(() => Json(w => { w.WriteStartObject(); w.WriteBoolean("used", true); w.WriteNumber("messageId", sent); w.WriteEndObject(); }));
+                }
 
                 long b = before, dc = dialogs, tc = targets;
                 WaitFor(() => _dialogCount > dc || _targetCount > tc || HasAnswerAfter(b), TARGET_TIMEOUT);

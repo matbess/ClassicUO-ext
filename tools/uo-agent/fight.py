@@ -63,7 +63,8 @@ PATROL = ROUTES['east']
 LOOK_AROUND = 3                   # seconds at each lookout point
 
 TAMBOURINE = 0x0E9D
-POUCH = 0x0E79
+POUCH = 0x0E79          # his trapped pouches (Magic Trap): opening one breaks paralysis
+USED_POUCHES = set()    # pouches already opened (their trap is spent)
 PROVOKE, MEDITATE = 22, 46
 HEAL, CURE, FIREBALL, GREATER_HEAL, LIGHTNING, MAGIC_REFLECTION, ENERGY_BOLT = 4, 11, 18, 29, 30, 36, 42
 MANA = {HEAL: 4, CURE: 6, FIREBALL: 9, GREATER_HEAL: 11, LIGHTNING: 11, MAGIC_REFLECTION: 14, ENERGY_BOLT: 20}
@@ -93,6 +94,7 @@ def land_time(spell):
 PARTNER = None          # --partner KIND: set creatures on this kind first when there's one (the user, 2026-11-06 18:33:
                         # "put him on the panther")
 ROUND = 10              # leading a caster round to a partner when it's in the way: waypoints this far from the caster
+BRIDGE = 7              # the bridge's version (from /status), set in main
 ASYNC = False           # bridge 8 (cuo-agent24): /cast wait=0, the cursor aimed by the bridge when it comes
 LAND_TIME = 1.0         # seconds after the aim for a spell to land: no moving (casting freezes him; a step then
                         # gets "You are frozen and cannot move.", which cut the bridge's wait for the cursor short)
@@ -142,6 +144,7 @@ LURE_WAIT = 30          # seconds there: one that hasn't turned on him by then i
                         # one that doesn't attack)
 ENGAGED_AFTER = 2       # seconds within a tile of another creature: locked in a fight with it
 PROVOKED_BUSY = 6       # seconds after a provoke the pair counts as busy even before they meet
+BADLY = 0.5             # below this, heal even without 10 clear, once nothing is right next to him
 HURT = 0.75             # below this: ride 10 tiles from every creature at once, then Greater Heal (the user)
 SCRATCHED = 0.85        # below this: Heal where he is (quick; only a step away first if something is within 3)
 LOW, VERY_LOW = 0.15, 0.05   # a target's share: Lightning below LOW, Fireball below VERY_LOW (the user, 2026-11-06)
@@ -193,6 +196,7 @@ def row(**fields):
 
 
 DROP_HALT = re.compile(r'no answer after dropping (0x[0-9A-Fa-f]+)')
+USE_HALT = re.compile(r'no answer when using (0x[0-9A-Fa-f]+)')
 
 
 def call(method, endpoint, **params):
@@ -207,6 +211,8 @@ def call(method, endpoint, **params):
             raise Stop(e.message)
     if endpoint == '/move':
         return {'moved': True, 'recovered': True}  # the drop that stopped the bridge landed
+    if endpoint == '/use':
+        return {'used': True, 'recovered': True}   # the pouch went off; not again
     try:
         return uo.call(info, method, endpoint, **params)
     except uo.BridgeError as e:
@@ -225,8 +231,19 @@ def recover_drop():
         st = uo.call(info, 'GET', '/status')
     except uo.BridgeError:
         return False
+    if st.get('takenOver'):
+        return False
+    used = USE_HALT.search(st.get('halted') or '')
+    if used and used.group(1).upper() in {p.upper() for p in USED_POUCHES}:
+        # a trapped pouch goes off without a word, and bridge 8 stopped waiting for one
+        try:
+            uo.call(info, 'POST', '/resume')
+        except uo.BridgeError:
+            return False
+        say(f'the bridge stopped after the trapped pouch ({st["halted"]}); resumed')
+        return True
     found = DROP_HALT.search(st.get('halted') or '')
-    if st.get('takenOver') or not found:
+    if not found:
         return False
     serial = found.group(1)
     try:
@@ -354,6 +371,14 @@ def go_somewhere(me, score, radii=(5, 8), allowed=None):
     return None
 
 
+def path_in_area(me, p):
+    """Every tile of the straight ride from me to p inside his areas (a getaway cut across 1742,1424, west of the
+    tower, 19:50: never north, west or north-west of it)."""
+    n = max(dist(me, p), 1)
+    return all(in_area((round(me[0] + (p[0] - me[0]) * i / n), round(me[1] + (p[1] - me[1]) * i / n)))
+               for i in range(1, n + 1))
+
+
 def path_clear(me, p, spots, space):
     """Every tile of the straight ride from me to p stays at least `space` from each of `spots` (beyond those he's
     already closer to than that, which he's getting away from)."""
@@ -373,11 +398,20 @@ class Mover:
 
     def __init__(self):
         self.goal, self.why, self.at = None, None, 0.0
+        self.last_pos, self.moved_at = None, 0.0  # where he was last seen and when he last moved
         self.last_dir, self.last_at = None, 0.0   # the direction of the last ride, and when it was sent
         self.danger = False   # something is coming at him (set every tick): then he may turn whichever way he needs
 
     def going(self, me):
-        return self.goal is not None and dist(me, self.goal) > 1 and time.time() - self.at < 8
+        """On his way to the goal. Not when he has stood still over 1.5 s since the ride was sent: a spell freezes him
+        ("You are frozen and cannot move.") and the ride stops for good (19:50:14-22: 8 s standing still under a
+        gargoyle's blows while this said he was riding away)."""
+        now = time.time()
+        if me != self.last_pos:
+            self.last_pos, self.moved_at = me, now
+        if self.goal is None or dist(me, self.goal) <= 1 or now - self.at >= 8:
+            return False
+        return not (now - max(self.moved_at, self.at) > 1.5)
 
     def go(self, me, p, why, force=False, urgent=False):
         """Ride to p. With nothing coming at him, never back the way he just came within NO_TURN_BACK seconds of the
@@ -484,6 +518,10 @@ class Fight:
         self.arrived_at = None
         self.pending = None      # the last cast, for its damage once it has landed
         self.spell = None        # the spell on its way: what, at whom, since when, the last message before it
+        self.nearest_any = 99    # the nearest creature that could hurt him, this look
+        self.frozen_at = 0.0     # the last "You are frozen and cannot move." (a step refused)
+        self.pouch_at = 0.0      # when a trapped pouch was last used
+        self.hits_before = None  # his health on the last look
         self.last_cast = 0.0
         self.last_gap = 0.0
         self.reflect_up = False  # Magic Reflection on him (the next spell at him bounces); down when a creature casts
@@ -545,7 +583,12 @@ class Fight:
         seconds), or losing health he didn't take (the user, 2026-11-06: he stood waiting for a dire wolf to come at
         him while it was fighting a bear, the wolf he had provoked onto it the run before; a busy one is the chance to
         bolt it)."""
-        if serial in self.engaged_with or self.losing_health(serial):
+        # locked with one that's still alive and next to it (an entry left from a dead partner kept the gargoyle "busy"
+        # with a dead goat, so he cast with it 1-5 tiles off, 19:50)
+        e = mobs.get(self.engaged_with.get(serial) or '')
+        if e and attackable(e) and serial in mobs and dist(xy(mobs[serial]), xy(e)) <= 3:
+            return True
+        if self.losing_health(serial):
             return True
         other = self.partner_of(serial)
         m, o = mobs.get(serial), mobs.get(other or '')
@@ -741,6 +784,10 @@ class Fight:
             sm, so = share(m) or 0, share(o) or 0
             ahead, behind = (m, o) if sm >= so else (o, m)
             gap = abs(sm - so)
+            if gap < 0.05 and tier(behind) > tier(ahead):
+                # a tie goes to the stronger: the same share of a goat's health is far less than a gargoyle's (19:49:00:
+                # the bolt went at the goat, it died at once and the gargoyle was free)
+                ahead, behind = behind, ahead
             if sm <= LOW and so <= LOW:
                 pick = min((m, o), key=lambda x: (not self.coming(x), share(x) or 0))
                 choices.append((0, pick))
@@ -758,6 +805,10 @@ class Fight:
         or None when the bridge refused."""
         if self.spell or time.time() - self.last_cast < self.last_gap:
             time.sleep(0.1)  # one spell at a time ("You are already casting a spell."): this one settles first
+            return None
+        if kind == 'attack' and self.nearest_any < CAST_CLEAR:
+            # never with any creature within 6, busy or not (the user, 2026-11-06); the spell freezes him where he is
+            time.sleep(0.1)
             return None
         self.meditating = False
         before = self.seen_message
@@ -922,13 +973,28 @@ class Fight:
         if self.tired and not casting:
             return self.rest_horse(me, mobs, st)
 
-        if st.get('paralyzed') and not casting:
-            found = carried(POUCH)
+        # paralysed: a trapped pouch at once, first thing (the user, 2026-11-07: "You forgot about using the trapped
+        # pouch to get unfrozen, that's a high priority. As soon as you see it say you're frozen you should have an
+        # event kicked off to open the trapped pouch"; 19:50:16-22 a gargoyle's Paralyze held him 6 s under its blows
+        # until the user did it). The server says nothing when it paralyses him and the paralysed flag doesn't come
+        # on here; a step refused with "You are frozen and cannot move." does, and his own spell's freeze is told
+        # apart by its timing
+        own_cast = time.time() - self.last_cast < self.last_gap + 0.5
+        if (st.get('paralyzed') or (time.time() - self.frozen_at < 2.0 and not own_cast)) and \
+                time.time() - self.pouch_at > 2.5:
+            found = [p for p in carried(POUCH) if p not in USED_POUCHES]
             if found:
-                a = call('POST', '/use', serial=found[0])
-                say(f'paralysed: pouch {found[0]}: {texts(a)!r}')
+                self.pouch_at = time.time()
+                USED_POUCHES.add(found[0])
+                try:
+                    a = call('POST', '/use', serial=found[0], wait=0 if BRIDGE >= 9 else None)
+                    say(f'PARALYSED: trapped pouch {found[0]}' + (f': {texts(a)}' if texts(a) else ''))
+                except uo.BridgeError as e:
+                    say(f'PARALYSED: pouch {found[0]}: {e}')
+                self.frozen_at = 0.0
+                self.mover.clear()  # the ride died: send it again
                 return False
-            say('paralysed, and no pouch left')
+            say('paralysed, and no trapped pouch left')
 
         threats = [m for m in mobs.values() if attackable(m)
                    and (not passive(m) or self.coming(m) or m['serial'] in self.fought_with)]
@@ -954,6 +1020,13 @@ class Fight:
         biters = [m for m in mobs.values() if attackable(m)
                   and (kind(m) not in HARMLESS or m['serial'] in self.fought_with)]
         dany_creature = min((dist(me, xy(m)) for m in biters), default=99)
+        self.nearest_any = dany_creature
+        # hurt with nothing next to him: a spell got through, so his Magic Reflection is down (the gargoyle's words
+        # weren't always heard from 14 tiles, and he went on thinking it was up, 19:49:51)
+        if self.hits_before is not None and st['hits'] < self.hits_before and dany_creature > 1 and self.reflect_up:
+            self.reflect_up = False
+            say(f'hurt from a distance ({self.hits_before} -> {st["hits"]}): Magic Reflection is down')
+        self.hits_before = st['hits']
         if dfree <= ON_HIM or dany_creature <= ON_HIM - 1:
             threats = threats + [m for m in biters if dist(me, xy(m)) <= ON_HIM and m not in threats]
             self.meditating = False
@@ -966,7 +1039,10 @@ class Fight:
         # the user, 2026-11-06: "If you get below 85% health you should use heal on yourself where you are, if you get
         # below 75% HP it is important that you immediately run away 10 tiles and heal yourself with greater heal"
         if hp < HURT:
-            if dany < HEAL_CLEAR:
+            # badly hurt and the creature keeps up, so 10 clear never comes: heal as soon as nothing is right next to
+            # him (19:50:16-22: 40 -> 29 with a gargoyle on him, no heal)
+            badly = hp < BADLY and dany_creature >= 2 and self.can_cast(GREATER_HEAL, st['mana'])
+            if dany < HEAL_CLEAR and not badly:
                 self.meditating = False
                 self.flee(me, [xy(m) for m in threats], radii=(12, 10, 8), need=HEAL_CLEAR)
                 return False
@@ -1239,7 +1315,7 @@ class Fight:
                     # need: a spot at least that far from every creature comes first (hurt: 10 tiles, the user)
                     far_enough = need is None or min((dist(p, t) for t in threats), default=99) >= need
                     spots.append((far_enough, all(dist(p, t) > dist(me, t) for t in near)
-                                  and path_clear(me, p, near, SPACE), score(p), p))
+                                  and path_clear(me, p, near, SPACE) and path_in_area(me, p), score(p), p))
         spots.sort(reverse=True)
         for _, _, _, p in spots[:8]:
             if m.go(me, p, 'flee', force=True, urgent=any(dist(me, t) <= ON_HIM for t in threats)):
@@ -1476,6 +1552,10 @@ class Fight:
                 say(f'{m.get("from") or m.get("serial")} cast ({m["text"]!r}): Magic Reflection may be used up')
             if 'stop meditating' in low:
                 self.meditating = False  # a step or a spell ends the trance
+            if 'frozen and cannot move' in low or 'you cannot move' in low:
+                self.frozen_at = time.time()
+            elif 'you can move' in low:
+                self.frozen_at = 0.0
             if 'too fatigued' in low:
                 self.tired = 'too'
             elif 'fatigued' in low and self.tired is None:
@@ -1613,7 +1693,7 @@ def on_term(signum, frame):
 
 
 def main():
-    global info, ASYNC, PARTNER
+    global info, ASYNC, PARTNER, BRIDGE
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--minutes', type=float, default=10, help='then home')
     parser.add_argument('--route', choices=sorted(ROUTES), help='where to look (default: one at random)')
@@ -1628,6 +1708,7 @@ def main():
     if st.get('bridge', 0) < 7:
         sys.exit('needs bridge 7 (cuo-agent23)')
     ASYNC = st['bridge'] >= 8  # cast and go on (cuo-agent24)
+    BRIDGE = st['bridge']
     stopped = st.get('takenOver') or st.get('halted')
     if stopped and not args.resume:
         sys.exit(f'the user has him ({stopped}); --resume only once they hand him back')

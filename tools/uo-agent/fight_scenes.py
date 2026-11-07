@@ -283,3 +283,37 @@ coming_busy = lambda f: (f.pairs.update({'0xD': '0xT'}), f.provoked_at.update({'
 run('dire wolf busy with a timber wolf but coming at him 10 -> 7, mana 37: no meditating', dict(me, mana=37),
     [mob('0xD', 'a dire wolf', 1797, 1430, True, hits=10), mob('0xT', 'a timber wolf', 1798, 1430, False, hits=12)],
     setup=coming_busy)
+
+# 19:49-19:50 run
+fight.ASYNC = True
+fight.call = fake_call
+run('gargoyle after him 5 off, still "engaged" with a dead goat: away, no spell', me,
+    [mob('0xG', 'a gargoyle', 1795, 1430, True, hits=12)],
+    setup=lambda f: (f.engaged_with.update({'0xG': '0xGOAT'}), setattr(f, 'reflect_up', True), setattr(f, 'killing', '0xG')))
+run('health 40, gargoyle 5 off and keeping up: Greater Heal now', dict(me, hits=40, mana=60),
+    [mob('0xG', 'a gargoyle', 1795, 1430, True, hits=7)], setup=lambda f: setattr(f, 'reflect_up', True))
+run('health 40, gargoyle right next to him: away first', dict(me, hits=40, mana=60),
+    [mob('0xG', 'a gargoyle', 1791, 1430, True, hits=7)], setup=lambda f: setattr(f, 'reflect_up', True))
+run('gargoyle 25 and goat 25 fighting, full: the gargoyle (the stronger), not the goat', me,
+    [mob('0xG', 'a gargoyle', 1797, 1430, True, hits=25), mob('0xT', 'a goat', 1798, 1430, False, hits=25)],
+    setup=lambda f: (f.pairs.update({'0xG': '0xT'}), f.provoked_at.update({'0xG': time.time()}), setattr(f, 'reflect_up', True)))
+m = fight.Mover()
+m.goal, m.why, m.at = (1800, 1430), 'flee', time.time() - 2.0
+m.last_pos, m.moved_at = (1790, 1430), time.time() - 2.0
+print('--- a ride sent 2 s ago, not moved since: going =', m.going((1790, 1430)))
+
+# paralysed (19:50:16-22): the trapped pouch at once when a step is refused "You are frozen and cannot move." and his
+# own spell isn't the reason; not while his own spell has him frozen
+fight.ASYNC = True
+fight.call = fake_call
+_carried = fight.carried
+fight.carried = lambda g: ['0xPOUCH1', '0xPOUCH2'] if g == fight.POUCH else _carried(g)
+scene['messages'] = [{'id': 7, 'text': 'You are frozen and cannot move.'}]
+run('"You are frozen and cannot move." with no spell of his on the way: the trapped pouch', me,
+    [mob('0xG', 'a gargoyle', 1793, 1430, True, hits=12)], setup=lambda f: setattr(f, 'reflect_up', True))
+run('the same message 0.5 s after his own Energy Bolt: not paralysed, no pouch', me,
+    [mob('0xG', 'a gargoyle', 1799, 1430, True, hits=12)],
+    setup=lambda f: (setattr(f, 'reflect_up', True), setattr(f, 'last_cast', time.time() - 0.5), setattr(f, 'last_gap', 3.0)))
+scene['messages'] = []
+fight.carried = _carried
+fight.USED_POUCHES.clear()
