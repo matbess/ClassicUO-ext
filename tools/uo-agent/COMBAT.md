@@ -71,6 +71,15 @@ fight. Nothing goes to town until fighting works.
   seen, concentration disturbed, no mana or reagents, already casting; "already in effect" and "have been healed"
   are a success, so is the target's health falling, or nothing against it within 3 s), logged as
   `result=success/fail (why)`. One spell at a time, and no skill while one is on its way (their cursors would mix).
+- **Keep the fight equal** (the user, 2026-11-07, after the 19:01 run where every spell went at the gargoyle and the
+  dire wolf was freed at 18/25 with his mana at the reserve): "When 2 mobs are focused on each other you don't have
+  to worry about their magic at that moment, you need to worry about keeping them 'about equal' in HP. keep the
+  fight equal. You want them to die at almost the same time so that when one of them dies it's a 1-shot for you to
+  kill the other one, that is a higher priority than 'always kill magic user first' .. that is true when the magic
+  user is targeting YOU but not true when it's targeting another monster". fight.py's cast_target: at a fighting
+  pair, a spell at the one clearly ahead (UNEVEN), never the one behind, caster or not; about even, they fight on
+  (with health and mana full, a spell at the healthier to speed it up); both at 15% or less, finish them. Casters
+  first only when they're after him.
 - **Uneven pairs: even the fight out.** When one is losing, cast at the one winning (the stronger), never the one
   losing, so it's low or dead before it's freed (fight 1: the user bolted the headless one while its mongbat was
   dying; 2026-11-06 16:58: "You killed the wrong one first ... your job is to even out the fight", the dire wolf,

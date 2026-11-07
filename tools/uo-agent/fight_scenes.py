@@ -184,7 +184,7 @@ fight.call = fake_call
 both = lambda f: (f.pairs.update({'0xA': '0xB'}), f.provoked_at.update({'0xA': time.time()}))
 pair = [mob('0xA', 'a dire wolf', 1801, 1430, True, hits=20), mob('0xB', 'an ogre', 1802, 1431, True, hits=24)]
 run('wolf and ogre fighting 11 off, mana 100: a spell', dict(me, x=1793), pair, setup=both)
-run('the same, mana 40: only Fireball keeps 30', dict(me, x=1793, mana=40), pair, setup=both)
+run('the same, mana 40 (about even): let them fight, meditate', dict(me, x=1793, mana=40), pair, setup=both)
 run('the same, mana 35: no spell (keeps 30), meditate', dict(me, x=1793, mana=35), pair, setup=both)
 
 # looting, one step per look
@@ -260,5 +260,26 @@ pair_dying = lambda f: (f.pairs.update({'0xD': '0xT'}), f.provoked_at.update({'0
 run('dire wolf 1/25 and timber wolf 2/25 fighting, mana 60: finish the dire wolf now', dict(me, mana=60), dying,
     setup=pair_dying)
 busy_close = [mob('0xD', 'a dire wolf', 1797, 1430, True, hits=10), mob('0xT', 'a timber wolf', 1798, 1430, False, hits=20)]
-run('dire wolf after him 7 off, busy with a timber wolf, mana 37: no meditating', dict(me, mana=37), busy_close,
+run('dire wolf 7 off fighting a timber wolf where they are, mana 37: meditate', dict(me, mana=37), busy_close,
     setup=lambda f: (f.pairs.update({'0xD': '0xT'}), f.provoked_at.update({'0xD': time.time()})))
+
+# a caster fighting a dire wolf: both down together, the caster first on a tie
+garg_pair = lambda f: (f.pairs.update({'0xG': '0xD'}), f.provoked_at.update({'0xG': time.time()}),
+                       f.fought_with.update({'0xG', '0xD'}), setattr(f, 'reflect_up', True))
+run('gargoyle 24 and dire wolf 25 fighting, full: the healthier (the dire wolf)', me,
+    [mob('0xG', 'a gargoyle', 1800, 1430, True, hits=24), mob('0xD', 'a dire wolf', 1801, 1431, True, hits=25)], setup=garg_pair)
+run('gargoyle 14 and dire wolf 22 fighting: the dire wolf (ahead), not the caster', dict(me, mana=60),
+    [mob('0xG', 'a gargoyle', 1800, 1430, True, hits=14), mob('0xD', 'a dire wolf', 1801, 1431, True, hits=22)], setup=garg_pair)
+run('gargoyle 22 and dire wolf 20 fighting, mana 60: about even, let them fight', dict(me, mana=60),
+    [mob('0xG', 'a gargoyle', 1800, 1430, True, hits=22), mob('0xD', 'a dire wolf', 1801, 1431, True, hits=20)], setup=garg_pair)
+run('gargoyle 3 and dire wolf 2: finish them', dict(me, mana=60),
+    [mob('0xG', 'a gargoyle', 1800, 1430, True, hits=3), mob('0xD', 'a dire wolf', 1801, 1431, True, hits=2)], setup=garg_pair)
+run('gargoyle 3 and dire wolf 20: the dire wolf, not finishing the gargoyle', dict(me, mana=60),
+    [mob('0xG', 'a gargoyle', 1800, 1430, True, hits=3), mob('0xD', 'a dire wolf', 1801, 1431, True, hits=20)], setup=garg_pair)
+
+# a dire wolf marked busy with a timber wolf but coming at him (19:02:23): no meditating
+coming_busy = lambda f: (f.pairs.update({'0xD': '0xT'}), f.provoked_at.update({'0xD': time.time()}),
+                         f.history.update({'0xD': [(time.time() - 2, 10), (time.time() - 0.5, 7)]}))
+run('dire wolf busy with a timber wolf but coming at him 10 -> 7, mana 37: no meditating', dict(me, mana=37),
+    [mob('0xD', 'a dire wolf', 1797, 1430, True, hits=10), mob('0xT', 'a timber wolf', 1798, 1430, False, hits=12)],
+    setup=coming_busy)

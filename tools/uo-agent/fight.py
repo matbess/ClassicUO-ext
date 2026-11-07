@@ -534,6 +534,11 @@ class Fight:
                 return a
         return self.engaged_with.get(serial)
 
+    def approaching(self, serial):
+        """Getting nearer him: 2 tiles or more nearer over the last 3 seconds."""
+        h = [d for t, d in self.history.get(serial, []) if time.time() - t <= 3]
+        return len(h) >= 2 and h[-1] <= h[0] - 2
+
     def busy(self, serial, mobs):
         """Fighting something else: provoked onto (or by) a creature that's still alive (just provoked, or next to
         it), or a fight he didn't start: locked together with another creature (within a tile of it for ENGAGED_AFTER
@@ -710,40 +715,40 @@ class Fight:
         return None
 
     def cast_target(self, me, busy, mobs, st=None):
-        """Mana sparingly: provoke is the first line of defence (the user, 2026-11-06: spending it all on one ettin
-        left nothing for the next; "it's ok to provoke 2 creatures and wait for them to do damage to each other for a
-        while (while maybe you are meditating) before you use any mana"). So a spell only at a caster (killed first),
-        at the stronger of an uneven pair (its partner nearly dead: before it's freed), or at one already low
-        (CAST_WHEN) to finish it; None means let them fight on."""
-        reach = [m for m in busy if dist(me, xy(m)) <= SPELL_RANGE and self.visible(m['serial'])]
-        if not reach:
-            return None
-        casters = [m for m in reach if kind(m) in CASTERS]
-        if casters:
-            return min(casters, key=lambda m: share(m) if share(m) is not None else 1.0)
-        # one nearly dead: finish it now with a cheap spell, no waiting for full mana (19:03:03-44: both at 0-1/25 for
-        # 40 s while he waited); the one after him first
-        dying = [m for m in reach if share(m) is not None and share(m) <= LOW]
-        if dying:
-            return min(dying, key=lambda m: (not self.coming(m), share(m)))
-        # even the fight out (the user, 2026-11-06: a mongbat losing to a dire wolf: "your job is to even out the
-        # fight", bolt the dire wolf, the strongest, never the one losing): at a pair where one is clearly winning,
-        # the winner; an even fight is left to wear both down
-        for m in sorted(reach, key=lambda m: (-(share(m) or 0), -tier(m))):
+        """A spell at a pair fighting each other, or None to let them fight on. **Keep the fight equal** (the user,
+        2026-11-07: "When 2 mobs are focused on each other you don't have to worry about their magic at that moment,
+        you need to worry about keeping them 'about equal' in HP ... You want them to die at almost the same time so
+        that when one of them dies it's a 1-shot for you to kill the other one, that is a higher priority than 'always
+        kill magic user first' .. that is true when the magic user is targeting YOU but not true when it's targeting
+        another monster"; 19:01: every spell went at the gargoyle, it died, the dire wolf was freed at 18/25 with his
+        mana at the reserve). So, at a pair within reach:
+        - both nearly dead (15% or less): finish them, the one after him first;
+        - one clearly ahead (UNEVEN): a spell at it, the one winning, never the one losing;
+        - about even: let them wear each other down (mana sparingly; the user, 2026-11-06), unless his health and
+          mana are full: then at the healthier, so both come down together faster (the user, 2026-11-07);
+        - one whose partner is gone (dead, out of sight) is left to the other branches (it's free now)."""
+        # a little past spell range too: the caller rides closer to cast (the one ahead was 11 off and nothing was cast)
+        reach = [m for m in busy if dist(me, xy(m)) <= SPELL_RANGE + 4 and self.visible(m['serial'])]
+        pairs = []
+        for m in reach:
             o = mobs.get(self.partner_of(m['serial']) or '')
-            if not (o and attackable(o)):
-                continue
+            if o and attackable(o) and (o, m) not in pairs:
+                pairs.append((m, o))
+        full = (st is not None and st['mana'] >= FULL * st.get('manaMax', 100)
+                and st['hits'] >= FULL * st.get('hitsMax', 100))
+        choices = []
+        for m, o in pairs:
             sm, so = share(m) or 0, share(o) or 0
-            if sm - so >= UNEVEN or (sm >= so and tier(m) > tier(o)):
+            ahead, behind = (m, o) if sm >= so else (o, m)
+            gap = abs(sm - so)
+            if sm <= LOW and so <= LOW:
+                pick = min((m, o), key=lambda x: (not self.coming(x), share(x) or 0))
+                choices.append((0, pick))
+            elif gap >= UNEVEN or full:
+                choices.append((1, ahead))
+        for _, m in sorted(choices, key=lambda c: c[0]):
+            if dist(me, xy(m)) <= SPELL_RANGE + 4 and self.visible(m['serial']):
                 return m
-        # health and mana full: bring an even pair down together, a spell at whichever is healthier (so at both in
-        # turn), to speed it up (the user, 2026-11-07: "you had full mana but didn't use it to bring both the orc and
-        # the hart down equally (you can hit both of them once to bring them both down and speed it up since your HP
-        # and MP are full)")
-        if st and st['mana'] >= FULL * st.get('manaMax', 100) and st['hits'] >= FULL * st.get('hitsMax', 100):
-            paired = [m for m in reach if (o := mobs.get(self.partner_of(m['serial']) or '')) and attackable(o)]
-            if paired:
-                return max(paired, key=lambda m: (share(m) or 0, tier(m)))
         return None
 
     def cast(self, spell, target, name, kind):
@@ -1099,9 +1104,12 @@ class Fight:
                     self.cast_at(m, spell)
                     return False
                 nearly_dead = any(share(b) is not None and share(b) < 0.25 for b in busy)
-                # never with one after him close by, fighting or not (19:02:23: a dire wolf 5 off, after him, counted
-                # as busy with a timber wolf, and he sat down to meditate)
-                after_him = any(self.coming(t) and dist(me, xy(t)) <= CLEAR for t in threats)
+                # never with one after him close by (19:02:23: a dire wolf coming at him, 9 -> 5 tiles, counted as busy
+                # with a timber wolf, and he sat down to meditate); a pair still marked as after him but fighting each
+                # other where they are is fine (the orc and the hart, 18:50: the user wants him meditating then)
+                busy_ids = {b['serial'] for b in busy}
+                after_him = any(self.coming(t) and dist(me, xy(t)) <= CLEAR
+                                and (t['serial'] not in busy_ids or self.approaching(t['serial'])) for t in threats)
                 if (not self.meditating and not nearly_dead and not after_him
                         and st['mana'] < st.get('manaMax', 100) - 10 and self.skill_ready()):
                     self.last_skill = time.time()
