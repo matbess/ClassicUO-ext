@@ -274,6 +274,20 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **18:32** (bridge 8, cuo-agent24; a gargoyle by the forges and a panther at the steps): reagents fine, Magic
+  Reflection inside ("In Jux Sanct"; again outside: "already in effect", 0.2 s); the door wouldn't shut over him in
+  the doorway, so he shut it from 1756,1415 and the check said "That is locked.". The gargoyle turned on him at 11
+  tiles; he kept riding away to 15+ (south-east, east, north, west, a loop round the tower) but never led it to the
+  panther: the gargoyle was between them, and the pull only rode a straight line clear of it. At 18:33:12 he rode
+  back toward it "to look around" (it hit him to 87), then spells hit him to 54; Greater Heal cast on the move came
+  back "38 points of damage have been healed" in 1.4 s, but the bridge took its own aim of that heal for the user
+  taking over (the aim ran outside its own work) and fight.py stopped with the gargoyle on him (92 -> 61). The user
+  ("put him on the panther") rode to the panther, provoked **the panther onto the gargoyle** ("Your music succeeds")
+  and the gargoyle turned on it: "Do you see what I did? that got the gargoyle off of me. That could have given some
+  time to cast energy bolt at the gargoyle." Then Greater Heal and in; the panther died. -> cuo-agent25 (the
+  bridge's aim counts as its own); a caster in the way gets ridden round (waypoints 10 off it) to the partner;
+  `--partner KIND` sets creatures on what the user names first; no drawing or looking around while anything is after
+  him.
 - **17:10** (south-east route): drew an orc (Romarod) and killed it with spells all the way: Energy Bolt x3 (25 ->
   16 -> 7) and Fireball, no damage taken. Then the loot: 41 gold dropped into his pack merged into the 158 gold
   already there, the dropped coins' serial vanished, and the bridge (waiting for them to show up in the pack) stopped

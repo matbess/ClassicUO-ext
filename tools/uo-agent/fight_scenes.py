@@ -222,3 +222,14 @@ hammer = {'serial': '0xI2', 'graphic': '0x1439', 'hue': 0, 'type': 'war hammer'}
 loot_scene('corpse 2 off: ride, then one item a look', (1790, 1430), [gold, hammer])
 loot_scene('a wolf 4 from the corpse: nothing', (1790, 1431), [gold], [mob('0xW', 'a dire wolf', 1793, 1434)])
 loot_scene('next to the corpse: one item a look, then done', (1790, 1431), [gold, hammer])
+
+# the gargoyle between him and the panther (18:33): round it toward the panther, not straight through or away
+fight.ASYNC = True
+fight.call = fake_call
+run('gargoyle 10 off, the panther beyond it: round the gargoyle toward the panther', me,
+    [mob('0xG', 'a gargoyle', 1782, 1430, True), mob('0xP', 'a panther', 1774, 1430)], setup=up)
+fight.PARTNER = 'panther'
+run('--partner panther: the panther before an orc nearer the gargoyle', me,
+    [mob('0xG', 'a gargoyle', 1799, 1430, True), mob('0xR', 'Nehrakgu', 1800, 1437), mob('0xP', 'a panther', 1781, 1433)],
+    setup=up)
+fight.PARTNER = None

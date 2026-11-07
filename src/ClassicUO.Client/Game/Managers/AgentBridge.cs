@@ -195,7 +195,18 @@ namespace ClassicUO.Game.Managers
 
             if (_aimTarget != 0)
             {
-                AimPending();
+                // the bridge's own target, not the user's: outside _inWork the hand-over check took the aimed
+                // Greater Heal for the user taking over and stopped the fight next to a gargoyle (2026-11-06 18:33:35)
+                _inWork = true;
+
+                try
+                {
+                    AimPending();
+                }
+                finally
+                {
+                    _inWork = false;
+                }
             }
 
             if (_listener != null)

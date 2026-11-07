@@ -81,6 +81,9 @@ SPELL_FAILS = ('fizzles', 'concentration is disturbed', 'too far away', 'cannot 
                'insufficient mana', 'more reagents', 'already casting', 'must wait', 'not yet recovered',
                'will not adhere', 'target is not')
 SPELL_SETTLE = 3.0      # seconds: a spell with no word against it by then went off
+PARTNER = None          # --partner KIND: set creatures on this kind first when there's one (the user, 2026-11-06 18:33:
+                        # "put him on the panther")
+ROUND = 10              # leading a caster round to a partner when it's in the way: waypoints this far from the caster
 ASYNC = False           # bridge 8 (cuo-agent24): /cast wait=0, the cursor aimed by the bridge when it comes
 LAND_TIME = 1.0         # seconds after the aim for a spell to land: no moving (casting freezes him; a step then
                         # gets "You are frozen and cannot move.", which cut the bridge's wait for the cursor short)
@@ -609,7 +612,8 @@ class Fight:
                  and (pair is None or dist(xy(a), xy(m)) <= pair)]
         if not cands:
             return None
-        return min(cands, key=lambda m: (abs(tier(m) - tier(a)), self.busy(m['serial'], mobs), dist(xy(a), xy(m))))
+        return min(cands, key=lambda m: (PARTNER is not None and PARTNER not in kind(m), abs(tier(m) - tier(a)),
+                                         self.busy(m['serial'], mobs), dist(xy(a), xy(m))))
 
     def provoke(self, a, b):
         """a onto b; True when the music worked."""
@@ -1097,6 +1101,13 @@ class Fight:
         if self.homeward:
             return self.step_home(me, threats)
 
+        # something after him that the branches above left be (it went out of their reckoning for a moment): no
+        # drawing or looking around now (18:33:12: "riding to 1768,1430 to look around" took him straight back to a
+        # gargoyle that was after him; it hit him to 87)
+        if any(attackable(m) and self.coming(m) for m in mobs.values()):
+            time.sleep(0.15)
+            return False
+
         # drawing one (the user): ride straight to where it'll notice him (5 tiles; casters notice from far, 11) and
         # stand still there until it targets him (turns Criminal); left be if it hasn't by LURE_WAIT (shut in a
         # building, or it doesn't attack). No moving about while waiting.
@@ -1196,10 +1207,29 @@ class Fight:
                 if self.mover.why == why and self.mover.going(me):
                     time.sleep(0.15)
                     return True
-                others = [xy(t) for t in threats if t['serial'] != p['serial']] + [xy(p)]
+                others = [xy(t) for t in threats if t['serial'] != p['serial']]
                 if (path_clear(me, spot, [xy(a)], KEEP_CASTER) and path_clear(me, spot, others, SPACE)
+                        and path_clear(me, spot, [xy(p)], 2)
                         and self.mover.go(me, spot, why)):
                     say(f'pulling {a["name"]} ({d} tiles) to {p["name"]} at {px},{py}')
+                    return True
+                # the caster is in the way (the gargoyle between him and the panther, 18:33): round it, ROUND tiles
+                # off, by the waypoint that gets him nearest the spot; one at a time, each kept until he's there
+                if self.mover.why == why + ' round' and self.mover.going(me):
+                    time.sleep(0.15)
+                    return True
+                best = None
+                for i in range(16):
+                    ang = i * math.pi / 8
+                    w = clamp_area((round(ax + ROUND * math.cos(ang)), round(ay + ROUND * math.sin(ang))))
+                    if dist(w, me) < 3 or dist(w, spot) >= dist(me, spot):
+                        continue
+                    if (path_clear(me, w, [xy(a)], KEEP_CASTER) and path_clear(me, w, others, SPACE)
+                            and path_clear(me, w, [xy(p)], 2)):
+                        if best is None or dist(w, spot) < dist(best, spot):
+                            best = w
+                if best and self.mover.go(me, best, why + ' round'):
+                    say(f'round {a["name"]} ({d} tiles) toward {p["name"]} at {px},{py}: via {best[0]},{best[1]}')
                     return True
             else:
                 time.sleep(0.15)  # there: let it come into provoke range
@@ -1510,10 +1540,11 @@ def on_term(signum, frame):
 
 
 def main():
-    global info, ASYNC
+    global info, ASYNC, PARTNER
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--minutes', type=float, default=10, help='then home')
     parser.add_argument('--route', choices=sorted(ROUTES), help='where to look (default: one at random)')
+    parser.add_argument('--partner', help='set creatures on this kind first (e.g. panther), as the user says')
     parser.add_argument('--resume', action='store_true',
                         help='clear a takeover; only when the user has said they hand him back')
     args = parser.parse_args()
@@ -1533,6 +1564,7 @@ def main():
         call('POST', '/resume')
         say(f'resumed, as the user said (was: {stopped})')
     try:
+        PARTNER = args.partner.lower() if args.partner else None
         Fight(args.minutes, args.route).run()
         say('parked inside; the door is locked and closed')
     except Stop as e:
