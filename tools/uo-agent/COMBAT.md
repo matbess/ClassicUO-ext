@@ -15,8 +15,12 @@ fight. Nothing goes to town until fighting works.
 - **Never get hit.** He runs around; he never trades blows. Standing there doing nothing is *always* the wrong
   thing: when nothing better can be done, he at least runs away from all of them, **toward the tower**. Never end up
   far from it (a little further out is fine when needed; not 100 tiles away).
-- **Stay back.** Creatures come for him once they see him and he gets close. He never walks up to one. To draw one,
-  only as close as it can see him.
+- **Stay back.** Creatures come for him once they see him and he gets close. He never stands next to one.
+- **Drawing a creature** (the user, 2026-11-06, showing it with an ogre): ride up to about **5 tiles** from it and
+  wait for it to target him and come at him; then lead it off. Not from 12 tiles, and no wiggling back and forth
+  (it tires the horse).
+- **Ignore creatures trapped inside buildings** (the ogre at about 1733,1468 is shut inside the castle south-west of
+  the tower): a wall is between them, so it never comes. One that doesn't come at him from 5 tiles is left be.
 - **Provoke them onto each other** (Provocation, skill 22): use the skill, pick the instrument (only the first time
   after a login; the tambourine in his pack), then target the two creatures. Pair creatures of similar strength.
   Several can be set on one strong one, or all on each other, just to keep them off him.
@@ -45,16 +49,26 @@ fight. Nothing goes to town until fighting works.
   cursor isn't an action: it can go as fast as the prompt appears (the bridge's /target, /menu and /gump don't wait
   the gap).
 
-## Creatures (per creature: the bridge can't tell red from grey)
+## Creatures
 
-The bridge reports nearly every creature with notoriety **Gray** (aggressive ones are sometimes **Criminal**, e.g.
-troll, water elemental, mongbat, headless one, skeleton, dire wolf), never Murderer, so whether one is "red"
-(comes for him) or "grey" (leaves him alone) is kept by name in fight.py. The user (2026-11-06):
+**A creature coming at him turns Criminal** (the user, 2026-11-06: "I can see the creature turn completely grey
+when they target me, that means they're going to come at me. And they stay grey"). Clem's client shows notoriety
+Criminal in a grey (criminal_hue 946), other than the colour of the ordinary attackable creatures (notoriety Gray).
+The gargoyle that day: Gray at 18 tiles, Criminal at 14 (16:01:27), then straight at him, 14 to 5 tiles in 7 s;
+**war mode never came on**, so it tells nothing. The earlier recordings agree: the ones that fought him (troll,
+water elemental, mongbat, headless one, skeleton, dire wolf, the ratman Chichoki) were Criminal at times; the
+trapped ogre and the panthers never. fight.py: coming = Criminal.
+
+Which creatures to bother with at all is kept by name in fight.py (the bridge shows them all Gray until they turn).
+The user (2026-11-06):
 - **Leave alone** (grey; only something to provoke a red one onto): panthers (unless they attack: they don't seem
   to), timber wolves, and animals (llama, sheep, hind, great hart, jack rabbit, ...). One that does attack (war mode,
   not provoked) counts as a threat after all.
 - **Deal with:** dire wolves, ogres, trolls, water elementals, skeletons, headless ones, mongbats, ratmen (they get
   random names like Chichoki, Kicchiki, Weckaki: named creatures can be monsters, not pets).
+- **Trapped inside buildings: ignore** (the ogre and a gargoyle inside the castle south-west of the tower, about
+  1733-1745, 1467-1483: a wall is between them). One that doesn't turn on him within 15 s of his being 5 tiles off
+  is left be.
 - Strength tiers for pairing (fight.py WEAK / STRONG; anything else middling) and casters (CASTERS) are first guesses
   from T2A: the user corrects them as they go.
 
@@ -142,6 +156,10 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **15:58**: drew the ogre from 12 tiles; it wandered a tile nearer, which counted as "coming", so he tried to lead
+  it to a panther 4 tiles from him and wiggled between two tiles. The ogre was shut inside the castle. The user then
+  showed how: ride to about 5 tiles and wait for it to target him (a gargoyle there turned Criminal and came). ->
+  coming = Criminal; draw from 5 tiles, left be after 15 s; a picked spot is kept (no re-picking every moment).
 
 ## fight.py as it stands (2026-11-06)
 
@@ -150,13 +168,15 @@ Each tick (a few a second) it reads his status, every creature within 18 tiles a
 2. Paralysed: a pouch.
 3. A free creature within 3: run away from all of them, toward the tower, never past one within 12.
 4. Hurt (below 60%): get clear, then Greater Heal; poisoned and clear: Cure.
-5. One coming for him: when provoke is ready and both are within 8, provoke it onto the most similar creature
+5. One coming for him (Criminal): when provoke is ready and both are within 8, provoke it onto the most similar creature
    (casters first), then back off; otherwise lead it to about 7 tiles from a partner, keeping away from it; else run.
 6. Clear of the fighting (8) and of anything free (10): one spell at a time at the fighting (casters, then the
    stronger of an uneven pair, else the weakest), no moving while it goes off; meditate when mana is short.
-7. Nothing coming or fighting: after a fight, home once it has been quiet 5 s; before one, draw the nearest creature
-   from 12 tiles (left be after 20 s if it doesn't come); nothing in sight: ride to the lookout points (south first,
-   then east) and look around 3 s at each.
+7. Nothing coming or fighting: after a fight, home once it has been quiet 5 s; before one, draw the nearest creature:
+   one ride to 5 tiles from it, then wait for it to turn Criminal (left be after 15 s); nothing in sight: ride to the
+   lookout points (south first, then east) and look around 3 s at each.
+Moving: a spot picked is kept for a while (2.5 s) unless it becomes clearly worse or unsafe, and the same walk isn't
+resent, so he never goes back and forth between tiles (it tires the horse).
 Home: short hops to the door, then `door.go_in`. Time up (10 min), interrupted or an error: home all the same.
 
 ## Open items

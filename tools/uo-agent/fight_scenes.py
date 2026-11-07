@@ -12,7 +12,8 @@ sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 import fight  # noqa: E402
 
 def mob(serial, name, x, y, war=False, hits=25):
-    return {'serial': serial, 'name': name, 'x': x, 'y': y, 'notoriety': 'Gray', 'warMode': war, 'hits': hits,
+    # war: it has targeted him, which shows as notoriety Criminal (war mode never comes on)
+    return {'serial': serial, 'name': name, 'x': x, 'y': y, 'notoriety': 'Criminal' if war else 'Gray', 'warMode': False, 'hits': hits,
             'hitsMax': 25, 'body': '0x1', 'human': False, 'yourPet': False, 'dead': False, 'hidden': False}
 
 acts = []
@@ -39,6 +40,7 @@ fight.row = lambda **k: None
 def run(name, me, mobs, setup=None):
     global acts
     scene['me'] = me; scene['mobs'] = {m['serial']: m for m in mobs}
+    fight._last_walk.update(p=None, t=0.0)  # each scene starts fresh (no walk from the one before)
     f = fight.Fight(10)
     if setup: setup(f)
     acts = []

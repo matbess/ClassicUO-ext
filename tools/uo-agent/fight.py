@@ -64,8 +64,10 @@ ON_HIM = 3              # a free creature this close: run, nothing else
 CLEAR = 10              # free creatures further than this: he may cast or meditate
 BACK_OFF = 9            # after a provoke, and from anything coming: get at least this far away
 FIGHT_GAP = 8           # keep this far from creatures fighting each other
-LURE = 12               # drawing one: no closer than this to any creature
-LURE_WAIT = 20          # seconds: one that hasn't come for him by then is left be
+AWAY = 12               # one coming at him that he can't provoke yet: keep at least this far from it
+LURE = 5                # drawing one: ride to about this far from it and wait for it to target him (the user)
+LURE_WAIT = 15          # seconds there: one that hasn't turned on him by then is left be (trapped in a building, or
+                        # one that doesn't attack)
 PROVOKED_BUSY = 6       # seconds after a provoke the pair counts as busy even before they meet
 HURT = 0.6              # his share of health: get clear, then heal
 LOW, VERY_LOW = 0.15, 0.05   # a target's share: Lightning below LOW, Fireball below VERY_LOW (the user, 2026-11-06)
@@ -180,11 +182,15 @@ def look():
 _last_walk = {'p': None, 't': 0.0}
 
 
-def walk(p):
+def clamp_area(p):
+    return (min(max(p[0], AREA[0]), AREA[2]), min(max(p[1], AREA[1] + 1), AREA[3]))
+
+
+def walk(p, keep=1.5):
     """Run to p, coming back as soon as he's on his way. False when there's no way there. The same spot again (or
-    one next to it) within 1.5 s isn't sent: every new walk is more riding, and back-and-forth tires the horse
-    (2026-11-06)."""
-    if _last_walk['p'] and dist(p, _last_walk['p']) <= 1 and time.time() - _last_walk['t'] < 1.5:
+    one next to it) within `keep` seconds isn't sent: every new walk is more riding, and back-and-forth tires the
+    horse (2026-11-06)."""
+    if _last_walk['p'] and dist(p, _last_walk['p']) <= 1 and time.time() - _last_walk['t'] < keep:
         return True
     try:
         ok = bool(call('POST', '/walk', x=p[0], y=p[1], distance=0, run=1, wait=0))
@@ -209,6 +215,12 @@ def go_somewhere(me, score, radii=(5, 8), allowed=None):
     if allowed and any(allowed(p) for _, p in spots):
         spots = [(v, p) for v, p in spots if allowed(p)]
     spots.sort(reverse=True)
+    # no wiggling (the user, 2026-11-06): keep riding to the spot picked a moment ago unless it has become clearly
+    # worse or unsafe; picking afresh every tick sent him back and forth between two tiles and tired the horse
+    g = _last_walk['p']
+    if (g and spots and time.time() - _last_walk['t'] < 2.5 and dist(me, g) > 1 and in_area(g)
+            and (not allowed or allowed(g)) and score(g) >= spots[0][0] - 4):
+        return g
     for _, p in spots[:6]:
         if walk(p):
             return p
@@ -298,10 +310,11 @@ class Fight:
         return recent or dist(xy(m), xy(o)) <= 3
 
     def coming(self, m):
-        """After him: in war mode, or getting closer."""
-        h = self.history.get(m['serial'], [])
-        closing = len(h) >= 3 and h[-1][1] < h[-3][1]
-        return bool(m.get('warMode')) or closing
+        """After him: it has turned Criminal. The user, 2026-11-06: "I can see the creature turn completely grey when
+        they target me, that means they're going to come at me. And they stay grey" (Clem's criminal_hue is a grey;
+        attackable creatures are notoriety Gray, another colour). The gargoyle that day: Gray, then Criminal at 14
+        tiles, then straight at him; war mode never came on."""
+        return m.get('notoriety') == 'Criminal'
 
     def visible(self, serial):
         return self.unseen.get(serial, 0) < time.time()
@@ -486,7 +499,7 @@ class Fight:
                 return False
             say('paralysed, and no pouch left')
 
-        threats = [m for m in mobs.values() if attackable(m) and (not passive(m) or m.get('warMode'))]
+        threats = [m for m in mobs.values() if attackable(m) and (not passive(m) or self.coming(m))]
         busy = [m for m in threats if self.busy(m['serial'], mobs)]
         busy_ids = {m['serial'] for m in busy}
         free = [m for m in threats if m['serial'] not in busy_ids]
@@ -537,7 +550,7 @@ class Fight:
                 go_somewhere(me, score)
                 return False
             # nothing to set it on, or the skill isn't ready: keep well away from it, toward the tower
-            if dist(me, xy(a)) < LURE:
+            if dist(me, xy(a)) < AWAY:
                 run_from(me, [xy(m) for m in threats])
             else:
                 time.sleep(0.15)
@@ -578,7 +591,8 @@ class Fight:
         if self.homeward:
             return self.step_home(me, threats)
 
-        # drawing one: as close as it can see him, no closer; one that doesn't come within LURE_WAIT is left be
+        # drawing one (the user): ride to about 5 tiles from it and wait for it to target him (turn Criminal); one
+        # that hasn't by LURE_WAIT after he got there is left be (the ogre shut in the castle)
         lurable = [m for m in free if m['serial'] not in self.ignored]
         if lurable:
             # one at a time: the same one until it comes or is left be (switching to whichever was nearer had him
@@ -586,19 +600,23 @@ class Fight:
             current = [m for m in lurable if m['serial'] == self.luring]
             nearest = current[0] if current else min(lurable, key=lambda m: dist(me, xy(m)))
             if self.luring != nearest['serial']:
-                self.luring, self.lure_since = nearest['serial'], time.time()
+                self.luring, self.lure_since = nearest['serial'], None
                 say(f'drawing {nearest["name"]} at {nearest["x"]},{nearest["y"]} ({dist(me, xy(nearest))} tiles)')
-            elif time.time() - self.lure_since > LURE_WAIT:
-                say(f'{nearest["name"]} never came for him; leaving it be')
+            d = dist(me, xy(nearest))
+            if d > LURE + 1:
+                # one ride to the spot LURE tiles short of it, on his side (no re-picking every moment: no wiggling)
+                f = (d - LURE) / d
+                spot = clamp_area((round(me[0] + (nearest['x'] - me[0]) * f), round(me[1] + (nearest['y'] - me[1]) * f)))
+                walk(spot, keep=4.0)
+                time.sleep(0.2)
+                return False
+            if self.lure_since is None:
+                self.lure_since = time.time()
+            if time.time() - self.lure_since > LURE_WAIT:
+                say(f'{nearest["name"]} never turned on him from {d} tiles; leaving it be')
                 self.ignored.add(nearest['serial'])
                 return False
-            if dist(me, xy(nearest)) > LURE + 1:
-                def score(p):
-                    closest = min((dist(p, xy(t)) for t in threats), default=20)
-                    return -2.0 * abs(dist(p, xy(nearest)) - LURE) + 3 * min(closest - LURE, 0) + homeward(p)
-                go_somewhere(me, score, radii=(4, 7))
-            else:
-                time.sleep(0.2)  # in its sight: wait for it to come
+            time.sleep(0.2)  # there: wait for it to target him
             return False
 
         return self.search(me)
