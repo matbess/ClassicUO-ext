@@ -121,6 +121,11 @@ PASSIVE = {'llama', 'sheep', 'horse', 'cow', 'bull', 'pig', 'boar', 'chicken', '
 # the user, 2026-11-06: leave panthers alone unless they attack him (they don't seem to); timber wolves don't attack,
 # dire wolves do (deal with those). It's per creature, and the bridge's notoriety doesn't tell (all show Gray). A
 # creature from this list that turns on him (war mode, not provoked) counts as a threat after all.
+# animals that never bite: no need to keep away from them (he swerved round a llama all the way home, 2026-11-06);
+# panthers, timber wolves and bears aren't on this list (a timber wolf bit him at his feet)
+HARMLESS = {'llama', 'sheep', 'goat', 'mountain goat', 'cow', 'pig', 'chicken', 'rabbit', 'jack rabbit', 'hind', 'deer',
+            'great hart', 'bird', 'eagle', 'cat', 'dog', 'horse', 'pack horse', 'pack llama', 'squirrel', 'ferret',
+            'crane', 'raven', 'magpie', 'finch', 'tern', 'swallow', 'walrus', 'dolphin'}
 SAY_FOLLOW = 'all follow me'
 
 info = None
@@ -738,10 +743,10 @@ class Fight:
 
         # something right on him, any creature at all (a timber wolf "left alone" bit him at his feet, 2026-11-06):
         # get away first (the user: "#1 priority is always maintain distance")
-        dany_creature = min((dist(me, xy(m)) for m in mobs.values() if attackable(m)), default=99)
+        biters = [m for m in mobs.values() if attackable(m) and kind(m) not in HARMLESS]
+        dany_creature = min((dist(me, xy(m)) for m in biters), default=99)
         if dfree <= ON_HIM or dany_creature <= ON_HIM - 1:
-            threats = threats + [m for m in mobs.values() if attackable(m) and dist(me, xy(m)) <= ON_HIM
-                                 and m not in threats]
+            threats = threats + [m for m in biters if dist(me, xy(m)) <= ON_HIM and m not in threats]
             self.meditating = False
             self.flee(me, [xy(m) for m in threats])
             return False
@@ -1019,7 +1024,8 @@ class Fight:
                 creatures = [m for m in call('GET', '/nearby', range=18)['mobiles'] if attackable(m)]
             except uo.BridgeError:
                 return False
-            if any(dist(xy(m), (c['x'], c['y'])) < LOOT_CLEAR or dist(xy(m), me) < LOOT_CLEAR for m in creatures):
+            if any(dist(xy(m), (c['x'], c['y'])) < LOOT_CLEAR or dist(xy(m), me) < LOOT_CLEAR
+                   for m in creatures if kind(m) not in HARMLESS):
                 continue
             self.looted.add(c['serial'])
             if dist(me, (c['x'], c['y'])) > 1:
