@@ -31,8 +31,8 @@
   // a trapped pouch, used when he's paralysed
   "useFromBackpack": ["0x0E79"],
   // a tired horse (the user, 2026-11-06; MINING.md "Tired mount"): get away, dismount, say "all follow me", mount
-  // again. His horse: "a horse" 0x00043254 (read 2026-11-06 with him dismounted inside).
-  "say": ["all follow me"],
+  // again; "remove thyself" (the house command) puts a creature off the front steps. His horse: "a horse" 0x00043254 (read 2026-11-06 with him dismounted inside).
+  "say": ["all follow me", "remove thyself"],
   "mounts": ["0x00043254"],
   // bags of maps are put down at his feet: backpack, bag, pouch
   "dropOnGround": ["0x0E75", "0x0E76", "0x0E79"],

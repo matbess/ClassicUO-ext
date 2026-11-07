@@ -122,7 +122,8 @@ door, not the server).
 - **In** (`door.py in`, also fight.py's way home): from 1756,1416 unlock with the key, open, step into the doorway
   (1756,1414), lock with the key, step in (1756,1413), close.
 - **Creatures on the front steps:** the house command "remove thyself" and a click on the creature ejects it from
-  the house region, steps included. Not in his rules yet; `in` stops when any are within 3 tiles of the door.
+  the house region, steps included (in his rules' "say"; fight.py uses it on one within 3 of the door before going
+  in); `door.py in` stops when any are within 3 tiles of the door.
 
 ## Safety rules (the user, 2026-11-06)
 
@@ -197,6 +198,13 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **16:50** (cuo-agent23): a dire wolf by the tower never turned on him in 15 s, so it was left be (and wrongly
+  written into trapped.json for good); nothing else anywhere, so home; the wolf was at the front door, he went back
+  and forth trying to get in, it turned on him there, and being "left be" it was also left out of the "anything near
+  him?" check, so at 54 health he cast Greater Heal with it next to him (frozen) and went to 33; the user took over.
+  -> every free creature counts as near, whatever; one that didn't come is left be for that run only (trapped.json
+  only for ones behind a wall, by hand); a creature within 3 of the door gets the house command "remove thyself"
+  (in his rules' "say") before he goes for the door, and he never goes for the door with one there.
 - **16:42**: drew an ettin (it came at him: Criminal at 5 tiles) and, with nothing to set it on, killed it with
   spells all the way: five Energy Bolts in 12 s (25 -> 21 -> 16 -> 9 -> 4 -> dead), one hit taken (84). Then the
   client opened the ettin's corpse by itself (auto_open_corpses, range 2) and the bridge took that double-click for

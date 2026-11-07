@@ -381,6 +381,7 @@ class Fight:
         self.mover = Mover()
         self.killing = None      # the one he's killing with spells (no partner to set it on): all the way
         self.looted = set()      # corpses already looted
+        self.removed_at = {}     # serial -> when "remove thyself" was last used on it
         try:  # corpses lying about before the fight aren't his to loot
             self.corpses_before = {i['serial'] for i in call('GET', '/nearby', range=18)['items']
                                    if int(i['graphic'], 16) == 0x2006}
@@ -713,7 +714,9 @@ class Fight:
         self.mover.danger = bool(coming) or dfree <= ON_HIM
         dbusy = min((dist(me, xy(m)) for m in busy), default=99)
         # free creatures that matter for casting: not ones left be (shut in a building, never came)
-        dloose = min((dist(me, xy(m)) for m in free if m['serial'] not in self.ignored), default=99)
+        # every free creature counts for safety, left be or not (a dire wolf "left be" for not coming followed him to
+        # the door and bit him to 33 while he cast Greater Heal next to it, 2026-11-06 16:51)
+        dloose = dfree
         if coming or busy:
             self.quiet_since = None
         if casting:
@@ -891,9 +894,8 @@ class Fight:
                 self.lure_since = time.time()
                 say(f'standing {d} tiles from {target["name"]}, waiting for it to come')
             if time.time() - self.lure_since > LURE_WAIT:
-                say(f'{target["name"]} never turned on him from {d} tiles; leaving it be from now on')
+                say(f'{target["name"]} never turned on him from {d} tiles; leaving it be (this run)')
                 self.ignored.add(target['serial'])
-                remember_trapped(target)
                 self.luring = None
                 return False
             time.sleep(0.2)
@@ -1081,7 +1083,26 @@ class Fight:
         return False
 
     def step_home(self, me, threats):
-        """Short hops to the front door, then in (door.go_in). True once he's inside."""
+        """Short hops to the front door, then in (door.go_in). True once he's inside. A creature within 3 of the door
+        (not after him: that's dealt with first) is put off the front steps with the house command "remove thyself" (the
+        user, 2026-11-06); he only goes for the door with none there."""
+        at_door = [t for t in threats if dist(xy(t), HOME) <= 3]
+        if at_door and dist(me, HOME) <= 8:
+            t = min(at_door, key=lambda t: dist(xy(t), HOME))
+            if time.time() - self.removed_at.get(t['serial'], 0) > 6:
+                self.removed_at[t['serial']] = time.time()
+                try:
+                    a = call('POST', '/say', text='remove thyself')
+                    end = time.time() + 1.5  # the house's cursor comes a moment after the words
+                    while time.time() < end and not call('GET', '/status').get('targeting'):
+                        time.sleep(0.1)
+                    r = aim(t['serial']) if call('GET', '/status').get('targeting') else {}
+                    say(f'"remove thyself" on {t["name"]} at the door: {texts(r) or texts(a) or "-"}')
+                except uo.BridgeError as e:
+                    say(f'"remove thyself": {e}')
+                    cancel_cursor()
+            time.sleep(0.3)
+            return False
         if dist(me, HOME) <= 1:
             door.info = info
             try:
