@@ -200,7 +200,7 @@ door, not the server).
 - **Before any command by hand while he's out, look at the live state** (`uo nearby`, `uo status`), never at the
   alerts: they run behind (17:11, below: Claude sent "meditate" with a gargoyle already hitting him).
 
-## Bridge 8 (build cuo-agent24, 2026-11-06; NOT installed yet: the clients have to be closed)
+## Bridge 8 (build cuo-agent24, installed 2026-11-07 02:28; the one before is backed up as agent23)
 
 - `/cast?spell=&target=&wait=0`: sends the spell and answers at once (`{"cast": true, "messageId", hits, mana}`); the
   bridge aims the spell's cursor itself from its update loop when the cursor comes (within 6 s; a creature that died

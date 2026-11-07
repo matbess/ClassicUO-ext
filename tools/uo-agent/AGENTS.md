@@ -13,9 +13,10 @@ vault, and trips to the map vendor): read `CARTO.md` first; the tool is `carto.p
 **Fighting** (Clem, from 2026-11-06: a bard-mage who provokes creatures onto each other and finishes them with
 spells, so he can get past the creatures at the front door on trips to town): read `COMBAT.md` first; the tools
 are `door.py` (out and in through the front door, which must always end locked and closed) and `fight.py`;
-`fight_scenes.py` checks fight.py's decisions offline. Bridge 7 (build cuo-agent23) adds creatures' health,
-skills and spells aimed at creatures, running walks, doors and keys, and the user taking over by giving a command
-themselves (`"handOver"`); only the user hands him back (`--resume`). Never leave Clem outside or unwatched.
+`fight_scenes.py` and `fight_sim.py` check fight.py's decisions offline. Bridge 7 (build cuo-agent23) adds creatures'
+health, skills and spells aimed at creatures, running walks, doors and keys, and the user taking over by giving a
+command themselves (`"handOver"`); only the user hands him back (`--resume`). Bridge 8 (cuo-agent24, installed
+2026-11-07) casts without waiting (`/cast wait=0`): the bridge aims the cursor, the outcome comes in the messages. Never leave Clem outside or unwatched.
 
 **Blacksmithing** (Icepick, from 2026-11-05: training to 100 at the forge and anvil on the tower's ground floor,
 crafting and smelting back): read `SMITHING.md` first; the tool is `smith.py`, the rules
