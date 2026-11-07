@@ -299,6 +299,22 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **20:04** (cuo-agent26; south-west): restock (black pearl 22), out (his client opened the east half again: shut by
+  door.py), a dire wolf drawn and provoked onto a mountain goat, kept even (bolts at the wolf: 24 -> 17 -> 9 -> 0,
+  the goat 15 -> 4 -> 1), meditating between; the wolf ran off at 0/25 and the gargoyle turned on him; he kept 15+
+  off it for about a minute (a loop round, east-north-west-south), then pulled it to a great hart and provoked it on
+  ("Your music succeeds"), provoked a mongbat onto the hart too, bolted the gargoyle 25 -> 19 -> 14 -> 7, Lightning:
+  dead (20:07:32). Health 96 at the lowest. Home, locked, parked in the safe zone. Wrong: (1) the dire wolf left at
+  0/25 when it ran (the user: "You didn't kill the dire wolf? ... why didn't you put the gargoyle on the dire
+  wolf?"): one nearly dead (15% or less) in spell range is now finished first, before anything else; (2) a trapped
+  pouch opened at 20:07:24 for nothing: "You are frozen and cannot move." from his own bolt's freeze, just after the
+  own-spell window: those messages are now ignored while his own spell is on its way; (3) no looting: the corpses
+  lay ~11 off: LOOT_RANGE 16. **Pouches**: the user, "Any time a pouch trap is used up we have to remember to
+  re-trap it and retrap it before parking clem (or when resuming if it was missed)": pouches.json (in
+  ~/claude/uo-agent-work/combat) keeps each one's state; fight.py marks one spent when it opens it; door.py re-traps
+  spent ones with Magic Trap (13, now in his rules) after parking and before going out (`door.py retrap` by hand).
+  Magic Trap gets no word from the server, so the bridge stops itself 6 s after aiming; door.py resumes that (only
+  that stop, inside). 0x4092B7C9 and 0x4092B7CA re-trapped 20:09:49-56.
 - **19:48** (east route; a lone gargoyle at the edge of his area): drawn from 11, provoked onto a goat, but the first
   bolt went at the goat (a tie went to whichever came first) and the goat died at once; the gargoyle came on, he kept
   15+ off it but it reached him with spells (hit to 66 from 17 tiles; Reflection was down and fight.py didn't know:

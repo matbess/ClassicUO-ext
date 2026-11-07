@@ -317,3 +317,10 @@ run('the same message 0.5 s after his own Energy Bolt: not paralysed, no pouch',
 scene['messages'] = []
 fight.carried = _carried
 fight.USED_POUCHES.clear()
+
+# 20:05: a dire wolf at 0/25 running off 9 tiles away while a gargoyle comes on 14 off: finish the wolf first
+fight.ASYNC = True
+fight.call = fake_call
+run('dire wolf 1/25 running, 9 off; gargoyle after him 14 off: finish the wolf', me,
+    [mob('0xD', 'a dire wolf', 1799, 1430, True, hits=1), mob('0xG', 'a gargoyle', 1804, 1430, True, hits=25)],
+    setup=lambda f: setattr(f, 'reflect_up', True))

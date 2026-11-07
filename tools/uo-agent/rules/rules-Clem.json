@@ -48,7 +48,7 @@
   // Meditation for fights
   "skills": [12, 22, 46],
   // Heal 4, Cure 11, Fireball 18, Greater Heal 29, Lightning 30, Recall 32 (on a rune), Paralyze 38, Energy Bolt 42
-  "spells": [4, 11, 18, 29, 30, 32, 36, 38, 42],
+  "spells": [4, 11, 13, 18, 29, 30, 32, 36, 38, 42],
   // full speed (the user, 2026-11-05: everything inside the tower runs at full speed, 1.1 s between requests; only
   // mining, out in town, has pauses); the bridge never goes below 1.1 s (milliseconds)
   "pacing": { "gap": [1100, 1100], "burst": 1000, "break": [1100, 1100], "aim": [0, 0] }

@@ -123,7 +123,8 @@ UNEVEN = 0.2            # a fight is uneven (bolt the one winning) when its heal
 CAST_WHEN = 0.40        # a creature fighting another: spells only once it's down to this share (or a caster, or
                         # the stronger of an uneven pair); until then they wear each other down and he meditates
 LOOT_CLEAR = 6          # no looting with any creature this close to the corpse or to him
-LOOT_RANGE = 10         # after a fight: corpses this close that fell during it get looted
+LOOT_RANGE = 16          # corpses from this fight this far off get looted (20:08: the gargoyle and hart lay ~11 off
+                        # from where he meditated, and he went home without them)
 SPELL_RANGE = 10        # a spell from further: "That is too far away." (Energy Bolt at 11 tiles, 2026-11-06 16:31)
 CAST_SPOT = 8           # out of spell range (or "That is too far away."): ride to this far from it first
 LONE_CLEAR = 8          # a creature not busy with another: no spell at it closer than this (8-10, the user)
@@ -982,10 +983,12 @@ class Fight:
         own_cast = time.time() - self.last_cast < self.last_gap + 0.5
         if (st.get('paralyzed') or (time.time() - self.frozen_at < 2.0 and not own_cast)) and \
                 time.time() - self.pouch_at > 2.5:
-            found = [p for p in carried(POUCH) if p not in USED_POUCHES]
+            spent = {k for k, v in door.pouch_state().items() if v.get('state') == 'spent'}
+            found = [p for p in carried(POUCH) if p not in USED_POUCHES and p not in spent]
             if found:
                 self.pouch_at = time.time()
                 USED_POUCHES.add(found[0])
+                door.mark_pouch(found[0], 'spent')  # re-trapped when he's parked (door.retrap)
                 try:
                     a = call('POST', '/use', serial=found[0], wait=0 if BRIDGE >= 9 else None)
                     say(f'PARALYSED: trapped pouch {found[0]}' + (f': {texts(a)}' if texts(a) else ''))
@@ -1055,6 +1058,19 @@ class Fight:
         if st.get('poisoned') and dany >= HEAL_CLEAR and self.can_cast(CURE, st['mana']):
             self.heal_self(st, CURE)
             return False
+
+        # one nearly dead (15% or less) in spell range: finish it now, before anything else (the user, 2026-11-07: "You
+        # didn't kill the dire wolf? You just left him alive and started running from the gargoyle?": it ran off at
+        # 0/25, one Fireball, and the gargoyle came on meanwhile)
+        dying = [m for m in threats if share(m) is not None and share(m) <= LOW and self.visible(m['serial'])
+                 and CAST_CLEAR <= dist(me, xy(m)) <= SPELL_RANGE]
+        if dying and not self.spell and self.nearest_any >= CAST_CLEAR:
+            m = min(dying, key=lambda m: share(m))
+            spell = self.spell_for(m, st['mana'])
+            if spell:
+                say(f'finishing {m["name"]} ({health(m)})')
+                self.cast_at(m, spell)
+                return False
 
         # Magic Reflection up while a caster is about, unless a provoke can go off right now (that first: it gets the
         # caster "off of him", the user)
@@ -1552,7 +1568,10 @@ class Fight:
                 say(f'{m.get("from") or m.get("serial")} cast ({m["text"]!r}): Magic Reflection may be used up')
             if 'stop meditating' in low:
                 self.meditating = False  # a step or a spell ends the trance
-            if 'frozen and cannot move' in low or 'you cannot move' in low:
+            own_cast = time.time() - self.last_cast < self.last_gap + 0.5
+            if ('frozen and cannot move' in low and not own_cast) or 'you cannot move' in low:
+                # his own spell freezes him too: those don't count (20:07:24, a pouch opened 0.6 s after his own
+                # bolt's freeze, for nothing)
                 self.frozen_at = time.time()
             elif 'you can move' in low:
                 self.frozen_at = 0.0

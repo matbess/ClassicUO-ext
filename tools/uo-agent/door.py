@@ -6,6 +6,7 @@ the door's two halves and the key ring in his rules ("doors", "keys").
                               Magic Reflection, creatures off the front steps, then open, step out right in front of
                               the door, Paralyze at a caster in sight, close, and check
   python3 -I door.py in       from outside: unlock, open, step into the doorway, lock, step in, close
+  python3 -I door.py retrap   Magic Trap on his spent pouches (pouches.json); also part of in and out
   python3 -I door.py check    from outside: try to get back in through the door (it mustn't let him); if it opens,
                               lock it with the key and close it
 
@@ -25,6 +26,7 @@ Only the user hands him back: --resume clears a takeover, and is passed only whe
 Logs to ~/claude/uo-agent-work/combat/door.log.
 """
 import argparse
+import json
 import os
 import sys
 import time
@@ -35,6 +37,11 @@ import uo  # noqa: E402
 import restock  # noqa: E402
 
 LOG = os.path.expanduser('~/claude/uo-agent-work/combat/door.log')
+# his trapped pouches, serial -> {"state": "trapped" | "spent", "at"}: one used up gets Magic Trap again before he's
+# parked, or when he next goes out if that was missed (the user, 2026-11-07)
+POUCHES = os.path.expanduser('~/claude/uo-agent-work/combat/pouches.json')
+POUCH = 0x0E79
+MAGIC_TRAP = 13
 KEY = '0x4040A302'
 DOOR = '0x408AEA54'          # the west half, the one the user uses
 DOOR_EAST = '0x408AEA55'
@@ -157,6 +164,56 @@ def in_safe_zone(p):
     return SAFE[0] <= p[0] <= SAFE[2] and SAFE[1] <= p[1] <= SAFE[3]
 
 
+def pouch_state():
+    try:
+        with open(POUCHES, encoding='utf-8') as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return {}
+
+
+def mark_pouch(serial, state):
+    s = pouch_state()
+    s[serial] = {'state': state, 'at': time.strftime('%Y-%m-%d %H:%M:%S')}
+    os.makedirs(os.path.dirname(POUCHES), exist_ok=True)
+    with open(POUCHES, 'w', encoding='utf-8') as fh:
+        json.dump(s, fh, indent=1)
+
+
+def retrap():
+    """Magic Trap on every spent pouch he carries (the user, 2026-11-07: "Any time a pouch trap is used up we have to
+    remember to re-trap it and retrap it before parking clem (or when resuming if it was missed)"). The trap going on
+    gets no word from the server, so the bridge (which waits for one after aiming) stops itself after 6 s: inside,
+    that's resumed here and the pouch counted trapped."""
+    spent = [s for s, v in pouch_state().items() if v.get('state') == 'spent']
+    if not spent:
+        return
+    st = call('GET', '/status')
+    pack = st['backpack']['serial']
+    mine = {i['serial'] for i in call('GET', '/contents', serial=pack, depth=1)['items'] if int(i['graphic'], 16) == POUCH}
+    for serial in spent:
+        if serial not in mine:
+            say(f'spent pouch {serial} is not in his pack')
+            continue
+        if call('GET', '/status').get('mana', 0) < 10:
+            say('no mana to re-trap the pouches')
+            return
+        try:
+            a = call('POST', '/cast', spell=MAGIC_TRAP, target=serial)
+            text = texts(a)
+        except Stop as e:
+            st = call('GET', '/status')
+            if st.get('takenOver') or f'{serial}' not in (st.get('halted') or ''):
+                raise
+            call('POST', '/resume')
+            text = 'no word (as expected); resumed'
+        if any(w in text.lower() for w in ('fizzle', 'more reagents', 'insufficient mana', 'disturbed', 'cannot')):
+            say(f'Magic Trap on {serial} failed: {text}')
+            continue
+        mark_pouch(serial, 'trapped')
+        say(f'Magic Trap on pouch {serial}: {text or "-"}')
+
+
 def park():
     """Into the safe zone, away from the door (anywhere inside the red line will do: the walk to 1757,1410 stopped a
     tile short at 1757,1411 once)."""
@@ -267,6 +324,7 @@ def go_out(with_reflection=True):
         restock.ensure()
     except restock.Stop as e:
         raise Stop(f'reagents: {e}')
+    retrap()  # a pouch used up last time and not re-trapped (the user: "or when resuming if it was missed")
     if with_reflection:
         reflect()
     step(INSIDE, 'get to the door')
@@ -295,6 +353,7 @@ def go_in():
     if here[1] <= 1413:
         say('already inside')
         park()
+        retrap()
         return
     if here != DOORWAY:  # in the doorway already (just out, the door shut over him): straight to the key
         step(OUTSIDE, 'get to the door')
@@ -322,6 +381,7 @@ def go_in():
         close_east()
     say('in; the door is locked and closed')
     park()
+    retrap()
 
 
 def check():
@@ -350,7 +410,7 @@ def check():
 def main():
     global info
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('step', choices=['out', 'in', 'check'])
+    parser.add_argument('step', choices=['out', 'in', 'check', 'retrap'])
     parser.add_argument('--resume', action='store_true',
                         help='clear a takeover; only when the user has said they hand him back')
     args = parser.parse_args()
@@ -366,7 +426,7 @@ def main():
         call('POST', '/resume')
         say(f'resumed, as the user said (was: {stopped})')
     try:
-        {'out': go_out, 'in': go_in, 'check': check}[args.step]()
+        {'out': go_out, 'in': go_in, 'check': check, 'retrap': retrap}[args.step]()
     except Stop as e:
         say(f'STOPPED: {e}')
         sys.exit(1)
