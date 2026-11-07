@@ -40,6 +40,7 @@ import door  # noqa: E402
 WORK = os.path.expanduser('~/claude/uo-agent-work/combat')
 LOG = os.path.join(WORK, 'fight.log')
 ROWS = os.path.join(WORK, 'fights.jsonl')
+TRAPPED = os.path.join(HERE, 'trapped.json')  # creatures never to draw again (kept in the repo)
 
 AREA = (1715, 1414, 1810, 1485)   # "outside" in his rules (x1, y1, x2, y2); the door is at y 1414
 HOME = door.OUTSIDE               # in front of the door (1756,1416)
@@ -295,6 +296,28 @@ class Mover:
         self.goal, self.why = None, None
 
 
+def load_trapped():
+    """Creatures never to draw again: shut inside a building (the ogre in the castle south-west of the tower, which
+    he drew run after run: the user, 2026-11-06, "again with the Ogre that's behind the wall????"), or ones that
+    never come."""
+    try:
+        with open(TRAPPED, encoding='utf-8') as fh:
+            return set(json.load(fh))
+    except (OSError, ValueError):
+        return set()
+
+
+def remember_trapped(m):
+    try:
+        with open(TRAPPED, encoding='utf-8') as fh:
+            known = json.load(fh)
+    except (OSError, ValueError):
+        known = {}
+    known[m['serial']] = {'name': m.get('name'), 'at': [m['x'], m['y']], 'since': time.strftime('%Y-%m-%d %H:%M')}
+    with open(TRAPPED, 'w', encoding='utf-8') as fh:
+        json.dump(known, fh, indent=1)
+
+
 def homeward(p):
     """How much a spot leans toward the tower: a little near it, a lot once he's out past NEAR_HOME."""
     d = dist(p, HOME)
@@ -358,7 +381,7 @@ class Fight:
         self.orbit_dir = {}      # (follower, partner): which way round he circles the partner (kept: never back)
         self.orbit_since = {}    # (follower, partner): when he started circling
         self.gave_up = set()     # (follower, partner): circled ORBIT_FOR without getting them close
-        self.ignored = set()     # creatures that never came when drawn
+        self.ignored = set(load_trapped())  # creatures that never came when drawn (shut in a building): remembered
         self.luring = None
         self.lure_since = 0.0
         self.seen_message = call('GET', '/status')['lastMessageId']
@@ -803,8 +826,9 @@ class Fight:
                 self.lure_since = time.time()
                 say(f'standing {d} tiles from {target["name"]}, waiting for it to come')
             if time.time() - self.lure_since > LURE_WAIT:
-                say(f'{target["name"]} never turned on him from {d} tiles; leaving it be')
+                say(f'{target["name"]} never turned on him from {d} tiles; leaving it be from now on')
                 self.ignored.add(target['serial'])
+                remember_trapped(target)
                 self.luring = None
                 return False
             time.sleep(0.2)
