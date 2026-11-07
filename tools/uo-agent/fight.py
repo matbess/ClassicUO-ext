@@ -77,6 +77,7 @@ LONE_CAST = 4           # a lone one coming at him (nothing to set it on): cast 
 PAIR_RANGE = 9          # the two to provoke onto each other: at most this far apart (the server's limit isn't known;
                         # each "too far away from each other" is logged with the distance, to tune)
 ORBIT = 5               # bringing a follower near another creature: circle the other one this far off (the user)
+NO_TURN_BACK = 5        # seconds: with nothing coming at him, no ride back the way he just came
 SPACE = 3               # and keep at least this far from every creature while doing it (the user: "like 3 tiles")
 FOLLOWER_ROOM = 5       # a ride while bringing the follower round keeps this far from it (it closes in meanwhile)
 ORBIT_FOR = 40          # seconds circling one pair before giving up on it
@@ -265,15 +266,28 @@ class Mover:
 
     def __init__(self):
         self.goal, self.why, self.at = None, None, 0.0
+        self.last_dir, self.last_at = None, 0.0   # the direction of the last ride, and when it was sent
+        self.danger = False   # something is coming at him (set every tick): then he may turn whichever way he needs
 
     def going(self, me):
         return self.goal is not None and dist(me, self.goal) > 1 and time.time() - self.at < 8
 
-    def go(self, me, p, why, force=False):
+    def go(self, me, p, why, force=False, urgent=False):
+        """Ride to p. With nothing coming at him, never back the way he just came within NO_TURN_BACK seconds of the
+        last ride: there's no reason to (the user, 2026-11-06: "sometimes you have to go back if a mob is actually
+        coming at you. You DONT need to go back when no mobs are even coming at you"), and going back and forth tires
+        the horse. With something coming at him (danger) or `urgent`, any way he needs. A refused ride counts as
+        standing still. Every ride is logged with its reason."""
         if not force and self.why == why and self.going(me):
             return True
+        d = (p[0] - me[0], p[1] - me[1])
+        if (not urgent and not self.danger and self.last_dir and time.time() - self.last_at < NO_TURN_BACK
+                and d[0] * self.last_dir[0] + d[1] * self.last_dir[1] < 0):
+            return True  # would be turning back: stay put
         if walk(p, keep=0):
             self.goal, self.why, self.at = p, why, time.time()
+            self.last_dir, self.last_at = d, time.time()
+            say(f'ride {me[0]},{me[1]} -> {p[0]},{p[1]} ({why}{", urgent" if urgent else ""})')
             return True
         return False
 
@@ -612,6 +626,7 @@ class Fight:
         free = [m for m in threats if m['serial'] not in busy_ids]
         coming = [m for m in free if self.coming(m)]
         dfree = min((dist(me, xy(m)) for m in free), default=99)
+        self.mover.danger = bool(coming) or dfree <= ON_HIM
         dbusy = min((dist(me, xy(m)) for m in busy), default=99)
         # free creatures that matter for casting: not ones left be (shut in a building, never came)
         dloose = min((dist(me, xy(m)) for m in free if m['serial'] not in self.ignored), default=99)
@@ -671,7 +686,10 @@ class Fight:
             if self.skill_ready() and dist(me, xy(a)) <= PROVOKE_RANGE and b:
                 self.mover.clear()
                 if self.provoke(a, b):
-                    self.flee(me, [xy(m) for m in threats], fresh=True)  # and back off from both
+                    # back off only as far as he needs to cast at them: out of FIGHT_GAP, still within spell range (a
+                    # long getaway meant riding back in to cast)
+                    if min(dist(me, xy(a)), dist(me, xy(b))) < FIGHT_GAP:
+                        self.flee(me, [xy(a), xy(b)], fresh=True, radii=(4, 3))
                 return False
             keep = KEEP_CASTER if kind(a) in CASTERS else KEEP
             if self.mover.why == 'flee' and self.mover.going(me):
@@ -821,7 +839,7 @@ class Fight:
                                   score(p), p))
         spots.sort(reverse=True)
         for _, _, p in spots[:8]:
-            if m.go(me, p, 'flee', force=True):
+            if m.go(me, p, 'flee', force=True, urgent=any(dist(me, t) <= ON_HIM for t in threats)):
                 return
 
     def circle(self, me, a, b, threats):

@@ -212,7 +212,12 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
 
 ## fight.py as it stands (2026-11-06, evening)
 
-**Moving (the user: "Stop wiggling!!"; it tires the horse).** Standing still is the default. He moves only for a
+**Moving (the user: "Stop wiggling!!"; it tires the horse).** With nothing coming at him there's no reason to go
+back and forth or circle at all (the user, 2026-11-06: "sometimes you have to go back if a mob is actually coming at
+you. You DONT need to go back when no mobs are even coming at you"): then no ride may turn back the way the last one
+went within 5 s (NO_TURN_BACK); with something coming at him, any way he needs. Every ride is logged with its
+reason in fight.log ("ride X -> Y (why)"). After a provoke he steps back only out of 6 tiles, staying within spell
+range, so he doesn't ride away and back in to cast. Standing still is the default. He moves only for a
 reason (drawing a creature, getting away from one, getting a partner into provoke range), and then rides straight to
 one spot, picked once and kept until he's there (the Mover); a getaway is ridden to the end. The old way picked the
 best spot afresh several times a second, and as creatures moved the best spot flipped: that was the wiggling, twice.
