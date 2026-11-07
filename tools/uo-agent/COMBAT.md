@@ -13,6 +13,14 @@ fight. Nothing goes to town until fighting works.
 
 ## How a bard-mage fights (the user's rules)
 
+- **#1 priority, always: keep distance between him and the creatures** (the user, 2026-11-06, after he was left
+  standing next to a dire wolf: "That's the worst thing to do"). Anything free within 3 tiles: get away before
+  anything else, the door steps, looting, healing and "remove thyself" included (the way in breaks off between steps
+  when a creature comes near). **No spell with anything close**: it closes in during the words, hits him and ruins
+  the spell; a full getaway first, then cast with every free creature 6+ tiles off.
+- **Keep the front yard clear** (the user, 2026-11-06): don't leave creatures at the front door; lead them away from
+  it and kill them there. Getting away prefers spots 10-25 tiles from the door (out of the yard, near the tower).
+- **Drawing**: get a bit closer (4 tiles) and wait a bit longer (30 s) for it to attack.
 - **Never get hit.** He runs around; he never trades blows. Standing there doing nothing is *always* the wrong
   thing: when nothing better can be done, he at least runs away from all of them, **toward the tower**. Never end up
   far from it (a little further out is fine when needed; not 100 tiles away).

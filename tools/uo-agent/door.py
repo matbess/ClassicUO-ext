@@ -38,6 +38,7 @@ FRONT = (1756, 1415)         # right in front of the shut door, outside
 OUTSIDE = (1756, 1416)
 
 info = None
+guard = None   # called between the steps through the door (fight.py: breaks off when a creature comes near)
 
 
 class Stop(Exception):
@@ -85,6 +86,8 @@ def door_spot(door):
 
 def key_on(door, want):
     """The key ring aimed at a door until it says "You <want> it." (it turns the lock either way)."""
+    if guard and want == 'unlock':
+        guard()
     for _ in range(2):
         a = call('POST', '/use', serial=KEY)
         if not a.get('targeting'):
@@ -116,6 +119,8 @@ def set_door(door, shut):
 
 
 def step(p, what):
+    if guard:
+        guard()
     r = walk(p)
     if not r.get('arrived'):
         raise Stop(f'could not {what} ({p[0]},{p[1]}): {r}')

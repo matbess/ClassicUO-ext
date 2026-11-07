@@ -44,6 +44,7 @@ TRAPPED = os.path.join(HERE, 'trapped.json')  # creatures never to draw again (k
 
 AREA = (1715, 1414, 1810, 1485)   # "outside" in his rules (x1, y1, x2, y2); the door is at y 1414
 HOME = door.OUTSIDE               # in front of the door (1756,1416)
+FRONT_YARD = 10                   # the front yard: this close to the door, no fights (lead them away)
 NEAR_HOME = 25                    # further out than this, every move pulls him back toward the tower
 # where to look for creatures: south first, back where the ratmen were, then east (the user, 2026-11-06)
 PATROL = [(1745, 1440), (1738, 1455), (1750, 1468), (1770, 1450), (1788, 1440)]
@@ -77,6 +78,7 @@ CAST_WHEN = 0.40        # a creature fighting another: spells only once it's dow
 LOOT_RANGE = 10         # after a fight: corpses this close that fell during it get looted
 SPELL_RANGE = 10        # a spell from further: "That is too far away." (Energy Bolt at 11 tiles, 2026-11-06 16:31)
 CAST_SPOT = 8           # out of spell range (or "That is too far away."): ride to this far from it first
+CAST_CLEAR = 6          # no spell starts with any free creature closer than this (it would close in and hit him)
 LONE_CAST = 4           # a lone one coming at him (nothing to set it on): cast at it from this far
 PAIR_RANGE = 9          # the two to provoke onto each other: at most this far apart (the server's limit isn't known;
                         # each "too far away from each other" is logged with the distance, to tune)
@@ -87,9 +89,9 @@ FOLLOWER_ROOM = 5       # a ride while bringing the follower round keeps this fa
 ORBIT_FOR = 40          # seconds circling one pair before giving up on it
 KEEP_CASTER = 7         # the same for casters (gargoyles, gazers: dangerous; provoked first, killed first)
 DRAW_CASTER = 11        # drawing a caster: they notice him from far off (the user); no nearer than this
-LURE = 5                # drawing one: ride to about this far from it and wait for it to target him (the user)
+LURE = 4                # drawing one: ride to about this far from it and wait for it to target him (the user)
 UNSEEN_FOR = 60         # "Target cannot be seen.": left out this long (shut in a building, like the ogre)
-LURE_WAIT = 15          # seconds there: one that hasn't turned on him by then is left be (trapped in a building, or
+LURE_WAIT = 30          # seconds there: one that hasn't turned on him by then is left be (trapped in a building, or
                         # one that doesn't attack)
 ENGAGED_AFTER = 2       # seconds within a tile of another creature: locked in a fight with it
 PROVOKED_BUSY = 6       # seconds after a provoke the pair counts as busy even before they meet
@@ -324,9 +326,11 @@ def remember_trapped(m):
 
 
 def homeward(p):
-    """How much a spot leans toward the tower: a little near it, a lot once he's out past NEAR_HOME."""
+    """Where a spot sits for a fight: not in the front yard (the user, 2026-11-06: keep the front yard clear, lead
+    creatures away from the door and kill them there), and not far from the tower either (out past NEAR_HOME every
+    tile counts against it)."""
     d = dist(p, HOME)
-    return -0.3 * d - (1.5 * (d - NEAR_HOME) if d > NEAR_HOME else 0)
+    return -3.0 * max(FRONT_YARD - d, 0) - (1.5 * (d - NEAR_HOME) if d > NEAR_HOME else 0)
 
 
 def run_from(me, threats):
@@ -753,8 +757,10 @@ class Fight:
             if k and attackable(k):
                 spell = self.spell_for(k, st['mana'])
                 if spell:
-                    if dist(me, xy(k)) <= 2:
-                        self.flee(me, [xy(m) for m in threats], radii=(4, 3))
+                    # never a spell with anything close: it closes in during the words, hits him and ruins it (the
+                    # user, 2026-11-06); a full getaway first, then the spell
+                    if dfree < CAST_CLEAR:
+                        self.flee(me, [xy(m) for m in threats])
                         return False
                     if dist(me, xy(k)) > SPELL_RANGE or time.time() - self.too_far.get(k['serial'], 0) < 5:
                         if self.closer(me, k, threats):
@@ -804,8 +810,7 @@ class Fight:
             usable = self.partner_for(me, a, mobs, 18)
             if usable and (a['serial'], usable['serial']) in self.gave_up:
                 usable = None
-            if (spell and not usable and dist(me, xy(a)) >= LONE_CAST and self.still(me)
-                    and min((dist(me, xy(m)) for m in coming if m is not a), default=99) >= LONE_CAST):
+            if (spell and not usable and dfree >= CAST_CLEAR and self.still(me)):
                 self.mover.clear()
                 self.killing = a['serial']
                 self.fought = True
@@ -1082,6 +1087,16 @@ class Fight:
                 self.go_home('could not get back on the horse')
         return False
 
+    def door_guard(self):
+        """Between the steps through the door: distance comes first (the user, 2026-11-06: "#1 priority is always
+        maintain distance between you and the creatures"); a creature within ON_HIM + 1 breaks the way in off."""
+        st, mobs = look()
+        me = (st['x'], st['y'])
+        near = [m for m in mobs.values() if attackable(m) and (not passive(m) or self.coming(m))
+                and dist(me, xy(m)) <= ON_HIM + 1]
+        if near:
+            raise door.Stop('a creature came near: ' + ', '.join(m['name'] or '?' for m in near))
+
     def step_home(self, me, threats):
         """Short hops to the front door, then in (door.go_in). True once he's inside. A creature within 3 of the door
         (not after him: that's dealt with first) is put off the front steps with the house command "remove thyself" (the
@@ -1105,6 +1120,7 @@ class Fight:
             return False
         if dist(me, HOME) <= 1:
             door.info = info
+            door.guard = self.door_guard
             try:
                 door.go_in()
                 return True
