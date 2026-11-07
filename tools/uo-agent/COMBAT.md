@@ -37,6 +37,11 @@ fight. Nothing goes to town until fighting works.
   dead before it's freed (fight 1: the user bolted the headless one while its mongbat was dying).
 - **When one dies** its opponents turn on him: provoke them onto another creature. The last one alive: keep running
   and cast at it, or provoke it onto an animal or another creature (fight 1: a llama 15 tiles off).
+- **A creature already fighting something else is the chance to attack it** (the user, 2026-11-06: he stood waiting
+  for a dire wolf to come at him while it was fighting a bear; "when it's fighting something else is your chance to
+  attack it and lower its HP"). fight.py counts one as busy, whoever started the fight, when it has been within a
+  tile of another creature for 2 s (the wolf and the bear stood a tile apart, still, for 34 s) or is losing health
+  he didn't take; a busy one isn't drawn or waited for: he bolts it from within spell range, keeping 4 tiles off.
 - **Spells while they're busy** (the user's thresholds of the target's health): Energy Bolt while it has plenty;
   Lightning below 15%; Fireball below 5%. Energy Bolt costs much more mana but does much more damage. Watch how much
   each takes off (fights.jsonl records it).

@@ -118,3 +118,8 @@ run('an orc 15 off, a panther 15 off to the side (the two far apart)', me,
     [mob('0xR', 'Ulmragha', 1756, 1445, sees=5), mob('0xP', 'a panther', 1745, 1440, stays=True)], ticks=45)
 
 run('a lone skeleton coming (nothing to set it on)', me, [mob('0xS', 'a skeleton', 1756, 1442, sees=8)], ticks=40)
+
+# a dire wolf already fighting a grizzly bear, 10 tiles off: he should bolt it straight away, not wait for it
+wolf = mob('0xW', 'a dire wolf', 1766, 1430, stays=True)
+bear = mob('0xB', 'a grizzly bear', 1767, 1430, stays=True)
+run('a dire wolf already fighting a bear 10 off', me, [wolf, bear], ticks=20)

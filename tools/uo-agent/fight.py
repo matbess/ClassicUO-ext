@@ -70,7 +70,7 @@ PROVOKE_SPOT = 7        # how close he goes to the creature he'll set the follow
 ON_HIM = 3              # a free creature this close: run, nothing else
 CLEAR = 10              # free creatures further than this: he may cast or meditate
 BACK_OFF = 9            # after a provoke, and from anything coming: get at least this far away
-FIGHT_GAP = 6           # keep this far from creatures fighting each other
+FIGHT_GAP = 4           # keep this far from creatures fighting each other
 KEEP = 3                # one coming at him: get away once it's closer than this (the user: stay about 3 tiles away)
 SPELL_RANGE = 10        # a spell from further: "That is too far away." (Energy Bolt at 11 tiles, 2026-11-06 16:31)
 CAST_SPOT = 8           # out of spell range (or "That is too far away."): ride to this far from it first
@@ -88,6 +88,7 @@ LURE = 5                # drawing one: ride to about this far from it and wait f
 UNSEEN_FOR = 60         # "Target cannot be seen.": left out this long (shut in a building, like the ogre)
 LURE_WAIT = 15          # seconds there: one that hasn't turned on him by then is left be (trapped in a building, or
                         # one that doesn't attack)
+ENGAGED_AFTER = 2       # seconds within a tile of another creature: locked in a fight with it
 PROVOKED_BUSY = 6       # seconds after a provoke the pair counts as busy even before they meet
 HURT = 0.6              # his share of health: get clear, then heal
 LOW, VERY_LOW = 0.15, 0.05   # a target's share: Lightning below LOW, Fireball below VERY_LOW (the user, 2026-11-06)
@@ -376,6 +377,10 @@ class Fight:
         self.pending = None      # the last cast, for its damage once it has landed
         self.mover = Mover()
         self.killing = None      # the one he's killing with spells (no partner to set it on): all the way
+        self.together_since = {}  # frozenset of two serials -> since when they've been within a tile of each other
+        self.engaged_with = {}   # serial -> the creature it's locked in a fight with (one he didn't start)
+        self.hits_seen = {}      # serial -> [(time, hits)]
+        self.cast_at_time = {}   # serial -> when he last cast at it
         self.too_far = {}        # serial -> when a spell at it got "That is too far away." 
         self.reagents_at = 0.0
         self.reagent_counts = collections.Counter()
@@ -401,16 +406,54 @@ class Fight:
         for a, b in self.pairs.items():
             if b == serial:
                 return a
-        return None
+        return self.engaged_with.get(serial)
 
     def busy(self, serial, mobs):
-        """Provoked onto (or by) a creature that's still alive: just provoked, or next to it."""
+        """Fighting something else: provoked onto (or by) a creature that's still alive (just provoked, or next to
+        it), or a fight he didn't start: locked together with another creature (within a tile of it for ENGAGED_AFTER
+        seconds), or losing health he didn't take (the user, 2026-11-06: he stood waiting for a dire wolf to come at
+        him while it was fighting a bear, the wolf he had provoked onto it the run before; a busy one is the chance to
+        bolt it)."""
+        if serial in self.engaged_with or self.losing_health(serial):
+            return True
         other = self.partner_of(serial)
         m, o = mobs.get(serial), mobs.get(other or '')
         if not (m and o and attackable(o)):
             return False
         recent = time.time() - max(self.provoked_at.get(serial, 0), self.provoked_at.get(other, 0)) < PROVOKED_BUSY
         return recent or dist(xy(m), xy(o)) <= 3
+
+    def losing_health(self, serial):
+        """Its health fell in the last few seconds while he wasn't casting at it."""
+        h = self.hits_seen.get(serial, [])
+        now = time.time()
+        recent = [v for t, v in h if now - t <= 5]
+        mine = self.pending and self.pending.get('serial') == serial or now - self.cast_at_time.get(serial, 0) < 4
+        return len(recent) >= 2 and recent[-1] < max(recent) and not mine
+
+    def watch_fights(self, mobs):
+        """Which creatures are locked together (within a tile of each other) and since when; a pair together
+        ENGAGED_AFTER seconds counts as fighting."""
+        now = time.time()
+        att = [m for m in mobs.values() if attackable(m)]
+        seen = set()
+        for i, a in enumerate(att):
+            for b in att[i + 1:]:
+                if dist(xy(a), xy(b)) <= 1:
+                    key = frozenset((a['serial'], b['serial']))
+                    seen.add(key)
+                    self.together_since.setdefault(key, now)
+        self.together_since = {k: t for k, t in self.together_since.items() if k in seen}
+        self.engaged_with = {}
+        for key, t in self.together_since.items():
+            if now - t >= ENGAGED_AFTER:
+                a, b = tuple(key)
+                self.engaged_with[a], self.engaged_with[b] = b, a
+        for s, m in mobs.items():
+            if m.get('hitsMax'):
+                h = self.hits_seen.setdefault(s, [])
+                h.append((now, m['hits']))
+                del h[:-10]
 
     def coming(self, m):
         """After him: it has turned Criminal. The user, 2026-11-06: "I can see the creature turn completely grey when
@@ -429,6 +472,7 @@ class Fight:
         return len(h) == 2 and all(p == me for p in h) and not self.mover.going(me)
 
     def remember(self, me, mobs):
+        self.watch_fights(mobs)
         self.positions = (getattr(self, 'positions', []) + [me])[-5:]
         now = time.time()
         for s, m in mobs.items():
@@ -549,6 +593,7 @@ class Fight:
 
     def cast_at(self, m, spell):
         self.meditating = False
+        self.cast_at_time[m['serial']] = time.time()
         try:
             a = call('POST', '/cast', spell=spell, target=m['serial'])  # comes back once it's aimed (about 2 s)
             if not a.get('aimed'):
