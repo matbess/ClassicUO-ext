@@ -20,6 +20,8 @@ decided, so any session can pick it up. Newer notes win where they disagree with
 
 - **At 99**: try both spears and plate gloves for a while and compare how quickly the skill rises (per hour). If
   they're about the same, stay with spears: they fail less, so more items come back as ingots when smelted.
+- **The pace slows near the top** (the user, 2026-11-06): progress gets slow around 97 and very slow around 99.
+  At 93.8 (00:20 on 11-07) it was about 1.2 points an hour, using about 770 ingots and 6 hammers an hour.
 - **Ore first**: whenever there is ore in the grey bag, smelt it into ingots before crafting.
 - **Gear to smelt** (the user, 2026-11-06): a weapon or armour left loose in the grey bag is smelted into ingots for
   the pile (the first, a katana, gave 4). Later the user will bring old metal gear to smelt down.
