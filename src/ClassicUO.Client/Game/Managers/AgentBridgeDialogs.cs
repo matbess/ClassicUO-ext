@@ -234,7 +234,18 @@ namespace ClassicUO.Game.Managers
                     return "a target";
 
                 case 0x06:
-                    return bridge._world.Items.Get(U32(d, 1) & 0x7FFFFFFF) is Item item && item.IsCorpse ? null : "a double-click";
+                {
+                    // the client opens corpses within reach by itself (auto_open_corpses) and keeps a list of them;
+                    // that (or any corpse: looting) isn't the user taking over (an ettin's corpse, 2026-11-06)
+                    uint clicked = U32(d, 1) & 0x7FFFFFFF;
+
+                    if (bridge._world.Player?.AutoOpenedCorpses.Contains(clicked) == true)
+                    {
+                        return null;
+                    }
+
+                    return bridge._world.Items.Get(clicked) is Item item && item.IsCorpse ? null : "a double-click";
+                }
 
                 case 0x72:
                     return "war mode";

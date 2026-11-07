@@ -187,6 +187,11 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **16:42**: drew an ettin (it came at him: Criminal at 5 tiles) and, with nothing to set it on, killed it with
+  spells all the way: five Energy Bolts in 12 s (25 -> 21 -> 16 -> 9 -> 4 -> dead), one hit taken (84). Then the
+  client opened the ettin's corpse by itself (auto_open_corpses, range 2) and the bridge took that double-click for
+  the user taking over. -> bridge (cuo-agent23): a double-click on a corpse the client opened itself
+  (PlayerMobile.AutoOpenedCorpses) never counts as the user.
 - **16:37**: the best run so far. Drew the castle ogre once more (-> trapped.json: never drawn again), then a grizzly
   bear (never came); a dire wolf came and, with the bear wrongly left out as a partner (it had "never come"), he
   killed it with spells all the way: Energy Bolt, Energy Bolt, Lightning in 7 s, no damage taken. Then he drew an
