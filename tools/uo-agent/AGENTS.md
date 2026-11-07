@@ -69,7 +69,7 @@ user's ClassicUO (Wine)                       this Mac
 | `tidy.py` | | re-lay a crowded chest's bags in one row with markers under them |
 | `moves.py`, `potions.py` | | a list of moves at the bridge's pace; potions by strength (the server hides strengths) |
 | `mine.py`, `carto.py` | | the mining loop (MINING.md) and Clem's cartography (CARTO.md) |
-| `door.py`, `fight.py`, `fight_scenes.py` | | Clem through the front door, his fights, and an offline check of the fight decisions (COMBAT.md) |
+| `restock.py`, `door.py`, `fight.py`, `fight_scenes.py`, `fight_sim.py` | | Clem's reagents before he leaves (below 25: restock at the chest), the front door, his fights, and offline checks of the fight decisions (COMBAT.md) |
 
 Batch working files go in `~/claude/uo-agent-work/batchN/`. They're scratch: nothing there is needed later.
 

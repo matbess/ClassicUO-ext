@@ -2,7 +2,8 @@
 """Clem through the tower's front door. It must always end locked and closed (the user, 2026-11-06). Bridge 7, with
 the door's two halves and the key ring in his rules ("doors", "keys").
 
-  python3 -I door.py out      from inside: open, step out, close, then check
+  python3 -I door.py out      from inside: reagents first (restock.py: any below 25 means restock at the chest),
+                              then open, step out, close, and check
   python3 -I door.py in       from outside: unlock, open, step into the doorway, lock, step in, close
   python3 -I door.py check    from outside: try to get back in through the door (it mustn't let him); if it opens,
                               lock it with the key and close it
@@ -24,6 +25,7 @@ import time
 HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, HERE)
 import uo  # noqa: E402
+import restock  # noqa: E402
 
 LOG = os.path.expanduser('~/claude/uo-agent-work/combat/door.log')
 KEY = '0x4040A302'
@@ -123,6 +125,12 @@ def go_out():
     if where()[1] >= 1415:
         say('already outside')
         return
+    # never out without enough reagents (the user, 2026-11-06: restock if any is below 25)
+    restock.info = info
+    try:
+        restock.ensure()
+    except restock.Stop as e:
+        raise Stop(f'reagents: {e}')
     step(INSIDE, 'get to the door')
     set_door(DOOR, False)
     try:

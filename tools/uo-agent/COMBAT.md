@@ -2,7 +2,8 @@
 
 Started 2026-11-06. Like MINING.md and CARTO.md, this records what the user asked for, what was found and what was
 decided, so any session can pick it up. Newer notes win where they disagree with older ones. The tools are
-`door.py` (the front door) and `fight.py` (a fight); `fight_scenes.py` checks fight.py's decisions offline.
+`restock.py` (reagents, before he leaves), `door.py` (the front door) and `fight.py` (a fight); `fight_scenes.py`
+and `fight_sim.py` check fight.py's decisions offline.
 
 ## Why (the user, 2026-11-06)
 
@@ -51,6 +52,15 @@ fight. Nothing goes to town until fighting works.
   creatures, then dismount, say "all follow me", mount again (MINING.md, "Tired mount"). Riding back and forth a lot
   tires it.
 - **Fast:** plan ahead; no stopping to think mid-fight. So the strategy lives in fight.py, not in Claude's turns.
+- **Before leaving the tower** (the user, 2026-11-06): always make sure he has enough reagents; if any is below 25,
+  restock first. The user does it with Razor's restock-agent-1 (their macro 'restock-clem') at the wooden chest
+  0x40746D31 in the ground floor stairs room (1752,1402,10): Razor asks "Target a container to restock from, or
+  target yourself to use your bank box.", then moves each reagent from the chest into his reagent bag 0x40677564,
+  one a second, and it's done at "Finished N queued actions in N seconds." (recorded in combat/restock1.jsonl). It
+  tops them up to garlic, spider's silk, ginseng 35; mandrake root, nightshade, black pearl 45; sulfurous ash, blood
+  moss 40. `restock.py` does the same through the bridge (onto his stacks, so they merge), and `door.py out` runs it
+  first every time. The bag is opened before counting: once the client had lost two of its stacks (ash and moss
+  didn't show, so the bag looked out of them).
 - **Before leaving town:** restock reagents at the restock chest (the user's ']' hotkey) and Recall home (F7). The
   hotkeys needn't be pressed: doing the same actions directly is fine.
 - **Speed:** the server allows about one action a second (a skill, a spell, a double-click). Answering a target
