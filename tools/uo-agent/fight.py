@@ -69,9 +69,10 @@ PROVOKE_SPOT = 7        # how close he goes to the creature he'll set the follow
 ON_HIM = 3              # a free creature this close: run, nothing else
 CLEAR = 10              # free creatures further than this: he may cast or meditate
 BACK_OFF = 9            # after a provoke, and from anything coming: get at least this far away
-FIGHT_GAP = 8           # keep this far from creatures fighting each other
+FIGHT_GAP = 6           # keep this far from creatures fighting each other
 KEEP = 3                # one coming at him: get away once it's closer than this (the user: stay about 3 tiles away)
-CAST_SPOT = 10          # creatures fighting each other out of spell range (12): ride to this far from them
+SPELL_RANGE = 10        # a spell from further: "That is too far away." (Energy Bolt at 11 tiles, 2026-11-06 16:31)
+CAST_SPOT = 8           # out of spell range (or "That is too far away."): ride to this far from it first
 LONE_CAST = 4           # a lone one coming at him (nothing to set it on): cast at it from this far
 PAIR_RANGE = 9          # the two to provoke onto each other: at most this far apart (the server's limit isn't known;
                         # each "too far away from each other" is logged with the distance, to tune)
@@ -337,6 +338,7 @@ class Fight:
         self.pending = None      # the last cast, for its damage once it has landed
         self.mover = Mover()
         self.killing = None      # the one he's killing with spells (no partner to set it on): all the way
+        self.too_far = {}        # serial -> when a spell at it got "That is too far away." 
         self.reagents_at = 0.0
         self.reagent_counts = collections.Counter()
         self.orbit_dir = {}      # (follower, partner): which way round he circles the partner (kept: never back)
@@ -491,7 +493,7 @@ class Fight:
     def cast_target(self, me, busy):
         """Casters first; at an uneven pair (one nearly dead, the other well), the stronger, before it's freed; else
         the one with the least health, to finish it."""
-        reach = [m for m in busy if dist(me, xy(m)) <= 12 and self.visible(m['serial'])]
+        reach = [m for m in busy if dist(me, xy(m)) <= SPELL_RANGE and self.visible(m['serial'])]
         if not reach:
             return None
         casters = [m for m in reach if kind(m) in CASTERS]
@@ -530,6 +532,9 @@ class Fight:
             self.cast_until = time.time() + LAND_TIME
         if said(a, 'cannot be seen', 'line of sight'):
             self.unseen[m['serial']] = time.time() + UNSEEN_FOR
+        if said(a, 'too far away'):
+            # the user: "get closer to cast if it says 'that is too far away'": ride to CAST_SPOT from it first
+            self.too_far[m['serial']] = time.time()
         self.pending = {'spell': NAMES[spell], 'serial': m['serial'], 'name': m['name'], 'before': m.get('hits'),
                         'max': m.get('hitsMax'), 'at': time.time(), 'aimed': a.get('aimed'), 'text': texts(a),
                         'mana': a.get('mana')}
@@ -649,6 +654,9 @@ class Fight:
                     if dist(me, xy(k)) <= 2:
                         self.flee(me, [xy(m) for m in threats], radii=(4, 3))
                         return False
+                    if dist(me, xy(k)) > SPELL_RANGE or time.time() - self.too_far.get(k['serial'], 0) < 5:
+                        if self.closer(me, k, threats):
+                            return False
                     if self.mover.going(me) or not self.still(me):
                         time.sleep(0.1)  # the hop first: no casting on the move
                         return False
@@ -670,7 +678,10 @@ class Fight:
                 # a getaway is ridden to the end (switching between getting away and leading was the wiggle)
                 self.flee(me, [xy(m) for m in threats])
                 return False
-            if not b and dist(me, xy(a)) >= keep:
+            # bringing it round to a partner only once it's close and following him; one that turned on him from
+            # far off is met standing still (the user, 2026-11-06: circling when nothing is attacking him only tires
+            # the horse)
+            if not b and keep <= dist(me, xy(a)) <= PROVOKE_RANGE:
                 far = self.partner_for(me, a, mobs, 18)
                 if far and time.time() - self.orbit_since.setdefault((a['serial'], far['serial']), time.time()) > ORBIT_FOR:
                     self.gave_up.add((a['serial'], far['serial']))
@@ -706,7 +717,7 @@ class Fight:
 
         # fights going on and nothing loose near him: spells (casters first), then meditation
         if busy:
-            if dloose > CLEAR and dbusy > 12:
+            if dloose > CLEAR and dbusy > SPELL_RANGE:
                 # too far off to cast at them: one ride to about CAST_SPOT tiles from the nearest of them
                 n = min(busy, key=lambda b: dist(me, xy(b)))
                 d = dist(me, xy(n))
@@ -717,6 +728,9 @@ class Fight:
             if dloose > CLEAR:
                 m = self.cast_target(me, busy)
                 spell = self.spell_for(m, st['mana']) if m else None
+                if spell and m and (dist(me, xy(m)) > SPELL_RANGE or time.time() - self.too_far.get(m['serial'], 0) < 5):
+                    if self.closer(me, m, threats):
+                        return False
                 if spell and not (self.meditating and st['mana'] < 60):
                     if not self.still(me):
                         time.sleep(0.15)  # let the ride finish first: no casting on the move
@@ -847,6 +861,21 @@ class Fight:
                     and path_clear(me, p, [xy(a)], FOLLOWER_ROOM)):
                 if m.go(me, p, why, force=True):
                     return True
+        return False
+
+    def closer(self, me, m, threats):
+        """One straight ride to CAST_SPOT tiles from m, to cast at it, clear of everything free. True when he's on his
+        way."""
+        self.too_far.pop(m['serial'], None)
+        d = dist(me, xy(m))
+        if d <= CAST_SPOT:
+            return False
+        f = (d - CAST_SPOT) / d
+        spot = clamp_area((round(me[0] + (m['x'] - me[0]) * f), round(me[1] + (m['y'] - me[1]) * f)))
+        others = [xy(t) for t in threats if t['serial'] != m['serial']]
+        if path_clear(me, spot, others, SPACE) and self.mover.go(me, spot, 'closer to ' + m['serial']):
+            say(f'closer to {m["name"]} to cast ({d} -> {CAST_SPOT} tiles)')
+            return True
         return False
 
     def read_messages(self):

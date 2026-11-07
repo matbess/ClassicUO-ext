@@ -152,6 +152,7 @@ def go_in():
              and max(abs(m['x'] - OUTSIDE[0]), abs(m['y'] - OUTSIDE[1])) <= 3]
     if close:
         raise Stop('creatures at the door: ' + ', '.join(m['name'] or '?' for m in close) + ' ("remove thyself")')
+    step(FRONT, 'get right in front of the door')  # straight on from here: a diagonal into the doorway catches on the frame
     key_on(DOOR, 'unlock')
     set_door(DOOR, False)
     try:

@@ -158,6 +158,8 @@ the door (dire wolf, water elemental, troll, skeleton, headless one, mongbat), a
   past the other one first (the user: "You have to lead 2 creatures to be close enough together to provoke them")."
 - **Skills share one cooldown of about 10 s** ("You must wait a few moments to use another skill." at 7.7-9.8 s,
   fine at 10.8 s), Meditation included.
+- **Spell range is about 10 tiles**: "That is too far away." at 11 (Energy Bolt, 2026-11-06).
+- **Provoking worked with the two 8 tiles apart** (a dire wolf onto a grizzly bear, 2026-11-06 16:31).
 - Casting: Energy Bolt's cursor 1.7 s after the words, Fireball's 0.8 s. **Casting freezes him**: a step then gets
   "You are frozen and cannot move." That includes the rest of a ride still under way when the words are said: the
   bridge's /cast then comes back on that message before the cursor, the cursor goes unanswered and the next cast
@@ -180,6 +182,15 @@ The scripted tries (fight.log, fights.jsonl, fight2-4*.jsonl), and what each cha
   a dire wolf; the user saved him at 37 health. -> the rewrite below.
 - **15:44**: went back and forth between two panthers 14 tiles either side (drawing whichever was nearer), and tired
   the horse out. -> one creature drawn at a time, fewer walks, the horse trick, panthers left alone.
+- **16:31**: the restock check passed (35-45 each); drew the castle ogre again (it never came: left be after 15 s;
+  trapped ones aren't remembered between runs yet), then a grizzly bear; a dire wolf turned Criminal 13-17 tiles off
+  and he circled round the bear though nothing was attacking him yet (the user: "Stop running around in a circle
+  when nothing is even attacking you ... wasting stamina"); provoked the dire wolf onto the bear (about 8 apart:
+  worked); then Energy Bolt after Energy Bolt from 11 tiles: "That is too far away." (spell range is about 10; the
+  user: "get closer to cast if it says 'that is too far away'"). Claude stopped it and brought him home; going in,
+  the step into the doorway caught diagonally on the frame. -> circling only for a follower within 8; spells only
+  within 10, riding to 8 first (and after "too far away"); keep 6 from fights; door.py in steps straight north via
+  1756,1415.
 - **16:23**: a skeleton was Criminal by the door as he came out; he got away from it, no wiggling, and bolted it
   twice standing still (25 -> 12) but 24 s apart, and it reached him in between. Black pearls ran down to 2 (Razor:
   "Warning: Black Pearl amount is now 3!") and the reagent bag had no sulfurous ash or blood moss left (no Lightning,

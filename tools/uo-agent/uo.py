@@ -799,7 +799,7 @@ def main():
             print_messages(result['messages'])
             if result.get('targeting'):
                 print('a target cursor is up')
-        for d in result['dialogs']:
+        for d in result.get('dialogs', []):
             print_dialog(d)
     elif c == 'events':
         for e in result['events']:
