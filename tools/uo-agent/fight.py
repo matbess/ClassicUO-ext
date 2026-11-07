@@ -28,6 +28,7 @@ import collections
 import json
 import math
 import os
+import random
 import signal
 import sys
 import time
@@ -42,12 +43,18 @@ LOG = os.path.join(WORK, 'fight.log')
 ROWS = os.path.join(WORK, 'fights.jsonl')
 TRAPPED = os.path.join(HERE, 'trapped.json')  # creatures never to draw again (kept in the repo)
 
-AREA = (1715, 1414, 1810, 1485)   # "outside" in his rules (x1, y1, x2, y2); the door is at y 1414
+AREA = (1715, 1414, 1830, 1485)   # "outside" in his rules (x1, y1, x2, y2); the door is at y 1414
 HOME = door.OUTSIDE               # in front of the door (1756,1416)
 FRONT_YARD = 10                   # the front yard: this close to the door, no fights (lead them away)
 NEAR_HOME = 25                    # further out than this, every move pulls him back toward the tower
-# where to look for creatures: south first, back where the ratmen were, then east (the user, 2026-11-06)
-PATROL = [(1745, 1440), (1738, 1455), (1750, 1468), (1770, 1450), (1788, 1440)]
+# where to look for creatures: a route picked at random each run (the user, 2026-11-06: "why is he always going right
+# over to that same tower ... sometimes he can head south east or east ... go a little further straight east and
+# then go down to south east"); --route picks one
+ROUTES = {
+    'east': [(1772, 1420), (1792, 1420), (1812, 1422), (1820, 1440), (1808, 1458), (1790, 1468)],
+    'south': [(1745, 1440), (1738, 1455), (1750, 1468), (1770, 1450), (1788, 1440)],
+}
+PATROL = ROUTES['east']
 LOOK_AROUND = 3                   # seconds at each lookout point
 
 TAMBOURINE = 0x0E9D
@@ -373,7 +380,7 @@ def carried(graphic):
 
 
 class Fight:
-    def __init__(self, minutes):
+    def __init__(self, minutes, route=None):
         self.deadline = time.time() + minutes * 60
         self.pairs = {}          # provoked: serial -> the serial it was set on
         self.provoked_at = {}    # serial -> when
@@ -386,7 +393,8 @@ class Fight:
         self.fought = False
         self.quiet_since = None
         self.homeward = False    # going home: the fight is done, or time's up, or interrupted
-        self.patrol = list(PATROL)
+        self.route = route or random.choice(sorted(ROUTES))
+        self.patrol = list(ROUTES[self.route])
         self.goal = None
         self.goal_sent = 0.0
         self.arrived_at = None
@@ -680,7 +688,7 @@ class Fight:
 
     def run(self):
         """Until he's inside (returns) or the user takes over (Stop)."""
-        say('fight: watching for creatures')
+        say(f'fight: watching for creatures (route: {self.route})')
         while True:
             if not self.homeward and time.time() > self.deadline:
                 self.go_home('time is up')
@@ -1213,6 +1221,7 @@ def main():
     global info
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--minutes', type=float, default=10, help='then home')
+    parser.add_argument('--route', choices=sorted(ROUTES), help='where to look (default: one at random)')
     parser.add_argument('--resume', action='store_true',
                         help='clear a takeover; only when the user has said they hand him back')
     args = parser.parse_args()
@@ -1231,7 +1240,7 @@ def main():
         call('POST', '/resume')
         say(f'resumed, as the user said (was: {stopped})')
     try:
-        Fight(args.minutes).run()
+        Fight(args.minutes, args.route).run()
         say('parked inside; the door is locked and closed')
     except Stop as e:
         say(f'STOPPED: {e}')

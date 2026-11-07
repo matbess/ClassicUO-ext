@@ -16,7 +16,7 @@
     // outside: the front yard, where Recall lands him and the creatures wait (the user, 2026-11-06: he has to fight
     // them to get in; fight 1 ranged over x 1744-1773, y 1415-1445), and further south and east to look for creatures
     // (the user, 2026-11-06: "go south back where the mobs were ... also go east ... go further")
-    { "name": "outside", "box": [1715, 1414, 1810, 1485], "z": [-20, 40] }
+    { "name": "outside", "box": [1715, 1414, 1830, 1485], "z": [-20, 40] }
   ],
   // fights (bridge 7, COMBAT.md): skills and spells at creatures anybody may attack (never a person or a pet) and
   // at himself, and walks that don't wait
