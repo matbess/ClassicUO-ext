@@ -1,0 +1,24 @@
+{
+  // Burgers' rules while he trains Healing in the tower (HEALING.md). heal.py copies this file into the client's
+  // Agent/rules-Burgers.json and puts the mining one (rules-Burgers.json) back when it ends; mine.py also writes the
+  // mining one at its start.
+  // He stands at 1756,1408 on the ground floor, the pile of clean bandages (0x408DD58F) on the floor at 1757,1408
+  // and Isabel's ghost at 1756,1409, both a tile away, so he never walks.
+  "map": 0,
+  "areas": [
+    { "name": "tower smithy", "box": [1755, 1407, 1758, 1410], "z": [0, 25] }
+  ],
+  // no guard and no pausing (safe inside the locked tower, as with Clem and Icepick's smithing); the user's other
+  // characters walk past
+  "pauseForPeople": false,
+  // the chests here aren't his
+  "offLimits": ["0x4074A4C1", "0x4073C9D0", "0x40531814"],
+  // clean bandages, double-clicked where they lie (bridge 10)
+  "useOnGround": ["0x0E21"],
+  // the only character a bandage is ever aimed at: Isabel (by serial, so nobody else of that name)
+  "patients": ["0x000431CC"],
+  // the user doing anything with Burgers themselves stops the loop until they hand him back
+  "handOver": true,
+  // full speed (the user, 2026-11-05: pacing is for mining only); the bandage itself takes about 10 s
+  "pacing": { "gap": [1100, 1100], "burst": 1000, "break": [1100, 1100], "aim": [0, 0] }
+}

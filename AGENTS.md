@@ -50,7 +50,8 @@ This is the user's fork of ClassicUO (github.com/matbess/ClassicUO-ext). All of 
 | **Agent bridge**: a local HTTP API that lets an agent such as Claude see the game and act as one character | `agent_bridge` (Options > Experimental) | `Game/Managers/AgentBridge.cs`, hooks in `World.cs` and `Network/PacketHandlers.cs` |
 
 The agent bridge and its tools are how Claude sorts the user's loot (as Johnny), mines (as Icepick, with
-Burgers banking), trains Cartography (as Clem) and fights (as Clem, a bard-mage, outside the tower). Everything
+Burgers banking), trains Cartography (as Clem), fights (as Clem, a bard-mage, outside the tower) and trains Healing
+(Burgers bandaging Isabel's ghost: **`tools/uo-agent/HEALING.md`**, `heal.py`). Everything
 about the bridge and sorting lives in **`tools/uo-agent/AGENTS.md`**; mining is in **`tools/uo-agent/MINING.md`**
 (the user's rules, the route, the guard, everything tested) and `mine.py`; cartography is in
 **`tools/uo-agent/CARTO.md`** and `carto.py`; fighting and the front door in **`tools/uo-agent/COMBAT.md`**,
@@ -65,5 +66,5 @@ about the bridge and sorting lives in **`tools/uo-agent/AGENTS.md`**; mining is 
 ## Building and installing
 
 See **`tools/build/README.md`**: `build.sh NAME`, `smoke.sh NAME`, `install.sh NAME BACKUP_NAME`. The installed build
-is the latest `cuo-agentN` in `~/claude/builds` (cuo-agent26, bridge 9, as of 2026-11-07 04:01); backups of every earlier install are in
+is the latest `cuo-agentN` in `~/claude/builds` (cuo-agent27, bridge 10, as of 2026-11-08 01:33); backups of every earlier install are in
 `~/Games/backups/classicuo-1.1.0.347-*`.

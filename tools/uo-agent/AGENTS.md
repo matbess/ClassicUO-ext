@@ -24,6 +24,11 @@ crafting and smelting back; **reached 100 on 2026-11-07**): read `SMITHING.md` f
 smelting crates (`vault.py`, `rules/rules-Icepick-vault.json`; the vault door always ends locked and closed). Bridge 6 (build cuo-agent19) adds menus, gumps, target
 cursors, skills and an event log that records what the user does by hand (`uo record`).
 
+**Healing** (Burgers, from 2026-11-08: bandages from the pile on the tower floor on Isabel's ghost, one every ~10 s,
+to 100): read `HEALING.md` first; the tool is `heal.py`, the rules `rules/rules-Burgers-heal.json`. Bridge 10 (build
+cuo-agent27) adds `useOnGround` kinds (double-clicked where they lie) and `patients` (the user's characters `/use` may
+aim at). Burgers is also mining's banker: check before running it.
+
 **To sort loot, follow `skills/uo-sort/SKILL.md`.** It has the procedure, the safety rules, everything learned about
 the server, and the user's keep rules. It's installed as the user-level skill `uo-sort` through a symlink
 (`~/.claude/skills/uo-sort/SKILL.md` -> this repo's `tools/uo-agent/skills/uo-sort/SKILL.md`), so edit it here and
@@ -71,6 +76,7 @@ user's ClassicUO (Wine)                       this Mac
 | `tidy.py` | | re-lay a crowded chest's bags in one row with markers under them |
 | `moves.py`, `potions.py` | | a list of moves at the bridge's pace; potions by strength (the server hides strengths) |
 | `mine.py`, `carto.py`, `smith.py`, `vault.py` | | the mining loop (MINING.md), Clem's cartography (CARTO.md), Icepick's smithing and his smelting of the vault's junk gear (SMITHING.md) |
+| `heal.py` | | Healing with bandages on a ghost (HEALING.md): Burgers on Isabel |
 | `restock.py`, `door.py`, `fight.py`, `fight_scenes.py`, `fight_sim.py` | | Clem's reagents before he leaves (below 25: restock at the chest), the front door, his fights, and offline checks of the fight decisions (COMBAT.md) |
 | `blackbox.py` | | read-only recorder: copies every client's bridge event log (what was sent after Razor, messages) to `~/claude/uo-agent-work/blackbox/<Character>-<date>.jsonl`, across client restarts; `--show N`. Started 2026-11-06 for Razor's jammed drag queue (a pick-up the server took with no drop after it: Razor holds every later pick-up and double-click for up to 2 minutes; its "Drop What You are Currently Holding" hotkey frees it) |
 
