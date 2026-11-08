@@ -81,3 +81,9 @@ It stops by itself when the skill reaches the target or cap (DONE). It also stop
   loaded!", seen at every login) counted as the user taking over under `handOver`. heal.py now resumes a takeover
   that is "a double-click" within 10 s of "WorldMap loaded!", at its start and after a reconnect; any other takeover
   still stops it. (A fix for the bridge: ignore the first seconds after login. Not built yet.)
+- 2026-11-08 04:57: one bandage gave no end message in 20 s and the server went quiet for 15 s; the bridge's stop was
+  waited out and the loop resumed by itself.
+- **2026-11-08 05:56: DONE, Healing 100.0** after 1,490 bandages in 4 h 20 m (955 "able", 534 "unable", 1 lost to
+  the lag), 3,368 left on the pile. From 99.1 after the reboot: 99.2 at 04:26, 99.3 04:40, 99.4 04:48, 99.5 04:58,
+  99.6 05:01, 99.7 05:03, 99.8 05:16, 99.9 05:39, 100 05:56; a gain every 2-23 minutes, no slower near the top.
+  heal.py put his mining rules back.
