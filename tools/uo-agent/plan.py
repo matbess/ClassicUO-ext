@@ -50,6 +50,9 @@ WEAPON_BAG = {'swords': ('swords', 'swords'), 'knives': ('knives', 'swords'), 'a
               'polearms': ('polearms', 'polearms'), 'archery': ('crossbows', 'archery')}
 WOOD = {'club', 'quarter staff', 'black staff', 'gnarled staff', "shepherd's crook", 'bow', 'crossbow', 'heavy crossbow',
         'wooden shield'}
+# the server says "You can't melt that down into ingots." for these (tinker-made tools and orc helms; 31 pieces came
+# back from smelting on 2026-11-07), so like wood they go to the barrel, never the smelting crates
+NO_SMELT = {'skinning knife', 'butcher knife', 'cleaver', 'pickaxe', 'pitchfork', 'hatchet', 'orc helm'}
 NO_FORCE = {'dagger', 'skinning knife', 'butcher knife', 'cleaver', "shepherd's crook"}  # force/power isn't enough
 JEWELLERY = {'bracelet', 'earrings', 'necklace', 'bead necklace', 'ring'}
 SHIELDS = {'buckler', 'kite shield', 'metal shield', 'wooden shield', 'heater shield', 'metal kite shield',
@@ -92,6 +95,13 @@ def value(name):
     """For ordering, best first: damage, protection, accuracy, durability."""
     n = name.lower()
     return (level(n, DAMAGE), level(n, PROTECTION), sum(a in n for a in ACCURACY), sum(d in n for d in DURABILITY))
+
+
+def scrap(t):
+    """Where gear nobody keeps goes: the barrel for what can't be smelted or cut, else the smelting crates or cutting."""
+    if t in WOOD or t in NO_SMELT or material(t) == 'bone':
+        return 'trash'
+    return 'cut' if material(t) in ('leather', 'studded') else 'smelt'
 
 
 def weapon_chest(t):
@@ -167,7 +177,7 @@ def decide(item, name):
             good = good or level(n, DAMAGE) >= DAMAGE.index('force')
         if good:
             return 'keep', ('weapon', 'bows' if t == 'bow' else WEAPON_BAG[wc][0], WEAPON_BAG[wc][1])
-        return ('trash' if t in WOOD else 'smelt'), 'weapon'
+        return scrap(t), 'weapon'
     if m:
         p = level(n, PROTECTION)
         if m == 'bone':  # only really good bone: like plate's keepers (the user, 2026-11-01); can't be smelted or cut
@@ -177,11 +187,11 @@ def decide(item, name):
         if p < 0:
             if ' of ' in n:
                 return 'decide', 'armour with a property the rules do not cover'
-            return ('trash' if t in WOOD else 'cut' if m in ('leather', 'studded') else 'smelt'), 'plain armour'
+            return scrap(t), 'plain armour'
         if m in ('shield', 'leather', 'studded'):  # Emetah's rule: invulnerability only
             if p == PROTECTION.index('invulnerability'):
                 return 'keep', ('armour', m)
-            return ('trash' if t in WOOD else 'cut' if m in ('leather', 'studded') else 'smelt'), 'below invulnerability'
+            return scrap(t), 'below invulnerability'
         if (m == 'chain' and p >= PROTECTION.index('fortification')) or \
                 (m in ('plate', 'ring') and p >= PROTECTION.index('hardening')):
             return 'keep', ('armour', m)
@@ -317,7 +327,7 @@ def main():
                     counts[key] += 1
                     groups[armour_bag(t, key[0] == 'guarding')].append(s)
                 else:
-                    spec['cut' if material(t) in ('leather', 'studded') else 'smelt'].append(s)
+                    spec[scrap(t)].append(s)
                     report['over the limit'].append((str(key), names.get(s, '')))
     # existing bags get items best first; a new bag gets the least valuable piece as its marker
     for (kind, chest), serials in groups.items():
