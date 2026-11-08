@@ -79,8 +79,13 @@ def main():
     z1, z2 = rules['areas'][0]['z']
     nearby = uo.call(info, 'GET', '/nearby', range=14)
     nearby = nearby.get('items', nearby) if isinstance(nearby, dict) else nearby
-    floor = [i for i in nearby if x1 <= i['x'] <= x2 and y1 <= i['y'] <= y2 and z1 <= i['z'] <= z2
-             and not any(k in i.get('type', '') for k in NOT_LOOT) and not uo.load_labels().get(i['serial'])]
+    labels = uo.load_labels()
+    here = [i for i in nearby if x1 <= i['x'] <= x2 and y1 <= i['y'] <= y2 and z1 <= i['z'] <= z2
+            and not any(k in i.get('type', '') for k in NOT_LOOT)]
+    for i in here:  # a labelled bag lying on the floor belongs somewhere else (the gem bag, 2026-11-07)
+        if i.get('container') and labels.get(i['serial'], '').startswith('bag: '):
+            say(f"OUT OF PLACE: {labels[i['serial']]} is on the floor at {i['x']},{i['y']}; tell the user, put it back")
+    floor = [i for i in here if not labels.get(i['serial'])]
     loose = [i for i in floor if not i.get('container')]
     if loose:
         say('loose on the floor (not in a bag; sort these by hand): '

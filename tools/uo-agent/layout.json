@@ -462,11 +462,25 @@
   "recorded": "2026-11-01 15:43"
  },
  "0x408FE3A0": {
-  "bags": [],
-  "items": 0,
+  "bags": [
+   {
+    "kind": "gems",
+    "known": 9,
+    "marker": {
+     "name": "tourmaline",
+     "serial": "0x40804E8F",
+     "x": 30,
+     "y": 128
+    },
+    "serial": "0x4098CD0A",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "items": 2,
   "label": "chest: gems (col 5, bottom)",
   "loose": [],
-  "recorded": "2026-11-07 19:11"
+  "recorded": "2026-11-07 19:33"
  },
  "0x408FF16B": {
   "bags": [

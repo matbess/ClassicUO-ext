@@ -68,13 +68,14 @@ def main():
     labels = uo.load_labels()
     chests = [uo.resolve(s) for s in sys.argv[1:] if s != '--known'] or \
         [s for s, text in labels.items() if text.startswith('chest: ')]
-    spots = {s: uo.on_floor(info, s) for s in chests}
+    every = [s for s, text in labels.items() if text.startswith('chest: ')]
+    spots = {s: uo.on_floor(info, s) for s in set(chests) | set(every)}
     missing = [s for s, spot in spots.items() if not spot]
     if missing:
         sys.exit('not in sight: ' + ', '.join(f'{s} {labels.get(s, "")}' for s in missing))
     # along the wall, top to bottom in each column
     chests.sort(key=lambda s: (spots[s]['x'], spots[s]['y'], -spots[s]['z']))
-    for serial, problem in check_positions(spots, labels):
+    for serial, problem in check_positions({s: spots[s] for s in every}, labels):
         say(f'LABEL CHECK: {labels.get(serial)} {problem}')
 
     for serial in chests:

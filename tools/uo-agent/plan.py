@@ -186,8 +186,8 @@ def decide(item, name):
                 (m in ('plate', 'ring') and p >= PROTECTION.index('hardening')):
             return 'keep', ('armour', m)
         return 'limit', 'defense' if p == 0 else 'guarding'  # gear the user doesn't mind losing
-    if t in ('torch', 'torches'):
-        return 'trash', 'torch'  # the user, 2026-11-04
+    if t in ('torch', 'torches') or t.startswith('jug of cider') or t.startswith('bread loa'):
+        return 'trash', 'torch or food'  # the user: torches 2026-11-04, cider and bread 2026-11-07
     if t in MISC or item['graphic'] in MISC_GRAPHICS:
         return 'keep', ('misc',)  # kept, loose in the miscellaneous chest (the user, 2026-11-04)
     # cloth clothes, hats and footwear
