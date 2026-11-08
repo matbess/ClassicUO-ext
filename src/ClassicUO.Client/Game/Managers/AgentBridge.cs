@@ -39,7 +39,7 @@ namespace ClassicUO.Game.Managers
     {
         private const int FIRST_PORT = 7780;
         private const int LAST_PORT = 7789;
-        private const int VERSION = 9; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs); 7: fights (creatures' health, skills and spells aimed at creatures, running walks that don't wait, doors and keys; the user takes over by giving a command of their own); 8: /cast wait=0 answers at once and the bridge aims the spell's cursor itself when it comes, so the agent keeps moving and looking while the spell goes off, and reads the outcome from the messages (the user, 2026-11-06: "Cast .. then do all the other normal stuff and when a result from the spell shows up result=success/fail"); cursor=0 for a spell with no target (Magic Reflection); 9: /use wait=0 double-clicks and answers at once (a trapped pouch to break paralysis goes off without a word, and waiting for one stopped the bridge)
+        private const int VERSION = 10; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs); 7: fights (creatures' health, skills and spells aimed at creatures, running walks that don't wait, doors and keys; the user takes over by giving a command of their own); 8: /cast wait=0 answers at once and the bridge aims the spell's cursor itself when it comes, so the agent keeps moving and looking while the spell goes off, and reads the outcome from the messages (the user, 2026-11-06: "Cast .. then do all the other normal stuff and when a result from the spell shows up result=success/fail"); cursor=0 for a spell with no target (Magic Reflection); 9: /use wait=0 double-clicks and answers at once (a trapped pouch to break paralysis goes off without a word, and waiting for one stopped the bridge); 10: bandages: "useOnGround" kinds are double-clicked where they lie (the pile of bandages on the tower floor) and /use aims at a "patients" character (Isabel's ghost, to train Healing; the user, 2026-11-08)
         private const int GUARD_INTERVAL = 250;  // milliseconds between the guard's checks
         private const int ALARM_FILE_INTERVAL = 1000;
         private const int CAST_TIMEOUT = 6000;   // from casting to the target cursor
@@ -1695,8 +1695,15 @@ namespace ClassicUO.Game.Managers
                         // nothing else is ever double-clicked, so a potion can't be drunk by mistake
                         CheckUsable(item, rules);
 
-                        Item aim = _world.Items.Get(target) ?? throw new BridgeException(404, "no such target nearby");
-                        CheckInReach(CheckReachable(aim, rules, "target"), TARGET_REACH);
+                        if (SerialHelper.IsMobile(target))
+                        {
+                            CheckPatient(target, rules);
+                        }
+                        else
+                        {
+                            Item aim = _world.Items.Get(target) ?? throw new BridgeException(404, "no such target nearby");
+                            CheckInReach(CheckReachable(aim, rules, "target"), TARGET_REACH);
+                        }
 
                         if (_world.TargetManager.IsTargeting)
                         {
@@ -1712,6 +1719,13 @@ namespace ClassicUO.Game.Managers
 
                 WaitFor(() => _world.TargetManager.IsTargeting || HasSystemMessageAfter(before), TARGET_TIMEOUT);
                 targeting = OnGame(() => _world.TargetManager.IsTargeting);
+
+                // bandages ask first ("Who will you use the bandages on?"), with the cursor right behind the words
+                if (!targeting && !OnGame(() => SawMessage(before, MUST_WAIT)))
+                {
+                    WaitFor(() => _world.TargetManager.IsTargeting, SETTLE_TIME);
+                    targeting = OnGame(() => _world.TargetManager.IsTargeting);
+                }
 
                 if (!targeting && !OnGame(() => SawMessage(before, MUST_WAIT)))
                 {
@@ -1741,7 +1755,10 @@ namespace ClassicUO.Game.Managers
 
                 // a tool like scissors answers by using the target up (it disappears) rather than with a message, and
                 // ore combined into another pile disappears itself without a word
-                if (WaitFor(() => HasMessageFrom(target, aimed) || HasSystemMessageAfter(aimed) || _world.Items.Get(target) == null || _world.Items.Get(serial) == null, USE_RESULT_TIMEOUT))
+                // (a patient answers with a message: "You begin applying the bandages.")
+                bool onItem = !SerialHelper.IsMobile(target);
+
+                if (WaitFor(() => HasMessageFrom(target, aimed) || HasSystemMessageAfter(aimed) || onItem && _world.Items.Get(target) == null || _world.Items.Get(serial) == null, USE_RESULT_TIMEOUT))
                 {
                     Thread.Sleep(SETTLE_TIME);
                 }
@@ -1771,6 +1788,20 @@ namespace ClassicUO.Game.Managers
                         {
                             w.WritePropertyName("target");
                             WriteItem(w, t);
+                        }
+
+                        Mobile patient = SerialHelper.IsMobile(target) ? _world.Mobiles.Get(target) : null;
+
+                        if (patient != null)
+                        {
+                            w.WriteStartObject("patient");
+                            w.WriteString("serial", Hex(patient.Serial));
+                            w.WriteString("name", patient.Name ?? "");
+                            w.WriteBoolean("dead", patient.IsDead);
+                            w.WriteNumber("hits", patient.Hits);
+                            w.WriteNumber("hitsMax", patient.HitsMax);
+                            w.WriteNumber("distance", patient.Distance);
+                            w.WriteEndObject();
                         }
 
                         w.WriteEndObject();
@@ -1895,9 +1926,17 @@ namespace ClassicUO.Game.Managers
                 return;
             }
 
+            // a kind the rules let it use where it lies (a pile of bandages on the floor), inside the area, within reach
+            if (item.OnGround && rules.UseOnGround.Contains(item.Graphic))
+            {
+                CheckInReach(CheckReachable(item, rules, "use"), REACH);
+
+                return;
+            }
+
             if (!inHands && !allowedTool)
             {
-                throw new BridgeException(403, "only an item in the character's hands, or a tool the rules allow from the backpack, can be used");
+                throw new BridgeException(403, "only an item in the character's hands, a tool the rules allow from the backpack, or a kind they allow where it lies, can be used");
             }
         }
 
@@ -2452,6 +2491,31 @@ namespace ClassicUO.Game.Managers
 
             LogAction("target", target);
             _world.TargetManager.Target(target);
+        }
+
+        // game thread: one of the user's own characters the rules name as a patient (Isabel's ghost, for bandages),
+        // alive or dead, within reach: a bandage reaches 1 tile on this server's era (2 from AOS on), and the server
+        // says "You are too far away" itself, but nothing further than REACH is ever aimed at
+        private Mobile CheckPatient(uint serial, Rules rules)
+        {
+            Mobile m = _world.Mobiles.Get(serial) ?? throw new BridgeException(404, "no such character nearby");
+
+            if (!rules.Patients.Contains(Hex(m.Serial)) && !rules.Patients.Contains(m.Name ?? ""))
+            {
+                throw new BridgeException(403, "the rules don't name that character as a patient");
+            }
+
+            if (m.IsDestroyed)
+            {
+                throw new BridgeException(404, "that character has gone");
+            }
+
+            if (m.Distance > REACH)
+            {
+                throw new BridgeException(409, $"too far away ({m.Distance} tiles, reach is {REACH}); walk closer first");
+            }
+
+            return m;
         }
 
         // game thread: a creature the rules let the character aim skills and spells at: one anybody may attack (gray,
@@ -4630,6 +4694,8 @@ namespace ClassicUO.Game.Managers
             public readonly HashSet<string> Partners = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // the user's own characters: trades go only to them, and the guard ignores them
             public readonly HashSet<ushort> UseFromBackpack = new HashSet<ushort>(); // tools that may be used without holding them (scissors)
             public readonly HashSet<ushort> DropOnGround = new HashSet<ushort>(); // carried kinds that may be put down at the character's feet (ore, when a dig overloads the miner)
+            public readonly HashSet<ushort> UseOnGround = new HashSet<ushort>(); // kinds that may be double-clicked where they lie, within reach and inside the area (a pile of bandages)
+            public readonly HashSet<string> Patients = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // the user's own characters an item's cursor may be aimed at (bandages), by name or serial
             public readonly HashSet<string> Say = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // the only words the character may say ("bank")
             public readonly HashSet<int> Spells = new HashSet<int>(); // the only spells it may cast (32 is Recall)
             public readonly HashSet<int> Skills = new HashSet<int>(); // the only skills it may use (21 is Hiding)
@@ -4725,6 +4791,8 @@ namespace ClassicUO.Game.Managers
                 ReadNumbers(root, "neverTouch", n => rules.NeverTouch.Add((ushort)n));
                 ReadNumbers(root, "useFromBackpack", n => rules.UseFromBackpack.Add((ushort)n));
                 ReadNumbers(root, "dropOnGround", n => rules.DropOnGround.Add((ushort)n));
+                ReadNumbers(root, "useOnGround", n => rules.UseOnGround.Add((ushort)n));
+                ReadStrings(root, "patients", rules.Patients);
                 ReadStrings(root, "ignorePeople", rules.IgnorePeople);
                 ReadStrings(root, "partners", rules.Partners);
                 ReadStrings(root, "say", rules.Say);
@@ -4911,6 +4979,8 @@ namespace ClassicUO.Game.Managers
                 WriteList(w, "partners", Partners, s => s);
                 WriteList(w, "useFromBackpack", UseFromBackpack, g => Hex(g));
                 WriteList(w, "dropOnGround", DropOnGround, g => Hex(g));
+                WriteList(w, "useOnGround", UseOnGround, g => Hex(g));
+                WriteList(w, "patients", Patients, s => s);
                 WriteList(w, "say", Say, s => s);
                 w.WriteStartArray("spells");
 
