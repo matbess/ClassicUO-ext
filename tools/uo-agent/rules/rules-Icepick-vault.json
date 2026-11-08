@@ -1,0 +1,35 @@
+{
+  // Icepick's rules for smelting the junk gear in the vault (SMITHING.md, "Smelting in the vault"; the user,
+  // 2026-11-07). vault.py copies this file into the client's Agent/rules-Icepick.json; smith.py and mine.py put their
+  // own back when they start.
+  // The tower is a T2A Tower multi centred on 1756,1408; floors at z 6, 26 and 46. From the smithy (ground floor) he
+  // rides up the stairs in the west room (x 1750-1751, y 1406 z 6 to 1403 z 21) to the bag room, and into the vault
+  // (the chest room, x 1758-1763) through the locked door at 1757,1412, which must always be left locked and closed
+  // (the user, 2026-11-07). In the vault: the six smelting crates stacked at 1758,1411, the trash barrel at 1758,1410
+  // and the vault's forge at 1758,1409.
+  "map": 0,
+  "areas": [
+    { "name": "tower smithy", "box": [1755, 1407, 1757, 1410], "z": [0, 25] },
+    { "name": "ground floor hall", "box": [1750, 1410, 1763, 1413], "z": [0, 25] },
+    { "name": "ground floor stairs room", "box": [1750, 1402, 1753, 1409], "z": [0, 25] },
+    { "name": "bag room (2nd floor)", "box": [1750, 1402, 1756, 1413], "z": [26, 45] },
+    { "name": "vault door (2nd floor)", "box": [1757, 1412, 1757, 1412], "z": [26, 45] },
+    { "name": "vault", "box": [1758, 1402, 1763, 1412], "z": [26, 45] }
+  ],
+  // the vault door and the key ring locked down beside it in the bag room (1756,1410, z 38); the key turns the lock
+  // either way ("You unlock it." / "You lock it.", said by the door)
+  "doors": ["0x408AEA59"],
+  "keys": ["0x404099E0"],
+  // no guard and no pausing: safe inside the tower (as with Clem and the smithing); the user's other characters
+  // walk past
+  "pauseForPeople": false,
+  // the two chests stacked on the ingot chest downstairs aren't his
+  "offLimits": ["0x4073C9D0", "0x40531814"],
+  // cut cloth on the vault floor is decoration
+  "neverTouch": ["0x1766", "0x1767"],
+  // ore, hammers and tongs, used from his pack (as for the smithing)
+  "useFromBackpack": ["0x19B7", "0x19B8", "0x19B9", "0x19BA", "0x13E3", "0x13E4", "0x0FB4", "0x0FB5", "0x0FBB", "0x0FBC"],
+  "mounts": ["0x00042FCB"],
+  // full speed (the user: pacing is for mining only); the bridge never goes below 1.1 s between actions
+  "pacing": { "gap": [1100, 1200], "burst": 1000, "break": [1100, 1200], "aim": [0, 0] }
+}

@@ -13,6 +13,32 @@ about 10 s a use); 34 spares left in the pouch and one in his pack (51 uses). Fr
 below). The loop stopped by itself at the cap. Icepick's client still has the smithing rules; `mine.py` puts the
 mining ones back when it starts.
 
+## Smelting in the vault (the user, 2026-11-07)
+
+The next job: Icepick smelts the junk metal gear in the **six smelting crates** in the vault (Johnny's chest room on
+the second floor, x 1758-1763, behind the locked door at 1757,1412; the crates are where Johnny's sorting puts metal
+to be smelted). The vault door **always ends locked and closed** (as the front door, COMBAT.md). Rules:
+`rules/rules-Icepick-vault.json` (the smithy, the ground floor hall and stairs room, the bag room, the door's tile and
+the vault; the door and its key ring; no guard; full speed).
+
+- **The way up** (as Clem goes, carto.py): from the smithy through the hall (1756,1411 -> 1753,1411) to the foot of
+  the stairs (1751,1407), up (1751,1403; walks on these stairs stop a tile short, so again) and onto the second floor
+  (1752,1402, again until z 26), across the bag room in hops (1753,1406 -> 1753,1408), through the gap in its wall
+  (1753,1410) to the door (1755,1411 -> **1756,1412**). A straight walk from the smithy to the stairs went east to
+  1758,1409 instead (out of the areas).
+- **The door** 0x408AEA59 (metal, 1757,1412, z 26): shut graphic **0x0681**, open **0x0682**; it stays on its tile
+  either way. The **key ring 0x404099E0** is locked down in the bag room at 1756,1410 (z 38) and reaches the door
+  from 1756,1412 and from the doorway (2 tiles). The key asks "What do you want to unlock?" either way and the door
+  answers "You unlock it." / "You lock it.". (The key ring at 1756,1410 z 58 is the third floor door's.)
+- **In** (done 2026-11-07 by hand through the bridge): at 1756,1412 unlock with the key, open the door, step into
+  the doorway (1757,1412), lock with the key, step in (1758,1412), close the door (back to 0x0681).
+- **The spot**: **1759,1410**, one tile from the vault's forge 0x4083A084 (1758,1409), the trash barrel 0x4068E2BB
+  (1758,1410) and the crates.
+- **The crates** stacked at 1758,1411 (bottom to top): smelting 6 0x408AD7D5 (z 26), 5 0x40538F75 (29), 1 0x4053812E
+  (32), 2 0x4053DA72 (35), 3 0x4053C008 (38), 4 0x4053CE6E (41). On 2026-11-07: 2 held 56 items (394 stones), 3 58
+  (397), 4 17 (98), 5 and 6 empty, 1 not shown.
+- **Out**: not tried yet (does the locked door open from inside, and does the key reach from 1758,1412?).
+
 ## The job (the user, 2026-11-05)
 
 - **Icepick** trains **Blacksmithing to 100**: craft an item, smelt it straight back into ingots, put the ingots back
