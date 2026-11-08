@@ -146,6 +146,8 @@ def decide(item, name):
     if re.match(r'^(an? )?magic ', n):
         return 'decide', 'still unidentified'
     m = material(t)
+    if t == 'hatchet':  # every hatchet, plain, magic or GM, for lumberjacking (the user, 2026-11-07)
+        return 'keep', ('weapon', 'hatchets', 'axes')
     if 'exceptional' in n:  # GM crafted: always kept (the user's exception)
         if t in SET_PIECES:
             return 'set', ''
