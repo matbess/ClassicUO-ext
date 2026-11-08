@@ -51,7 +51,12 @@ the vault; the door and its key ring; no guard; full speed).
   `own_ingots`). About 4.5 s a piece; a tear kite shield gives 2 or 3 ingots. Log and state in
   `~/claude/uo-agent-work/vault`; `vault.py stop`, `vault.py report`. Smelting doesn't seem to wear the hammer (in
   smithing, hammers only ever broke on a craft), and the spares are downstairs, so a broken hammer stops it.
-- First run 2026-11-07 21:19: smelting 1 76 pieces, 2 55, 3 58, 4 25 (about 214), 5 and 6 empty.
+- First run 2026-11-07 21:19-21:37: smelting 1 76 pieces, 2 55, 3 58, 4 25 (214), 5 and 6 empty. **183 smelted
+  into 1,020 ingots**, all in smelting 6 (from 1: 62 pieces, 318 ingots; 2: 49, 284; 3: 51, 285; 4: 21, 133). About
+  5.6 ingots a piece; helms 6-7, tear kite shields 2-3.
+- **What won't melt** ("You can't melt that down into ingots."): skinning knives, butcher knives, cleavers,
+  pickaxes, hatchets, pitchforks and orc helms (31 on 2026-11-07, left in their crates with the keys: smelting 1 14,
+  2 6, 3 7, 4 4). Johnny's sorting could stop sending these to the crates.
 
 ## The job (the user, 2026-11-05)
 
