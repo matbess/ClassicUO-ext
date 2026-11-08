@@ -56,7 +56,12 @@ the vault; the door and its key ring; no guard; full speed).
   5.6 ingots a piece; helms 6-7, tear kite shields 2-3.
 - **What won't melt** ("You can't melt that down into ingots."): skinning knives, butcher knives, cleavers,
   pickaxes, hatchets, pitchforks and orc helms (31 on 2026-11-07, left in their crates with the keys: smelting 1 14,
-  2 6, 3 7, 4 4). Johnny's sorting could stop sending these to the crates.
+  2 6, 3 7, 4 4). Johnny's sorting could stop sending these to the crates. The user: **put them in the trash
+  barrel** (done 2026-11-07 21:42; the crates now hold only their copper keys). The barrel answers every drop with
+  "The item will be deleted in three minutes.", said by the barrel, so the bridge takes it for silence and stops
+  (423) after each one: resume when the barrel's the last to speak (AGENTS.md, open items).
+- The user moved the 1,020 ingots from smelting 6 onto Icepick's own stack by hand (21:38, in the event log): 1,876
+  in his pack after.
 
 ## The job (the user, 2026-11-05)
 

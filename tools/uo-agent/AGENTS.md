@@ -116,7 +116,8 @@ column 4, miscellaneous (crystal balls and other odds and ends); the gems chest 
   while they're logged in, set `UO_CHAR=Johnny`: every tool then uses Johnny's bridge only (2026-11-04).
 - **Bridge fix for the next client build**: in `Move`, count any message from the drop target as an answer (the
   barrel's "The trash is full! Emptying!" is spoken by the barrel, not a system message, so it causes a false stop
-  that the scripts resume with `uo.resume_after_barrel_emptied`).
+  that the scripts resume with `uo.resume_after_barrel_emptied`). The vault's barrel also says "The item will be
+  deleted in three minutes." after every drop (2026-11-07), so each drop there stops the bridge.
 - **`uo.wait_out_world_save` is too trusting** (found 2026-11-05 by the cartography session): it takes any 423 stop
   for a world save while a save's messages are among the last 15, so a real stop shortly after a save gets resumed
   and the action re-sent (12 double-clicks in a row for Clem). Fix: only count save messages newer than the stop.
