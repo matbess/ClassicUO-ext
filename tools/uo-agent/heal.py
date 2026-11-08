@@ -15,7 +15,8 @@ ends, about every 10 s (the user: "every 10 seconds"); none ever starts sooner.
 
 Stops by itself: Healing reached the target; the patient isn't a ghost any more (the resurrection was accepted), has
 gone or is out of reach; the bandages are gone; the user took the character over (handOver: only they hand it back,
-then `uo --char NAME resume` and run again). A world save or a lag the server answers after is waited out.
+then `uo --char NAME resume` and run again). A world save or a lag the server answers after is waited out, and so is
+the nightly server reboot (about 04:15: the client logs back in by itself, and the loop carries on once it has).
 
 The loop sends nothing between bandages; it only reads (messages, skills). Logs to
 ~/claude/uo-agent-work/heal/heal.log, state in state.json there.
@@ -133,6 +134,8 @@ def bandage(info, bandages, serial):
             r = uo.call(info, 'POST', '/use', serial=bandages, target=serial)
             break
         except uo.BridgeError as e:
+            if e.code == 0:
+                raise
             if e.code == 423 and 'took over' in e.message:
                 raise Stop(f'the user took {info["character"]} over ({e.message}); only they hand him back')
             if e.code == 423 and server_back(info, e.message):
@@ -160,6 +163,32 @@ def bandage(info, bandages, serial):
     return f'no end message in {BANDAGE_TIMEOUT} s'
 
 
+def wait_for_bridge(char, serial, why):
+    """The client lost the server (the nightly reboot at about 04:15; the clients log back in on their own about 4
+    minutes later): wait up to 30 minutes for the character's bridge to answer again and the patient to be in sight,
+    put the healing rules back in, and go on. A reboot rolls the world back about 15 minutes, so a gain just before it
+    may be gone."""
+    say(f'lost the bridge ({why}); waiting for {char} to log back in (the nightly reboot is about 04:15)')
+    end = time.time() + 30 * 60
+    while time.time() < end:
+        time.sleep(10)
+        try:
+            info = uo.find_bridge(char)
+            st = uo.call(info, 'GET', '/status')
+            if patient(info, serial) is None:
+                continue
+        except (SystemExit, uo.BridgeError):
+            continue
+        if st.get('bridge', 0) < 10:
+            raise Stop(f"{char}'s client came back with bridge {st.get('bridge')}, not 10")
+        if st.get('halted'):
+            uo.call(info, 'POST', '/resume')
+        install_rules(char)
+        say(f'{char} is back (bridge on port {info["port"]}); carrying on')
+        return info
+    raise Stop(f'{char} did not come back within 30 minutes')
+
+
 def run(char, serial, bandages, target):
     info = uo.find_bridge(char)
     if uo.call(info, 'GET', '/status').get('bridge', 0) < 10:
@@ -171,44 +200,66 @@ def run(char, serial, bandages, target):
     if state.get('char') != char or state.get('done'):
         state = {'char': char, 'skill': SKILL, 'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'startBase': base,
                  'bandages': 0, 'results': {}, 'gains': []}
-    state.update(target=target, patient=serial, pile=bandages)
+    state.update(target=target, patient=serial, pile=bandages, cap=cap)
     save_state(state)
     say(f'{char}: {SKILL} {base} (shown {value}, cap {cap}, {lock}); bandaging {serial} until {target}')
     if lock != 'up':
         say(f'note: {SKILL} is set to {lock}, not up')
     last = base
     while True:
-        if os.path.exists(STOP_FILE):
-            os.remove(STOP_FILE)
-            raise Stop('asked to stop')
-        if base >= target or base >= cap:
-            state['done'] = time.strftime('%Y-%m-%d %H:%M:%S')
-            save_state(state)
-            say(f'DONE: {SKILL} {base} after {state["bandages"]} bandages')
-            return
-        m = patient(info, serial)
-        if m is None:
-            raise Stop(f'the patient {serial} is not in sight')
-        if not m.get('dead'):
-            raise Stop(f'{m["name"]} is alive now (a resurrection was accepted?): no more bandages on a ghost')
-        if m['distance'] > 1:
-            raise Stop(f'{m["name"]} is {m["distance"]} tiles away (a bandage reaches 1)')
         try:
-            pile = uo.call(info, 'GET', '/item', serial=bandages).get('item')
+            base, last = one_bandage(info, char, serial, bandages, target, state, base, last)
         except uo.BridgeError as e:
-            raise Stop(f'the bandages {bandages} are gone ({e})')
-        result = bandage(info, bandages, serial)
-        state['bandages'] += 1
-        key = result.split(' (')[0].split(' after ')[0]
-        state['results'][key] = state['results'].get(key, 0) + 1
-        base, value, cap, lock = skill(info)
-        gained = round(base - last, 1)
-        if gained:
-            state['gains'].append([time.strftime('%Y-%m-%d %H:%M:%S'), base])
+            if e.code != 0:
+                raise Stop(str(e))
+            info = wait_for_bridge(char, serial, e.message)
+            base, value, cap, lock = skill(info)
+            say(f'{SKILL} now {base} (shown {value})')
             last = base
+        except Done:
+            return
+
+
+class Done(Exception):
+    pass
+
+
+def one_bandage(info, char, serial, bandages, target, state, base, last):
+    """One round: the checks, a bandage, the skill read. Returns the skill (base) now and at the last gain."""
+    if os.path.exists(STOP_FILE):
+        os.remove(STOP_FILE)
+        raise Stop('asked to stop')
+    if base >= target or base >= state.get('cap', 100.0):
+        state['done'] = time.strftime('%Y-%m-%d %H:%M:%S')
         save_state(state)
-        say(f'#{state["bandages"]}: {result}; {SKILL} {base}' + (f' (+{gained})' if gained > 0 else '') +
-            f'; {pile.get("amount", "?")} bandages left')
+        say(f'DONE: {SKILL} {base} after {state["bandages"]} bandages')
+        raise Done()
+    m = patient(info, serial)
+    if m is None:
+        raise Stop(f'the patient {serial} is not in sight')
+    if not m.get('dead'):
+        raise Stop(f'{m["name"]} is alive now (a resurrection was accepted?): no more bandages on a ghost')
+    if m['distance'] > 1:
+        raise Stop(f'{m["name"]} is {m["distance"]} tiles away (a bandage reaches 1)')
+    try:
+        pile = uo.call(info, 'GET', '/item', serial=bandages).get('item')
+    except uo.BridgeError as e:
+        if e.code == 0:
+            raise
+        raise Stop(f'the bandages {bandages} are gone ({e})')
+    result = bandage(info, bandages, serial)
+    state['bandages'] += 1
+    key = result.split(' (')[0].split(' after ')[0]
+    state['results'][key] = state['results'].get(key, 0) + 1
+    base, value, state['cap'], lock = skill(info)
+    gained = round(base - last, 1)
+    if gained:
+        state['gains'].append([time.strftime('%Y-%m-%d %H:%M:%S'), base])
+        last = base
+    save_state(state)
+    say(f'#{state["bandages"]}: {result}; {SKILL} {base}' + (f' (+{gained})' if gained > 0 else '') +
+        f'; {pile.get("amount", "?")} bandages left')
+    return base, last
 
 
 def report():

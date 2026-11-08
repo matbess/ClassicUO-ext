@@ -65,8 +65,14 @@ It stops by itself when the skill reaches the target or cap (DONE). It also stop
 - the bandages are gone;
 - the user took the character over;
 - the server goes quiet more than 5 times in an hour (a world save, or a lag the server answers after, is waited out
-  and resumed).
+  and resumed);
+- the client doesn't come back within 30 minutes of losing the server (the nightly reboot at about 04:15 is waited
+  out: the clients log back in by themselves about 4 minutes later).
 
 ## Progress
 
 - 2026-11-08 01:35: started, Burgers Healing 98.4 base (98.6 shown), 4,770 bandages.
+- 2026-11-08 04:15: 99.2 after 930 bandages (2 h 40 m; a +0.1 every 1-55 minutes, slower near 99: 98.9 to 99.0 took
+  32 min, 99.1 to 99.2 took 56). The nightly server reboot dropped the client and heal.py stopped on the lost
+  bridge; it now waits for the client to log back in (up to 30 minutes) and carries on. The reboot rolls the world
+  back about 15 minutes, so a gain just before 04:15 can be lost.
