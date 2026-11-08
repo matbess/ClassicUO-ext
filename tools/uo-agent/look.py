@@ -82,9 +82,14 @@ def main():
     labels = uo.load_labels()
     here = [i for i in nearby if x1 <= i['x'] <= x2 and y1 <= i['y'] <= y2 and z1 <= i['z'] <= z2
             and not any(k in i.get('type', '') for k in NOT_LOOT)]
-    for i in here:  # a labelled bag lying on the floor belongs somewhere else (the gem bag, 2026-11-07)
-        if i.get('container') and labels.get(i['serial'], '').startswith('bag: '):
-            say(f"OUT OF PLACE: {labels[i['serial']]} is on the floor at {i['x']},{i['y']}; tell the user, put it back")
+    # Only loot bags go on this floor, so a labelled bag lying here has been reused as one: the user takes the whole
+    # gem bag to sell the gems and brings it back with loot (2026-11-07). Its label goes; sortbatch starts a new
+    # gem bag when one is needed, and plan.py a new bag of any other kind.
+    reused = [i for i in here if i.get('container') and labels.get(i['serial'], '').startswith('bag: ')]
+    for i in reused:
+        say(f"{labels[i['serial']]} is on the floor: reused as a loot bag, so it's loot now and its label is dropped")
+    uo.forget_labels([i['serial'] for i in reused])
+    labels = uo.load_labels()
     floor = [i for i in here if not labels.get(i['serial'])]
     loose = [i for i in floor if not i.get('container')]
     if loose:

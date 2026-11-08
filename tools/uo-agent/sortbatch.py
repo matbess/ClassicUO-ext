@@ -241,6 +241,47 @@ def cut_up(serials, inv):
                 say(f"{item['type']} x{item.get('amount', 1)} -> supplies ({stack(item, c)})")
 
 
+GEM_BAG = {}
+
+
+def gem_bag():
+    """The gem bag in the gems chest. The user takes the whole bag to sell the gems, then uses it as a loot bag
+    (2026-11-07), so when no labelled gem bag is in the chest, start a new one at the top left from the backpacks
+    crate. It gets a marker at the end of the batch (gem_marker) unless a loose gem is already lying in the chest."""
+    if GEM_BAG.get('serial'):
+        return GEM_BAG['serial']
+    c = chest('gems')
+    items = learn(c)
+    here = {i['serial'] for i in items}
+    labelled = [s for s, t in labels().items() if t.startswith('bag: gems (')]
+    bag = next((s for s in labelled if s in here), None)
+    if bag is None:
+        uo.forget_labels(labelled)
+        new = empty_bags(1)[0]
+        put(new, c, AREA[c][0], AREA[c][1])
+        bag = new['serial']
+        CONTENTS[bag], AREA[bag], OCCUPIED[bag] = [], [44, 65, 186, 159], []
+        uo.save_label(bag, 'bag: gems (gems chest)')
+        GEM_BAG['needs marker'] = not any(i['graphic'] in GEMS for i in items)
+        say('no gem bag in the gems chest (taken to sell the gems); started a new one')
+    learn(bag)
+    GEM_BAG['serial'] = bag
+    return bag
+
+
+def gem_marker():
+    """Split one gem out of the new gem bag and lay it under the bag as its marker."""
+    bag, c = GEM_BAG['serial'], chest('gems')
+    piles = [i for i in call('GET', '/contents', serial=bag)['items'] if i['graphic'] in GEMS]
+    if not piles:
+        return
+    pile = min(piles, key=lambda i: i['art']['visible'][0])  # the one whose picture can sit right under the bag
+    x1, y1 = AREA[c][:2]
+    vx, vy = pile['art']['visible'][:2]
+    result = uo.move(info, pile['serial'], c, max(x1, x1 + 18 - vx), y1 + 23 - vy, amount=1)
+    say(f"{pile['type']}: one under the gem bag as its marker" if result['moved'] else 'the gem marker did not move')
+
+
 def set_piece(item):
     return SET_PIECES.get(' '.join(item['type'].split()))
 
@@ -427,9 +468,7 @@ def main():
             how = stack(item, c, slot=(30 + (i % 4) * 30, 108 + (i // 4) * 26))
             say(f"{item['type']} x{item.get('amount', 1)} -> reagents ({how})")
         elif g in GEMS:  # one bag holding every gem pile, so the user can grab it to sell
-            learn(chest('gems'))
-            bag = uo.resolve('bag: gems')
-            learn(bag)
+            bag = gem_bag()
             i = GEMS.index(g)
             x1, y1 = AREA[bag][:2]
             how = stack(item, bag, slot=(x1 + 6 + (i % 5) * 26, y1 + 6 + (i // 5) * 30))
@@ -462,6 +501,8 @@ def main():
 
     # ---- cut leather and cloth; results to supplies ----
     cut_up(plan.get('cut', []) + hides, inv)
+    if GEM_BAG.get('needs marker'):
+        gem_marker()
 
     # ---- emptied loot bags back to the crate ----
     for l in loot:
