@@ -163,6 +163,24 @@ def bandage(info, bandages, serial):
     return f'no end message in {BANDAGE_TIMEOUT} s'
 
 
+def login_routine(info, taken):
+    """A takeover that is the client's own login routine, not the user: at every login (seen 2026-11-07 22:11,
+    2026-11-08 01:32 and 04:18) something double-clicks a bag, Burgers himself, his backpack and the bag again, one a
+    second, starting within about a second of "WorldMap loaded!". With handOver in the rules the first of them counts
+    as the user taking over. True for "a double-click at HH:MM:SS" within 10 s of the last "WorldMap loaded!"."""
+    if not (taken or '').startswith('a double-click at '):
+        return False
+    loaded = [m['time'] for m in uo.call(info, 'GET', '/messages')['messages'] if m['text'] == 'WorldMap loaded!']
+    if not loaded:
+        return False
+
+    def seconds(hms):
+        h, m, sec = hms.split(':')
+        return int(h) * 3600 + int(m) * 60 + float(sec)
+
+    return -2 <= seconds(taken.rsplit(' ', 1)[-1]) - seconds(loaded[-1]) <= 10
+
+
 def wait_for_bridge(char, serial, why):
     """The client lost the server (the nightly reboot at about 04:15; the clients log back in on their own about 4
     minutes later): wait up to 30 minutes for the character's bridge to answer again and the patient to be in sight,
@@ -181,7 +199,14 @@ def wait_for_bridge(char, serial, why):
             continue
         if st.get('bridge', 0) < 10:
             raise Stop(f"{char}'s client came back with bridge {st.get('bridge')}, not 10")
-        if st.get('halted'):
+        if st.get('takenOver'):
+            if not login_routine(info, st['takenOver']):
+                raise Stop(f'the user took {char} over ({st["takenOver"]}); only they hand him back')
+            time.sleep(10)  # the routine's four double-clicks take about 4 s; let them finish first
+            st = uo.call(info, 'GET', '/status')
+            say(f'the login routine counted as a takeover ({st["takenOver"]}): resumed')
+            uo.call(info, 'POST', '/resume')
+        elif st.get('halted'):
             uo.call(info, 'POST', '/resume')
         install_rules(char)
         say(f'{char} is back (bridge on port {info["port"]}); carrying on')
@@ -194,6 +219,12 @@ def run(char, serial, bandages, target):
     if uo.call(info, 'GET', '/status').get('bridge', 0) < 10:
         raise Stop(f"{char}'s client has bridge {uo.call(info, 'GET', '/status').get('bridge')}: bandages need "
                    'bridge 10 (build cuo-agent27)')
+    st = uo.call(info, 'GET', '/status')
+    if st.get('takenOver'):
+        if not login_routine(info, st['takenOver']):
+            raise Stop(f'the user took {char} over ({st["takenOver"]}); only they hand him back')
+        say(f'the login routine counted as a takeover ({st["takenOver"]}): resumed')
+        uo.call(info, 'POST', '/resume')
     install_rules(char)
     state = load_state()
     base, value, cap, lock = skill(info)

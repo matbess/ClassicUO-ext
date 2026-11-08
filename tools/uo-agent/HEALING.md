@@ -76,3 +76,8 @@ It stops by itself when the skill reaches the target or cap (DONE). It also stop
   32 min, 99.1 to 99.2 took 56). The nightly server reboot dropped the client and heal.py stopped on the lost
   bridge; it now waits for the client to log back in (up to 30 minutes) and carries on. The reboot rolls the world
   back about 15 minutes, so a gain just before 04:15 can be lost.
+- 2026-11-08 04:19: back after the reboot, rolled back to 99.1 and 3,927 bandages (about 04:01). The client's login
+  routine (a bag, Burgers himself, his backpack, the bag again, one a second, starting within a second of "WorldMap
+  loaded!", seen at every login) counted as the user taking over under `handOver`. heal.py now resumes a takeover
+  that is "a double-click" within 10 s of "WorldMap loaded!", at its start and after a reconnect; any other takeover
+  still stops it. (A fix for the bridge: ignore the first seconds after login. Not built yet.)
