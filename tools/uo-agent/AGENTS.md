@@ -20,7 +20,8 @@ command themselves (`"handOver"`); only the user hands him back (`--resume`). Br
 
 **Blacksmithing** (Icepick, from 2026-11-05: training to 100 at the forge and anvil on the tower's ground floor,
 crafting and smelting back; **reached 100 on 2026-11-07**): read `SMITHING.md` first; the tool is `smith.py`, the rules
-`rules/rules-Icepick-smith.json` (no guard, no pacing). Bridge 6 (build cuo-agent19) adds menus, gumps, target
+`rules/rules-Icepick-smith.json` (no guard, no pacing). Since 2026-11-07 he also smelts the junk gear in the vault's
+smelting crates (`vault.py`, `rules/rules-Icepick-vault.json`; the vault door always ends locked and closed). Bridge 6 (build cuo-agent19) adds menus, gumps, target
 cursors, skills and an event log that records what the user does by hand (`uo record`).
 
 **To sort loot, follow `skills/uo-sort/SKILL.md`.** It has the procedure, the safety rules, everything learned about
@@ -69,7 +70,7 @@ user's ClassicUO (Wine)                       this Mac
 | `survey.py`, `layout.py` | | open every chest and record the map in `layout.json` (`--known` sends nothing and checks labels against positions); print the map |
 | `tidy.py` | | re-lay a crowded chest's bags in one row with markers under them |
 | `moves.py`, `potions.py` | | a list of moves at the bridge's pace; potions by strength (the server hides strengths) |
-| `mine.py`, `carto.py` | | the mining loop (MINING.md) and Clem's cartography (CARTO.md) |
+| `mine.py`, `carto.py`, `smith.py`, `vault.py` | | the mining loop (MINING.md), Clem's cartography (CARTO.md), Icepick's smithing and his smelting of the vault's junk gear (SMITHING.md) |
 | `restock.py`, `door.py`, `fight.py`, `fight_scenes.py`, `fight_sim.py` | | Clem's reagents before he leaves (below 25: restock at the chest), the front door, his fights, and offline checks of the fight decisions (COMBAT.md) |
 | `blackbox.py` | | read-only recorder: copies every client's bridge event log (what was sent after Razor, messages) to `~/claude/uo-agent-work/blackbox/<Character>-<date>.jsonl`, across client restarts; `--show N`. Started 2026-11-06 for Razor's jammed drag queue (a pick-up the server took with no drop after it: Razor holds every later pick-up and double-click for up to 2 minutes; its "Drop What You are Currently Holding" hotkey frees it) |
 

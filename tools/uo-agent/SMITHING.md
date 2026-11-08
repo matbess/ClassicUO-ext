@@ -38,6 +38,20 @@ the vault; the door and its key ring; no guard; full speed).
   (32), 2 0x4053DA72 (35), 3 0x4053C008 (38), 4 0x4053CE6E (41). On 2026-11-07: 2 held 56 items (394 stones), 3 58
   (397), 4 17 (98), 5 and 6 empty, 1 not shown.
 - **Out**: not tried yet (does the locked door open from inside, and does the key reach from 1758,1412?).
+- **Smelting needs an anvil too**: the hammer's menu answers "You must be near an anvil and a forge to smith
+  items." without one. The vault had none, so the user placed one by the forge (2026-11-07): **anvil 0x408D4FB3 at
+  1758,1408**. The spot is now **1759,1409** (the user moved him there; 1759,1410 reaches everything too): the
+  anvil, the forge and the crates are all within 2 tiles.
+- **Where the ingots go** (the user, 2026-11-07): into the **bottom smelting crate, smelting 6** (0x408AD7D5), empty
+  once everything's smelted. (They first named a small crate by the forge; they took it away and put it in his pack.)
+- **`vault.py smelt`** (from his spot; `--max N` to try a few): each piece from the crates (smelting 1, 2, 3, 4,
+  5, 6) into his pack, Smelt with the hammer, and the ingots it gave onto the pile in smelting 6 every 300 and at
+  the end of each crate. The crates' copper keys stay. A piece that won't melt goes back into its crate (state
+  `not_smelted`). His own ingots stay in his pack (856 on 2026-11-07, counted at the first start; state
+  `own_ingots`). About 4.5 s a piece; a tear kite shield gives 2 or 3 ingots. Log and state in
+  `~/claude/uo-agent-work/vault`; `vault.py stop`, `vault.py report`. Smelting doesn't seem to wear the hammer (in
+  smithing, hammers only ever broke on a craft), and the spares are downstairs, so a broken hammer stops it.
+- First run 2026-11-07 21:19: smelting 1 76 pieces, 2 55, 3 58, 4 25 (about 214), 5 and 6 empty.
 
 ## The job (the user, 2026-11-05)
 
