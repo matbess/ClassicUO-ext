@@ -1439,7 +1439,7 @@ class Miner:
         totals['iron'] += iron
         self.save_state()
         log(f'handed Burgers {n} ingots ({iron} iron)' + (f' and {len(extra)} small ore piles' if extra else '')
-            + f"; gave Icepick {len(spares)} shovels. Total: {totals['ingots']} ingots, {totals['iron']} iron."
+            + f"; gave Icepick {len(spares)} shovels. Iron in the bank: {self.bank_iron()}."
             + f" Run and hide: {len(self.state.get('unreviewed', []))} to review. Reagents: {self.reagent_counts()}."
             + f" Shovels: {self.shovel_counts()}")
         ice = self.ice.status()
@@ -1474,6 +1474,19 @@ class Miner:
         bank = self.state.get('bank_shovels')
         where = f"bank {bank['count']} (counted {bank['time']})" if bank else 'bank not counted yet'
         return f'Burgers {self.burgers_spares()}, {where}'
+
+    def bank_iron(self):
+        """The iron ingots in the bank's ingot bag, as counted on Burgers' last bank trip, and the iron he's carrying
+        there next (the user, 2026-11-08: rather that than the total ever mined, which is still kept in state.json)."""
+        bank = self.state.get('bank_ingots')
+        carrying = sum(i.get('amount', 1) for i in self.ingots(self.bur) if not i.get('hue'))
+        where = f"{bank['iron']} (counted {bank['time']})" if bank else 'not counted yet'
+        return f'{where}, and Burgers is carrying {carrying} more'
+
+    def count_bank_ingots(self, bag):
+        """(iron, all) ingots in the bank's ingot bag; iron is the uncoloured ones, as at the handoff."""
+        bars = [i for i in self.bur.call('GET', '/contents', serial=bag)['items'] if 'ingot' in (i.get('type') or '')]
+        return (sum(i.get('amount', 1) for i in bars if not i.get('hue')), sum(i.get('amount', 1) for i in bars))
 
     def bank_shovels(self, bags):
         if not bags.get('shovels'):
@@ -1618,6 +1631,15 @@ class Miner:
             # the bank's shovels, for the handoff lines (the user, 2026-11-08)
             self.state['bank_shovels'] = {'count': len(self.bank_shovels(bags)),
                                           'time': time.strftime('%H:%M')}
+            # and its iron, counted here after the shovels so the bag's piles have settled (the user, 2026-11-08)
+            try:  # (a count that goes wrong mustn't leave him standing at the bank)
+                iron, every = self.count_bank_ingots(bags['ingots'])
+                stuck = sum(i.get('amount', 1) for i in self.ingots(self.bur))
+                self.state['bank_ingots'] = {'iron': iron, 'all': every, 'time': time.strftime('%H:%M')}
+                log(f'Burgers emptied his pack into the ingot bag; the bank has {iron} iron ingots ({every} in all)'
+                    + (f'; {stuck} ingots are still in his pack' if stuck else ''))
+            except Exception as e:
+                log(f"couldn't count the ingot bag in the bank: {e!r}")
             self.save_state()
             if bags.get('reagents'):
                 self.restock_reagents(bags['reagents'])

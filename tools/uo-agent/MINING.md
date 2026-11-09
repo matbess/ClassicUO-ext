@@ -14,7 +14,8 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
 - The work folder `~/claude/uo-agent-work/mining` (not in git) holds `mine.log`, `incidents.jsonl` and
   `state.json`: `next` (the block to dig next), `totals` (with a `note` of every correction), `emptied` (blocks
   found empty, with when), `bags` (the bank's ingot, shovel and reagent bags), `shovel_bag` (the bag in Burgers'
-  pack), `unreviewed` (run and hides), `bank_out_of_shovels`.
+  pack), `unreviewed` (run and hides), `bank_out_of_shovels`, `bank_shovels` and `bank_ingots` (the bank's shovels
+  and ingots as counted on the last bank trip).
 - Options: `--passes N`, `--from N --to M` (a stretch), `--bank` (a bank trip only), `--empty` (smelt and hand
   over only), `--incidents`, `--reviewed`, `--park`, `--stop`.
 - Before starting: both characters logged in with the Agent bridge option ticked, Icepick near McGee or on him,
@@ -42,9 +43,14 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
   Don't add a bare "shovel": every shovel that wears out logs a line.
 - **What to tell the user** (they follow on the phone through Remote Control: plain messages, no push
   notifications):
-  - every forge trip, in a few lines: the ingots handed over (and how many iron), the shovels given, the totals,
-    the run and hides to review, all four of Burgers' reagents, and the shovels: Burgers' spares and the bank's
-    (counted on his last bank trip; the handoff line has both from 2026-11-08);
+  - every forge trip, in a few lines: the ingots handed over (and how many iron), the shovels given, the iron in
+    the bank, the run and hides to review, all four of Burgers' reagents, and the shovels: Burgers' spares and the
+    bank's (counted on his last bank trip; the handoff line has both from 2026-11-08);
+  - the iron in the bank rather than the total ever mined (the user, 2026-11-08: "I'd rather know how many are in
+    the bank than the total we've ever mined"). Burgers counts the uncoloured ingots in the bank's ingot bag on
+    every bank trip, after putting his in (`Burgers emptied his pack into the ingot bag; the bank has N iron
+    ingots`, kept as `bank_ingots` in `state.json`); the handoff line shows that count and the iron he's carrying
+    to the bank next. `totals` is still kept in `state.json`, just not shown;
   - bank trips (the shovels and reagents taken), McGee (tired, stuck, gone wild, retamed), every alarm and incident,
     every creature that hits him or turns grey near him (`creature:` and `noted:` lines),
     `reagents low` (any of the four under 20), a new pass, stops, parks and reboots;
