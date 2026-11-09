@@ -132,6 +132,7 @@
   "0x4098CD0E": "bag: exceptional axes (axes chest)",
   "0x4098CD0F": "bag: rings (jewellery chest)",
   "0x4098CD10": "bag: footwear (magic clothing chest)",
+  "0x4098CD12": "bag: pickaxes (axes chest)",
   "0x4098F2D8": "bag: maces & staves (maces & staves chest)",
   "0x4098F2DC": "bag: shovels (Burgers' bank)",
   "0x4098F2E4": "maps: completed (overflow, 3rd floor)"
