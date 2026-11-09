@@ -39,7 +39,7 @@ for module in ('uo', 'layout'):
     spec.loader.exec_module(globals()[module])
 
 BACKPACK = '0x4079CC26'
-SCISSORS = '0x40849C45'
+SCISSORS_GRAPHICS = ('0x0F9E', '0x0F9F')  # any pair in Johnny's backpack: the user plays him and may take them
 SPARES = '0x4049D6B8'
 SCROLL_BAGS = {1: '0x40832F6B', 2: '0x4086BE0E', 3: '0x4092B7CC', 4: '0x4092B7D2', 5: '0x4092B7BF', 6: '0x4092B7BB',
                7: '0x407B195C', 8: '0x4087FCC6'}
@@ -227,17 +227,25 @@ def cut_up(serials, inv):
     """Cut leather and cloth with the scissors in Johnny's backpack, 15 at a time so the cuttings never weigh him
     down, and pile the cut leather and cloth in the supplies chest."""
     pending = list(serials)
+    if not pending:
+        return
+    CONTENTS.pop(BACKPACK, None)
+    scissors = next((i['serial'] for i in learn(BACKPACK) if i['graphic'] in SCISSORS_GRAPHICS), None)
+    if scissors is None:  # 2026-11-08: the user had taken them; the cutting is left in the loot bags for later
+        say(f'NO SCISSORS in Johnny\'s backpack: {len(pending)} items to cut are left in their loot bags: '
+            + ', '.join(names.get(s, inv[s]['type']) for s in pending))
+        return
     while pending:
         before = {i['serial'] for i in call('GET', '/contents', serial=BACKPACK)['items']}
         for serial in pending[:15]:
             move(serial, BACKPACK)
-            call('POST', '/use', serial=SCISSORS, target=serial)
+            call('POST', '/use', serial=scissors, target=serial)
             say(f"cut {names.get(serial, inv[serial]['type'])}")
         pending = pending[15:]
         c = chest('supplies')
         learn(c)
         for item in call('GET', '/contents', serial=BACKPACK)['items']:
-            if item['serial'] not in before and item['serial'] != SCISSORS:
+            if item['serial'] not in before and item['serial'] != scissors:
                 say(f"{item['type']} x{item.get('amount', 1)} -> supplies ({stack(item, c)})")
 
 
