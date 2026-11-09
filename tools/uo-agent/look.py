@@ -70,18 +70,31 @@ def open_once(info, serial):
             raise
 
 
-def main():
-    out = sys.argv[1]
-    os.makedirs(out, exist_ok=True)
-    info = uo.find_bridge(None)
+def on_floor(info):
+    """What lies on the room floor (inside the rules area and height) apart from the chests, crates, barrel and cloth.
+    Read only."""
     rules = uo.call(info, 'GET', '/rules')
     x1, y1, x2, y2 = rules['areas'][0]['box']
     z1, z2 = rules['areas'][0]['z']
     nearby = uo.call(info, 'GET', '/nearby', range=14)
     nearby = nearby.get('items', nearby) if isinstance(nearby, dict) else nearby
-    labels = uo.load_labels()
-    here = [i for i in nearby if x1 <= i['x'] <= x2 and y1 <= i['y'] <= y2 and z1 <= i['z'] <= z2
+    return [i for i in nearby if x1 <= i['x'] <= x2 and y1 <= i['y'] <= y2 and z1 <= i['z'] <= z2
             and not any(k in i.get('type', '') for k in NOT_LOOT)]
+
+
+def loot_on_floor(info):
+    """Loot bags and loose loot on the floor: unlabelled things, and labelled bags (reused as loot bags)."""
+    labels = uo.load_labels()
+    return [i for i in on_floor(info) if not labels.get(i['serial'])
+            or (i.get('container') and labels[i['serial']].startswith('bag: '))]
+
+
+def main():
+    out = sys.argv[1]
+    os.makedirs(out, exist_ok=True)
+    info = uo.find_bridge(None)
+    labels = uo.load_labels()
+    here = on_floor(info)
     # Only loot bags go on this floor, so a labelled bag lying here has been reused as one: the user takes the whole
     # gem bag to sell the gems and brings it back with loot (2026-11-07). Its label goes; sortbatch starts a new
     # gem bag when one is needed, and plan.py a new bag of any other kind.
