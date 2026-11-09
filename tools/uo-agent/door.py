@@ -104,9 +104,9 @@ def door_spot(door):
     return item['x'], item['y']
 
 
-def key_on(door, want):
+def key_on(door, want, check=True):
     """The key ring aimed at a door until it says "You <want> it." (it turns the lock either way)."""
-    if guard and want == 'unlock':
+    if guard and check:
         guard()
     # a spell's cursor still to come (Paralyze, cast and gone on): the key's own cursor would get mixed up with it
     time.sleep(max(0.0, cast_at + 2.5 - time.time()))
@@ -126,9 +126,11 @@ def key_on(door, want):
     raise Stop(f"couldn't {want} {door}")
 
 
-def set_door(door, shut):
+def set_door(door, shut, check=False):
     # walking up to the door can open it already: his client opens a door he faces (auto_open_doors), and a
     # double-click on top of that shuts it again (2026-11-06 15:57)
+    if guard and check:
+        guard()
     time.sleep(0.8)
     if (door_spot(door) == SHUT_AT[door]) == shut:
         say(f'{door} {"closed" if shut else "open"} already')
@@ -224,8 +226,8 @@ def park():
         else f'NOT in the safe zone: at {here[0]},{here[1]}')
 
 
-def step(p, what):
-    if guard:
+def step(p, what, check=True):
+    if guard and check:
         guard()
     r = walk(p)
     if not r.get('arrived'):
@@ -270,7 +272,7 @@ def inside_tower():
             and x1 <= m['x'] <= x2 and y1 <= m['y'] <= y2]
 
 
-def eject_inside(tries=4):
+def eject_inside(tries=8):
     """A creature that followed him in: "remove thyself" and a click on it puts it out of the house (the user,
     2026-11-08: "Any time you enter the tower you need to check if a monster came inside. If one did, you need to say
     'remove thyself' and click the monster. That will eject it from the tower."). True when none is left inside."""
@@ -392,18 +394,20 @@ def go_in():
         if close:
             raise Stop('creatures at the door: ' + ', '.join(m['name'] or '?' for m in close) + ' ("remove thyself")')
         step(FRONT, 'get right in front of the door')  # straight on: a diagonal into the doorway catches on the frame
+    # danger checked before the key and before the door opens (the fight takes over at once); once it is open, the
+    # quickest way out of danger is in: no more checks until the door is shut behind him
     key_on(DOOR, 'unlock')
-    set_door(DOOR, False)
+    set_door(DOOR, False, check=True)
     try:
         if where() != DOORWAY:
-            step(DOORWAY, 'step into the doorway')
-        key_on(DOOR, 'lock')
-        step(INSIDE, 'step in')
+            step(DOORWAY, 'step into the doorway', check=False)
+        key_on(DOOR, 'lock', check=False)
+        step(INSIDE, 'step in', check=False)
     finally:
         # never leave it open or unlocked: from outside or the doorway the key reaches it
         if where()[1] >= 1414 and door_spot(DOOR) != SHUT_AT[DOOR]:
             try:
-                key_on(DOOR, 'lock')
+                key_on(DOOR, 'lock', check=False)
             except Stop:
                 pass
         set_door(DOOR, True)

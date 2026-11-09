@@ -68,6 +68,13 @@ LOOK_AROUND = 3                   # seconds at each lookout point
 # home from town (trips.py, the user, 2026-11-08): Recall lands him at 1757,1419; every enemy in front of the tower is
 # dealt with before he goes in, and none further out is looked for: this far from the front door counts as in front
 FRONT_RANGE = 15
+# ...and anything this close to him wherever he is: 2026-11-08 21:37 he led an orc (Kog) off, it was then more than
+# FRONT_RANGE from the door, so the front counted as clear and he rode home with it on his heels and stood working
+# the key while it hit him from 100 to 34. The user: "lead him away and provoke him onto another creature ... and
+# then kill him so he's not waiting at the door still for your next trip"
+NEAR_HIM = 12
+DOOR_CLEAR = 8           # no key or door work with a creature this close to him (or one after him within 12)
+DYING = 0.35             # below this with a creature close: the last resort, ride far away (the user, 2026-11-08)
 PACK_LIMIT = 125                  # items his pack holds, everything inside bags counted (CARTO.md)
 
 TAMBOURINE = 0x0E9D
@@ -221,7 +228,7 @@ def call(method, endpoint, **params):
             raise
         if razor_click():
             return uo.call(info, method, endpoint, **params)
-        if not recover_drop():
+        if not recover_drop() and not resume_halt_outside():
             raise Stop(e.message)
     if endpoint == '/move':
         return {'moved': True, 'recovered': True}  # the drop that stopped the bridge landed
@@ -286,6 +293,32 @@ def razor_click(bag=None):
     except uo.BridgeError:
         return False
     say(f'the bridge took {why} for the user taking over ({took}): resumed')
+    return True
+
+
+_halts = []
+
+
+def resume_halt_outside():
+    """The bridge stopped itself (it does when the server says nothing to an action) while he is outside: the fight
+    must not end there with him standing among creatures (the user, 2026-11-08: "make sure the code does not exit back
+    to you when clem is being attacked ... do not leave fighting mode until the creatures are gone"). Resumed and the
+    fight goes on; not when the user has taken over, and at most 5 times a minute."""
+    try:
+        st = uo.call(info, 'GET', '/status')
+    except uo.BridgeError:
+        return False
+    if st.get('takenOver') or not st.get('halted') or st['y'] < AREA[1]:
+        return False
+    now = time.time()
+    _halts[:] = [t for t in _halts if now - t < 60] + [now]
+    if len(_halts) > 5:
+        return False
+    try:
+        uo.call(info, 'POST', '/resume')
+    except uo.BridgeError:
+        return False
+    say(f'the bridge stopped itself while he is outside ({st["halted"]}): resumed, the fight goes on')
     return True
 
 
@@ -635,6 +668,7 @@ class Fight:
         self.seen_message = st0['lastMessageId']
         self.me_serial = st0.get('serial')
         self.tired = None        # the horse said it's tired: 'very' (a warning) or 'too' (it won't move)
+        self.door_hits = None    # his health when he reached the door (door_guard: any lost breaks the way in off)
         mounts = call('GET', '/rules').get('mounts', [])
         self.horse = mounts[0] if mounts else None
 
@@ -1106,6 +1140,13 @@ class Fight:
             self.reflect_up = False
             say(f'hurt from a distance ({self.hits_before} -> {st["hits"]}): Magic Reflection is down')
         self.hits_before = st['hits']
+        # the last resort (the user, 2026-11-08: "or you run far far away because you're going to die"): badly hurt
+        # with anything close, ride far off before anything else; healing comes once clear
+        if hp < DYING and min(dfree, dany_creature) <= 5:
+            self.meditating = False
+            say(f'health {st["hits"]}/{st["hitsMax"]} with a creature {min(dfree, dany_creature)} off: riding far away')
+            self.flee(me, [xy(m) for m in threats + biters], radii=(20, 16, 12), need=15)
+            return False
         if dfree <= ON_HIM or dany_creature <= ON_HIM - 1:
             threats = threats + [m for m in biters if dist(me, xy(m)) <= ON_HIM and m not in threats]
             self.meditating = False
@@ -1338,6 +1379,14 @@ class Fight:
             time.sleep(0.15)
             return False
 
+        if self.homeward and self.front:
+            near = [m for m in free if m['serial'] not in self.ignored and self.in_scope(me, m)]
+            if near:
+                m = min(near, key=lambda m: dist(me, xy(m)))
+                say(f'not going in with {m["name"]} {dist(me, xy(m))} tiles off: dealing with it first')
+                self.homeward = False
+                self.mover.clear()
+                return False
         if self.homeward:
             return self.step_home(me, threats)
 
@@ -1352,7 +1401,7 @@ class Fight:
         # stand still there until it targets him (turns Criminal); left be if it hasn't by LURE_WAIT (shut in a
         # building, or it doesn't attack). No moving about while waiting.
         lurable = [m for m in free if m['serial'] not in self.ignored and self.visible(m['serial'])
-                   and (not self.front or dist(xy(m), HOME) <= FRONT_RANGE)]
+                   and (not self.front or self.in_scope(me, m))]
         if lurable:
             current = [m for m in lurable if m['serial'] == self.luring]
             target = current[0] if current else min(lurable, key=lambda m: dist(me, xy(m)))
@@ -1714,15 +1763,24 @@ class Fight:
                 self.go_home('could not get back on the horse')
         return False
 
+    def in_scope(self, me, m):
+        """Coming home from town, a creature that has to be dealt with before he goes in: near the front door, or near
+        him wherever he is (NEAR_HIM). Not one shut behind a wall."""
+        return m['serial'] not in self.walled and (dist(xy(m), HOME) <= FRONT_RANGE or dist(me, xy(m)) <= NEAR_HIM)
+
     def door_guard(self):
-        """Between the steps through the door: distance comes first (the user, 2026-11-06: "#1 priority is always
-        maintain distance between you and the creatures"); a creature within ON_HIM + 1 breaks the way in off."""
+        """Before the key and the door: distance comes first (the user, 2026-11-06: "#1 priority is always maintain
+        distance between you and the creatures"; 2026-11-08: "DO SOMETHING. RUN. immediately"). A creature within
+        DOOR_CLEAR, one after him within NEAR_HIM, or any health lost since he reached the door breaks the way in off;
+        the fight takes over at once."""
         st, mobs = look()
         me = (st['x'], st['y'])
         near = [m for m in mobs.values() if attackable(m) and (not passive(m) or self.coming(m))
-                and dist(me, xy(m)) <= ON_HIM + 1]
+                and (dist(me, xy(m)) <= DOOR_CLEAR or (self.coming(m) and dist(me, xy(m)) <= NEAR_HIM))]
         if near:
-            raise door.Stop('a creature came near: ' + ', '.join(m['name'] or '?' for m in near))
+            raise door.Stop('a creature came near: ' + ', '.join(f'{m["name"] or "?"} {dist(me, xy(m))} off' for m in near))
+        if self.door_hits is not None and st['hits'] < self.door_hits:
+            raise door.Stop(f'hurt at the door ({self.door_hits} -> {st["hits"]})')
 
     def step_home(self, me, threats):
         """Short hops to the front door, then in (door.go_in). True once he's inside. A creature within 3 of the door
@@ -1748,16 +1806,24 @@ class Fight:
         if dist(me, HOME) <= 1:
             door.info = info
             door.guard = self.door_guard
+            self.door_hits = call('GET', '/status')['hits']
             try:
                 door.go_in()
                 return True
             except door.Stop as e:
                 st = call('GET', '/status')
-                if st.get('takenOver') or st.get('halted'):
-                    raise Stop(f'{st.get("takenOver") or st.get("halted")} (on the way in: {e})')
-                say(f'could not get in yet: {e}')
-                run_from(me, [xy(t) for t in threats])
+                if st.get('takenOver'):
+                    raise Stop(f'{st.get("takenOver")} (on the way in: {e})')
+                if st['y'] <= 1413:
+                    say(f'inside, but: {e}')
+                    return True
+                # danger at the door: straight back to fighting (no going in until it's dealt with)
+                say(f'not going in now: {e}; fighting')
+                self.homeward = False
+                self.mover.clear()
                 return False
+            finally:
+                self.door_hits = None
         d = dist(me, HOME)
         f = min(8, d) / d
         p = (round(me[0] + (HOME[0] - me[0]) * f), round(me[1] + (HOME[1] - me[1]) * f))

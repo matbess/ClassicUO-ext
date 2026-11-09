@@ -117,6 +117,13 @@ run('front: dire wolf after him 3 off as he lands: away first', landed, [mob('0x
 run('front: dire wolf 25 off but coming at him: dealt with', landed, [mob('0xD', 'a dire wolf', 1781, 1430, True)], front=True)
 run('front: after the fight, mana 40, nothing near: home, no meditating outside', dict(landed, mana=40), [],
     setup=after, front=True)
+# 2026-11-08 21:37: an orc (Kog) he had ridden away from, 20 tiles from the door but 8 from him: dealt with, not
+# left behind (he went home with it on his heels and it hit him to 34 at the door)
+away = {'x': 1757, 'y': 1434, 'z': 0, 'hits': 100, 'mana': 90, 'stamina': 25}
+run('front: an orc 8 off him, 20 off the door, not after him yet: drawn, not home', away, [mob('0xK', 'Kog', 1757, 1442)], front=True)
+run('front: going home, an orc turns up 9 off: back to fighting', away, [mob('0xK', 'Kog', 1760, 1442, True)], front=True,
+    setup=lambda f: setattr(f, 'homeward', True))
+run('front: health 30, an orc 2 off: rides far away first', dict(away, hits=30), [mob('0xK', 'Kog', 1758, 1436, True)], front=True)
 
 # looting onto a stack of the same kind in his pack (17:10:46: the orc's gold merged into his gold, the bridge stopped)
 pack_items = [{'serial': '0xG', 'graphic': '0x0EED', 'hue': 0, 'amount': 158},

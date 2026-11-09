@@ -521,6 +521,22 @@ process, the moment the bridge says he has moved, runs `fight.Fight(10, front=Tr
   1402-1413, every floor) and any wild creature there gets "remove thyself" and a click, which ejects it (the user,
   2026-11-08: "Any time you enter the tower you need to check if a monster came inside"); one still inside stops the
   run.
+- **2026-11-08 21:37, what went wrong**: he rode away from an orc (Kog), which was then more than FRONT_RANGE from
+  the door, so the front counted as clear; he rode home with it following and stood working the key while it hit him
+  from 100 to 34; the user took over. The user: "You let a mob come right up to you and you just stood there doing
+  nothing ... DO SOMETHING. RUN. immediately, there's no other code that has any priority at that point"; "You led
+  him away and tried to sneak past him to get in the door. You need to lead him away and provoke him onto another
+  creature ... and then kill him so he's not waiting at the door still for your next trip"; "make sure the code does
+  not exit back to you when clem is being attacked ... do not leave fighting mode until the creatures are gone and
+  there is no more threat (or you run far far away because you're going to die. that is the last resort)". Now:
+  - every creature near the door (FRONT_RANGE) **or near him** (NEAR_HIM, 12) is dealt with (provoked onto another,
+    killed) before he goes home; one that turns up while he's on his way home sends him back to fighting;
+  - the door: before the key and before the door opens, a creature within DOOR_CLEAR (8), one after him within 12,
+    or any health lost since he reached the door breaks the way in off and the fight takes over at once; once the
+    door is open, straight in and shut (the quickest way out), and anything that followed gets "remove thyself";
+  - a bridge stop while he's outside never ends the fight: it is resumed (up to 5 a minute); only the user taking
+    over stops it;
+  - below DYING (35%) with a creature within 5: ride far away (15+) before anything else.
 `python3 -I fight.py --front` does the same from outside by hand. fight_scenes.py has the front scenes.
 
 ## Open items
