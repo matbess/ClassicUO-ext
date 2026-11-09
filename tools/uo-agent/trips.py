@@ -318,6 +318,40 @@ def go_floor(floor):
     say(f"now on the ground floor at {st['x']},{st['y']},{st['z']}")
 
 
+def trim_to_fit(state, bag):
+    """A completed bag too full to go into his pack: the extra maps go into smaller completed bags on the floor
+    first. The 100-map bags from the 2026-11-05 reorganisation don't fit: his own 24 items + the bag + 100 maps was
+    refused ("That container cannot hold more items", 2026-11-09 15:01). The bags that take the extra stay small
+    enough to be taken later; 2 items are kept spare (the server counted one more than we do)."""
+    _, items = pack_list()
+    fit = PACK_LIMIT - count_items(items) - 1 - 2
+    maps = [i['serial'] for i in carto.contents(bag) if int(i['graphic'], 16) == MAP]
+    extra = len(maps) - fit
+    if extra <= 0:
+        return
+    spot = state['bags'][bag]['spot']
+    others = sorted((b for b, v in state['bags'].items() if b != bag and v['kind'] == 'completed' and v.get('spot')
+                     and v['maps'] < fit),
+                    key=lambda b: (carto.floor_of(state['bags'][b]['spot'][2]) != carto.floor_of(spot[2]),
+                                   max(abs(state['bags'][b]['spot'][0] - spot[0]),
+                                       abs(state['bags'][b]['spot'][1] - spot[1]))))
+    say(f'{bag} holds {len(maps)} drawn maps, {extra} more than fit in his pack: those go into {others[:3]} first')
+    for other in others:
+        have = len(carto.contents(other))
+        moved = 0
+        for serial in maps[:min(fit - have, extra)]:
+            if carto.move(serial, other):
+                moved += 1
+        maps, extra = maps[moved:], extra - moved
+        carto.note(state, other, 'completed', have + moved)
+        say(f'{moved} drawn maps from {bag} into {other}: it holds {have + moved}')
+        if extra <= 0:
+            break
+    carto.note(state, bag, 'completed', len(carto.contents(bag)))
+    if extra > 0:
+        raise Stop(f'{bag} is still {extra} maps too full for his pack and no completed bag has room for them')
+
+
 def next_completed(state):
     """The next completed bag to sell: the 3rd floor overflow first (storage is the 2nd floor), then the 2nd floor."""
     bags = [(b, v) for b, v in state['bags'].items() if v['kind'] == 'completed' and v.get('spot')]
@@ -790,6 +824,7 @@ def one_trip(v, state, force_buyout=False):
                 return False
             state['trip_home'] = state['bags'][bag]['spot']
             carto.save_state(state)
+            trim_to_fit(state, bag)
             pick_up(bag)
         n = len(carto.contents(bag))
         carto.note(state, bag, 'completed', n, spot=None)
