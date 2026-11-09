@@ -39,7 +39,7 @@ namespace ClassicUO.Game.Managers
     {
         private const int FIRST_PORT = 7780;
         private const int LAST_PORT = 7789;
-        private const int VERSION = 11; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs); 7: fights (creatures' health, skills and spells aimed at creatures, running walks that don't wait, doors and keys; the user takes over by giving a command of their own); 8: /cast wait=0 answers at once and the bridge aims the spell's cursor itself when it comes, so the agent keeps moving and looking while the spell goes off, and reads the outcome from the messages (the user, 2026-11-06: "Cast .. then do all the other normal stuff and when a result from the spell shows up result=success/fail"); cursor=0 for a spell with no target (Magic Reflection); 9: /use wait=0 double-clicks and answers at once (a trapped pouch to break paralysis goes off without a word, and waiting for one stopped the bridge); 10: bandages: "useOnGround" kinds are double-clicked where they lie (the pile of bandages on the tower floor) and /use aims at a "patients" character (Isabel's ghost, to train Healing; the user, 2026-11-08); 11: the guard yells for the town guards ("callGuards") the moment the character loses hits (the guards only come for a creature once it has hit someone), and watches creatures: one close by that turns on someone (Criminal, Murderer, Enemy), or a kind to keep away from ("avoid"), sets off the alarm (the user, 2026-11-08, after a creature hit Icepick in town)
+        private const int VERSION = 12; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs); 7: fights (creatures' health, skills and spells aimed at creatures, running walks that don't wait, doors and keys; the user takes over by giving a command of their own); 8: /cast wait=0 answers at once and the bridge aims the spell's cursor itself when it comes, so the agent keeps moving and looking while the spell goes off, and reads the outcome from the messages (the user, 2026-11-06: "Cast .. then do all the other normal stuff and when a result from the spell shows up result=success/fail"); cursor=0 for a spell with no target (Magic Reflection); 9: /use wait=0 double-clicks and answers at once (a trapped pouch to break paralysis goes off without a word, and waiting for one stopped the bridge); 10: bandages: "useOnGround" kinds are double-clicked where they lie (the pile of bandages on the tower floor) and /use aims at a "patients" character (Isabel's ghost, to train Healing; the user, 2026-11-08); 11: the guard yells for the town guards ("callGuards") the moment the character loses hits (the guards only come for a creature once it has hit someone), and watches creatures: one close by that turns on someone (Criminal, Murderer, Enemy), or a kind to keep away from ("avoid"), sets off the alarm (the user, 2026-11-08, after a creature hit Icepick in town); 12: vendors: /shop says "<name> buy|sell" to a vendor whose title the rules allow and reads his window, /buy and /sell deal in the rules' goods only, /paperdoll reads people's titles (an NPC's "Cador the mapmaker"; a single click shows only the name here) (Clem's trips to the mapmaker, the user, 2026-11-08; AgentBridgeShop.cs)
         private const int GUARD_INTERVAL = 250;  // milliseconds between the guard's checks
         private const int GUARDS_GAP = 2000;     // milliseconds: no yelling for the guards more often than this
         private const int ALARM_FILE_INTERVAL = 1000;
@@ -259,6 +259,17 @@ namespace ClassicUO.Game.Managers
 
                 case 0x7C: // a menu (AgentBridgeDialogs.cs)
                     OnMenuPacket(data);
+
+                    break;
+
+                case 0x74: // a vendor's buy list, and his sell list (AgentBridgeShop.cs)
+                case 0x9E:
+                    OnShopPacket(data);
+
+                    break;
+
+                case 0x88: // a paperdoll (AgentBridgeShop.cs: people's titles)
+                    OnPaperdollPacket(data);
 
                     break;
 
@@ -494,8 +505,9 @@ namespace ClassicUO.Game.Managers
                 }
             }
 
-            // a single click can answer with several lines, such as a name and then its charges
-            if (e.Type == MessageType.Label && e.Parent is Item)
+            // a single click can answer with several lines, such as a name and then its charges; a mobile's carries
+            // its title ("Cador the mapmaker", the vendor check in AgentBridgeShop.cs)
+            if (e.Type == MessageType.Label && (e.Parent is Item || e.Parent is Mobile))
             {
                 if (!_labels.TryGetValue(serial, out Label label) || (now - label.Time).TotalMilliseconds > 1000)
                 {
@@ -874,6 +886,13 @@ namespace ClassicUO.Game.Managers
                 return dialogAnswer;
             }
 
+            byte[] shopAnswer = HandleShop(method, path, query);
+
+            if (shopAnswer != null)
+            {
+                return shopAnswer;
+            }
+
             throw new BridgeException(404, $"unknown request {path}");
         }
 
@@ -983,7 +1002,9 @@ namespace ClassicUO.Game.Managers
 
                 bool answered = WaitFor(() => HasMessageFrom(serial, before), NAME_TIMEOUT);
 
-                if (!answered)
+                // someone single-clicked in town may just have walked off: no answer then isn't the server going quiet,
+                // and a halt would strand the character there (bridge 12, Clem telling NPCs from players)
+                if (!answered && !SerialHelper.IsMobile(serial))
                 {
                     Halt($"no answer when asking the name of {Hex(serial)}");
                 }
@@ -4330,6 +4351,11 @@ namespace ClassicUO.Game.Managers
                 WritePosition(w, mobile);
                 w.WriteString("notoriety", mobile.NotorietyFlag.ToString());
                 w.WriteBoolean("human", mobile.IsHuman);
+
+                if (!string.IsNullOrEmpty(mobile.Title))
+                {
+                    w.WriteString("title", mobile.Title.Trim('\0', ' ')); // from the paperdoll, once asked for (/paperdoll)
+                }
                 w.WriteBoolean("yourPet", mobile.IsRenamable);
                 w.WriteBoolean("dead", mobile.IsDead);
                 w.WriteBoolean("hidden", mobile.IsHidden);
@@ -4812,6 +4838,9 @@ namespace ClassicUO.Game.Managers
             public readonly HashSet<uint> Mounts = new HashSet<uint>(); // its own horses, to get on and off
             public readonly HashSet<uint> Doors = new HashSet<uint>(); // doors it may open and close (double-click) and aim a key at
             public readonly HashSet<uint> Keys = new HashSet<uint>(); // key rings it may use where they hang (locked down by a door)
+            public readonly HashSet<string> Vendors = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // titles of the vendors it may buy from and sell to ("mapmaker")
+            public readonly HashSet<ushort> Goods = new HashSet<ushort>(); // the only kinds it may buy or sell (blank and drawn maps)
+            public int Spend; // the most gold one purchase may cost
             public bool Fight; // may aim skills and spells at creatures anybody may attack, and at itself, and walk without waiting
             public bool HandOver; // a command the user gives themselves (a step, a spell, a skill, a click, a target) stops all actions until /resume
             public bool PauseForPeople = true;
@@ -4926,6 +4955,13 @@ namespace ClassicUO.Game.Managers
                 ReadNumbers(root, "mounts", n => rules.Mounts.Add(n));
                 ReadNumbers(root, "doors", n => rules.Doors.Add(n));
                 ReadNumbers(root, "keys", n => rules.Keys.Add(n));
+                ReadStrings(root, "vendors", rules.Vendors);
+                ReadNumbers(root, "goods", n => rules.Goods.Add((ushort)n));
+
+                if (root.TryGetProperty("spend", out JsonElement spend))
+                {
+                    rules.Spend = spend.GetInt32();
+                }
 
                 if (root.TryGetProperty("fight", out JsonElement fight))
                 {
