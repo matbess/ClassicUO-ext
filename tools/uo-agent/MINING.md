@@ -393,6 +393,12 @@ files further: they apply at once, without a new build.
   3 s) stopped on "no answer". The server had answered, so it was lag, not a dead server: the loop now cancels the
   cursor left behind, resumes and carries on when the answer turns up within half a minute of the stop, and stops
   and tells the user if that happens three times in 10 minutes.
+- **Lag on a Recall** (2026-11-08 22:38): Burgers' Recall home from the bank got its "Select Marked item." 2 s after
+  the bridge stopped, but under his own name rather than "System", so the lag check missed it and the loop stopped
+  with Burgers at the bank and Icepick in sight at the forge. Icepick was hidden, Burgers' bridge resumed and the
+  cursor cancelled, and the restart finished the bank trip. The lag check now takes an answer under the
+  character's own name too (in use from the next start after commit "Mining: a late answer under the character's
+  own name is lag too").
 - **Server down** (2026-11-02 04:15): the server reset the clients' connection (RST after about 4 h 9 min); the
   clients kept trying to reconnect (the user's settings reconnect on their own). The loop stopped cleanly ("the
   game is not responding"). After a login the client knows nothing inside bags, so the loop's start-up now opens

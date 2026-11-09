@@ -153,10 +153,12 @@ def cheb(a, b):
 LAG_STOPS = []  # times the bridge stopped on a late answer (server lag); three in 10 minutes means real trouble
 
 
-def answered_late(info, error):
+def answered_late(info, error, name=None):
     """The bridge stops when the server doesn't answer within a few seconds. If an answer turned up afterwards
     (2026-11-02 02:08: "Where do you wish to dig?" came 13 s late), it was lag: cancel the cursor it left, resume,
-    and return how late it was; None otherwise."""
+    and return how late it was; None otherwise. The answer can come under the character's own name as well as
+    "System" (2026-11-08 22:38: Burgers' Recall at the bank got "Select Marked item." 2 s after the stop, as
+    Burgers, and the loop stopped)."""
     if error.code != 423:
         return None
     import re
@@ -167,7 +169,7 @@ def answered_late(info, error):
     for _ in range(15):  # give it half a minute
         # the server's own messages (name "System"), from the moment the bridge stopped on
         late = [x for x in uo.call(info, 'GET', '/messages')['messages'][-10:]
-                if x['type'] != 'Label' and x['time'][:8] >= stopped and (x.get('name') or 'System') == 'System']
+                if x['type'] != 'Label' and x['time'][:8] >= stopped and (x.get('name') or 'System') in ('System', name)]
         if late:
             uo.call(info, 'POST', '/cancel')
             uo.call(info, 'POST', '/resume')
@@ -194,7 +196,7 @@ class Char:
             if e.code == 409 and text.startswith('alarm'):
                 raise Alarm(f'{self.name}: {text}')
             if e.code == 423:
-                late = answered_late(self.info, e)
+                late = answered_late(self.info, e, self.name)
                 if late is not None:
                     now = time.time()
                     LAG_STOPS[:] = [t for t in LAG_STOPS if now - t < 600] + [now]
