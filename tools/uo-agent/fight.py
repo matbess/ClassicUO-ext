@@ -657,6 +657,7 @@ class Fight:
         self.reagent_counts = collections.Counter()
         self.orbit_dir = {}      # (follower, partner): which way round he circles the partner (kept: never back)
         self.orbit_since = {}    # (follower, partner): when he started circling
+        self.circle_with = {}    # follower -> the partner picked for it (kept: no flipping between two)
         self.gave_up = set()     # (follower, partner): circled ORBIT_FOR without getting them close
         self.ignored = set(load_trapped())  # never drawn again: they never came (remembered in trapped.json)
         # never a partner either: shut behind a wall (a provoke onto one: "Target cannot be seen."); ones that just
@@ -777,6 +778,23 @@ class Fight:
         return time.time() - self.last_skill >= SKILL_COOLDOWN and not self.spell
 
     # ---- provoking ----
+
+    def chosen_partner(self, me, a, mobs):
+        """The creature to bring follower a round to and set it on: picked once and kept until the provoke, until it's
+        gone or out of sight, or he gives up on the pair (2026-11-08 21:49:14-22: a corpser and another creature about
+        as good, the pick flipped several times a second and his ride with it, back and forth; the user: "WHY does it
+        wiggle back and forth ... it uses the horses stamina")."""
+        keep = self.circle_with.get(a['serial'])
+        m = mobs.get(keep) if keep else None
+        if (m and attackable(m) and self.visible(keep) and keep not in self.walled and dist(me, xy(m)) <= 22
+                and (a['serial'], keep) not in self.gave_up):
+            return m
+        m = self.partner_for(me, a, mobs, 18)
+        if m:
+            self.circle_with[a['serial']] = m['serial']
+        else:
+            self.circle_with.pop(a['serial'], None)
+        return m
 
     def partner_for(self, me, a, mobs, reach, pair=None):
         """Something to set a on, within reach of him: like it first (the same tier), free before busy, then
@@ -1252,7 +1270,7 @@ class Fight:
             # far off is met standing still (the user, 2026-11-06: circling when nothing is attacking him only tires
             # the horse)
             if not b and keep <= dist(me, xy(a)) <= PROVOKE_RANGE:
-                far = self.partner_for(me, a, mobs, 18)
+                far = self.chosen_partner(me, a, mobs)
                 if far and time.time() - self.orbit_since.setdefault((a['serial'], far['serial']), time.time()) > ORBIT_FOR:
                     self.gave_up.add((a['serial'], far['serial']))
                 if far and (a['serial'], far['serial']) in self.gave_up:
@@ -1260,13 +1278,13 @@ class Fight:
                 if far and self.circle(me, a, far, threats):
                     return False
             if dist(me, xy(a)) < keep:
-                far = b or self.partner_for(me, a, mobs, 18)
+                far = b or self.chosen_partner(me, a, mobs)
                 self.flee(me, [xy(m) for m in threats], toward=xy(far) if far else None)
                 return False
             # nothing anywhere to set it on: the last one keeps coming; cast at it once a getaway has left it
             # LONE_CAST tiles behind (the user: keep running away while casting spells)
             spell = self.spell_for(a, st['mana'])
-            usable = self.partner_for(me, a, mobs, 18)
+            usable = self.chosen_partner(me, a, mobs)
             if usable and (a['serial'], usable['serial']) in self.gave_up:
                 usable = None
             if spell and not usable:
@@ -1479,7 +1497,7 @@ class Fight:
         if time.time() - since > CASTER_PULL_FOR:
             return False
         d = dist(me, xy(a))
-        p = self.partner_for(me, a, mobs, 18)
+        p = self.chosen_partner(me, a, mobs)
         if p and (a['serial'], p['serial']) in self.gave_up:
             p = None
         if p and self.coming(p):

@@ -133,3 +133,9 @@ run('a lone skeleton coming (nothing to set it on)', me, [mob('0xS', 'a skeleton
 wolf = mob('0xW', 'a dire wolf', 1766, 1430, stays=True)
 bear = mob('0xB', 'a grizzly bear', 1767, 1430, stays=True)
 run('a dire wolf already fighting a bear 10 off', me, [wolf, bear], ticks=20)
+
+# 2026-11-08 21:49: an orc after him and two partners about as good, one on each side (a corpser west, a mongbat
+# east): the pick flipped between them several times a second and he rode back and forth (the wiggle)
+run('an orc after him, two partners about as good on either side', me,
+    [mob('0xK', 'Kog', 1756, 1440, sees=8), mob('0xC', 'a corpser', 1744, 1441, stays=True),
+     mob('0xM', 'a ratman', 1768, 1441, stays=True)], ticks=45)
