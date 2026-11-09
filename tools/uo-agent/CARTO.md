@@ -236,6 +236,11 @@ Needs: Clem's pack cleared to about 20 items, and 5 empty bags on the third floo
   bridge (Razor queued that first double-click for 5 s after the login, which halted the bridge once: `uo resume`,
   the open had gone through), see which bag is really in his pack and how many blanks and loose maps there are, and
   put the state right (`reorg.working`, both bags' kind, count and spot). A swap after the save point is undone.
+  On 2026-11-09 Razor's login queue double-clicked the reagent bag, the working bag, Clem and his backpack exactly
+  1 s apart (04:19:13-16), then said "Finished 5 queued actions in 4.0 seconds": the bridge records that as a
+  takeover, so trips.py refuses to start. Check the event log (`GET /events`) for that pattern before using
+  `--resume`; anything else is the user. For drawing, `drawing.bag` and both bags' kind and spot in state.json are
+  what to put right (the rollback undid the 04:13 swap: the old bag back in his pack with 20 loose drawn maps).
 
 ## Drawing a map (recorded 2026-11-05 21:58, the user by hand; `~/claude/uo-agent-work/carto/draw1.jsonl`)
 
