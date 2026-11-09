@@ -166,10 +166,15 @@ def answered_late(info, error, name=None):
     if not m:
         return None
     stopped = m.group(1)
+    # a name asked for comes back as a Label for that serial (2026-11-09 04:20, just after the reboot: a rune's name
+    # came 28 s late and the restart stopped)
+    asked = re.search(r'asking the name of (0x[0-9A-Fa-f]+)', error.message or '')
     for _ in range(15):  # give it half a minute
         # the server's own messages (name "System"), from the moment the bridge stopped on
         late = [x for x in uo.call(info, 'GET', '/messages')['messages'][-10:]
-                if x['type'] != 'Label' and x['time'][:8] >= stopped and (x.get('name') or 'System') in ('System', name)]
+                if x['time'][:8] >= stopped
+                and (x['type'] != 'Label' and (x.get('name') or 'System') in ('System', name)
+                     or asked and x['type'] == 'Label' and (x.get('serial') or '').lower() == asked.group(1).lower())]
         if late:
             uo.call(info, 'POST', '/cancel')
             uo.call(info, 'POST', '/resume')

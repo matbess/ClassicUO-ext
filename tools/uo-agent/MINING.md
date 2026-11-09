@@ -75,7 +75,8 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
   4. Find the save point: the ingots Burgers holds match one handoff line in the log, the last one before the save
      (Icepick's ore and ingots should agree).
   5. Back up `state.json`, then take the later handoffs off `totals` (ingots and iron) and say so in `totals.note`;
-     set `next` to the block Icepick was on at the save; drop the `emptied` entries dated after it.
+     set `next` to the block Icepick was on at the save; drop the `emptied` entries dated after it. If a bank
+     trip came after the save, set `bank_ingots` and `bank_shovels` back to the bank trip before it.
   6. Start the loop and the Monitor again, add the reboot to this file and its window to `ROLLED_BACK` in
      `colours.py`, and tell the user.
 
@@ -417,6 +418,15 @@ files further: they apply at once, without a new build.
   came back on foot and in sight while digging: put on McGee (`uo mount`) and hidden at once (Hiding needed a
   second try). Burgers held exactly the last handoff before the save (54 ingots, 38 iron, 03:58:05), which dated
   it. Totals 44173 / 34898 corrected to 43907 / 34698, back to block 53.
+- **And 2026-11-09 04:15**: back at 04:19, rolled back to about 04:00. Icepick came back mounted but in sight at
+  1166,1805 with a full pack (379), riding to the forge, which only fits 03:59:45 to 04:00:09 in the log; hidden at
+  once. The handoffs from 04:01:09 on (212 ingots, 166 iron) and the 04:05 bank trip never happened: totals 62382 /
+  49250 corrected to 62170 / 49084, back to block 29, and `bank_ingots` / `bank_shovels` set back to the 03:41 count
+  (6079 iron, 12700 in all; 36 shovels). With the bank counts in the state, a rolled-back bank trip has to be
+  taken off them too (the next bank trip counts afresh anyway).
+  The first restart (04:20) stopped: the server was still slow, and the name of a rune came as a Label 28 s
+  after the bridge gave up, which the lag check didn't count. It now takes a late Label for the serial whose name
+  was asked; the second restart, a minute later, went through.
 - **A tile outside the area** (2026-11-05 09:38): on the long straight stretch to waypoint 31 (1101,1594 to
   1101,1649, along the area's west edge at x 1100) the client's path finder stepped Icepick to 1099,1649. The
   bridge stops every walk the moment it sees him outside the area, even one heading back in, so the replans and
