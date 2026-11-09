@@ -100,6 +100,10 @@ def act(method, endpoint, **params):
                 LAST_SAVE[0] = time.time()
                 say('world save: waited it out')
                 continue
+            if e.code == 423 and landed_drop():
+                if endpoint == '/move':
+                    return {'moved': True, 'recovered': True}
+                continue
             if e.code == 423:
                 said = [m['text'] for m in uo.call(info, 'GET', '/messages')['messages'][-3:]]
                 raise SystemExit(f'the bridge stopped: {e.message}; last messages: {said}')
@@ -110,6 +114,27 @@ def act(method, endpoint, **params):
                 continue
             raise
     raise uo.BridgeError(0, 'gave up after too many waits')
+
+
+def landed_drop():
+    """The bridge stops itself when a dropped item's answer comes late ("no answer after dropping X"), though X did land
+    (2026-11-08 22:38:31, a map into the bag in his pack, the server slow). Resumed only when nobody took over and X is
+    in his pack (in a bag there, or merged into a stack: gone); nothing is on his cursor."""
+    import re
+    st = uo.call(info, 'GET', '/status')
+    found = re.search(r'no answer after dropping (0x[0-9A-Fa-f]+)', st.get('halted') or '')
+    if st.get('takenOver') or st.get('holding') or not found:
+        return False
+    try:
+        where = uo.call(info, 'GET', '/item', serial=found.group(1)).get('insideOf') or []
+        landed = any(c.get('serial') == st['backpack']['serial'] for c in where)
+    except uo.BridgeError as e:
+        landed = e.code == 404
+    if not landed:
+        return False
+    uo.call(info, 'POST', '/resume')
+    say(f'the bridge stopped after a drop that did land ({st["halted"]}): resumed')
+    return True
 
 
 def status():
