@@ -39,8 +39,9 @@ namespace ClassicUO.Game.Managers
     {
         private const int FIRST_PORT = 7780;
         private const int LAST_PORT = 7789;
-        private const int VERSION = 10; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs); 7: fights (creatures' health, skills and spells aimed at creatures, running walks that don't wait, doors and keys; the user takes over by giving a command of their own); 8: /cast wait=0 answers at once and the bridge aims the spell's cursor itself when it comes, so the agent keeps moving and looking while the spell goes off, and reads the outcome from the messages (the user, 2026-11-06: "Cast .. then do all the other normal stuff and when a result from the spell shows up result=success/fail"); cursor=0 for a spell with no target (Magic Reflection); 9: /use wait=0 double-clicks and answers at once (a trapped pouch to break paralysis goes off without a word, and waiting for one stopped the bridge); 10: bandages: "useOnGround" kinds are double-clicked where they lie (the pile of bandages on the tower floor) and /use aims at a "patients" character (Isabel's ghost, to train Healing; the user, 2026-11-08)
+        private const int VERSION = 11; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs); 7: fights (creatures' health, skills and spells aimed at creatures, running walks that don't wait, doors and keys; the user takes over by giving a command of their own); 8: /cast wait=0 answers at once and the bridge aims the spell's cursor itself when it comes, so the agent keeps moving and looking while the spell goes off, and reads the outcome from the messages (the user, 2026-11-06: "Cast .. then do all the other normal stuff and when a result from the spell shows up result=success/fail"); cursor=0 for a spell with no target (Magic Reflection); 9: /use wait=0 double-clicks and answers at once (a trapped pouch to break paralysis goes off without a word, and waiting for one stopped the bridge); 10: bandages: "useOnGround" kinds are double-clicked where they lie (the pile of bandages on the tower floor) and /use aims at a "patients" character (Isabel's ghost, to train Healing; the user, 2026-11-08); 11: the guard yells for the town guards ("callGuards") the moment the character loses hits (the guards only come for a creature once it has hit someone), and watches creatures: one close by that turns on someone (Criminal, Murderer, Enemy), or a kind to keep away from ("avoid"), sets off the alarm (the user, 2026-11-08, after a creature hit Icepick in town)
         private const int GUARD_INTERVAL = 250;  // milliseconds between the guard's checks
+        private const int GUARDS_GAP = 2000;     // milliseconds: no yelling for the guards more often than this
         private const int ALARM_FILE_INTERVAL = 1000;
         private const int CAST_TIMEOUT = 6000;   // from casting to the target cursor
         private const int NO_CURSOR_TIMEOUT = 1500; // a spell with no cursor: from casting to his words
@@ -103,6 +104,7 @@ namespace ClassicUO.Game.Managers
         private DateTime _nextGuardCheck;
         private DateTime _nextAlarmFileCheck;
         private int _lastHits = -1;
+        private DateTime _lastGuardsCall = DateTime.MinValue; // UTC
         private readonly Dictionary<uint, DateTime> _nearSince = new Dictionary<uint, DateTime>();
         private readonly HashSet<uint> _seenCarried = new HashSet<uint>();
         private volatile string _alarm; // the listener refuses normal work while it's set
@@ -2913,11 +2915,45 @@ namespace ClassicUO.Game.Managers
             {
                 if (_lastHits >= 0 && p.Hits < _lastHits)
                 {
-                    Mobile near = NearestStranger(rules, 12);
-                    Alarm($"hit points went down from {_lastHits} to {p.Hits}: attacked?", near, near?.Serial ?? 0, true);
+                    // any hits lost: yell for the guards at once, every time (the user, 2026-11-08: "As soon as an
+                    // enemy attacks him and he loses any HP then he needs to yell Guards!")
+                    bool yelled = CallGuards(g, now);
+                    // a creature that went after him turned Criminal before its first blow: anywhere in sight, it's the likely
+                    // one (a caster hits from 10 tiles or more), before any person close by
+                    Mobile near = NearestEnemy(rules, 18) ?? NearestStranger(rules, 12);
+                    string by = near != null ? $" by {Describe(near, near.Serial)}" : "";
+                    Alarm($"hit points went down from {_lastHits} to {p.Hits}: attacked{by}?{(yelled ? $" Yelled \"{g.CallGuards}\"." : "")}", near, near?.Serial ?? 0, true);
                 }
 
                 _lastHits = p.Hits;
+            }
+
+            // creatures (the user, 2026-11-08, after one hit Icepick in town): one close by that has turned on someone
+            // (it goes Criminal the moment it does, before the first blow: COMBAT.md, "Creatures"), or a kind to keep
+            // away from, sets off the alarm so he can get away first. No yelling for the guards here: they only come
+            // for a creature once it has hit someone (the user), so that waits for the hits going down above.
+            if (g.CreatureRange > 0)
+            {
+                foreach (Mobile m in _world.Mobiles.Values)
+                {
+                    if (!IsCreature(m, rules) || m.Distance > g.CreatureRange)
+                    {
+                        continue;
+                    }
+
+                    bool after = TurnedOnSomeone(m);
+
+                    if (!after && !g.Avoid.Contains(Kind(m.Name)))
+                    {
+                        continue;
+                    }
+
+                    if (_alarm == null)
+                    {
+                        string what = after ? $"has turned on someone ({m.NotorietyFlag})" : "is a creature to keep away from";
+                        Alarm($"{Describe(m, m.Serial)} {m.Distance} tiles away {what}", m, m.Serial, true);
+                    }
+                }
             }
 
             // runes are never used up or moved by the agent, so one that goes missing was taken
@@ -3082,6 +3118,80 @@ namespace ClassicUO.Game.Managers
                 if (m != _world.Player && !m.IsDestroyed && (m.IsHuman || m.IsDead) && !IsFriendly(m, rules) && m.Distance <= range && (best == null || m.Distance < best.Distance))
                 {
                     best = m;
+                }
+            }
+
+            return best;
+        }
+
+        // yelling for the town guards: in town a guard comes and kills whoever (or whatever) there is after someone
+        private bool CallGuards(GuardRules g, DateTime now)
+        {
+            if (string.IsNullOrEmpty(g.CallGuards) || (now - _lastGuardsCall).TotalMilliseconds < GUARDS_GAP)
+            {
+                return false;
+            }
+
+            _lastGuardsCall = now;
+            LogAction($"yell \"{g.CallGuards}\" (the guard)", 0);
+            Log.Warn($"Agent bridge guard: yelling \"{g.CallGuards}\"");
+            GameActions.Say(g.CallGuards); // ordinary speech, as a player calls them
+
+            return true;
+        }
+
+        // a creature, not a person, the character's own horse or pet, or a partner
+        private bool IsCreature(Mobile m, Rules rules)
+        {
+            return m != null && m != _world.Player && !m.IsDestroyed && !m.IsHuman && !m.IsDead && !m.IsRenamable && !IsPartner(m, rules) && !rules.Mounts.Contains(m.Serial);
+        }
+
+        // a creature that has gone after someone turns Criminal at once (and stays so); a red one is a murderer
+        private static bool TurnedOnSomeone(Mobile m)
+        {
+            return m.NotorietyFlag == NotorietyFlag.Criminal || m.NotorietyFlag == NotorietyFlag.Murderer || m.NotorietyFlag == NotorietyFlag.Enemy;
+        }
+
+        // "a water elemental" -> "water elemental"
+        private static string Kind(string name)
+        {
+            string k = (name ?? "").Trim().ToLowerInvariant();
+
+            foreach (string article in new[] { "a ", "an ", "the " })
+            {
+                if (k.StartsWith(article))
+                {
+                    return k.Substring(article.Length);
+                }
+            }
+
+            return k;
+        }
+
+        // the nearest creature that has turned on someone, else the nearest kind to keep away from: the likely attacker
+        private Mobile NearestEnemy(Rules rules, int range)
+        {
+            Mobile best = null;
+            bool bestAfter = false;
+
+            foreach (Mobile m in _world.Mobiles.Values)
+            {
+                if (!IsCreature(m, rules) || m.Distance > range)
+                {
+                    continue;
+                }
+
+                bool after = TurnedOnSomeone(m);
+
+                if (!after && rules.Guard?.Avoid.Contains(Kind(m.Name)) != true)
+                {
+                    continue;
+                }
+
+                if (best == null || after && !bestAfter || after == bestAfter && m.Distance < best.Distance)
+                {
+                    best = m;
+                    bestAfter = after;
                 }
             }
 
@@ -4906,6 +5016,26 @@ namespace ClassicUO.Game.Managers
 
                     ReadNumbers(guard, "watchItems", n => g.WatchItems.Add(n));
 
+                    // "callGuards": "Guards!", "creatures": 14, "avoid": ["water elemental", ...] (bridge 11; mining uses only callGuards:
+                    // the user, 2026-11-08, chose to react to hits only)
+                    if (guard.TryGetProperty("callGuards", out JsonElement callGuards))
+                    {
+                        g.CallGuards = callGuards.GetString();
+                    }
+
+                    if (guard.TryGetProperty("creatures", out JsonElement creatures))
+                    {
+                        g.CreatureRange = Math.Clamp(creatures.GetInt32(), 0, 18);
+                    }
+
+                    if (guard.TryGetProperty("avoid", out JsonElement avoid))
+                    {
+                        foreach (JsonElement e in avoid.EnumerateArray())
+                        {
+                            g.Avoid.Add(Kind(e.GetString()));
+                        }
+                    }
+
                     if (guard.TryGetProperty("fidgets", out JsonElement fidgets))
                     {
                         foreach (JsonElement e in fidgets.EnumerateArray())
@@ -5015,6 +5145,14 @@ namespace ClassicUO.Game.Managers
                     w.WriteBoolean("attack", Guard.Attack);
                     w.WriteString("onAlarm", Guard.LogOut ? "logout" : "hide");
                     w.WriteNumber("hideAfter", Guard.HideAfter);
+
+                    if (Guard.CallGuards != null)
+                    {
+                        w.WriteString("callGuards", Guard.CallGuards);
+                    }
+
+                    w.WriteNumber("creatures", Guard.CreatureRange);
+                    WriteList(w, "avoid", Guard.Avoid, s => s);
                     WriteList(w, "watchItems", Guard.WatchItems, s => Hex(s));
                     w.WriteStartArray("npcs");
 
@@ -5148,6 +5286,9 @@ namespace ClassicUO.Game.Managers
             public bool Attack = true;
             public bool LogOut;     // "onAlarm": "logout" logs out instead of stopping for the agent to get away and hide
             public int HideAfter = 5; // seconds: if nobody starts getting the character away by then, the bridge hides him
+            public string CallGuards; // yelled the moment the character loses hits ("Guards!")
+            public int CreatureRange; // a creature this close that turns on someone, or an "avoid" kind: alarm (0: none)
+            public readonly HashSet<string> Avoid = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // creature kinds, no article
             public readonly HashSet<uint> WatchItems = new HashSet<uint>(); // must stay in the backpack (runes)
             public readonly HashSet<uint> NpcSerials = new HashSet<uint>();  // townsfolk who talk and stand around
             public readonly HashSet<string> NpcNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

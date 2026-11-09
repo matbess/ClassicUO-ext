@@ -4,7 +4,9 @@ Claude sorts the user's Ultima Online loot by playing one of their characters th
 into their ClassicUO (`src/ClassicUO.Client/Game/Managers/AgentBridge.cs`). This folder holds the tools Claude drives
 it with, the house's labels and chest map, and the procedure.
 
-**Mining** (Icepick and Burgers, from 2026-11-01): read `MINING.md` first; the loop is `mine.py`.
+**Mining** (Icepick and Burgers, from 2026-11-01): read `MINING.md` first; the loop is `mine.py`. Bridge 11 (build
+cuo-agent28) has the guard say "Guards!" the moment the character loses hits (rules `"callGuards"`; MINING.md,
+"Creatures", 2026-11-08).
 
 **Cartography** (Clem, from 2026-11-05: world maps from the map bags on the tower's second floor, outside the
 vault, and trips to the map vendor): read `CARTO.md` first; the tool is `carto.py`, Clem's rules

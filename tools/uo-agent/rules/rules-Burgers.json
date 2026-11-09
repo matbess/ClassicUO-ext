@@ -16,6 +16,10 @@
   // the guard stops work and the agent gets the character away and hides (the user, 2026-11-01); the bridge hides
   // him itself if nobody has started within hideAfter seconds
   "guard": { "onAlarm": "hide", "hideAfter": 5, "talk": true, "loiter": [3, 3], "attack": true,
+             // any hits lost: he says "Guards!" at once (bridge 11), then gets away and hides as for anyone. The guards
+             // only come for a creature once it has hit someone (the user, 2026-11-08, after a creature hit Icepick
+             // in town), so nothing is said before that
+             "callGuards": "Guards!",
              "watchItems": ["0x406EDA8E", "0x406EBB72", "0x406EDA9E", "0x406EC754"],
              // the Ocllo bankers
              "npcs": ["0x0001EFC6", "0x0000D57D", "0x00023934"],

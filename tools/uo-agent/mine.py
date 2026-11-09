@@ -62,6 +62,14 @@ TAME_GAP = 10               # seconds between tries (the server wants a pause be
 FLEE = 50                   # tiles to put between Icepick and a stranger before hiding (the user: 30, then 50 on 2026-11-02)
 GONE_AFTER = 30             # seconds unseen before a stranger counts as gone (the user, 2026-11-02 18:05; was 3 minutes)
 GIVE_UP_WAITING = 1800      # seconds: still not gone after this, stop and tell the user
+CREATURE_NOTE = 14          # a creature this close to Icepick that has turned grey is logged (only noted: the user)
+# a creature hitting Icepick (the user, 2026-11-08): his bridge says "Guards!" at once and a guard kills it as soon as
+# it reaches it; he only steps away about 10 tiles, hides, and carries on once it's gone or after 30 seconds
+CREATURE_FLEE = 10
+CREATURE_WAIT = 30
+CREATURE_STRIKES = 3        # this many creature attacks within CREATURE_WINDOW seconds: both hidden, the loop stops
+CREATURE_WINDOW = 600
+LOW_HITS = 0.5              # below this share of his hits he waits hidden until he has them back before digging on
 WATCH_AFTER = 600           # seconds after an incident to keep watching for the same person
 GATE = (1141, 1666)         # where Burgers' gate to the "Mining gate location" rune comes out
 START = (1130, 1544)        # where the "Mining Start" rune leads (the top of the route)
@@ -247,6 +255,8 @@ class Miner:
         self.forge_index = mining.nearest(self.points, *mining.FORGE_SPOT)
         self.gate_index = mining.nearest(self.points, *GATE)
         self.watch = {}          # serial -> until (time) for strangers seen in an incident
+        self.noted = set()       # creatures already logged as having turned grey near Icepick
+        self.creature_hits = []  # when creatures hit Icepick (CREATURE_STRIKES)
         self.repeats = {}        # serial -> how many incidents in a row with them (each doubles the wait)
         self.burgers_away = False  # Burgers recalled away during an alarm (only when he was seen)
         self.mcgee_far = None      # (tiles, since when) while McGee is more than 2 tiles off (keep_mcgee)
@@ -289,8 +299,16 @@ class Miner:
         # someone from an earlier incident turning up again near Icepick
         now = time.time()
         self.watch = {s: t for s, t in self.watch.items() if t > now and not learned_npc(s)}
+        near = self.ice.call('GET', '/nearby', range=18)['mobiles']
+        # a creature near him that has turned grey has gone after someone: only noted, for the user (2026-11-08: he
+        # reacts to hits only; the guards only come once it has hit someone, and his bridge says "Guards!" at once)
+        for m in near:
+            if (m['notoriety'] in ('Criminal', 'Murderer', 'Enemy') and not m.get('human') and not m.get('yourPet')
+                    and not m.get('dead') and m['distance'] <= CREATURE_NOTE and m['serial'] not in self.noted):
+                self.noted.add(m['serial'])
+                log(f"noted: {m['name'] or m['serial']} {m['distance']} tiles from Icepick has turned grey "
+                    f"({m['notoriety']}): it's after someone")
         if self.watch:
-            near = self.ice.call('GET', '/nearby', range=18)['mobiles']
             for m in near:
                 if m['serial'] in self.watch:
                     raise Alarm(f"Icepick: {m['name'] or m['serial']} is back in sight ({m['distance']} tiles)")
@@ -338,6 +356,9 @@ class Miner:
         own_ice = ai and not ai['reason'].split(' ', 1)[-1].startswith('partner')
         own_bur = ab and not ab['reason'].split(' ', 1)[-1].startswith('partner')
         threat = (ai or {}).get('threat') or (ab or {}).get('threat')
+        if own_ice and ai['reason'].split(' ', 1)[-1].startswith('hit points went down') and not self.person(threat):
+            self.creature_attack(why, ai, ab, threat)
+            return
         if not ai and not ab:
             # seen again after an incident: no alarm in the bridges, the script raised it
             threat = None
@@ -381,11 +402,65 @@ class Miner:
                        'both are hidden; the loop has stopped')
         log('the stranger has gone; carrying on')
 
-    def icepick_get_away(self, threat):
+    def person(self, threat):
+        """Whether the one the bridge blamed is a person (a player or an NPC), not a creature. Nobody in sight counts
+        as a creature: something hit him that the client doesn't show."""
+        serial = (threat or {}).get('serial')
+        if serial in (None, '0x00000000'):
+            return False
+        for m in self.ice.call('GET', '/nearby', range=18)['mobiles']:
+            if m['serial'] == serial:
+                return bool(m.get('human'))
+        return False
+
+    def creature_attack(self, why, ai, ab, threat):
+        """A creature hit Icepick (the user, 2026-11-08). His bridge has already said "Guards!" (rules "callGuards"),
+        and in town a guard kills a creature at once once it has hit someone. So he only steps about CREATURE_FLEE
+        tiles away from it, hides, and carries on as soon as it's gone (killed) or after CREATURE_WAIT seconds."""
+        self.incident({'what': why, 'icepick': ai, 'burgers': ab})
+        now = time.time()
+        self.creature_hits = [t for t in self.creature_hits if now - t < CREATURE_WINDOW] + [now]
+        name = (threat or {}).get('name') or 'the creature'
+        serial = (threat or {}).get('serial')
+        known = serial not in (None, '0x00000000')
+        self.icepick_get_away(threat, CREATURE_FLEE)
+        start = time.time()
+        while True:
+            mobs = {m['serial']: m for m in self.ice.call('GET', '/nearby', range=18)['mobiles']}
+            m = mobs.get(serial) if known else None
+            if known and (m is None or m.get('dead')):
+                log(f'creature: {name} is gone (killed by the guards?) after {time.time() - start:.0f} s')
+                break
+            if time.time() - start >= CREATURE_WAIT:
+                log(f'creature: {name} is ' + (f"still {m['distance']} tiles away" if m else 'not in sight')
+                    + f' after {CREATURE_WAIT} s; carrying on')
+                break
+            if not self.ice.status()['hidden']:
+                self.hide(self.ice, tries=1)
+            time.sleep(3)
+        if len(self.creature_hits) >= CREATURE_STRIKES:
+            self.leave_safe()
+            raise Stop(f'creatures have hit Icepick {len(self.creature_hits)} times in {CREATURE_WINDOW // 60} '
+                       'minutes; both are hidden; the loop has stopped')
+        s = self.ice.status()
+        if s['hits'] < LOW_HITS * s['hitsMax']:
+            log(f"creature: Icepick has {s['hits']}/{s['hitsMax']} hits; he waits hidden until he has "
+                f"{int(LOW_HITS * s['hitsMax'])}")
+            while s['hits'] < LOW_HITS * s['hitsMax']:
+                if not s['hidden']:
+                    self.hide(self.ice, tries=1)
+                time.sleep(10)
+                s = self.ice.status()
+        for c in (self.ice, self.bur):
+            c.call('POST', '/guard', on=1)
+        log(f"creature: carrying on (Icepick {s['hits']}/{s['hitsMax']} hits)")
+
+    def icepick_get_away(self, threat, flee=FLEE):
         """Ride straight away from the stranger (the user, 2026-11-01: not along the route, which can snag) to an
-        open spot about FLEE tiles from them inside Icepick's areas (the corridor or the open town east of it),
-        trying the directions nearest to straight away first (if the only way out is past them, past them), then
-        hide. Never just hide on the spot unless there's nowhere at all to go."""
+        open spot about `flee` tiles from them (FLEE; CREATURE_FLEE for a creature) inside Icepick's areas (the
+        corridor or the open town east of it), trying the directions nearest to straight away first (if the only
+        way out is past them, past them), then hide. Never just hide on the spot unless there's nowhere at all to
+        go."""
         import math
         s = self.ice.status()
         if not s['mounted']:
@@ -399,7 +474,7 @@ class Miner:
         # nearest to straight away first; in the canyon, with the stranger at the mouth, the only way out is past
         # them (deeper in is off limits), so the last tries go round to the far side of them
         for turn in (0, 20, -20, 40, -40, 60, -60, 80, -80, 100, -100, 120, -120, 140, -140, 160, -160, 180):
-            for dist in (FLEE + 2, FLEE + 6, FLEE - 2):
+            for dist in (flee + 2, flee + 6, flee - 2):
                 a = away + math.radians(turn)
                 spot = (round(tx + math.cos(a) * dist), round(ty + math.sin(a) * dist))
                 if spot in tried or not mining.in_areas(areas, *spot) or not mining.walkable(*spot):
@@ -420,11 +495,11 @@ class Miner:
                     log(f'left the guards\' protection near {r["x"]},{r["y"]}; going back')
                     self.ice.walk(here[0], here[1], 1)
                     continue
-                if cheb((r['x'], r['y']), (tx, ty)) >= FLEE - 4:
+                if cheb((r['x'], r['y']), (tx, ty)) >= flee - 4:
                     log(f'Icepick got away to {r["x"]},{r["y"]} ({cheb((r["x"], r["y"]), (tx, ty))} tiles from {tx},{ty})')
                     self.hide(self.ice)
                     return
-        log(f'Icepick found nowhere {FLEE} tiles off; hiding where he is')
+        log(f'Icepick found nowhere {flee} tiles off; hiding where he is')
         self.hide(self.ice)
 
     def rune(self, key):

@@ -21,6 +21,9 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
   Burgers by the forge with his four runes, or at the Ocllo bank (the start-up then finishes his bank trip).
 - **cuo-agent19** (bridge 6) installed 2026-11-05 20:31: bridge 5's "left the area" only on leaving (below,
   2026-11-05 09:38) and bridge 6's menus, gumps and event log (SMITHING.md). cuo-agent18 was never installed.
+- **Creatures** (2026-11-08, below): bridge 11 (cuo-agent28) says "Guards!" the moment Icepick or Burgers loses any
+  hits (`"callGuards"` in both rules files); mine.py then steps Icepick 10 tiles off, hides him, and carries on once
+  the creature is gone or after 30 s. cuo-agent28 installed 2026-11-08 (backup agent27).
 
 ## Running it from a Claude session
 
@@ -33,7 +36,7 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
   handoff on 2026-11-04 at 03:16). Fill in the last event's time and date:
   ```
   tail -n 40 -F ~/claude/uo-agent-work/mining/mine.log | awk '$2 > "HH:MM:SS" || $1 != "YYYY-MM-DD" { print; fflush() }' |
-    grep -E --line-buffered "Reagents:|from the bank|takes the ingots|ingot bag|Gate|gate opened|McGee|retame|ALARM|alarm|STOPPED|PARKED|reagents low|left in the bank|none left|no shovels|Traceback|Error|done:|incident|run and hide|pass [0-9]+:|Icepick at|runes checked|not responding|left the area|inside the area"
+    grep -E --line-buffered "Reagents:|from the bank|takes the ingots|ingot bag|Gate|gate opened|McGee|retame|ALARM|alarm|STOPPED|PARKED|reagents low|left in the bank|none left|no shovels|Traceback|Error|done:|incident|run and hide|pass [0-9]+:|Icepick at|runes checked|not responding|left the area|inside the area|creature|noted:"
   ```
   Don't add a bare "shovel": every shovel that wears out logs a line.
 - **What to tell the user** (they follow on the phone through Remote Control: plain messages, no push
@@ -41,6 +44,7 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
   - every forge trip, in a few lines: the ingots handed over (and how many iron), the shovels given, the totals,
     the run and hides to review and all four of Burgers' reagents;
   - bank trips (the shovels and reagents taken), McGee (tired, stuck, gone wild, retamed), every alarm and incident,
+    every creature that hits him or turns grey near him (`creature:` and `noted:` lines),
     `reagents low` (any of the four under 20), a new pass, stops, parks and reboots;
   - not worn-out shovels or a ride that replans and carries on.
 - **What the user's words mean:**
@@ -466,3 +470,35 @@ files further: they apply at once, without a new build.
   ran out: "put 40 in his pack"; it was 20). Each bank trip tops him up to 40. A shovel weighs about 5 stones, so
   that's about 200 of his 390. The third bag gave 57 shovels from 14:43 to 18:49, about one every 4 minutes
   counting the first top-up.
+
+## Creatures (the user, 2026-11-08)
+
+At 17:10 something hit Icepick in town (100 to 96, then 90) while he went to fetch McGee at 1104,1589. A grizzly bear
+and a water elemental were close by; the water elemental is the likely one (a caster: fight.py's CASTERS). It was the
+first creature in a week of mining. The guard took it for a person: it rode him 68 tiles off, hid him and waited 30 s.
+The user stopped the loop ("stop": `--stop`, Icepick then hidden by hand) and set the rules:
+
+- **Watch his health all the time and say "Guards!" the moment he loses any hits.** The guards only come for a
+  creature once it has hit someone ("They have to hit you first before the guards will attack them. So you have to
+  wait until you actually get hit."), and then a guard kills it at once. So nothing is said before a hit: a creature
+  turning grey (Criminal: it has gone after someone, COMBAT.md "Creatures") is only noted in the log (`noted:`,
+  within 14 tiles of Icepick, once per creature), not acted on (the user chose "only react to hits").
+- **Then only step away**: "He should only step away like 10 tiles and hide for 30 seconds or until the guards have
+  killed it." Not the 50-tile getaway that's for people.
+
+How it works:
+- The bridge's guard checks his hits every 250 ms (hits lost set off the alarm before too). From bridge 11
+  (cuo-agent28), with `"callGuards": "Guards!"` in the guard rules it says the words at once, as ordinary
+  speech (how a player calls the guards), then again at most every 2 s while he keeps losing hits, whatever else
+  is going on. Burgers' rules have it too. The alarm names the attacker: the nearest creature in sight that has
+  turned Criminal (or Murderer, Enemy), else the nearest stranger within 12.
+- mine.py (`creature_attack`): an alarm of Icepick's own that is hits lost, blamed on a creature or on nobody in sight,
+  is a creature: he rides `CREATURE_FLEE` (10) tiles straight away from it, hides, and waits until it's gone from
+  sight (killed) or `CREATURE_WAIT` (30) s have passed; then the alarms are cleared and he carries on with the block.
+  A person who hits him still gets the 50-tile getaway and the wait until they've gone.
+- Safety: below half his hits he stays hidden until he has half back before digging on, and a third creature attack
+  within 10 minutes (`CREATURE_STRIKES`) leaves both hidden and stops the loop for the user (no guards there, or
+  something the guards don't kill).
+- Not used for mining: bridge 11 can also raise the alarm when a creature within `"creatures"` tiles turns grey, or
+  for an `"avoid"` list of kinds. The user turned that down (an early getaway means it never hits him, so the guards
+  never kill it and it keeps wandering about the route); both are left out of the rules.

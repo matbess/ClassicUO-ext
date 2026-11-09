@@ -19,6 +19,10 @@
   // the guard stops work and the agent gets the character away and hides (the user, 2026-11-01); the bridge hides
   // him itself if nobody has started within hideAfter seconds
   "guard": { "onAlarm": "hide", "hideAfter": 5, "talk": true, "loiter": [3, 3], "attack": true, "watchItems": [], "npcs": ["0x00023934"],
+             // any hits lost: he says "Guards!" at once (bridge 11), then gets away and hides as for anyone. The guards
+             // only come for a creature once it has hit someone (the user, 2026-11-08, after a creature hit Icepick
+             // in town), so nothing is said before that
+             "callGuards": "Guards!",
              // the idle fidget animations only NPCs do (seen: Sacha, 6); anyone doing one is learned as an NPC
              "fidgets": [6] },
   // the user, 2026-11-01: slower than a person would bother to be (gap and break in milliseconds; aim is the pause
