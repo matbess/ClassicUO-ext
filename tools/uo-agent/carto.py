@@ -174,8 +174,10 @@ def stride(x, y, distance=0):
 def quick_walk(x, y, distance=0):
     """A running walk that comes back at once (wait=0, his rules allow it for fights), then watched until he is there
     or has stopped moving. Only inside the tower: its walls and the locked door keep the walk in."""
+    start = status()
     act('POST', '/walk', x=x, y=y, distance=distance, run=1, wait=0)
-    last, since = None, time.time()
+    first = (start['x'], start['y'], start['z'])
+    last, since, began = first, time.time(), time.time()
     end = time.time() + 10
     while time.time() < end:
         s = status()
@@ -184,9 +186,15 @@ def quick_walk(x, y, distance=0):
             return {'arrived': True}
         if here_now != last:
             last, since = here_now, time.time()
-        elif time.time() - since > 0.8:
+        # stopped: 0.8 s still once under way; at the start allow 2 s for the first step (2026-11-08 22:32:37 a walk
+        # across the bag room counted as stuck before it began, twice, and the loop stopped)
+        elif time.time() - since > (0.8 if here_now != first else 2.0):
             break
         time.sleep(0.08)
+    if last == first:
+        # the quick way never got him moving: the old way, which waits for the walk to end
+        r = act('POST', '/walk', x=x, y=y, distance=distance, run=1)
+        return {'arrived': bool(r.get('arrived'))}
     return {'arrived': False}
 
 
