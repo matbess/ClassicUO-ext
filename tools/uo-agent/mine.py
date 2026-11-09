@@ -1440,7 +1440,8 @@ class Miner:
         self.save_state()
         log(f'handed Burgers {n} ingots ({iron} iron)' + (f' and {len(extra)} small ore piles' if extra else '')
             + f"; gave Icepick {len(spares)} shovels. Total: {totals['ingots']} ingots, {totals['iron']} iron."
-            + f" Run and hide: {len(self.state.get('unreviewed', []))} to review. Reagents: {self.reagent_counts()}")
+            + f" Run and hide: {len(self.state.get('unreviewed', []))} to review. Reagents: {self.reagent_counts()}."
+            + f" Shovels: {self.shovel_counts()}")
         ice = self.ice.status()
         if (ice['x'], ice['y']) != BURGERS_WAIT:
             self.bur.walk(*BURGERS_WAIT, 0)
@@ -1466,6 +1467,13 @@ class Miner:
         if where is not None and where >= self.gate_index:
             return held >= BANK_AT_INGOTS or out
         return out or b['weight'] >= b['weightMax'] - 40
+
+    def shovel_counts(self):
+        """Burgers' spare shovels now, and the bank's as counted on his last bank trip (the user, 2026-11-08: show both
+        with every handoff)."""
+        bank = self.state.get('bank_shovels')
+        where = f"bank {bank['count']} (counted {bank['time']})" if bank else 'bank not counted yet'
+        return f'Burgers {self.burgers_spares()}, {where}'
 
     def bank_shovels(self, bags):
         if not bags.get('shovels'):
@@ -1603,10 +1611,14 @@ class Miner:
                 for shovel in spare:
                     self.bur.call('POST', '/move', serial=shovel, to=to)
                 log(f'Burgers took {len(spare)} shovels from the bank'
-                    + ('' if spare else '; the bank has none left (the user needs to put more in)'))
+                    + (f'; {len(self.bank_shovels(bags))} left there' if spare else
+                       '; the bank has none left (the user needs to put more in)'))
                 # an empty bank isn't worth a trip at every handoff: look again in half an hour (2026-11-02 20:15)
                 self.state['bank_out_of_shovels'] = None if spare else time.time()
-                self.save_state()
+            # the bank's shovels, for the handoff lines (the user, 2026-11-08)
+            self.state['bank_shovels'] = {'count': len(self.bank_shovels(bags)),
+                                          'time': time.strftime('%H:%M')}
+            self.save_state()
             if bags.get('reagents'):
                 self.restock_reagents(bags['reagents'])
             burgers_rules(bank=False)  # the slow pace again before he leaves the bank

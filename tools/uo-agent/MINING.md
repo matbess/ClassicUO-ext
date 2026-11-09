@@ -43,7 +43,8 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
 - **What to tell the user** (they follow on the phone through Remote Control: plain messages, no push
   notifications):
   - every forge trip, in a few lines: the ingots handed over (and how many iron), the shovels given, the totals,
-    the run and hides to review and all four of Burgers' reagents;
+    the run and hides to review, all four of Burgers' reagents, and the shovels: Burgers' spares and the bank's
+    (counted on his last bank trip; the handoff line has both from 2026-11-08);
   - bank trips (the shovels and reagents taken), McGee (tired, stuck, gone wild, retamed), every alarm and incident,
     every creature that hits him or turns grey near him (`creature:` and `noted:` lines),
     `reagents low` (any of the four under 20), a new pass, stops, parks and reboots;
