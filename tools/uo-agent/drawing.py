@@ -37,8 +37,16 @@ NOISE = ('world will save', 'world is saving', 'world save', 'save complete')
 info = None
 
 
+GM = 100.0  # the goal (the user, 2026-11-08: "That's all we're trying to do here is reach 100 cartography skill")
+
+
 class Stop(Exception):
     pass
+
+
+class Grandmaster(Exception):
+    """Cartography has reached 100: stop drawing, put everything away, park (the user, 2026-11-08: "If you do make it
+    to 100 you should stop and just park Clem safe inside the tower")."""
 
 
 def say(text):
@@ -130,6 +138,8 @@ def draw_bag(bag, should_stop=lambda: False):
     tally = {'drawn': 0, 'failed': 0, 'wait': 0}
     left = blanks(bag)
     while left > 0 and not should_stop():
+        if skill()[0] >= GM:
+            raise Grandmaster()
         kind, text = draw_once()
         tally[kind] += 1
         left = blanks(bag)
@@ -230,6 +240,39 @@ def draw_next(state, pick_up, should_stop=lambda: False):
     carto.note(state, nxt, 'blank', blanks_known(nxt), spot=None)
     say(f'{bag} (completed) down at {put}; {nxt} picked up with {state["bags"][nxt]["maps"]} blanks')
     return True
+
+
+def put_away_at_gm(state):
+    """At 100: the loose drawn maps into a bag of drawn maps with room (or an empty bag) where it lies, the bag in his
+    pack (blanks left in it) back on the spot left free, and nothing more drawn."""
+    d = state.get('drawing') or {}
+    bag = d.get('bag')
+    loose = loose_maps()
+    if loose:
+        room = sorted((b for b, v in state['bags'].items() if v.get('spot') and b != bag
+                       and (v['kind'] == 'completed' and v['maps'] < carto.PER_BAG or v['maps'] == 0)),
+                      key=lambda b: (state['bags'][b]['maps'] == 0, -state['bags'][b]['spot'][2]))
+        for target in room:
+            count = len(carto.contents(target))
+            moved = 0
+            for serial in loose[:carto.PER_BAG - count]:
+                if carto.move(serial, target):
+                    moved += 1
+            loose = loose[moved:]
+            carto.note(state, target, 'completed', count + moved)
+            say(f'{moved} drawn maps into {target}: it holds {count + moved}')
+            if not loose:
+                break
+        if loose:
+            say(f'{len(loose)} drawn maps stay loose in his pack: no bag had room')
+    if bag and not state['bags'].get(bag, {}).get('spot'):
+        left = len(carto.contents(bag))
+        put = carto.put_down(bag, d.get('free') or state['bags'][bag].get('spot'))
+        carto.note(state, bag, 'blank' if left else 'completed', left, spot=put)
+        say(f'{bag} back at {put} with {left} blanks')
+    state.pop('drawing', None)
+    state['mode'] = 'done'
+    carto.save_state(state)
 
 
 def blanks_known(bag):

@@ -903,8 +903,21 @@ def main():
         # (to raise his Cartography: "you're supposed to start using the blank maps. draw maps on all of them"), then
         # sell again
         while done < args.trips and not stopping['flag']:
+            if state.get('mode') == 'done' or drawing.skill()[0] >= drawing.GM:
+                say(f'Cartography is {drawing.skill()[0]}: the goal is reached; parked, nothing more to do')
+                break
             if state.get('mode') == 'draw' or state.get('drawing'):
-                if drawing.draw_next(state, pick_up, lambda: stopping['flag']):
+                # drawing stays in the tower: no vendor trips meanwhile (the user, 2026-11-08: "you will not leave the
+                # tower ... I wont be as available to closely watch you fight")
+                try:
+                    more = drawing.draw_next(state, pick_up, lambda: stopping['flag'])
+                except drawing.Grandmaster:
+                    say(f'Cartography {drawing.skill()[0]}: 100 reached; putting everything away and parking (the user)')
+                    drawing.put_away_at_gm(state)
+                    go_floor(1)
+                    park()
+                    break
+                if more:
                     continue
                 state['mode'] = 'sell'
                 carto.save_state(state)

@@ -301,6 +301,12 @@ The user, 2026-11-08: "It's time to do that." Answers, in their words where it m
   (the 3rd floor first, then the 2nd by row, tiles he can't stand on last), draws world maps until it's empty, puts
   the drawn maps into it and sets it down on the next blank bag's tile before picking that one up; the last goes on
   the spot the first left empty. No vendor trips while drawing.
+- **Drawing never leaves the tower, and 100 ends it** (the user, 2026-11-08: "when you are done buying/selling and
+  switch to drawing, do not go to the npc to buy more blanks yet, youll simply be drawing and you will not leave the
+  tower. This is because I wont be as available to closely watch you fight"; "If you do make it to 100 you should stop
+  and just park Clem safe inside the tower. That's all we're trying to do here is reach 100 cartography skill"): at
+  100.0 the loose drawn maps go into a bag with room, the working bag back on its spot, he parks in the safe zone,
+  and trips.py ends (mode "done").
 - **Walking in the tower runs** (the user, 2026-11-08: "why does he walk up and down the stairs so weird. Can't you
   walk up and down them fast?"): carto.py's walks and stair steps go with run=1 (mounted, about twice the pace); the
   short hops and the floor check after each stay (the path finder takes the stairwell otherwise).
