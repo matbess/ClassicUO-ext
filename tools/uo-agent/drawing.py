@@ -110,6 +110,19 @@ def result_of(answer):
     return texts[-1] if texts else None
 
 
+def wait_for_save(answer, limit=90):
+    """Until the server says the world save is done (or the limit passes), then a moment more."""
+    last = max([m['id'] for m in answer.get('messages', [])] or [0])
+    end = time.time() + limit
+    while time.time() < end:
+        for m in uo.call(info, 'GET', '/messages', after=last)['messages']:
+            last = m['id']
+            if 'save complete' in m['text'].lower() or 'saved' in m['text'].lower():
+                time.sleep(1)
+                return
+        time.sleep(1)
+
+
 def draw_once():
     """One world map. Returns ('drawn' | 'failed' | 'wait', the server's text)."""
     answer = carto.act('POST', '/skill', id=SKILL)
@@ -118,7 +131,12 @@ def draw_once():
             return 'wait', m['text']
     menu = find_menu(answer)
     if not menu:
-        raise Stop(f"no menu after using Cartography: {[m['text'] for m in answer.get('messages', [])]}")
+        texts = [m['text'] for m in answer.get('messages', [])]
+        if any(n in t.lower() for t in texts for n in NOISE):
+            # a world save swallowed the skill (2026-11-09 01:34): wait it out and draw again
+            wait_for_save(answer)
+            return 'wait', 'world save'
+        raise Stop(f"no menu after using Cartography: {texts}")
     index = next((i['index'] for i in menu['items'] if i['name'].split(':')[0].strip().lower() == CHOICE), None)
     if not index:
         carto.act('POST', '/menu', serial=menu['serial'], id=menu['id'], index=0)
