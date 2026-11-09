@@ -33,9 +33,10 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
   It carries on from `next` in the state.
 - **Watch** the log with a Monitor (at most 30 minutes, so re-arm it at every expiry). Start each one from the
   time of the last event seen, so nothing logged while re-arming is lost (re-arming with `tail -n 0` missed a
-  handoff on 2026-11-04 at 03:16). Fill in the last event's time and date:
+  handoff on 2026-11-04 at 03:16). Fill in the last event's time and date (the older `$1 != date` form let lines
+  from earlier days through after a long break):
   ```
-  tail -n 40 -F ~/claude/uo-agent-work/mining/mine.log | awk '$2 > "HH:MM:SS" || $1 != "YYYY-MM-DD" { print; fflush() }' |
+  tail -n 40 -F ~/claude/uo-agent-work/mining/mine.log | awk '$1 > "YYYY-MM-DD" || ($1 == "YYYY-MM-DD" && $2 > "HH:MM:SS") { print; fflush() }' |
     grep -E --line-buffered "Reagents:|from the bank|takes the ingots|ingot bag|Gate|gate opened|McGee|retame|ALARM|alarm|STOPPED|PARKED|reagents low|left in the bank|none left|no shovels|Traceback|Error|done:|incident|run and hide|pass [0-9]+:|Icepick at|runes checked|not responding|left the area|inside the area|creature|noted:"
   ```
   Don't add a bare "shovel": every shovel that wears out logs a line.
