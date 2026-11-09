@@ -293,6 +293,13 @@ The user, 2026-11-08: "It's time to do that." Answers, in their words where it m
   trips.py takes any empty bag on the 3rd floor's west side as a blank bag (0x409397A3 at 1752,1403,46 was the first)
   and stops with "empty bags needed" when there's no room left for a buyout.
 
+- **When every drawn map is sold, back to drawing** (the user, 2026-11-08: "once all of the drawn maps are sold then
+  you should return to drawing maps to raise his cartography skill"): trips.py stops when no completed bag is left
+  ("no completed bag left to sell"); then the drawing loop (work.py / draw.py, Progress above) takes the blank bags.
+- **Walking in the tower runs** (the user, 2026-11-08: "why does he walk up and down the stairs so weird. Can't you
+  walk up and down them fast?"): carto.py's walks and stair steps go with run=1 (mounted, about twice the pace); the
+  short hops and the floor check after each stay (the path finder takes the stairwell otherwise).
+
 **trips.py** (`python3 -I trips.py run [--trips N] [--buyout]`, `trips.py status`; state in
 ~/claude/uo-agent-work/carto: vendor.json, visits.jsonl, trips.log):
 - A buyout is due when the vendor isn't known to be empty, or 55 minutes after his last buyout (his hour); else a

@@ -165,8 +165,29 @@ def names(serials, kind=None):
 # ---- moving about the tower ----
 
 def stride(x, y, distance=0):
-    """One walk, wherever the path finder takes him: only for the stairs (go_to_floor)."""
-    return act('POST', '/walk', x=x, y=y, distance=distance)
+    """One walk, wherever the path finder takes him: only for the stairs (go_to_floor). It runs, and doesn't wait its
+    turn: the next step starts the moment he arrives (the user, 2026-11-08: "why does he walk up and down the stairs so
+    weird. Can't you walk up and down them fast?"; each step used to wait for the bridge's 1.1 s gap)."""
+    return quick_walk(x, y, distance)
+
+
+def quick_walk(x, y, distance=0):
+    """A running walk that comes back at once (wait=0, his rules allow it for fights), then watched until he is there
+    or has stopped moving. Only inside the tower: its walls and the locked door keep the walk in."""
+    act('POST', '/walk', x=x, y=y, distance=distance, run=1, wait=0)
+    last, since = None, time.time()
+    end = time.time() + 10
+    while time.time() < end:
+        s = status()
+        here_now = (s['x'], s['y'], s['z'])
+        if max(abs(s['x'] - x), abs(s['y'] - y)) <= distance:
+            return {'arrived': True}
+        if here_now != last:
+            last, since = here_now, time.time()
+        elif time.time() - since > 0.8:
+            break
+        time.sleep(0.08)
+    return {'arrived': False}
 
 
 def side(y):
@@ -202,7 +223,7 @@ def walk(x, y, distance=0):
                     for x1, y1, x2, y2 in SECOND_NO_HOP:
                         if x1 <= hx <= x2 and y1 <= hy <= y2:
                             hx = x1 - 1 if x1 > 1752 else x2 + 1
-            act('POST', '/walk', x=hx, y=hy, distance=hd)
+            quick_walk(hx, hy, hd)
             if here()[:2] == (cx, cy):
                 stuck += 1
                 if stuck >= 2:

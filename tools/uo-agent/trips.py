@@ -164,10 +164,23 @@ def loose_maps():
 
 
 def map_bags():
-    """Bags in his pack that hold maps, with how many."""
+    """Bags in his pack that hold maps, with how many. A backpack in his pack the client knows nothing about (after a
+    login, or once the user has clicked about: 19:49 a bag of 62 blanks went unseen and the loop picked up another bag
+    on top of it, past 125 items) is opened first; never a pouch (his trapped pouches go off when opened)."""
     _, items = pack_list()
+    unknown = [i['serial'] for i in items if i.get('container') and int(i['graphic'], 16) == 0x0E75
+               and not i.get('knownItems') and not i.get('items')]
+    for serial in unknown:
+        carto.contents(serial)
+    if unknown:
+        _, items = pack_list()
     return {i['serial']: sum(1 for x in i.get('items', []) if int(x['graphic'], 16) == MAP)
             for i in items if i.get('container') and any(int(x['graphic'], 16) == MAP for x in i.get('items', []))}
+
+
+def in_pack(serial):
+    _, items = pack_list()
+    return any(i['serial'] == serial for i in items)
 
 
 def gold_carried():
@@ -523,10 +536,21 @@ def approach(vendor):
             raise GoHome(f'no way to the mapmaker at {m["x"]},{m["y"]}: {e}')
 
 
+def at_him(who, endpoint, **params):
+    """A request to the vendor, walking up to him again when he has wandered off meanwhile (19:28:03: "too far from
+    the vendor (4 tiles; at most 3)" between the walk and the words)."""
+    for attempt in range(4):
+        approach(who)
+        try:
+            return call('POST', endpoint, **params)
+        except uo.BridgeError as e:
+            if e.code != 409 or 'too far' not in e.message or attempt == 3:
+                raise
+
+
 def shop(vendor, mode):
     """His window (buy or sell). Words but no window: he has nothing for that (no items); no answer at all: home."""
-    approach(vendor)
-    r = call('POST', '/shop', vendor=vendor, mode=mode)
+    r = at_him(vendor, '/shop', vendor=vendor, mode=mode)
     if r.get('open') and r.get('mode') == mode:
         return r
     if r.get('answered'):
@@ -565,7 +589,7 @@ def buy_blanks(vendor, stock_rows, limit=None):
         call('POST', '/shop', close=1)
         say(f'buys nothing: {stock} blanks at {price}, room {room}, gold {gold}')
         return 0, stock, price, stock
-    r = call('POST', '/buy', items=','.join(f'{s}:{a}' for s, a in deal))
+    r = at_him(vendor, '/buy', items=','.join(f'{s}:{a}' for s, a in deal))
     bought = r.get('bought', 0)
     say(f'bought {bought} of his {stock} blanks at {price} ({r.get("goldBefore")} -> {r.get("gold")} gold; room was '
         f'{room})' + (f': {texts(r)}' if texts(r) else ''))
@@ -596,8 +620,7 @@ def sell_drawn(vendor, v=None, me=None):
                 break
             batch.append((i['serial'], take))
             n += take
-        approach(vendor)
-        s = call('POST', '/sell', items=','.join(f'{serial}:{a}' for serial, a in batch))
+        s = at_him(vendor, '/sell', items=','.join(f'{serial}:{a}' for serial, a in batch))
         prices.update(i['price'] for i in drawn)
         if not s.get('sold'):
             say(f'selling {n} got nothing: {texts(s) or "no answer"}')
@@ -687,6 +710,9 @@ def town_trip(v, phase, bag, limit=None):
 # ---- the loop ----
 
 def one_trip(v, state, force_buyout=False):
+    if state.get('trip'):
+        say(f'the last trip stopped before its maps were put away: finishing it ({state["trip"]})')
+        finish_trip(state)
     wait = (v.get('wait_until') or 0) - time.time()
     if wait > 0:
         say(f'a player was in town: waiting {wait / 60:.0f} more minutes inside')
@@ -727,7 +753,9 @@ def one_trip(v, state, force_buyout=False):
         if not bag:
             bag = next_completed(state)
             if not bag:
-                say('no completed bag left to sell')
+                # every drawn map sold: back to drawing (the user, 2026-11-08: "once all of the drawn maps are sold
+                # then you should return to drawing maps to raise his cartography skill")
+                say('no completed bag left to sell: every drawn map is sold; next comes drawing (work.py)')
                 return False
             state['trip_home'] = state['bags'][bag]['spot']
             carto.save_state(state)
@@ -752,25 +780,41 @@ def one_trip(v, state, force_buyout=False):
     _, items = pack_list()
     say(f'leaving: {count_items(items)} items in the pack, {gold_carried()} gold, mana {status()["mana"]}')
     result = town_trip(v, phase, bag, limit)
+    # kept until the maps are put away, so a run stopped meanwhile (the user, 2026-11-08: "pause it and resume from
+    # where he is") finishes the job first when it starts again
+    # maps all look alike to the client: what's still in the bag now (before any blank goes in) is what wasn't sold
+    state['trip'] = {'bag': bag, 'sold': result.get('sold', 0), 'unsold': map_bags().get(bag, 0) if bag else 0,
+                     'phase': phase}
+    carto.save_state(state)
+    finish_trip(state)
+    return True
 
-    # home: the blanks put away
-    if bag:
-        left = map_bags().get(bag, 0)
-        if left and not result.get('sold'):
+
+def finish_trip(state):
+    """Home from a trip: the blanks put away (into the bag he sold from, which becomes a blank bag on its spot), gold
+    back to 300, parked. Also where a stopped run picks up again."""
+    trip = state.get('trip') or {}
+    bag = trip.get('bag')
+    # (in his pack at all: a bag sold empty holds no maps, so map_bags() leaves it out; 19:58 its blanks went to the
+    # bags upstairs and the empty bag stayed in his pack)
+    if bag and in_pack(bag):
+        unsold = trip.get('unsold', 0)
+        if unsold and not trip.get('sold'):
             put_back(state, bag)          # not sold (he had restocked, or we left early): as it was
             put_blanks_away(state)
-        elif left:
-            say(f'{left} drawn maps were not sold and stay in {bag}; the blanks go elsewhere')
+        elif unsold:
+            say(f'{unsold} drawn maps were not sold and stay in {bag}; the blanks go elsewhere')
             put_back(state, bag)
             put_blanks_away(state)
         else:
             put_blanks_away(state, sold_bag=bag)
     else:
         put_blanks_away(state)
+    state.pop('trip', None)
+    carto.save_state(state)
     make_gold()
     go_floor(1)
     park()
-    return True
 
 
 def park():
