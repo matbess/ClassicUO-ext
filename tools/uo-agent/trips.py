@@ -874,6 +874,9 @@ def main():
     r.add_argument('--trips', type=int, default=1, help='how many trips (default 1)')
     r.add_argument('--buyout', action='store_true', help='start with a buyout whatever the state says')
     r.add_argument('--resume', action='store_true', help='clear a takeover; only when the user hands him back')
+    r.add_argument('--sell-for', type=float, metavar='MINUTES',
+                   help='sell this long, then draw, and never go out again in this run (the user away: "switch to '
+                        'drawing (i\'ll be stepping away when you do)")')
     sub.add_parser('status')
     args = parser.parse_args()
     os.makedirs(WORK, exist_ok=True)
@@ -902,7 +905,20 @@ def main():
         # two modes (the user, 2026-11-08): sell every drawn map (trips, with the buyouts), then draw every blank map
         # (to raise his Cartography: "you're supposed to start using the blank maps. draw maps on all of them"), then
         # sell again
+        sell_until = time.time() + args.sell_for * 60 if args.sell_for else None
+        # kept in the state, so a restart while he draws doesn't take him out again (cleared by hand when the user is
+        # back: carto state "stay_in")
+        draw_only = bool(state.get('stay_in'))
         while done < args.trips and not stopping['flag']:
+            if sell_until and time.time() > sell_until and state.get('mode') != 'draw' and not draw_only:
+                if state.get('trip'):
+                    finish_trip(state)
+                state['mode'] = 'draw'
+                state['stay_in'] = True
+                carto.save_state(state)
+                draw_only = True
+                say(f'{args.sell_for:.0f} minutes of selling done: drawing now, and not leaving the tower again '
+                    f'(the user is away)')
             if state.get('mode') == 'done' or drawing.skill()[0] >= drawing.GM:
                 say(f'Cartography is {drawing.skill()[0]}: the goal is reached; parked, nothing more to do')
                 break
@@ -919,6 +935,11 @@ def main():
                     break
                 if more:
                     continue
+                if draw_only:
+                    say('every blank map is drawn; the user is away, so no going out to sell: parked')
+                    go_floor(1)
+                    park()
+                    break
                 state['mode'] = 'sell'
                 carto.save_state(state)
                 if not next_completed(state):
