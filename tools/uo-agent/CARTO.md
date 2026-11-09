@@ -293,9 +293,14 @@ The user, 2026-11-08: "It's time to do that." Answers, in their words where it m
   trips.py takes any empty bag on the 3rd floor's west side as a blank bag (0x409397A3 at 1752,1403,46 was the first)
   and stops with "empty bags needed" when there's no room left for a buyout.
 
-- **When every drawn map is sold, back to drawing** (the user, 2026-11-08: "once all of the drawn maps are sold then
-  you should return to drawing maps to raise his cartography skill"): trips.py stops when no completed bag is left
-  ("no completed bag left to sell"); then the drawing loop (work.py / draw.py, Progress above) takes the blank bags.
+- **When every drawn map is sold, straight on to drawing** (the user, 2026-11-08: "once all of the drawn maps are
+  sold then you should return to drawing maps to raise his cartography skill", and "Don't stop once every drawn map
+  is sold ... draw maps on all of them"): trips.py has two modes, kept in state.json (`mode`, `drawing`): selling
+  (trips, with the buyouts) until no completed bag is left, then drawing (drawing.py, draw.py and work.py of
+  2026-11-05/06 brought into the repo) until no blank bag is left, then selling again. drawing.py picks up a blank bag
+  (the 3rd floor first, then the 2nd by row, tiles he can't stand on last), draws world maps until it's empty, puts
+  the drawn maps into it and sets it down on the next blank bag's tile before picking that one up; the last goes on
+  the spot the first left empty. No vendor trips while drawing.
 - **Walking in the tower runs** (the user, 2026-11-08: "why does he walk up and down the stairs so weird. Can't you
   walk up and down them fast?"): carto.py's walks and stair steps go with run=1 (mounted, about twice the pace); the
   short hops and the floor check after each stay (the path finder takes the stairwell otherwise).
@@ -338,6 +343,9 @@ The user, 2026-11-08: "It's time to do that." Answers, in their words where it m
 - Prices: blank maps 3 gold to buy, drawn maps 3 gold to sell. **The trick works**: 55 drawn maps sold, his stock
   of blanks went from 0 to 55, all bought back (19:20). He also sells 10 each of many drawn local maps ("Map Of
   Britain", "Map Of The World", ...): left alone. The first buyout (18:58) found 20 blanks.
+- **His restocks** (bought out each time): 20 blanks (18:58), 29 (19:54), 38 (20:46): growing by about 9 an hour,
+  as the user said. The 20:46 restock came about 52 minutes after the 19:54 buyout, before trips.py's 55: the sell
+  trip's look at his buy list caught it (nothing sold, the bag went home, a buyout next).
 - **Razor clicks taken for the user**: Razor's AutoSearch double-clicks every bag that lands in his pack, and its
   AutoOpenCorpses a corpse he lands next to (sent before the client knows the corpse, so the bridge's "a corpse isn't
   the user" check misses it). The user keeps both on (AutoSearch feeds their counters): `fight.razor_click` resumes

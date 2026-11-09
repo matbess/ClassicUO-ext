@@ -44,6 +44,7 @@ import carto  # noqa: E402
 import door  # noqa: E402
 import fight  # noqa: E402
 import restock  # noqa: E402
+import drawing  # noqa: E402
 
 CHAR = 'Clem'
 WORK = os.path.expanduser('~/claude/uo-agent-work/carto')
@@ -550,13 +551,16 @@ def at_him(who, endpoint, **params):
 
 def shop(vendor, mode):
     """His window (buy or sell). Words but no window: he has nothing for that (no items); no answer at all: home."""
-    r = at_him(vendor, '/shop', vendor=vendor, mode=mode)
-    if r.get('open') and r.get('mode') == mode:
-        return r
-    if r.get('answered'):
-        say(f'no {mode} window, he said: {texts(r)}')
-        return dict(r, items=[])
-    raise GoHome(f'no answer from the mapmaker to "{r.get("said")}"')
+    for attempt in range(3):
+        r = at_him(vendor, '/shop', vendor=vendor, mode=mode)
+        if r.get('open') and r.get('mode') == mode:
+            return r
+        if r.get('answered'):
+            say(f'no {mode} window, he said: {texts(r)}')
+            return dict(r, items=[])
+        # not a word (21:14:00, once: "Cador sell" went unanswered and the trip went home unsold): ask again
+        say(f'no answer from the mapmaker to "{r.get("said")}"' + ('; asking again' if attempt < 2 else ''))
+    raise GoHome(f'no answer from the mapmaker to "{r.get("said")}", three times')
 
 
 def blank(name):
@@ -755,7 +759,7 @@ def one_trip(v, state, force_buyout=False):
             if not bag:
                 # every drawn map sold: back to drawing (the user, 2026-11-08: "once all of the drawn maps are sold
                 # then you should return to drawing maps to raise his cartography skill")
-                say('no completed bag left to sell: every drawn map is sold; next comes drawing (work.py)')
+                say('no completed bag left to sell: every drawn map is sold')
                 return False
             state['trip_home'] = state['bags'][bag]['spot']
             carto.save_state(state)
@@ -892,13 +896,32 @@ def main():
     v.setdefault('players', {})
     state = carto.load_state()
     done = 0
+    drawing.info = info
     try:
         find_runes()
+        # two modes (the user, 2026-11-08): sell every drawn map (trips, with the buyouts), then draw every blank map
+        # (to raise his Cartography: "you're supposed to start using the blank maps. draw maps on all of them"), then
+        # sell again
         while done < args.trips and not stopping['flag']:
-            if not one_trip(v, state, force_buyout=args.buyout and done == 0):
+            if state.get('mode') == 'draw' or state.get('drawing'):
+                if drawing.draw_next(state, pick_up, lambda: stopping['flag']):
+                    continue
+                state['mode'] = 'sell'
+                carto.save_state(state)
+                if not next_completed(state):
+                    say('no drawn maps to sell and no blank maps to draw: done')
+                    break
+                say('every blank map is drawn: back to selling the drawn maps')
+                continue
+            if one_trip(v, state, force_buyout=args.buyout and done == 0):
+                done += 1
+                continue
+            if stopping['flag']:
                 break
-            done += 1
-    except (Stop, door.Stop, restock.Stop, fight.Stop) as e:
+            state['mode'] = 'draw'
+            carto.save_state(state)
+            say('every drawn map is sold: drawing world maps on all the blank maps now')
+    except (Stop, door.Stop, restock.Stop, fight.Stop, drawing.Stop) as e:
         say(f'STOPPED: {e}')
         sys.exit(1)
     say(f'{done} trip(s) done')
