@@ -98,7 +98,31 @@ def say(text):
         fh.write(line + '\n')
 
 
+def save_halt(e):
+    """A stop a world save caused: the server froze for the save while an action waited for its answer, so the bridge
+    took the silence for trouble (2026-11-09 11:49, opening the bag just picked up). Waits for the save to finish,
+    resumes and returns True. Never for the user taking over, and (like carto.act) not twice within two minutes, so a
+    real stop just after a save isn't taken for one."""
+    if e.code != 423 or 'server went quiet' not in e.message or time.time() - carto.LAST_SAVE[0] < 120:
+        return False
+    st = uo.call(info, 'GET', '/status')
+    if st.get('takenOver') or not st.get('halted'):
+        return False
+    if not uo.wait_out_world_save(info, e):
+        return False
+    carto.LAST_SAVE[0] = time.time()
+    say(f'world save: waited it out and resumed ({e.message})')
+    return True
+
+
 def call(method, endpoint, **params):
+    try:
+        return uo.call(info, method, endpoint, **params)
+    except uo.BridgeError as e:
+        if e.code != 423:
+            raise
+        if not save_halt(e):
+            raise Stop(e.message)
     try:
         return uo.call(info, method, endpoint, **params)
     except uo.BridgeError as e:
@@ -368,18 +392,21 @@ def pick_up(bag):
     try:
         moved = uo.call(info, 'POST', '/move', serial=bag, to=pack).get('moved')
     except uo.BridgeError as e:
-        if e.code != 423 or not forgive_razor(bag):
+        if e.code == 423 and save_halt(e):
+            moved = in_pack(bag) or call('POST', '/move', serial=bag, to=pack).get('moved')
+        elif e.code != 423 or not forgive_razor(bag):
             raise Stop(e.message)
-        moved = True
+        else:
+            moved = True
     if not moved:
         raise Stop(f"couldn't pick up {bag}")
     for endpoint in ('/open', '/close'):
         try:
             uo.call(info, 'POST', endpoint, serial=bag)
         except uo.BridgeError as e:
-            if e.code != 423 or not forgive_razor(bag):
+            if e.code != 423 or not (forgive_razor(bag) or save_halt(e)):
                 raise Stop(e.message)
-            uo.call(info, 'POST', endpoint, serial=bag)
+            call('POST', endpoint, serial=bag)
 
 
 def forgive_razor(bag):
