@@ -506,3 +506,13 @@ How it works:
 - Not used for mining: bridge 11 can also raise the alarm when a creature within `"creatures"` tiles turns grey, or
   for an `"avoid"` list of kinds. The user turned that down (an early getaway means it never hits him, so the guards
   never kill it and it keeps wandering about the route); both are left out of the rules.
+
+## Off the gate toward the next spot (2026-11-08)
+
+The user saw Icepick come out of the middle gate (1141,1666) and go straight back through it to the forge. It was
+old: about one middle-gate trip in four since 2026-11-01 (30 of 111) ended "stopped at" a tile by the forge. He
+always stepped one tile south-east off the gate, and a ride west from there went back over the gate tile (the
+planner keeps its waypoints off an open gate, but the client's path finder rides between them). Now `off_the_gate`
+walks him from the gate tile two tiles straight toward the next dig spot (west: 1139,1666; south: 1141,1668), so
+the ride starts on the far side. The Mining Start gate keeps the old south-east step (to_start doesn't know the
+next spot; no returns were seen there).
