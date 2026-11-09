@@ -931,9 +931,10 @@ class Miner:
             self.travel_route(mining.nearest(self.points, *spot), reach=15)
             self.ice.walk(spot[0], spot[1], 1)
 
-    def gate_to(self, end):
-        """From the forge: Burgers opens a gate on a rune (checked by name) and Icepick rides through to its far end.
-        Returns False (and nothing is cast) if Burgers' mana doesn't come back to full within MANA_WAIT."""
+    def gate_to(self, end, toward=None):
+        """From the forge: Burgers opens a gate on a rune (checked by name) and Icepick rides through to its far end,
+        then off it toward `toward` (where he's going next) when given. Returns False (and nothing is cast) if
+        Burgers' mana doesn't come back to full within MANA_WAIT."""
         deadline = time.time() + MANA_WAIT
         while True:
             b = self.bur.status()
@@ -978,9 +979,34 @@ class Miner:
         log(f"gate to {end}: Icepick {'came out at' if arrived else 'did not go through; still at'} {s['x']},{s['y']}")
         self.hide(self.bur)
         if arrived:
-            # off the far end of the gate, so he doesn't step back through it
-            self.ice.walk(GATE_ENDS[end][0] + 1, GATE_ENDS[end][1] + 1, 0)
+            self.off_the_gate(GATE_ENDS[end], toward)
         return arrived
+
+    def off_the_gate(self, gate, toward):
+        """Off the far end of a gate so the next ride doesn't take him back through it: from the gate tile, two tiles
+        straight toward where he's going next. It used to be one step to the south-east whatever came next, and a
+        ride west from there went back over the gate and out by the forge about one middle-gate trip in four
+        (30 of 111 from 2026-11-01 to 11-08; the user saw it on 2026-11-08 17:34)."""
+        import math
+        areas = mining.load_rules()['areas']
+        spots = []
+        if toward is not None:
+            a = math.atan2(toward[1] - gate[1], toward[0] - gate[0])
+            for turn in (0, 45, -45, 90, -90):
+                b = a + math.radians(turn)
+                dx, dy = round(math.cos(b)), round(math.sin(b))
+                spots.append(((gate[0] + dx, gate[1] + dy), (gate[0] + 2 * dx, gate[1] + 2 * dy)))
+        spots.append(((gate[0] + 1, gate[1] + 1), (gate[0] + 1, gate[1] + 1)))
+        for step, spot in spots:
+            if not all(mining.in_areas(areas, *t) and mining.walkable(*t, learned=False) for t in (step, spot)):
+                continue
+            try:
+                self.ice.walk(spot[0], spot[1], 0)
+                return
+            except uo.BridgeError as e:
+                if e.code != 409:
+                    raise
+        log(f'no way off the gate at {gate[0]},{gate[1]} toward {toward}; riding on from it')
 
     def to_start(self):
         """To the top of the route: straight to Burgers at the forge and through his gate to the Mining Start rune
@@ -1017,7 +1043,7 @@ class Miner:
                 b = self.bur.status()
                 if cheb(GATE_ENDS[end], spot) + 40 < cheb(here, spot) and b['mana'] >= b['manaMax'] >= 40 \
                         and not self.saving_mana_for_bank():
-                    self.gate_to(end)
+                    self.gate_to(end, spot)
             self.travel(spot)
         else:
             self.mount()
