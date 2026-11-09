@@ -95,7 +95,9 @@ fight. Nothing goes to town until fighting works.
   tile of another creature for 2 s (the wolf and the bear stood a tile apart, still, for 34 s) or is losing health
   he didn't take; a busy one isn't drawn or waited for: he bolts it from within spell range, keeping 4 tiles off.
 - **Spells while they're busy** (the user's thresholds of the target's health): Energy Bolt while it has plenty;
-  Lightning below 15%; Fireball below 5%. Energy Bolt costs much more mana but does much more damage. Watch how much
+  Lightning below 15%; Fireball below 5%. Always the right one for the health (the user, 2026-11-08: "Why are you
+  using fireball when he has like 28% health left? ... At 25% use energy bolt still"): when it would take him below
+  MANA_RESERVE he waits for mana instead of casting a cheaper spell; another spell only when he has no reagents for it. Energy Bolt costs much more mana but does much more damage. Watch how much
   each takes off (fights.jsonl records it).
 - **Casting at one that isn't busy with another creature: from 8-10 tiles** (the user, 2026-11-06: the ettin got a
   bit close while he was casting). It keeps coming during the words (an ettin closed about 3 tiles a second), so he

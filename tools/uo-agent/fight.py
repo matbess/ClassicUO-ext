@@ -876,13 +876,19 @@ class Fight:
         return mana >= MANA[spell] and all(have[r] >= 1 for r in REAGENTS[spell])
 
     def spell_for(self, m, mana):
-        """Energy Bolt while it has plenty of health, Lightning when it's low, Fireball when it's very low (the user);
-        another one when that's short of mana or reagents (black pearls run out first)."""
+        """Energy Bolt while it has more than 15% health, Lightning at 15% and below, Fireball at 5% and below (the user,
+        2026-11-06, and 2026-11-08: "Why are you using fireball when he has like 28% health left? Fireball is for when he
+        has 5% HP left. Lightning is for when he's down to 15%. At 25% use energy bolt still": a troll at 7/25 got
+        Fireballs because an Energy Bolt would have taken him below the mana he keeps for healing). The right spell or
+        none: when it would take him below MANA_RESERVE he waits for mana (keeps away, lets a provoked fight go on);
+        another spell only when he has no reagents for the right one (black pearls run out first)."""
         s = share(m)
         choice = ENERGY_BOLT if s is None or s > LOW else LIGHTNING if s > VERY_LOW else FIREBALL
+        have = self.reagents()
         for spell in (choice, ENERGY_BOLT, LIGHTNING, FIREBALL):
-            if mana - MANA[spell] >= MANA_RESERVE and self.can_cast(spell, mana):
-                return spell
+            if not all(have[r] >= 1 for r in REAGENTS[spell]):
+                continue  # no reagents for it: the next best
+            return spell if mana - MANA[spell] >= MANA_RESERVE else None
         return None
 
     def cast_target(self, me, busy, mobs, st=None):
