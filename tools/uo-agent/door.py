@@ -259,6 +259,35 @@ def remove(m):
             pass
 
 
+TOWER = (1750, 1402, 1763, 1413)  # the tower's inside, every floor (x1, y1, x2, y2)
+
+
+def inside_tower():
+    """Creatures inside the tower (any floor): wild ones, not people and not pets."""
+    x1, y1, x2, y2 = TOWER
+    return [m for m in call('GET', '/nearby', range=14)['mobiles']
+            if m.get('notoriety') in HOSTILE and not m.get('dead') and not m.get('human') and not m.get('yourPet')
+            and x1 <= m['x'] <= x2 and y1 <= m['y'] <= y2]
+
+
+def eject_inside(tries=4):
+    """A creature that followed him in: "remove thyself" and a click on it puts it out of the house (the user,
+    2026-11-08: "Any time you enter the tower you need to check if a monster came inside. If one did, you need to say
+    'remove thyself' and click the monster. That will eject it from the tower."). True when none is left inside."""
+    for _ in range(tries):
+        there = inside_tower()
+        if not there:
+            return True
+        for m in there:
+            say(f'{m.get("name") or "a creature"} came inside, at {m["x"]},{m["y"]},{m["z"]}')
+            remove(m)
+        time.sleep(1.0)
+    left = inside_tower()
+    if left:
+        say('STILL INSIDE: ' + ', '.join(f'{m.get("name")} at {m["x"]},{m["y"]}' for m in left))
+    return not left
+
+
 def clear_steps(tries):
     """Put every creature on the steps off them (remove), up to `tries` rounds. True when the steps are clear."""
     for _ in range(tries):
@@ -380,6 +409,8 @@ def go_in():
         set_door(DOOR, True)
         close_east()
     say('in; the door is locked and closed')
+    if not eject_inside():
+        raise Stop('a creature that followed him in is still inside the tower')
     park()
     retrap()
 

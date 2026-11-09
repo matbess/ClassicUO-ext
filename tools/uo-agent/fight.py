@@ -12,7 +12,11 @@ creatures. The user's rules (2026-11-06):
   Lightning when it's low, Fireball when it's very low; one at a time, waiting for each to land.
 - Meditate when mana is short and everything is busy fighting; heal once clear; a trapped pouch when paralysed.
 
-  python3 -I fight.py [--minutes N] [--resume]
+  python3 -I fight.py [--minutes N] [--front] [--resume]
+
+--front (and trips.py, coming home from town, the user 2026-11-08): only the creatures within FRONT_RANGE of the front
+door are drawn and dealt with, none further out looked for, no meditating outside after the fight (he does that
+inside); then in. With his pack full of maps, looting takes only what stacks onto what he carries.
 
 Starts where he is outside (door.py out takes him there). He only leaves the fight by going home: when nothing is
 left or coming, when nothing is found, after N minutes (10), or when this is interrupted, he makes his way back to
@@ -61,8 +65,13 @@ ROUTES = {
 }
 PATROL = ROUTES['east']
 LOOK_AROUND = 3                   # seconds at each lookout point
+# home from town (trips.py, the user, 2026-11-08): Recall lands him at 1757,1419; every enemy in front of the tower is
+# dealt with before he goes in, and none further out is looked for: this far from the front door counts as in front
+FRONT_RANGE = 15
+PACK_LIMIT = 125                  # items his pack holds, everything inside bags counted (CARTO.md)
 
 TAMBOURINE = 0x0E9D
+GOLD = 0x0EED           # the only thing looted (the user, 2026-11-08)
 POUCH = 0x0E79          # his trapped pouches (Magic Trap): opening one breaks paralysis
 USED_POUCHES = set()    # pouches already opened (their trap is spent)
 PROVOKE, MEDITATE = 22, 46
@@ -123,7 +132,9 @@ UNEVEN = 0.2            # a fight is uneven (bolt the one winning) when its heal
 CAST_WHEN = 0.40        # a creature fighting another: spells only once it's down to this share (or a caster, or
                         # the stronger of an uneven pair); until then they wear each other down and he meditates
 LOOT_CLEAR = 6          # no looting with any creature this close to the corpse or to him
-LOOT_RANGE = 16          # corpses from this fight this far off get looted (20:08: the gargoyle and hart lay ~11 off
+LOOT_RANGE = 24          # corpses from this fight this far off get looted (the bridge sees 24): a skeleton killed
+                        # 19 tiles off by the door, 2026-11-08, was left with its gold ("you walked over the
+                        # skeleton a bunch"); was 16 (20:08: the gargoyle and hart lay ~11 off)
                         # from where he meditated, and he went home without them)
 SPELL_RANGE = 10        # a spell from further: "That is too far away." (Energy Bolt at 11 tiles, 2026-11-06 16:31)
 CAST_SPOT = 8           # out of spell range (or "That is too far away."): ride to this far from it first
@@ -208,6 +219,8 @@ def call(method, endpoint, **params):
     except uo.BridgeError as e:
         if e.code != 423:
             raise
+        if razor_click():
+            return uo.call(info, method, endpoint, **params)
         if not recover_drop():
             raise Stop(e.message)
     if endpoint == '/move':
@@ -220,6 +233,60 @@ def call(method, endpoint, **params):
         if e.code == 423:
             raise Stop(e.message)
         raise
+
+
+def razor_click(bag=None):
+    """The bridge's "the user took over" was really one of Razor's own double-clicks: on a corpse (Razor's
+    AutoOpenCorpses; it reads the server's packets before the client, so its click goes out before the client knows
+    the corpse, and the bridge's own "a corpse isn't the user" check misses it: 2026-11-08 19:13:17, a skeleton's
+    corpse by the door as he landed) or on `bag`, just put into his pack (Razor's AutoSearch, within a second of the
+    drop). Only if nothing that counts as a command was sent after it. Then resumes and returns True."""
+    try:
+        st = uo.call(info, 'GET', '/status')
+    except uo.BridgeError:
+        return False
+    took = st.get('takenOver') or ''
+    if not took.startswith('a double-click at ') or st.get('halted'):
+        return False
+    when = took[len('a double-click at '):]
+    try:
+        events = uo.call(info, 'GET', '/events', after=0)['events']
+    except uo.BridgeError:
+        return False
+    clicks = [e for e in events if e.get('kind') == 'sent double-click' and e['time'].startswith(when)]
+    if not clicks:
+        return False
+    click = clicks[0]
+    later = [e for e in events if e['id'] > click['id'] and e.get('kind', '').startswith('sent ')
+             and e['kind'] not in ('sent single-click', 'sent pick up', 'sent drop')]
+    if later:
+        return False
+
+    def secs(t):
+        h, m, rest = t.split(':')
+        return int(h) * 3600 + int(m) * 60 + float(rest)
+    why = None
+    if (click.get('name') or '').lower().startswith('corpse') or 'corpse' in (click.get('name') or '').lower():
+        why = f'Razor opening a corpse ({click["serial"]})'
+    else:
+        try:
+            item = uo.call(info, 'GET', '/item', serial=click['serial'])['item']
+            if int(item['graphic'], 16) == 0x2006:
+                why = f'Razor opening a corpse ({click["serial"]})'
+        except uo.BridgeError:
+            pass
+    if not why and bag and click.get('serial') == bag:
+        drops = [e for e in events if e.get('kind') == 'sent drop' and e.get('serial') == bag and e['id'] < click['id']]
+        if drops and 0 <= secs(click['time']) - secs(drops[-1]['time']) <= 1.0:
+            why = f"Razor's auto-search of {bag} as it landed in his pack"
+    if not why:
+        return False
+    try:
+        uo.call(info, 'POST', '/resume')
+    except uo.BridgeError:
+        return False
+    say(f'the bridge took {why} for the user taking over ({took}): resumed')
+    return True
 
 
 def recover_drop():
@@ -311,6 +378,13 @@ def attackable(m):
 
 def in_area(p):
     return any(a[0] <= p[0] <= a[2] and a[1] + 1 <= p[1] <= a[3] for a in AREAS)
+
+
+def pack_count(pack):
+    """Items in his pack, everything inside bags counted (not a spellbook's spell icons)."""
+    def count(items):
+        return sum(1 + count(i.get('items', [])) for i in items if int(i['serial'], 16) < 0x7F000000)
+    return count(call('GET', '/contents', serial=pack, depth=4)['items'])
 
 
 def look():
@@ -499,7 +573,8 @@ def carried(graphic):
 
 
 class Fight:
-    def __init__(self, minutes, route=None):
+    def __init__(self, minutes, route=None, front=False):
+        self.front = front       # home from town: only the creatures in front of the tower, then in (trips.py)
         self.deadline = time.time() + minutes * 60
         self.pairs = {}          # provoked: serial -> the serial it was set on
         self.provoked_at = {}    # serial -> when
@@ -938,7 +1013,8 @@ class Fight:
 
     def run(self):
         """Until he's inside (returns) or the user takes over (Stop)."""
-        say(f'fight: watching for creatures (route: {self.route})')
+        say('fight: home from town, dealing with everything in front of the tower' if self.front
+            else f'fight: watching for creatures (route: {self.route})')
         while True:
             if not self.homeward and time.time() > self.deadline:
                 self.go_home('time is up')
@@ -1153,6 +1229,9 @@ class Fight:
             if usable and (a['serial'], usable['serial']) in self.gave_up:
                 usable = None
             if spell and not usable:
+                if dist(me, xy(a)) > SPELL_RANGE:
+                    time.sleep(0.15)  # still out of spell range: stand and let it come (a bolt from 24 tiles: too far)
+                    return False
                 if dfree >= LONE_CLEAR and self.cast_ready(me):
                     self.mover.clear()
                     self.killing = a['serial']
@@ -1245,7 +1324,7 @@ class Fight:
             # that turns on him or comes near ends it (the branches above, or riding home)
             quiet_for = time.time() - self.quiet_since
             if (quiet_for >= 2 and quiet_for < MEDITATE_FOR and st['mana'] < st.get('manaMax', 100) - 5
-                    and min(dfree, dany_creature) > CLEAR):
+                    and min(dfree, dany_creature) > CLEAR and not self.front):
                 if not self.meditating and self.skill_ready() and self.still(me):
                     self.mover.clear()
                     self.last_skill = time.time()
@@ -1272,7 +1351,8 @@ class Fight:
         # drawing one (the user): ride straight to where it'll notice him (5 tiles; casters notice from far, 11) and
         # stand still there until it targets him (turns Criminal); left be if it hasn't by LURE_WAIT (shut in a
         # building, or it doesn't attack). No moving about while waiting.
-        lurable = [m for m in free if m['serial'] not in self.ignored and self.visible(m['serial'])]
+        lurable = [m for m in free if m['serial'] not in self.ignored and self.visible(m['serial'])
+                   and (not self.front or dist(xy(m), HOME) <= FRONT_RANGE)]
         if lurable:
             current = [m for m in lurable if m['serial'] == self.luring]
             target = current[0] if current else min(lurable, key=lambda m: dist(me, xy(m)))
@@ -1447,9 +1527,10 @@ class Fight:
                     return True
         return False
 
-    def loot(self, me, st):
-        """After a fight, with nothing coming: everything in the corpses that fell during it, into his backpack (the
-        user, 2026-11-06: "Loot the corpse if you're able to"; they took a war hammer, a potion and gold). Only
+    def loot(self, me, st, front_door=False):
+        """After a fight, with nothing coming: the gold in the corpses that fell during it, into his backpack (the
+        user, 2026-11-06: "Loot the corpse if you're able to"; 2026-11-08: "You don't have to loot anything except for
+        the gold outside of the tower. Only loot the gold"). Only
         corpses that appeared during this fight, within LOOT_RANGE; never a person's ("corpse of ..."). One step per
         look, nothing that waits (the user: "always be ready to move, don't get caught stuck doing something else"):
         a ride to it, then one item a look, and every look checks for creatures first. True while there's looting
@@ -1461,8 +1542,10 @@ class Fight:
             return False
         for c in near:
             name = (c.get('type') or c.get('name') or '').lower()
-            if (int(c['graphic'], 16) != 0x2006 or c['serial'] in self.looted or c['serial'] in self.corpses_before
-                    or 'corpse of' in name):
+            if (int(c['graphic'], 16) != 0x2006 or c['serial'] in self.looted or 'corpse of' in name
+                    or (c['serial'] in self.corpses_before and not front_door)):
+                continue
+            if front_door and dist((c['x'], c['y']), HOME) > FRONT_RANGE:
                 continue
             # never in to a corpse with a creature near it or him, any creature (the user, 2026-11-06: "you just ran
             # in to loot when the wolf was right next to the corpse"): wait for it to go
@@ -1495,9 +1578,10 @@ class Fight:
                 self.looted.add(c['serial'])
                 self.looting = None
                 return True
+            if not items and not lt['took'] and time.time() - lt['next_to'] < 3:
+                return True  # not shown yet: look again next time
+            items = [i for i in items if int(i['graphic'], 16) == GOLD]  # only the gold (the user, 2026-11-08)
             if not items:
-                if not lt['took'] and time.time() - lt['next_to'] < 3:
-                    return True  # not shown yet: look again next time
                 say(f'looted {name or "a corpse"}: ' + (', '.join(lt['took']) or 'nothing'))
                 self.looted.add(c['serial'])
                 self.looting = None
@@ -1509,6 +1593,11 @@ class Fight:
                 # onto a stack of the same kind already in his pack, or the server merges it there itself and the
                 # bridge, waiting for the item to show up in the pack, stops (17:10:46: the orc's 41 gold)
                 stack = self.stack_in(pack, i)
+                if not stack and pack_count(pack) >= PACK_LIMIT - 1:
+                    say(f'pack full ({PACK_LIMIT} items): only what stacks gets looted; leaving {i.get("type")}')
+                    self.looted.add(c['serial'])
+                    self.looting = None
+                    return True
                 r = call('POST', '/move', serial=i['serial'], to=stack or pack)
                 if stack and not r.get('moved'):
                     r = call('POST', '/move', serial=i['serial'], to=pack)  # not one that stacks: back, so in
@@ -1679,6 +1768,14 @@ class Fight:
 
     def search(self, me):
         """No creature in sight: ride to each lookout point (watching all the way), look around, the next."""
+        if self.front:
+            # home from town: nothing (left) in front of the tower is all it takes; no looking further out. The gold
+            # first from any corpse lying in front of the door, his earlier kills too (the user, 2026-11-08: "if you
+            # can just loot the gold")
+            if self.loot(me, call('GET', '/status'), front_door=True):
+                return False
+            self.go_home('nothing left in front of the tower')
+            return False
         if self.goal is None:
             if not self.patrol:
                 self.go_home('no creature anywhere he looked')
@@ -1711,23 +1808,35 @@ def on_term(signum, frame):
     raise KeyboardInterrupt
 
 
-def main():
+def setup(bridge_info, partner=None):
+    """Ready to fight as the character of bridge_info (main, and trips.py coming home from town). Returns /status."""
     global info, ASYNC, PARTNER, BRIDGE
+    info = bridge_info
+    os.makedirs(WORK, exist_ok=True)
+    st = call('GET', '/status')
+    if st.get('bridge', 0) < 7:
+        raise SystemExit('needs bridge 7 (cuo-agent23)')
+    ASYNC = st['bridge'] >= 8  # cast and go on (cuo-agent24)
+    BRIDGE = st['bridge']
+    PARTNER = partner.lower() if partner else None
+    return st
+
+
+def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--minutes', type=float, default=10, help='then home')
     parser.add_argument('--route', choices=sorted(ROUTES), help='where to look (default: one at random)')
     parser.add_argument('--partner', help='set creatures on this kind first (e.g. panther), as the user says')
+    parser.add_argument('--front', action='store_true',
+                        help='only the creatures in front of the tower, then in (as coming home from town)')
     parser.add_argument('--resume', action='store_true',
                         help='clear a takeover; only when the user has said they hand him back')
     args = parser.parse_args()
-    os.makedirs(WORK, exist_ok=True)
     signal.signal(signal.SIGTERM, on_term)
-    info = uo.find_bridge('Clem')
-    st = call('GET', '/status')
-    if st.get('bridge', 0) < 7:
-        sys.exit('needs bridge 7 (cuo-agent23)')
-    ASYNC = st['bridge'] >= 8  # cast and go on (cuo-agent24)
-    BRIDGE = st['bridge']
+    try:
+        st = setup(uo.find_bridge('Clem'), args.partner)
+    except SystemExit as e:
+        sys.exit(str(e))
     stopped = st.get('takenOver') or st.get('halted')
     if stopped and not args.resume:
         sys.exit(f'the user has him ({stopped}); --resume only once they hand him back')
@@ -1737,8 +1846,7 @@ def main():
         call('POST', '/resume')
         say(f'resumed, as the user said (was: {stopped})')
     try:
-        PARTNER = args.partner.lower() if args.partner else None
-        Fight(args.minutes, args.route).run()
+        Fight(args.minutes, args.route, front=args.front).run()
         say('parked inside; the door is locked and closed')
     except Stop as e:
         say(f'STOPPED: {e}')

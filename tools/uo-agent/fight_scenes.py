@@ -10,6 +10,11 @@ import sys
 import time
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 import fight  # noqa: E402
+import tempfile  # noqa: E402
+
+# the trapped-pouch record is the real one in ~/claude/uo-agent-work/combat: the scenes use a scratch copy (their
+# made-up pouches 0xPOUCH1/2 ended up in the real file, and door.retrap looked for them, 2026-11-08)
+fight.door.POUCHES = os.path.join(tempfile.mkdtemp(), 'pouches.json')
 
 def mob(serial, name, x, y, war=False, hits=25):
     # war: it has targeted him, which shows as notoriety Criminal (war mode never comes on)
@@ -40,11 +45,11 @@ fight.time.sleep = lambda s: None
 fight.say = lambda t: None
 fight.row = lambda **k: None
 
-def run(name, me, mobs, setup=None):
+def run(name, me, mobs, setup=None, front=False):
     global acts
     scene['me'] = me; scene['mobs'] = {m['serial']: m for m in mobs}
     fight._last_walk.update(p=None, t=0.0)  # each scene starts fresh (no walk from the one before)
-    f = fight.Fight(10)
+    f = fight.Fight(10, front=front)
     f.positions = [(me['x'], me['y'])] * 3  # he has been standing here (casting needs that)
     if setup: setup(f)
     acts = []
@@ -102,6 +107,16 @@ run('after the fight, mana full: home', me, [], setup=after)
 # killing one with spells (nothing to set it on): an ogre 5 off: a getaway first, no spell
 run('killing an ogre, it is 5 off: away first', me, [mob('0xB', 'an ogre', 1795, 1430, True)],
     setup=lambda f: setattr(f, 'killing', '0xB'))
+
+# home from town (trips.py, --front): Recall lands him at 1757,1419; only what's in front of the tower is dealt with
+landed = {'x': 1757, 'y': 1419, 'z': 0, 'hits': 100, 'mana': 75, 'stamina': 25}
+run('front: nothing about: home at once', landed, [], front=True)
+run('front: dire wolf 25 off the door, not after him: left be, home', landed, [mob('0xD', 'a dire wolf', 1781, 1430)], front=True)
+run('front: ogre 8 off the door, not after him: drawn', landed, [mob('0xB', 'an ogre', 1764, 1421)], front=True)
+run('front: dire wolf after him 3 off as he lands: away first', landed, [mob('0xD', 'a dire wolf', 1760, 1420, True)], front=True)
+run('front: dire wolf 25 off but coming at him: dealt with', landed, [mob('0xD', 'a dire wolf', 1781, 1430, True)], front=True)
+run('front: after the fight, mana 40, nothing near: home, no meditating outside', dict(landed, mana=40), [],
+    setup=after, front=True)
 
 # looting onto a stack of the same kind in his pack (17:10:46: the orc's gold merged into his gold, the bridge stopped)
 pack_items = [{'serial': '0xG', 'graphic': '0x0EED', 'hue': 0, 'amount': 158},
@@ -222,7 +237,7 @@ gold = {'serial': '0xI1', 'graphic': '0x0EED', 'hue': 0, 'amount': 41, 'type': '
 hammer = {'serial': '0xI2', 'graphic': '0x1439', 'hue': 0, 'type': 'war hammer'}
 loot_scene('corpse 2 off: ride, then one item a look', (1790, 1430), [gold, hammer])
 loot_scene('a wolf 4 from the corpse: nothing', (1790, 1431), [gold], [mob('0xW', 'a dire wolf', 1793, 1434)])
-loot_scene('next to the corpse: one item a look, then done', (1790, 1431), [gold, hammer])
+loot_scene('next to the corpse: the gold, not the hammer, then done', (1790, 1431), [gold, hammer])
 
 # the gargoyle between him and the panther (18:33): round it toward the panther, not straight through or away
 fight.ASYNC = True

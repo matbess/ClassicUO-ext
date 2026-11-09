@@ -12,6 +12,9 @@ import sys
 import time
 sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 import fight  # noqa: E402
+import tempfile  # noqa: E402
+
+fight.door.POUCHES = os.path.join(tempfile.mkdtemp(), 'pouches.json')  # never the real record
 fight.ASYNC = '--bridge8' in sys.argv
 
 world = {}

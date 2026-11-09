@@ -53,11 +53,11 @@ back on its own spot.
   that): `"pauseForPeople": false` in his rules.
 - **Full speed** (the user, 2026-11-05: pacing is for mining only; root AGENTS.md): 1.1 s between requests, no
   breaks, no waits added in scripts.
-- **In town at the vendor** (only briefly): if anyone who isn't a known NPC is about, cast **Invisibility** on himself,
-  then work out while invisible whether they're an NPC (the fidget animations the guard already learns NPCs by) or a
-  player. An NPC: carry on. A player: recall back to the tower and go inside.
-- **The tower door**: unlocking and re-locking it, and what to do about a monster near it, are still to be worked out
-  with the user.
+- **In town at the vendor** (the user, 2026-11-08, replacing the Invisibility idea of 11-05): a player shows up ->
+  recall home at once (then deal with the creatures at the door as always), and once inside wait **15 minutes** before
+  trying the vendor again.
+- **The tower door** and the creatures in front of it: COMBAT.md (door.py, fight.py); coming home from town is in
+  "Vendor trips" below.
 
 ## The tower (map 0)
 
@@ -101,7 +101,8 @@ One loop, no phases. Each time round, the first of these that applies:
    done (with how many maps it lost).
 3. **Nothing left to draw**: a vendor trip now, if there are drawn maps to sell; otherwise wait for the vendor.
 
-**Buy out first, then sell** (the user, 2026-11-05: it's part of the trick; if he isn't bought out first, he won't
+**Buy out first, then sell** (the user, 2026-11-05, and again 2026-11-08 after Claude got it backwards; see "Vendor
+trips" below: "sell first, then buy" is only the order *within* a sell trip; it's part of the trick; if he isn't bought out first, he won't
 stock as many blank maps after you sell him the completed ones). With the 125-item limit that takes separate trips:
 - **Buy trip** (first thing after each restock): Clem goes with an empty pack (about 105 free places) and buys every
   blank map the vendor has. More than fit (his stock grows by about 10 an hour): more buy trips, all before any sell
@@ -257,16 +258,93 @@ Needs: Clem's pack cleared to about 20 items, and 5 empty bags on the third floo
 - `/skill` waits for a system message or a cursor, and a menu is neither, so it returns only after its timeout (about
   3 s) each time. For a later build: count a menu as the skill's answer.
 
+## Vendor trips (2026-11-08, trips.py, bridge 12)
+
+The user, 2026-11-08: "It's time to do that." Answers, in their words where it matters:
+- **Ocllo**: "I put a rune to ocllo maps in clems bag": 0x408F8282, loose in his reagent bag. The tower rune
+  0x406EDAD9 lands him at 1757,1419, just outside the front door.
+- **The mapmaker**: "there will be more than 1 npc in the building and you need to find the vendor with the title
+  called 'mapmaker' and go near them and say their name followed by buy/sell. For example 'Cador buy' 'Cador sell'."
+- **The trick** (the user, correcting Claude: "I told you a bunch of times, there's a trick to this"): "You BUY all
+  his blank maps first (to make him have 0 maps). After that is when you sell all of your drawn maps. These should be
+  split up into separate trips because he might be selling a lot of blanks. So you take 1 (or more ...) trip(s) with
+  an empty bag to buy all of the blank maps (20-95 of them at a time). Bring them back, put them away. Then take up
+  to 95 drawn maps to the same npc who now has 0 blank maps and you sell all of the drawn ones. When you are done
+  selling the NPC will stock all of those drawn maps as new blank maps ... Now you buy all those blank maps back ...
+  Then you can do it again but the 2nd time you don't have to go to buy because you already know the npc is empty
+  and has no blank maps (he won't get more for about an hour) ... But each time you start this process over you
+  have to begin the process by going to the npc and buying out all blank maps first."
+- **Reagents**: "Always check that you are full of reagents (at least 20 of each) before leaving to the npc"
+  (restock.py: any below 25 -> restock to full).
+- **Gold**: "Clem should carry 300 gold when he goes to town. I put 5000 gold in the top left chest next to the stairs
+  (bottom level)": 0x4058ABA9 at 1752,1402,14 (the chest wall by the stairs, 1752-1753 x z 6/10/14; the restock chest
+  0x40746D31 is the one under it).
+- **How many**: "not more than X number of maps at a time (how ever many he can fit, his limit is 125 items ...)".
+  With his own 22 items, his gold and the bag, 100 drawn maps fit and all 100 come back as blanks.
+- **Players in town**: "just recall home (then deal with the mobs) and when you're in the tower wait 15 minutes
+  before trying to go back to the npc again."
+- **Coming home**: "When you recall back you will immediately have to be running code that looks for enemies and
+  provokes them onto each other. You should handle all of the enemies until there are no more in front of the tower
+  before you attempt to enter the tower ... The code that does the fighting will need to be part of the same code
+  that recalls back to the tower so there's no delay": trips.py runs fight.py's Fight (front mode, COMBAT.md) the
+  moment the Recall lands, in the same process.
+- **Looting**: "You don't have to loot anything except for the gold outside of the tower. Only loot the gold."
+- **Empty bags** for bought-out blanks: "we have more empty bags. I can put more bags up there if it's needed":
+  trips.py takes any empty bag on the 3rd floor's west side as a blank bag (0x409397A3 at 1752,1403,46 was the first)
+  and stops with "empty bags needed" when there's no room left for a buyout.
+
+**trips.py** (`python3 -I trips.py run [--trips N] [--buyout]`, `trips.py status`; state in
+~/claude/uo-agent-work/carto: vendor.json, visits.jsonl, trips.log):
+- A buyout is due when the vendor isn't known to be empty, or 55 minutes after his last buyout (his hour); else a
+  sell trip. `--buyout` forces one.
+- Inside first: a sell trip picks up the next completed bag (3rd floor overflow first), then on the ground floor:
+  gold made up to 300, restock.py, door.retrap(), a heal if hurt, meditation to 90 mana, mounted.
+- Recall to Ocllo. Anyone human in sight who isn't known to be an NPC is single-clicked once: a title ("the
+  mapmaker", "the guard") makes them an NPC (kept in vendor.json; the bridge's learned fidgeters and yellow,
+  invulnerable ones count too); anyone else is a player: home, and 15 minutes inside.
+- At the mapmaker (walked up to within 2): "<name> buy" first every time. A buy trip buys every blank that fits in
+  the pack, the gold covers and the bags at home have room for; all of them bought means he's bought out (the time
+  is kept). A sell trip with blanks in his stock means he restocked early: nothing is sold, the bag goes home and a
+  buyout comes next. Otherwise "<name> sell" every drawn map (by name, never a blank), "<name> buy" them all back.
+  Every visit is logged (stock, prices, bought, sold, gold).
+- Magic Reflection, Recall home, fight (front mode), in through the door, parked; the blanks into the bag he sold
+  from (a blank bag now, back on its spot) or into blank bags with room; gold back to 300.
+- Bridge 12 (cuo-agent29): `/shop?vendor=&mode=buy|sell` says "<his name> buy|sell" to a vendor whose single-click
+  title the rules allow ("vendors": ["mapmaker"]) and returns his window; `GET /shop`; `/buy` and `/sell` with
+  `items=SERIAL:AMOUNT,...`, only the rules' "goods" (0x14EB) and at most "spend" gold; none of them halts the bridge
+  when nobody answers (that would strand him in town), and neither does single-clicking a person.
+
+**Learned on the first trips (2026-11-08 18:48-19:20):**
+- The runes are found by name at the start: the Ocllo Maps rune is 0x408F827E ("a recall rune for Ocllo Maps"); his
+  tower rune is "Outpost" (0x406EDAD9); 0x408F8282 is unmarked ("That rune is not yet marked." on the first try).
+  After a login the reagent bag (where they are) has to be opened first.
+- The rune lands him at 3637,2633 in the shop. NPCs about: Cador, Cora, Lady Melva the town crier, Thurston the
+  shepherd, Emanuel the Harbor Master, Ayela the artist (vendor.json keeps them).
+- **A single click shows only an NPC's name here** ("Cador"); the title is in the **paperdoll** ("Cador the
+  mapmaker"; a player's reads "Bob" or "The Glorious Lord Bob, Grandmaster Mage"). The bridge's `/paperdoll` asks
+  for it with a plain double-click on the person (the client's paperdoll flag 0x80000000 makes this server show the
+  character's own) and closes it again. The client forgets the title once he leaves Ocllo, so it's looked at again
+  every visit (the bridge deals only with a vendor whose title it knows).
+- **The server sells only 5 items at a time** ("You may only sell 5 items at a time!"; the user: "sell over and
+  over"): "Cador sell", 5 maps, again, until he has none (about 40 s for 55). Cador wanders about the shop: Clem walks
+  back up to him before every request.
+- Prices: blank maps 3 gold to buy, drawn maps 3 gold to sell. **The trick works**: 55 drawn maps sold, his stock
+  of blanks went from 0 to 55, all bought back (19:20). He also sells 10 each of many drawn local maps ("Map Of
+  Britain", "Map Of The World", ...): left alone. The first buyout (18:58) found 20 blanks.
+- **Razor clicks taken for the user**: Razor's AutoSearch double-clicks every bag that lands in his pack, and its
+  AutoOpenCorpses a corpse he lands next to (sent before the client knows the corpse, so the bridge's "a corpse isn't
+  the user" check misses it). The user keeps both on (AutoSearch feeds their counters): `fight.razor_click` resumes
+  exactly those (the one command sent since is that double-click: on a corpse, or on the bag just dropped into his
+  pack within a second); anything else waits for the user.
+
 ## What the bridge can't do yet (for the next client build, together with the miners' bridge 5)
 
 Bridge 6 (cuo-agent19, 2026-11-05) has menus, gumps, the target cursor, skills and an event log (`uo record`): the
 gump recorder and the cartography menu are done. Still to come:
 
-- **Vendors**: read the buy and sell windows, buy, sell (the client already has the packets: Send_BuyRequest,
-  Send_SellRequest).
-- **Invisibility on himself**: /cast only aims at things the character carries.
+- ~~Vendors~~: bridge 12 (2026-11-08, above).
 - Count the server's "I can't reach that." (and other refusals spoken by the character) as an answer, not silence.
-- **Doors**: open and close, lock and unlock with a key.
+- ~~Doors~~: bridge 7 (COMBAT.md).
 - Maybe the runebook's gump (the vendor runes are in "Map Makers and Ships"); loose runes work with /cast today.
 - Belt and braces: a guard that hears another bridge's alarm should act on it only if that character is a partner.
 
@@ -301,6 +379,6 @@ gump recorder and the cartography menu are done. Still to come:
 
 1. Done 2026-11-06: every blank drawn (Progress). Clem is paused until the user says what's next.
 2. Fold draw.py and work.py into carto.py once the other agent is done with the code.
-3. Selling (not yet: the user, 2026-11-06) needs Clem able to fight first: Recall home lands him outside the front
-   door among creatures (COMBAT.md; bridge 7 has the doors, creature targets and spells). Still to add: the vendor
-   (buy and sell gumps); then the user shows the vendor rune and the gold chest, and the vendor trips get written.
+3. 2026-11-08: vendor trips written (trips.py, bridge 12, above). First runs watched closely: where the Ocllo rune
+   lands (then narrow his Ocllo area to the shop), the shop's NPCs and their titles, the names in the buy and sell
+   windows, prices, and the first fight at the door coming home.

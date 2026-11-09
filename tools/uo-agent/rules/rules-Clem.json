@@ -19,8 +19,16 @@
     // never north, west or north-west of the tower: toward the road and other players (the user, 2026-11-06);
     // south-west is fine: west of x 1745 only south of y 1430
     { "name": "outside", "box": [1745, 1414, 1830, 1485], "z": [-20, 40] },
-    { "name": "outside south-west", "box": [1715, 1430, 1745, 1485], "z": [-20, 40] }
+    { "name": "outside south-west", "box": [1715, 1430, 1745, 1485], "z": [-20, 40] },
+    // Ocllo, the mapmaker's shop (trips.py, the user, 2026-11-08: the "Ocllo maps" rune in his reagent bag). Wide
+    // for the first visits: narrowed to the shop and the way to it once the rune's spot is known
+    { "name": "Ocllo", "box": [3550, 2400, 3850, 2750], "z": [-30, 60] }
   ],
+  // vendors (bridge 12): only the mapmaker ("Cador the mapmaker": the user, 2026-11-08, several NPCs in the shop; say
+  // his name and buy or sell), only maps (blank and drawn, 0x14EB), and never more than this much gold at once
+  "vendors": ["mapmaker"],
+  "goods": ["0x14EB"],
+  "spend": 3000,
   // fights (bridge 7, COMBAT.md): skills and spells at creatures anybody may attack (never a person or a pet) and
   // at himself, and walks that don't wait
   "fight": true,

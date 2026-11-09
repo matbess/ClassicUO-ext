@@ -111,8 +111,9 @@ fight. Nothing goes to town until fighting works.
   pair fighting, spells only at a caster, at the stronger of an uneven pair before it's freed, or at one already
   down to 40% (CAST_WHEN); otherwise he meditates (mana not full) or waits. Killing with spells all the way is for
   a lone one with nothing to set it on.
-- **Loot** the corpses if he's able to (the user, 2026-11-06; they took everything: a war hammer, a white potion,
-  gold, with the client's grid loot). fight.py, once the fight is over and nothing is coming: every corpse that fell
+- **Loot only the gold** (the user, 2026-11-08: "You don't have to loot anything except for the gold outside of the
+  tower. Only loot the gold"; on 2026-11-06 they had taken everything: a war hammer, a white potion, gold, with the
+  client's grid loot). fight.py, once the fight is over and nothing is coming: every corpse that fell
   during the fight within 10 tiles, never a person's ("corpse of ..."): ride next to it, open it, move everything
   into his backpack.
 - **Meditate** when mana is low and every creature is busy fighting.
@@ -499,6 +500,29 @@ door (each kept until reached), then `door.go_in`. Time up (10 min), interrupted
 `fight_scenes.py` checks single decisions; `fight_sim.py` runs them over time in a made-up world (Clem riding to his
 spot, creatures coming once they've turned) and counts his walks and reversals: run both after changing fight.py.
 
+## Home from town (2026-11-08, trips.py; fight.py --front)
+
+The user: "When you recall back you will immediately have to be running code that looks for enemies and provokes them
+onto each other. You should handle all of the enemies until there are no more in front of the tower before you
+attempt to enter the tower ... The code that does the fighting will need to be part of the same code that recalls
+back to the tower so there's no delay in recalling back and scanning for mobs and fighting and taking actions because
+they could be right next to you." trips.py casts Recall on the tower rune (lands at 1757,1419) and, in the same
+process, the moment the bridge says he has moved, runs `fight.Fight(10, front=True)`:
+- everything as in any fight (distance first, provoke, keep pairs even, heal, pouch), but only creatures within
+  FRONT_RANGE (15) of the front door are drawn; nothing further out is looked for (no lookout rides); one coming at
+  him from anywhere is dealt with as always;
+- nothing (left) in front of the tower: in at once (door.go_in: locked, closed, parked, pouches re-trapped);
+- after a fight: the gold only, then in; no meditating outside (he does that inside before the next trip);
+- his pack is nearly full of maps then (125 items): gold merges onto his stack, so it fits; nothing else is taken.
+- before going in, the gold from any corpse within FRONT_RANGE of the door, earlier kills too (the user, 2026-11-08:
+  a skeleton he killed 19 tiles off was left with its gold, "you walked over the skeleton a bunch"; LOOT_RANGE is 24
+  now, as far as the bridge sees);
+- **a creature that followed him in**: after every way in (door.go_in) the tower is checked (x 1750-1763, y
+  1402-1413, every floor) and any wild creature there gets "remove thyself" and a click, which ejects it (the user,
+  2026-11-08: "Any time you enter the tower you need to check if a monster came inside"); one still inside stops the
+  run.
+`python3 -I fight.py --front` does the same from outside by hand. fight_scenes.py has the front scenes.
+
 ## Open items
 
 - "remove thyself" for creatures on the front steps: add to "say", and answer its cursor with the creature.
@@ -506,4 +530,4 @@ spot, creatures coming once they've turned) and counts his walks and reversals: 
 - Re-trapping pouches after a fight (Magic Trap, 13) is left to the user.
 - fight.py hasn't yet finished a real provoke-and-kill: the next tries will tell how its leading, spells and
   thresholds work out; fights.jsonl's casts give the damage per spell.
-- Town trips (selling maps, CARTO.md) come after fighting works.
+- Town trips: trips.py (CARTO.md, "Vendor trips"), from 2026-11-08.
