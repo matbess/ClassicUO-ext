@@ -57,7 +57,9 @@ def say(text):
 
 
 def blanks(bag):
-    return len(uo.call(info, 'GET', '/contents', serial=bag, depth=1)['items'])
+    """Maps left in the bag in his pack. After a login (the nightly reboot) the client knows nothing inside bags and
+    an unopened bag would read as empty: carto.contents opens it first."""
+    return len(carto.contents(bag))
 
 
 def loose_maps():
