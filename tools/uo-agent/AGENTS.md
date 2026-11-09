@@ -107,7 +107,8 @@ column 4, miscellaneous (crystal balls and other odds and ends); the gems chest 
 **Crates and the rest:**
 - Potion crates: a stack of six at 1758,1404 (z 26 up: heal, cure, refresh, agility, strength, poison) and
   explosion at 1758,1405. One mixed pile each (strengths are hidden).
-- By the door, a stack of six at 1758,1411: smelting 6 (bottom), 5, 1, 2, 3, 4 (top). They hold about 400 stones
+- By the door, a stack of six at 1758,1411: smelting 6 (bottom), 1, 3, 4, 5, 2 (top) since 2026-11-08 (the user
+  restacked them). They hold about 400 stones
   each (not locked down; the user won't lock them, since the metal gets smelted soon), roughly 55-75 metal pieces.
 - Trash barrel at 1758,1410: deletes after 3 minutes, or at once on the 50th item.
 - New backpacks crate at 1763,1405: empty bags for sorting, and where emptied loot bags go.
