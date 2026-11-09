@@ -427,6 +427,11 @@ files further: they apply at once, without a new build.
   The first restart (04:20) stopped: the server was still slow, and the name of a rune came as a Label 28 s
   after the bridge gave up, which the lag check didn't count. It now takes a late Label for the serial whose name
   was asked; the second restart, a minute later, went through.
+- **Server down 2026-11-09 06:41** (not the nightly reboot): the server reset the connection after 2 h 22 min and
+  refused new ones for about 4 minutes; the loop stopped with "the game is not responding". Back at 06:45 with no
+  rollback: Icepick on foot and in sight where he had been digging (mounted and hidden at once, Hiding on the
+  second try), Burgers with the shovels and the 39 iron of the last handoff. The loop picked up at block 36 with
+  nothing to correct.
 - **A tile outside the area** (2026-11-05 09:38): on the long straight stretch to waypoint 31 (1101,1594 to
   1101,1649, along the area's west edge at x 1100) the client's path finder stepped Icepick to 1099,1649. The
   bridge stops every walk the moment it sees him outside the area, even one heading back in, so the replans and
