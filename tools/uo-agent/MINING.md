@@ -499,6 +499,10 @@ How it works:
 - Safety: below half his hits he stays hidden until he has half back before digging on, and a third creature attack
   within 10 minutes (`CREATURE_STRIKES`) leaves both hidden and stops the loop for the user (no guards there, or
   something the guards don't kill).
+- **Tested for real at 17:30:58, the first run on cuo-agent28**: the same water elemental hit Icepick (100 to 93) at
+  1101,1649. In the same instant he said "Guards!" and the guard James came, "You see James attacking a water
+  elemental!", "Thou hast suffered thy punishment, scoundrel." He rode 9 tiles off and hid; the elemental was gone
+  at the first look, and he carried on at 17:31:28 with 94/100.
 - Not used for mining: bridge 11 can also raise the alarm when a creature within `"creatures"` tiles turns grey, or
   for an `"avoid"` list of kinds. The user turned that down (an early getaway means it never hits him, so the guards
   never kill it and it keeps wandering about the route); both are left out of the rules.
