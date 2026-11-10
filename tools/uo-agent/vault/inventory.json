@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-10T00:45:53-0800",
+ "updated": "2026-11-10T01:12:16-0800",
  "wall": [
   {
    "name": "swords",
@@ -1232,53 +1232,7 @@
     {
      "name": "gems",
      "marker": null,
-     "items": [
-      {
-       "name": "citrines",
-       "amount": 17,
-       "graphic": "0x0F15"
-      },
-      {
-       "name": "sapphires",
-       "amount": 17,
-       "graphic": "0x0F19"
-      },
-      {
-       "name": "tourmalines",
-       "amount": 16,
-       "graphic": "0x0F2D"
-      },
-      {
-       "name": "amethysts",
-       "amount": 15,
-       "graphic": "0x0F16"
-      },
-      {
-       "name": "diamonds",
-       "amount": 15,
-       "graphic": "0x0F26"
-      },
-      {
-       "name": "emeralds",
-       "amount": 15,
-       "graphic": "0x0F10"
-      },
-      {
-       "name": "pieces of amber",
-       "amount": 14,
-       "graphic": "0x0F25"
-      },
-      {
-       "name": "star sapphires",
-       "amount": 13,
-       "graphic": "0x0F21"
-      },
-      {
-       "name": "rubies",
-       "amount": 12,
-       "graphic": "0x0F13"
-      }
-     ]
+     "items": []
     }
    ],
    "loose": []
