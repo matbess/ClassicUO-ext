@@ -49,6 +49,9 @@ GEMS = ['0x0F25', '0x0F16', '0x0F15', '0x0F26', '0x0F10', '0x0F13', '0x0F19', '0
 GOLD = {'0x0EED', '0x0EEE', '0x0EEF'}
 ORE = {'0x19B7', '0x19B8', '0x19B9', '0x19BA'}  # iron ore piles, left in the loot by accident: to smelting
 HIDES = {'0x1078', '0x1079'}  # piles of hides: cut into leather like the leather armour
+LOGS = {'0x1BDD', '0x1BDE', '0x1BDF', '0x1BE0', '0x1BE1', '0x1BE2'}  # made into boards with Johnny's saw
+BOARDS = {'0x1BD7', '0x1BD8', '0x1BD9', '0x1BDA'}  # a pile in the supplies chest (the user, 2026-11-09)
+SAWS = ('0x1034', '0x1035', '0x1028', '0x1029')  # saw and dovetail saw; the user keeps one in his backpack
 SUPPLIES = {'0x0F0E', '0x1067', '0x1068', '0x1081', '0x1082', '0x1766', '0x1767', '0x0EF3', '0x14FC',
             '0x0F3F', '0x1BFB', '0x0E21', '0x0EE9', '0x1BD1'}  # bottles, leather, cloth, blank scrolls, lockpicks, arrows,
                                                                  # bolts, bandages, feathers
@@ -247,6 +250,61 @@ def cut_up(serials, inv):
         for item in call('GET', '/contents', serial=BACKPACK)['items']:
             if item['serial'] not in before and item['serial'] != scissors:
                 say(f"{item['type']} x{item.get('amount', 1)} -> supplies ({stack(item, c)})")
+
+
+def menu_answer(answer, title):
+    """The menu called title from an answer to /use or /menu, waiting up to 30 s for a late one (as smith.py)."""
+    for second in range(31):
+        menus = [d for d in answer.get('dialogs', []) if d['kind'] != 'gump'
+                 and title in (d.get('title') or '').lower()]
+        if menus:
+            return menus[-1]
+        if second < 30:
+            time.sleep(1)
+            answer = call('GET', '/gumps')
+    raise uo.BridgeError(0, f'no "{title}" menu came')
+
+
+def menu_choose(menu, name):
+    index = next((i['index'] for i in menu['items'] if i['name'].split(':')[0].strip().lower() == name), None)
+    if index is None:
+        raise uo.BridgeError(0, f'no "{name}" in the menu: ' + ', '.join(i['name'] for i in menu['items']))
+    return call('POST', '/menu', serial=menu['serial'], id=menu['id'], index=index)
+
+
+def make_boards(serials, inv):
+    """Logs into boards with the saw in Johnny's backpack (the user, 2026-11-09): saw, "Other", "board" turns a whole
+    pile into boards at once ("You create the item."). Carpentry needs no skill for boards. The boards go on their pile
+    in the supplies chest. With no saw, the logs stay in their loot bags."""
+    if not serials:
+        return
+    CONTENTS.pop(BACKPACK, None)
+    saw = next((i['serial'] for i in learn(BACKPACK) if i['graphic'] in SAWS), None)
+    if saw is None:
+        say(f"NO SAW in Johnny's backpack: {len(serials)} piles of logs are left in their loot bags")
+        return
+    for serial in serials:
+        amount = inv[serial].get('amount', 1)
+        move(serial, BACKPACK)
+        for attempt in range(5):  # a failed craft may leave some logs
+            answer = call('POST', '/use', serial=saw)
+            answer = menu_choose(menu_answer(answer, 'what type of item'), 'other')
+            menu_choose(menu_answer(answer, 'what do you want to make'), 'board')
+            for _ in range(15):
+                time.sleep(1)
+                if not any(i['serial'] == serial for i in call('GET', '/contents', serial=BACKPACK)['items']):
+                    break
+            else:
+                continue
+            break
+        else:
+            raise uo.BridgeError(0, f'logs {serial} are still in the backpack after 5 tries')
+        say(f'{amount} logs -> boards')
+    c = chest('supplies')
+    learn(c)
+    for item in call('GET', '/contents', serial=BACKPACK)['items']:
+        if item['graphic'] in BOARDS:
+            say(f"boards x{item.get('amount', 1)} -> supplies ({stack(item, c)})")
 
 
 GEM_BAG = {}
@@ -455,7 +513,7 @@ def main():
         set(plan.get('sets', [])) | set(plan.get('smelt', []))
 
     # ---- stackables ----
-    hides = []
+    hides, logs = [], []
     for serial, item in inv.items():
         if serial in done:
             continue
@@ -487,6 +545,12 @@ def main():
             say(f"gold x{item.get('amount', 1)} -> needs your decision ({stack(item, c)})")
         elif g in HIDES:
             hides.append(serial)
+        elif g in LOGS:
+            logs.append(serial)
+        elif g in BOARDS:
+            c = chest('supplies')
+            learn(c)
+            say(f"boards x{item.get('amount', 1)} -> supplies ({stack(item, c)})")
         elif g in ORE:
             c = room_in('smelting')
             say(f"iron ore x{item.get('amount', 1)} -> {labels().get(c)} ({stack(item, c)})")
@@ -506,6 +570,9 @@ def main():
             say(f"{item['type']} -> {kind or 'trash'}")
         else:
             say(f"left in the loot (not in the plan): {names.get(serial, item['type'])} {serial}")
+
+    # ---- logs into boards; boards to supplies ----
+    make_boards(logs, inv)
 
     # ---- cut leather and cloth; results to supplies ----
     cut_up(plan.get('cut', []) + hides, inv)

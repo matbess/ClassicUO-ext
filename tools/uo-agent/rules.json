@@ -10,8 +10,8 @@
   // cut cloth on the floor is decoration
   "neverTouch": ["0x1766", "0x1767"],
 
-  // tools that may be used from the backpack without holding them: scissors (both facings)
-  "useFromBackpack": ["0x0F9E", "0x0F9F"],
+  // tools that may be used from the backpack without holding them: scissors, saw and dovetail saw (both facings each)
+  "useFromBackpack": ["0x0F9E", "0x0F9F", "0x1034", "0x1035", "0x1028", "0x1029"],
 
   // characters that don't pause the agent when they're in the room
   "ignorePeople": [],

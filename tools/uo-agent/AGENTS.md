@@ -117,8 +117,8 @@ column 4, miscellaneous (crystal balls and other odds and ends); the gems chest 
 - Trash barrel at 1758,1410: deletes after 3 minutes, or at once on the 50th item.
 - New backpacks crate at 1763,1405: empty bags for sorting, and where emptied loot bags go.
 - Spares pouch for ID wands and staves inside the supplies chest (top left). 220 charges on 2026-11-01.
-- Johnny ("Here's Johnny", 0x0003E672): backpack 0x4079CC26 holds the user's scissors (for cutting) and a dagger;
-  leave both. The user plays Johnny too: on 2026-11-08 both were gone, so cutting waited (the skill, "Where rejects go").
+- Johnny ("Here's Johnny", 0x0003E672): backpack 0x4079CC26 holds the user's scissors (for cutting), a saw (logs
+  into boards, from 2026-11-09) and a dagger; leave all three. The user plays Johnny too: on 2026-11-08 both were gone, so cutting waited (the skill, "Where rejects go").
 
 ## Open items (2026-11-01)
 
