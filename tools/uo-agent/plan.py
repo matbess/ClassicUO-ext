@@ -194,9 +194,12 @@ def decide(item, name):
             if p == PROTECTION.index('invulnerability'):
                 return 'keep', ('armour', m)
             return scrap(t), 'below invulnerability'
+        cursed = any(c in n for c in CURSES)  # "ringmail leggings of defense and night eyes" (2026-11-09)
         if (m == 'chain' and p >= PROTECTION.index('fortification')) or \
                 (m in ('plate', 'ring') and p >= PROTECTION.index('hardening')):
-            return 'keep', ('armour', m)
+            return ('decide', 'a keeper with a curse') if cursed else ('keep', ('armour', m))
+        if cursed:  # the user's trash list: never kept as gear they don't mind losing
+            return scrap(t), 'curse'
         return 'limit', 'defense' if p == 0 else 'guarding'  # gear the user doesn't mind losing
     if t in ('torch', 'torches') or t.startswith('jug of cider') or t.startswith('bread loa'):
         return 'trash', 'torch or food'  # the user: torches 2026-11-04, cider and bread 2026-11-07
