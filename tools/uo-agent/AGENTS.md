@@ -80,6 +80,7 @@ user's ClassicUO (Wine)                       this Mac
 | `plan.py BATCHDIR` | 3 | apply the keep rules and write `spec.json`; lists what goes to "needs your decision" |
 | `sortbatch.py BATCHDIR/spec.json` | 4 | do it: new bags and markers, gear into bags, GM sets, trash to the barrel, smelting crates, cutting, scrolls, reagents, gems, potions, supplies; empty loot bags back to the crate; records the chest map |
 | `finish.py` | 5 | ID wand back to the spares pouch, Johnny to the middle of the room |
+| `inventory.py`, `vault/` | 6 | the vault's full inventory (`vault/inventory.json`) for the shared page "The Vault" (`vault/index.html`, published at https://claude.ai/artifact/5nsmouJoGEEEMFdaffrXLP), updated after every sort |
 | `survey.py`, `layout.py` | | open every chest and record the map in `layout.json` (`--known` sends nothing and checks labels against positions); print the map |
 | `tidy.py` | | re-lay a crowded chest's bags in one row with markers under them |
 | `moves.py`, `potions.py` | | a list of moves at the bridge's pace; potions by strength (the server hides strengths) |

@@ -1,0 +1,225 @@
+<title>The Vault</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: a header, the chest wall drawn as it stands (6 columns x 4 rows) with the crates beside it, then every chest's bags in wall order. */
+:root {
+  --bg: #eceef0;
+  --panel: #f8f9fa;
+  --ink: #1d2328;
+  --muted: #5d6772;
+  --line: #d2d8dd;
+  --accent: #85560f;
+  --accent-soft: #f2e5c9;
+  --font-display: "IM Fell English SC", "Iowan Old Style", Georgia, serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121619; --panel: #1a1f23; --ink: #e3e7ea; --muted: #929da7; --line: #2b3339;
+    --accent: #d8a74c; --accent-soft: #3a2f1a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121619; --panel: #1a1f23; --ink: #e3e7ea; --muted: #929da7; --line: #2b3339;
+  --accent: #d8a74c; --accent-soft: #3a2f1a; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.45; }
+.page {
+  max-width: 1180px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+  display: grid; gap: 28px;
+}
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; }
+h1 { font-size: 2.6rem; line-height: 1; letter-spacing: 0.01em; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.05rem; font-family: var(--font-body); font-weight: 600; }
+.eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.num { font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 14px; }
+.sub { color: var(--muted); max-width: 62ch; margin: 0; }
+.totals { display: flex; flex-wrap: wrap; gap: 8px; }
+.total { display: flex; gap: 6px; align-items: baseline; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+.total b { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.search { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.search input {
+  flex: 1 1 260px; min-width: 0; font: inherit; font-size: 1rem; padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--ink);
+}
+.search input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.room { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px; align-items: start; }
+@media (max-width: 860px) { .room { grid-template-columns: minmax(0, 1fr); } }
+.wall-wrap { overflow-x: auto; }
+.wall { display: grid; grid-template-columns: auto repeat(6, minmax(112px, 1fr)); gap: 6px; min-width: 760px; }
+.wall .colhead, .wall .rowhead { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.wall .colhead { text-align: center; padding-bottom: 2px; }
+.wall .rowhead { writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; padding: 0 2px; }
+.chest {
+  display: grid; gap: 2px; align-content: start; min-height: 74px; padding: 8px 9px;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: inherit; text-decoration: none;
+}
+.chest:hover, .chest:focus-visible { border-color: var(--accent); outline: none; }
+.chest .name { font-family: var(--font-display); font-size: 1rem; line-height: 1.15; }
+.chest .count { font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chest.empty { background: transparent; border-style: dashed; }
+.chest.hit { border-color: var(--accent); background: var(--accent-soft); }
+.chest.miss { opacity: 0.45; }
+
+.crates { display: grid; gap: 6px; min-width: 200px; }
+.crate { display: flex; justify-content: space-between; gap: 12px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+.crate .n { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.chests { display: grid; gap: 30px; }
+.chest-section { display: grid; gap: 12px; scroll-margin-top: 16px; }
+.chest-head { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.bags { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.bag { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.bag-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.marker { font-size: 0.8rem; color: var(--muted); }
+ul.items { list-style: none; margin: 0; padding: 0; display: grid; }
+ul.items li { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; border-bottom: 1px dotted var(--line); min-width: 0; }
+ul.items li > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+ul.items li .amt { font-variant-numeric: tabular-nums; color: var(--muted); flex: none; }
+ul.items ul.items { padding-left: 14px; grid-column: 1 / -1; }
+li.nest { display: grid !important; }
+li.nest > .row { display: flex; justify-content: space-between; gap: 12px; }
+.tier { color: var(--accent); font-weight: 600; }
+mark { background: var(--accent-soft); color: inherit; border-radius: 2px; padding: 0 1px; }
+.note { padding: 14px; border: 1px dashed var(--line); border-radius: 6px; color: var(--muted); }
+footer { color: var(--muted); font-size: 0.8rem; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">Here's Johnny's chest room</div>
+    <h1>The Vault</h1>
+    <p class="sub" id="updated">Loading the inventory…</p>
+    <div class="totals" id="totals"></div>
+  </header>
+
+  <div class="search">
+    <input id="q" type="search" placeholder="Find an item: vanquishing, ruby, Recall scroll…" aria-label="Find an item" autocomplete="off">
+    <span class="muted" id="hits"></span>
+  </div>
+
+  <section class="room" aria-label="The chest wall and the crates">
+    <div class="wall-wrap"><div class="wall" id="wall"></div></div>
+    <div class="crates" id="crates"></div>
+  </section>
+
+  <section class="chests" id="chests">
+    <div class="note">The chests' contents appear here once the inventory has loaded.</div>
+  </section>
+
+  <footer id="foot">Opened and counted by Johnny after each sort. Magic levels that matter (vanquishing, power, invulnerability, fortification, hardening) and GM-made pieces are picked out in brass.</footer>
+</div>
+
+<script>
+const ROWS = ['top', '2nd from top', '3rd from top', 'bottom'];
+const TIERS = /\b(vanquishing|power|force|invulnerability|fortification|hardening|exceptional)\b/i;
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => n.toLocaleString('en-US');
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const slug = (s) => 'chest-' + s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+let data = null;
+
+function sum(items) {
+  return items.reduce((t, i) => t + (i.items ? sum(i.items) : i.amount), 0);
+}
+function chestItems(c) {
+  return c.loose.concat(...c.bags.map((b) => (b.marker ? [b.marker] : []).concat(b.items)));
+}
+function show(name, q) {
+  let html = esc(cap(name));
+  html = html.replace(TIERS, (m) => `<span class="tier">${m}</span>`);
+  if (q) {
+    const i = html.toLowerCase().indexOf(esc(q).toLowerCase());
+    if (i >= 0 && !/<[^>]*$/.test(html.slice(0, i))) html = html.slice(0, i) + '<mark>' + html.slice(i, i + esc(q).length) + '</mark>' + html.slice(i + esc(q).length);
+  }
+  return html;
+}
+function matches(item, q) {
+  return item.name.toLowerCase().includes(q) || (item.items || []).some((i) => matches(i, q));
+}
+function list(items, q) {
+  const shown = q ? items.filter((i) => matches(i, q)) : items;
+  if (!shown.length) return '';
+  return '<ul class="items">' + shown.map((i) => i.items
+    ? `<li class="nest"><div class="row"><span>${show(i.name, q)}</span><span class="amt">${fmt(sum(i.items))}</span></div>${list(i.items, q) || '<ul class="items"><li><span class="muted">empty</span></li></ul>'}</li>`
+    : `<li><span>${show(i.name, q)}</span><span class="amt">${i.amount > 1 ? fmt(i.amount) : ''}</span></li>`).join('') + '</ul>';
+}
+
+function render() {
+  const q = $('q').value.trim().toLowerCase();
+  const byPlace = {};
+  data.wall.forEach((c) => { byPlace[c.col + '/' + c.row] = c; });
+  let wall = '<div></div>' + [1, 2, 3, 4, 5, 6].map((n) => `<div class="colhead">col ${n}</div>`).join('');
+  let found = 0;
+  ROWS.forEach((row) => {
+    wall += `<div class="rowhead">${row === '2nd from top' ? '2nd' : row === '3rd from top' ? '3rd' : row}</div>`;
+    for (let col = 1; col <= 6; col++) {
+      const c = byPlace[col + '/' + row];
+      if (!c) { wall += '<div class="chest empty"></div>'; continue; }
+      const items = chestItems(c);
+      const total = sum(items);
+      const hits = q ? items.filter((i) => matches(i, q)).length + c.bags.filter((b) => b.name.toLowerCase().includes(q)).length : 0;
+      found += hits;
+      const cls = ['chest', total ? '' : 'empty', q ? (hits ? 'hit' : 'miss') : ''].join(' ');
+      const count = q ? (hits ? `${hits} match${hits > 1 ? 'es' : ''}` : 'no match') : (total ? `${fmt(total)} item${total > 1 ? 's' : ''}` : 'empty');
+      wall += `<a class="${cls}" href="#${slug(c.name)}"><span class="name">${esc(cap(c.name))}</span><span class="count">${count}${!q && c.bags.length ? ` · ${c.bags.length} bag${c.bags.length > 1 ? 's' : ''}` : ''}</span></a>`;
+    }
+  });
+  $('wall').innerHTML = wall;
+  $('hits').textContent = q ? (found ? `${found} found` : 'Nothing in the vault matches that.') : '';
+
+  $('crates').innerHTML = '<div class="eyebrow">Crates</div>' + data.crates.map((c) => {
+    const n = sum(c.items);
+    const label = c.name.startsWith('potions: ') ? cap(c.name.slice(9)) + ' potions' : 'Empty bags (new backpacks crate)';
+    return `<div class="crate"><span>${esc(label)}</span><span class="n">${fmt(n)}</span></div>`;
+  }).join('');
+
+  $('chests').innerHTML = data.wall.map((c) => {
+    const bagHit = (b) => !q || b.name.toLowerCase().includes(q) || (b.marker && matches(b.marker, q)) || b.items.some((i) => matches(i, q));
+    const bags = c.bags.filter(bagHit).map((b) => {
+      const full = q && b.name.toLowerCase().includes(q) ? '' : q;
+      return `<div class="bag"><div class="bag-head"><h3>${show(b.name, q)}</h3><span class="amt muted num">${fmt(sum(b.items))}</span></div>`
+        + (b.marker ? `<div class="marker">Marker under the bag: ${show(b.marker.name, q)}</div>` : '')
+        + (list(b.items, full) || '<div class="marker">Empty</div>') + '</div>';
+    });
+    const loose = list(c.loose, q);
+    if (q && !bags.length && !loose) return '';
+    if (!q && !c.bags.length && !c.loose.length) {
+      return `<section class="chest-section" id="${slug(c.name)}"><div class="chest-head"><h2>${esc(cap(c.name))}</h2><span class="muted">col ${c.col}, ${c.row} · empty</span></div></section>`;
+    }
+    return `<section class="chest-section" id="${slug(c.name)}"><div class="chest-head"><h2>${esc(cap(c.name))}</h2><span class="muted">col ${c.col}, ${c.row} · ${fmt(sum(chestItems(c)))} items</span></div><div class="bags">`
+      + bags.join('') + (loose ? `<div class="bag"><div class="bag-head"><h3>Loose in the chest</h3></div>${loose}</div>` : '') + '</div></section>';
+  }).join('') || '<div class="note">Nothing in the vault matches that. Try a shorter word, like "ruby" or "plate".</div>';
+}
+
+function header() {
+  const when = new Date(data.updated);
+  $('updated').textContent = `Every chest, bag and crate, counted by Johnny after the last sort: ${when.toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}.`;
+  const chest = (n) => data.wall.find((c) => c.name === n);
+  const total = (n) => (chest(n) ? sum(chestItems(chest(n))) : 0);
+  const potions = data.crates.filter((c) => c.name.startsWith('potions: ')).reduce((t, c) => t + sum(c.items), 0);
+  const bags = data.wall.reduce((t, c) => t + c.bags.length, 0);
+  const parts = [['chests', data.wall.length], ['bags', bags], ['gems', total('gems')], ['reagents', total('reagents')], ['scrolls', total('scrolls')], ['potions', potions]];
+  $('totals').innerHTML = parts.map(([k, v]) => `<span class="total"><b>${fmt(v)}</b><span class="muted">${k}</span></span>`).join('');
+}
+
+fetch('inventory.json', { cache: 'no-store' })
+  .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then((d) => { data = d; header(); render(); })
+  .catch(() => { $('updated').textContent = "The inventory file didn't load. Reload the page to try again."; });
+$('q').addEventListener('input', () => data && render());
+</script>

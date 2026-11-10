@@ -1,0 +1,1735 @@
+{
+ "updated": "2026-11-10T00:45:53-0800",
+ "wall": [
+  {
+   "name": "swords",
+   "col": 1,
+   "row": "top",
+   "bags": [
+    {
+     "name": "exceptional swords",
+     "marker": {
+      "name": "exceptional katana crafted by the UOSA Mafia",
+      "amount": 1,
+      "graphic": "0x13FF"
+     },
+     "items": []
+    },
+    {
+     "name": "knives",
+     "marker": {
+      "name": "surpassingly accurate butcher knife of vanquishing",
+      "amount": 1,
+      "graphic": "0x13F6"
+     },
+     "items": []
+    },
+    {
+     "name": "swords",
+     "marker": {
+      "name": "broadsword of thunder (23 charges)",
+      "amount": 1,
+      "graphic": "0x0F5E"
+     },
+     "items": [
+      {
+       "name": "longsword of force",
+       "amount": 1,
+       "graphic": "0x0F61"
+      },
+      {
+       "name": "scimitar of ghoul's touch and ruin (13 charges)",
+       "amount": 1,
+       "graphic": "0x13B6"
+      },
+      {
+       "name": "surpassingly accurate longsword of ghoul's touch (10 charges)",
+       "amount": 1,
+       "graphic": "0x0F61"
+      },
+      {
+       "name": "surpassingly accurate scimitar of power",
+       "amount": 1,
+       "graphic": "0x13B6"
+      }
+     ]
+    }
+   ],
+   "loose": []
+  },
+  {
+   "name": "axes",
+   "col": 1,
+   "row": "2nd from top",
+   "bags": [
+    {
+     "name": "axes",
+     "marker": {
+      "name": "substantial large battle axe of ghoul's touch (18 charges)",
+      "amount": 1,
+      "graphic": "0x13FB"
+     },
+     "items": [
+      {
+       "name": "eminently accurate pickaxe of feeblemindedness and force (24 charges)",
+       "amount": 1,
+       "graphic": "0x0E86"
+      },
+      {
+       "name": "exceedingly accurate double axe of force",
+       "amount": 1,
+       "graphic": "0x0F4B"
+      },
+      {
+       "name": "large battle axe of force",
+       "amount": 1,
+       "graphic": "0x13FB"
+      },
+      {
+       "name": "pickaxe of power",
+       "amount": 1,
+       "graphic": "0x0E86"
+      },
+      {
+       "name": "substantial, surpassingly accurate double axe of force",
+       "amount": 1,
+       "graphic": "0x0F4B"
+      },
+      {
+       "name": "surpassingly accurate axe of force",
+       "amount": 1,
+       "graphic": "0x0F49"
+      }
+     ]
+    },
+    {
+     "name": "exceptional axes",
+     "marker": {
+      "name": "substantial, accurate pickaxe of evil (27 charges)",
+      "amount": 1,
+      "graphic": "0x0E86"
+     },
+     "items": []
+    },
+    {
+     "name": "pickaxes",
+     "marker": {
+      "name": "exceptional double axe crafted by Lady Brigid James",
+      "amount": 1,
+      "graphic": "0x0F4B"
+     },
+     "items": []
+    }
+   ],
+   "loose": []
+  },
+  {
+   "name": "maces & staves",
+   "col": 1,
+   "row": "3rd from top",
+   "bags": [
+    {
+     "name": "maces & staves",
+     "marker": {
+      "name": "substantial mace of daemon's breath (21 charges)",
+      "amount": 1,
+      "graphic": "0x0F5C"
+     },
+     "items": [
+      {
+       "name": "accurate gnarled staff of force",
+       "amount": 1,
+       "graphic": "0x13F8"
+      },
+      {
+       "name": "maul of power",
+       "amount": 1,
+       "graphic": "0x143B"
+      },
+      {
+       "name": "silver substantial maul of force",
+       "amount": 1,
+       "graphic": "0x143B"
+      }
+     ]
+    }
+   ],
+   "loose": []
+  },
+  {
+   "name": "polearms",
+   "col": 1,
+   "row": "bottom",
+   "bags": [
+    {
+     "name": "polearms",
+     "marker": {
+      "name": "substantial, accurate bardiche of power",
+      "amount": 1,
+      "graphic": "0x0F4D"
+     },
+     "items": []
+    }
+   ],
+   "loose": []
+  },
+  {
+   "name": "fencing",
+   "col": 2,
+   "row": "top",
+   "bags": [
+    {
+     "name": "fencing",
+     "marker": {
+      "name": "surpassingly accurate kryss of ghoul's touch (14 charges)",
+      "amount": 1,
+      "graphic": "0x1401"
+     },
+     "items": [
+      {
+       "name": "pitchfork of vanquishing",
+       "amount": 1,
+       "graphic": "0x0E87"
+      },
+      {
+       "name": "silver spear of mage's bane and force (28 charges)",
+       "amount": 1,
+       "graphic": "0x0F62"
+      },
+      {
+       "name": "substantial spear of weakness and force (28 charges)",
+       "amount": 1,
+       "graphic": "0x0F62"
+      }
+     ]
+    }
+   ],
+   "loose": []
+  },
+  {
+   "name": "archery",
+   "col": 2,
+   "row": "2nd from top",
+   "bags": [
+    {
+     "name": "bows",
+     "marker": {
+      "name": "bow",
+      "amount": 1,
+      "graphic": "0x13B2"
+     },
+     "items": []
+    },
+    {
+     "name": "crossbows",
+     "marker": {
+      "name": "heavy crossbow of daemon's breath (41 charges)",
+      "amount": 1,
+      "graphic": "0x13FD"
+     },
+     "items": [
+      {
+       "name": "heavy crossbow of daemon's breath and force (38 charges)",
+       "amount": 1,
+       "graphic": "0x13FD"
+      },
+      {
+       "name": "surpassingly accurate crossbow of daemon's breath and force (42 charges)",
+       "amount": 1,
+       "graphic": "0x0F50"
+      }
+     ]
+    }
+   ],
+   "loose": []
+  },
+  {
+   "name": "magic wands",
+   "col": 2,
+   "row": "3rd from top",
+   "bags": [
+    {
+     "name": "attack wands",
+     "marker": {
+      "name": "wand of lightning (9 charges)",
+      "amount": 1,
+      "graphic": "0x0DF2"
+     },
+     "items": [
+      {
+       "name": "wand of lightning (5 charges)",
+       "amount": 4,
+       "graphic": "0x0DF5"
+      },
+      {
+       "name": "gnarled staff of lightning (5 charges)",
+       "amount": 3,
+       "graphic": "0x13F8"
+      },
+      {
+       "name": "wand of fireball (8 charges)",
+       "amount": 3,
+       "graphic": "0x0DF4"
+      },
+      {
+       "name": "wand of lightning (7 charges)",
+       "amount": 3,
+       "graphic": "0x0DF5"
+      },
+      {
+       "name": "gnarled staff of fireball (5 charges)",
+       "amount": 2,
+       "graphic": "0x13F8"
+      },
+      {
+       "name": "wand of fireball (11 charges)",
+       "amount": 2,
+       "graphic": "0x0DF2"
+      },
+      {
+       "name": "wand of fireball (6 charges)",
+       "amount": 2,
+       "graphic": "0x0DF3"
+      },
+      {
+       "name": "wand of fireball (7 charges)",
+       "amount": 2,
+       "graphic": "0x0DF3"
+      },
+      {
+       "name": "wand of lightning (18 charges)",
+       "amount": 2,
+       "graphic": "0x0DF4"
+      },
+      {
+       "name": "gnarled staff of fireball (13 charges)",
+       "amount": 1,
+       "graphic": "0x13F8"
+      },
+      {
+       "name": "gnarled staff of fireball (15 charges)",
+       "amount": 1,
+       "graphic": "0x13F8"
+      },
+      {
+       "name": "gnarled staff of fireball (8 charges)",
+       "amount": 1,
+       "graphic": "0x13F8"
+      },
+      {
+       "name": "gnarled staff of fireball (9 charges)",
+       "amount": 1,
+       "graphic": "0x13F8"
+      },
+      {
+       "name": "gnarled staff of lightning (13 charges)",
+       "amount": 1,
+       "graphic": "0x13F8"
+      },
+      {
+       "name": "gnarled staff of lightning (18 charges)",
+       "amount": 1,
+       "graphic": "0x13F8"
+      },
+      {
+       "name": "gnarled staff of lightning (4 charges)",
+       "amount": 1,
+       "graphic": "0x13F8"
+      },
+      {
+       "name": "wand of fireball (10 charges)",
+       "amount": 1,
+       "graphic": "0x0DF4"
+      },
+      {
+       "name": "wand of fireball (17 charges)",
+       "amount": 1,
+       "graphic": "0x0DF2"
+      },
+      {
+       "name": "wand of fireball (4 charges)",
+       "amount": 1,
+       "graphic": "0x0DF5"
+      },
+      {
+       "name": "wand of fireball (5 charges)",
+       "amount": 1,
+       "graphic": "0x0DF5"
+      },
+      {
+       "name": "wand of lightning (11 charges)",
+       "amount": 1,
+       "graphic": "0x0DF2"
+      },
+      {
+       "name": "wand of lightning (14 charges)",
+       "amount": 1,
+       "graphic": "0x0DF2"
+      },
+      {
+       "name": "wand of lightning (16 charges)",
+       "amount": 1,
+       "graphic": "0x0DF4"
+      },
+      {
+       "name": "wand of lightning (4 charges)",
+       "amount": 1,
+       "graphic": "0x0DF2"
+      },
+      {
+       "name": "wand of lightning (8 charges)",
+       "amount": 1,
+       "graphic": "0x0DF4"
+      },
+      {
+       "name": "wand of lightning (9 charges)",
+       "amount": 1,
+       "graphic": "0x0DF3"
+      }
+     ]
+    },
+    {
+     "name": "healing wands",
+     "marker": {
+      "name": "wand of greater healing (4 charges)",
+      "amount": 1,
+      "graphic": "0x0DF4"
+     },
+     "items": [
+      {
+       "name": "wand of greater healing (5 charges)",
+       "amount": 5,
+       "graphic": "0x0DF2"
+      },
+      {
+       "name": "gnarled staff of greater healing (4 charges)",
+       "amount": 2,
+       "graphic": "0x13F8"
+      },
+      {
+       "name": "wand of greater healing (4 charges)",
+       "amount": 2,
+       "graphic": "0x0DF4"
+      },
+      {
+       "name": "gnarled staff of greater healing (6 charges)",
+       "amount": 1,
+       "graphic": "0x13F8"
+      },
+      {
+       "name": "wand of greater healing (2 charges)",
+       "amount": 1,
+       "graphic": "0x0DF5"
+      },
+      {
+       "name": "wand of greater healing (6 charges)",
+       "amount": 1,
+       "graphic": "0x0DF4"
+      },
+      {
+       "name": "wand of greater healing (7 charges)",
+       "amount": 1,
+       "graphic": "0x0DF3"
+      }
+     ]
+    }
+   ],
+   "loose": []
+  },
+  {
+   "name": "bone armour",
+   "col": 2,
+   "row": "bottom",
+   "bags": [],
+   "loose": []
+  },
+  {
+   "name": "plate",
+   "col": 3,
+   "row": "top",
+   "bags": [
+    {
+     "name": "plate arms",
+     "marker": {
+      "name": "durable platemail arms of guarding",
+      "amount": 1,
+      "graphic": "0x1410"
+     },
+     "items": [
+      {
+       "name": "platemail arms of hardening",
+       "amount": 2,
+       "graphic": "0x1410"
+      },
+      {
+       "name": "massive platemail arms of fortification",
+       "amount": 1,
+       "graphic": "0x1410"
+      },
+      {
+       "name": "platemail arms of fortification",
+       "amount": 1,
+       "graphic": "0x1410"
+      }
+     ]
+    },
+    {
+     "name": "plate gloves",
+     "marker": {
+      "name": "platemail gloves of guarding",
+      "amount": 1,
+      "graphic": "0x1414"
+     },
+     "items": [
+      {
+       "name": "platemail gloves of hardening",
+       "amount": 1,
+       "graphic": "0x1414"
+      }
+     ]
+    },
+    {
+     "name": "plate gorgets",
+     "marker": {
+      "name": "platemail gorget of guarding",
+      "amount": 1,
+      "graphic": "0x1413"
+     },
+     "items": [
+      {
+       "name": "platemail gorget of fortification",
+       "amount": 1,
+       "graphic": "0x1413"
+      },
+      {
+       "name": "platemail gorget of hardening",
+       "amount": 1,
+       "graphic": "0x1413"
+      },
+      {
+       "name": "substantial platemail gorget of guarding",
+       "amount": 1,
+       "graphic": "0x1413"
+      }
+     ]
+    },
+    {
+     "name": "plate legs",
+     "marker": {
+      "name": "durable platemail legs of guarding",
+      "amount": 1,
+      "graphic": "0x1411"
+     },
+     "items": [
+      {
+       "name": "durable platemail legs of fortification",
+       "amount": 1,
+       "graphic": "0x1411"
+      },
+      {
+       "name": "platemail legs of hardening",
+       "amount": 1,
+       "graphic": "0x1411"
+      },
+      {
+       "name": "substantial platemail legs of guarding",
+       "amount": 1,
+       "graphic": "0x1411"
+      }
+     ]
+    },
+    {
+     "name": "plate tunics",
+     "marker": {
+      "name": "platemail tunic of invulnerability",
+      "amount": 1,
+      "graphic": "0x1415"
+     },
+     "items": [
+      {
+       "name": "durable female plate of guarding",
+       "amount": 1,
+       "graphic": "0x1C04"
+      },
+      {
+       "name": "substantial female plate of invulnerability",
+       "amount": 1,
+       "graphic": "0x1C04"
+      }
+     ]
+    }
+   ],
+   "loose": []
+  },
+  {
+   "name": "chain & ring + coifs",
+   "col": 3,
+   "row": "2nd from top",
+   "bags": [
+    {
+     "name": "chain leggings",
+     "marker": {
+      "name": "chainmail leggings of guarding",
+      "amount": 1,
+      "graphic": "0x13BE"
+     },
+     "items": [
+      {
+       "name": "chainmail leggings of hardening",
+       "amount": 1,
+       "graphic": "0x13BE"
+      }
+     ]
+    },
+    {
+     "name": "chain tunics",
+     "marker": {
+      "name": "chainmail tunic of guarding",
+      "amount": 1,
+      "graphic": "0x13BF"
+     },
+     "items": [
+      {
+       "name": "chainmail tunic of guarding",
+       "amount": 1,
+       "graphic": "0x13BF"
+      }
+     ]
+    },
+    {
+     "name": "coifs",
+     "marker": {
+      "name": "chainmail coif of guarding",
+      "amount": 1,
+      "graphic": "0x13BB"
+     },
+     "items": [
+      {
+       "name": "chainmail coif of hardening",
+       "amount": 1,
+       "graphic": "0x13BB"
+      }
+     ]
+    },
+    {
+     "name": "ringmail",
+     "marker": {
+      "name": "ringmail leggings of guarding",
+      "amount": 1,
+      "graphic": "0x13F0"
+     },
+     "items": [
+      {
+       "name": "ringmail tunic of guarding",
+       "amount": 2,
+       "graphic": "0x13EC"
+      },
+      {
+       "name": "ringmail tunic of hardening",
+       "amount": 1,
+       "graphic": "0x13EC"
+      },
+      {
+       "name": "substantial ringmail tunic of hardening",
+       "amount": 1,
+       "graphic": "0x13EC"
+      }
+     ]
+    }
+   ],
+   "loose": []
+  },
+  {
+   "name": "leather + caps",
+   "col": 3,
+   "row": "3rd from top",
+   "bags": [],
+   "loose": []
+  },
+  {
+   "name": "studded",
+   "col": 3,
+   "row": "bottom",
+   "bags": [],
+   "loose": []
+  },
+  {
+   "name": "jewellery",
+   "col": 4,
+   "row": "top",
+   "bags": [
+    {
+     "name": "rings",
+     "marker": {
+      "name": "ring of teleporting (4 charges)",
+      "amount": 1,
+      "graphic": "0x108A"
+     },
+     "items": []
+    }
+   ],
+   "loose": []
+  },
+  {
+   "name": "magic clothing",
+   "col": 4,
+   "row": "2nd from top",
+   "bags": [
+    {
+     "name": "footwear",
+     "marker": {
+      "name": "boots of invisibility (36 charges)",
+      "amount": 1,
+      "graphic": "0x170B"
+     },
+     "items": []
+    },
+    {
+     "name": "tunics & shirts",
+     "marker": {
+      "name": "tunic of spell reflection (34 charges)",
+      "amount": 1,
+      "graphic": "0x1FA1"
+     },
+     "items": []
+    }
+   ],
+   "loose": []
+  },
+  {
+   "name": "spare + invulnerability shields",
+   "col": 4,
+   "row": "3rd from top",
+   "bags": [],
+   "loose": []
+  },
+  {
+   "name": "helms",
+   "col": 4,
+   "row": "bottom",
+   "bags": [
+    {
+     "name": "helms",
+     "marker": {
+      "name": "orc helm of guarding",
+      "amount": 1,
+      "graphic": "0x1F0B"
+     },
+     "items": [
+      {
+       "name": "helmet of fortification",
+       "amount": 2,
+       "graphic": "0x140A"
+      },
+      {
+       "name": "bascinet of guarding",
+       "amount": 1,
+       "graphic": "0x140C"
+      },
+      {
+       "name": "durable orc helm of hardening",
+       "amount": 1,
+       "graphic": "0x1F0B"
+      },
+      {
+       "name": "massive norse helm of guarding",
+       "amount": 1,
+       "graphic": "0x140E"
+      },
+      {
+       "name": "orc helm of fortification",
+       "amount": 1,
+       "graphic": "0x1F0B"
+      },
+      {
+       "name": "orc helm of guarding",
+       "amount": 1,
+       "graphic": "0x1F0B"
+      },
+      {
+       "name": "plate helm of hardening",
+       "amount": 1,
+       "graphic": "0x1412"
+      },
+      {
+       "name": "plate helm of invulnerability",
+       "amount": 1,
+       "graphic": "0x1412"
+      }
+     ]
+    }
+   ],
+   "loose": []
+  },
+  {
+   "name": "scrolls",
+   "col": 5,
+   "row": "top",
+   "bags": [
+    {
+     "name": "circle 1 scrolls",
+     "marker": {
+      "name": "Heal scroll",
+      "amount": 1,
+      "graphic": "0x1F31"
+     },
+     "items": [
+      {
+       "name": "Heal scroll",
+       "amount": 10,
+       "graphic": "0x1F31"
+      },
+      {
+       "name": "Weaken scroll",
+       "amount": 10,
+       "graphic": "0x1F34"
+      },
+      {
+       "name": "Feeblemind scroll",
+       "amount": 7,
+       "graphic": "0x1F30"
+      },
+      {
+       "name": "Create Food scroll",
+       "amount": 6,
+       "graphic": "0x1F2F"
+      },
+      {
+       "name": "Magic Arrow scroll",
+       "amount": 6,
+       "graphic": "0x1F32"
+      },
+      {
+       "name": "Reactive Armor scroll",
+       "amount": 5,
+       "graphic": "0x1F2D"
+      },
+      {
+       "name": "Clumsy scroll",
+       "amount": 4,
+       "graphic": "0x1F2E"
+      },
+      {
+       "name": "Night Sight scroll",
+       "amount": 4,
+       "graphic": "0x1F33"
+      }
+     ]
+    },
+    {
+     "name": "circle 2 scrolls",
+     "marker": {
+      "name": "Agility scroll",
+      "amount": 1,
+      "graphic": "0x1F35"
+     },
+     "items": [
+      {
+       "name": "Strength scroll",
+       "amount": 9,
+       "graphic": "0x1F3C"
+      },
+      {
+       "name": "Magic Untrap scroll",
+       "amount": 6,
+       "graphic": "0x1F3A"
+      },
+      {
+       "name": "Cunning scroll",
+       "amount": 5,
+       "graphic": "0x1F36"
+      },
+      {
+       "name": "Magic Trap scroll",
+       "amount": 5,
+       "graphic": "0x1F39"
+      },
+      {
+       "name": "Agility scroll",
+       "amount": 4,
+       "graphic": "0x1F35"
+      },
+      {
+       "name": "Harm scroll",
+       "amount": 4,
+       "graphic": "0x1F38"
+      },
+      {
+       "name": "Cure scroll",
+       "amount": 3,
+       "graphic": "0x1F37"
+      },
+      {
+       "name": "Protection scroll",
+       "amount": 2,
+       "graphic": "0x1F3B"
+      }
+     ]
+    },
+    {
+     "name": "circle 3 scrolls",
+     "marker": {
+      "name": "Unlock scroll",
+      "amount": 1,
+      "graphic": "0x1F43"
+     },
+     "items": [
+      {
+       "name": "Wall of Stone scroll",
+       "amount": 10,
+       "graphic": "0x1F44"
+      },
+      {
+       "name": "Bless scroll",
+       "amount": 9,
+       "graphic": "0x1F3D"
+      },
+      {
+       "name": "Magic Lock scroll",
+       "amount": 9,
+       "graphic": "0x1F3F"
+      },
+      {
+       "name": "Telekinesis scroll",
+       "amount": 6,
+       "graphic": "0x1F41"
+      },
+      {
+       "name": "Poison scroll",
+       "amount": 5,
+       "graphic": "0x1F40"
+      },
+      {
+       "name": "Fireball scroll",
+       "amount": 4,
+       "graphic": "0x1F3E"
+      },
+      {
+       "name": "Teleport scroll",
+       "amount": 4,
+       "graphic": "0x1F42"
+      },
+      {
+       "name": "Unlock scroll",
+       "amount": 2,
+       "graphic": "0x1F43"
+      }
+     ]
+    },
+    {
+     "name": "circle 4 scrolls",
+     "marker": {
+      "name": "Recall scroll",
+      "amount": 1,
+      "graphic": "0x1F4C"
+     },
+     "items": [
+      {
+       "name": "Recall scroll",
+       "amount": 397,
+       "graphic": "0x1F4C"
+      },
+      {
+       "name": "Mana Drain scroll",
+       "amount": 65,
+       "graphic": "0x1F4B"
+      },
+      {
+       "name": "Lightning scroll",
+       "amount": 64,
+       "graphic": "0x1F4A"
+      },
+      {
+       "name": "Arch Cure scroll",
+       "amount": 58,
+       "graphic": "0x1F45"
+      },
+      {
+       "name": "Fire Field scroll",
+       "amount": 58,
+       "graphic": "0x1F48"
+      },
+      {
+       "name": "Arch Protection scroll",
+       "amount": 56,
+       "graphic": "0x1F46"
+      },
+      {
+       "name": "Greater Heal scroll",
+       "amount": 54,
+       "graphic": "0x1F49"
+      },
+      {
+       "name": "Curse scroll",
+       "amount": 53,
+       "graphic": "0x1F47"
+      }
+     ]
+    },
+    {
+     "name": "circle 5 scrolls",
+     "marker": {
+      "name": "Paralyze scroll",
+      "amount": 1,
+      "graphic": "0x1F52"
+     },
+     "items": [
+      {
+       "name": "Poison Field scroll",
+       "amount": 80,
+       "graphic": "0x1F53"
+      },
+      {
+       "name": "Mind Blast scroll",
+       "amount": 65,
+       "graphic": "0x1F51"
+      },
+      {
+       "name": "Incognito scroll",
+       "amount": 64,
+       "graphic": "0x1F4F"
+      },
+      {
+       "name": "Blade Spirits scroll",
+       "amount": 56,
+       "graphic": "0x1F4D"
+      },
+      {
+       "name": "Dispel Field scroll",
+       "amount": 52,
+       "graphic": "0x1F4E"
+      },
+      {
+       "name": "Magic Reflection scroll",
+       "amount": 52,
+       "graphic": "0x1F50"
+      },
+      {
+       "name": "Paralyze scroll",
+       "amount": 52,
+       "graphic": "0x1F52"
+      },
+      {
+       "name": "Summon Creature scroll",
+       "amount": 52,
+       "graphic": "0x1F54"
+      }
+     ]
+    },
+    {
+     "name": "circle 6 scrolls",
+     "marker": {
+      "name": "Explosion scroll",
+      "amount": 1,
+      "graphic": "0x1F57"
+     },
+     "items": [
+      {
+       "name": "Mark scroll",
+       "amount": 131,
+       "graphic": "0x1F59"
+      },
+      {
+       "name": "Invisibility scroll",
+       "amount": 105,
+       "graphic": "0x1F58"
+      },
+      {
+       "name": "Mass Curse scroll",
+       "amount": 68,
+       "graphic": "0x1F5A"
+      },
+      {
+       "name": "Explosion scroll",
+       "amount": 59,
+       "graphic": "0x1F57"
+      },
+      {
+       "name": "Paralyze Field scroll",
+       "amount": 59,
+       "graphic": "0x1F5B"
+      },
+      {
+       "name": "Reveal scroll",
+       "amount": 52,
+       "graphic": "0x1F5C"
+      },
+      {
+       "name": "Dispel scroll",
+       "amount": 44,
+       "graphic": "0x1F55"
+      },
+      {
+       "name": "Energy Bolt scroll",
+       "amount": 42,
+       "graphic": "0x1F56"
+      }
+     ]
+    },
+    {
+     "name": "circle 7 scrolls",
+     "marker": {
+      "name": "Energy Field scroll",
+      "amount": 1,
+      "graphic": "0x1F5E"
+     },
+     "items": [
+      {
+       "name": "Gate Travel scroll",
+       "amount": 138,
+       "graphic": "0x1F60"
+      },
+      {
+       "name": "Polymorph scroll",
+       "amount": 72,
+       "graphic": "0x1F64"
+      },
+      {
+       "name": "Meteor Swarm scroll",
+       "amount": 69,
+       "graphic": "0x1F63"
+      },
+      {
+       "name": "Chain Lightning scroll",
+       "amount": 61,
+       "graphic": "0x1F5D"
+      },
+      {
+       "name": "Mass Dispel scroll",
+       "amount": 61,
+       "graphic": "0x1F62"
+      },
+      {
+       "name": "Energy Field scroll",
+       "amount": 59,
+       "graphic": "0x1F5E"
+      },
+      {
+       "name": "Flamestrike scroll",
+       "amount": 44,
+       "graphic": "0x1F5F"
+      },
+      {
+       "name": "Mana Vampire scroll",
+       "amount": 42,
+       "graphic": "0x1F61"
+      }
+     ]
+    },
+    {
+     "name": "circle 8 scrolls",
+     "marker": {
+      "name": "Energy Vortex scroll",
+      "amount": 1,
+      "graphic": "0x1F66"
+     },
+     "items": [
+      {
+       "name": "Energy Vortex scroll",
+       "amount": 8,
+       "graphic": "0x1F66"
+      },
+      {
+       "name": "Earthquake scroll",
+       "amount": 6,
+       "graphic": "0x1F65"
+      },
+      {
+       "name": "Summon Daemon scroll",
+       "amount": 6,
+       "graphic": "0x1F69"
+      },
+      {
+       "name": "Summon Water Elemental scroll",
+       "amount": 5,
+       "graphic": "0x1F6C"
+      },
+      {
+       "name": "Resurrection scroll",
+       "amount": 4,
+       "graphic": "0x1F67"
+      },
+      {
+       "name": "Summon Air Elemental scroll",
+       "amount": 3,
+       "graphic": "0x1F68"
+      },
+      {
+       "name": "Summon Fire Elemental scroll",
+       "amount": 3,
+       "graphic": "0x1F6B"
+      },
+      {
+       "name": "Summon Earth Elemental scroll",
+       "amount": 2,
+       "graphic": "0x1F6A"
+      }
+     ]
+    }
+   ],
+   "loose": []
+  },
+  {
+   "name": "reagents",
+   "col": 5,
+   "row": "2nd from top",
+   "bags": [],
+   "loose": [
+    {
+     "name": "Ginseng",
+     "amount": 1006,
+     "graphic": "0x0F85"
+    },
+    {
+     "name": "Garlic",
+     "amount": 450,
+     "graphic": "0x0F84"
+    },
+    {
+     "name": "Mandrake Roots",
+     "amount": 256,
+     "graphic": "0x0F86"
+    },
+    {
+     "name": "Sulfurous Ash",
+     "amount": 237,
+     "graphic": "0x0F8C"
+    },
+    {
+     "name": "Nightshade",
+     "amount": 229,
+     "graphic": "0x0F88"
+    },
+    {
+     "name": "Spider's Silk",
+     "amount": 225,
+     "graphic": "0x0F8D"
+    },
+    {
+     "name": "Black Pearls",
+     "amount": 178,
+     "graphic": "0x0F7A"
+    },
+    {
+     "name": "Blood Moss",
+     "amount": 61,
+     "graphic": "0x0F7B"
+    }
+   ]
+  },
+  {
+   "name": "miscellaneous",
+   "col": 5,
+   "row": "3rd from top",
+   "bags": [],
+   "loose": []
+  },
+  {
+   "name": "gems",
+   "col": 5,
+   "row": "bottom",
+   "bags": [
+    {
+     "name": "gems",
+     "marker": null,
+     "items": [
+      {
+       "name": "citrines",
+       "amount": 17,
+       "graphic": "0x0F15"
+      },
+      {
+       "name": "sapphires",
+       "amount": 17,
+       "graphic": "0x0F19"
+      },
+      {
+       "name": "tourmalines",
+       "amount": 16,
+       "graphic": "0x0F2D"
+      },
+      {
+       "name": "amethysts",
+       "amount": 15,
+       "graphic": "0x0F16"
+      },
+      {
+       "name": "diamonds",
+       "amount": 15,
+       "graphic": "0x0F26"
+      },
+      {
+       "name": "emeralds",
+       "amount": 15,
+       "graphic": "0x0F10"
+      },
+      {
+       "name": "pieces of amber",
+       "amount": 14,
+       "graphic": "0x0F25"
+      },
+      {
+       "name": "star sapphires",
+       "amount": 13,
+       "graphic": "0x0F21"
+      },
+      {
+       "name": "rubies",
+       "amount": 12,
+       "graphic": "0x0F13"
+      }
+     ]
+    }
+   ],
+   "loose": []
+  },
+  {
+   "name": "GM armour sets",
+   "col": 6,
+   "row": "top",
+   "bags": [
+    {
+     "name": "GM set 1",
+     "marker": null,
+     "items": [
+      {
+       "name": "exceptional chainmail leggings crafted by Lord Bruche",
+       "amount": 1,
+       "graphic": "0x13BE"
+      },
+      {
+       "name": "exceptional chainmail tunic crafted by Lord Bruche",
+       "amount": 1,
+       "graphic": "0x13BF"
+      },
+      {
+       "name": "exceptional close helmet crafted by Lord Bruche",
+       "amount": 1,
+       "graphic": "0x1408"
+      },
+      {
+       "name": "exceptional platemail gorget crafted by Lord Bruche",
+       "amount": 1,
+       "graphic": "0x1413"
+      },
+      {
+       "name": "exceptional ringmail gloves crafted by Lord Bruche",
+       "amount": 1,
+       "graphic": "0x13EB"
+      },
+      {
+       "name": "exceptional ringmail sleeves crafted by Lord Bruche",
+       "amount": 1,
+       "graphic": "0x13EE"
+      }
+     ]
+    },
+    {
+     "name": "GM set 2",
+     "marker": null,
+     "items": [
+      {
+       "name": "exceptional chainmail leggings crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x13BE"
+      },
+      {
+       "name": "exceptional chainmail tunic crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x13BF"
+      },
+      {
+       "name": "exceptional norse helm crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x140E"
+      },
+      {
+       "name": "exceptional ringmail gloves crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x13EB"
+      },
+      {
+       "name": "exceptional ringmail sleeves crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x13EE"
+      },
+      {
+       "name": "platemail gorget",
+       "amount": 1,
+       "graphic": "0x1413"
+      }
+     ]
+    },
+    {
+     "name": "GM set 3",
+     "marker": null,
+     "items": [
+      {
+       "name": "exceptional chainmail leggings crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x13BE"
+      },
+      {
+       "name": "exceptional chainmail tunic crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x13BF"
+      },
+      {
+       "name": "exceptional norse helm crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x140E"
+      },
+      {
+       "name": "exceptional ringmail gloves crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x13EB"
+      },
+      {
+       "name": "exceptional ringmail sleeves crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x13EE"
+      },
+      {
+       "name": "platemail gorget",
+       "amount": 1,
+       "graphic": "0x1413"
+      }
+     ]
+    }
+   ],
+   "loose": []
+  },
+  {
+   "name": "needs your decision",
+   "col": 6,
+   "row": "2nd from top",
+   "bags": [],
+   "loose": [
+    {
+     "name": "scissors",
+     "amount": 1,
+     "graphic": "0x0F9E"
+    }
+   ]
+  },
+  {
+   "name": "supplies & ID wands",
+   "col": 6,
+   "row": "3rd from top",
+   "bags": [
+    {
+     "name": "ID wands & staves (spares)",
+     "marker": null,
+     "items": [
+      {
+       "name": "gnarled staff of identification (93 charges)",
+       "amount": 1,
+       "graphic": "0x13F8"
+      },
+      {
+       "name": "wand of identification (103 charges)",
+       "amount": 1,
+       "graphic": "0x0DF5"
+      },
+      {
+       "name": "wand of identification (130 charges)",
+       "amount": 1,
+       "graphic": "0x0DF5"
+      },
+      {
+       "name": "wand of identification (156 charges)",
+       "amount": 1,
+       "graphic": "0x0DF5"
+      },
+      {
+       "name": "wand of identification (16 charges)",
+       "amount": 1,
+       "graphic": "0x0DF3"
+      },
+      {
+       "name": "wand of identification (49 charges)",
+       "amount": 1,
+       "graphic": "0x0DF4"
+      }
+     ]
+    }
+   ],
+   "loose": [
+    {
+     "name": "lockpicks",
+     "amount": 1964,
+     "graphic": "0x14FC"
+    },
+    {
+     "name": "arrow",
+     "amount": 1249,
+     "graphic": "0x0F3F"
+    },
+    {
+     "name": "cut cloth",
+     "amount": 247,
+     "graphic": "0x1766"
+    },
+    {
+     "name": "cut up leather",
+     "amount": 213,
+     "graphic": "0x1081"
+    },
+    {
+     "name": "crossbow bolt",
+     "amount": 55,
+     "graphic": "0x1BFB"
+    },
+    {
+     "name": "feathers",
+     "amount": 36,
+     "graphic": "0x1BD1"
+    },
+    {
+     "name": "empty bottles",
+     "amount": 24,
+     "graphic": "0x0F0E"
+    },
+    {
+     "name": "boards",
+     "amount": 10,
+     "graphic": "0x1BD7"
+    },
+    {
+     "name": "blank scrolls",
+     "amount": 5,
+     "graphic": "0x0EF3"
+    }
+   ]
+  },
+  {
+   "name": "plain gear",
+   "col": 6,
+   "row": "bottom",
+   "bags": [
+    {
+     "name": "chain & ring",
+     "marker": {
+      "name": "chainmail coif of defense",
+      "amount": 1,
+      "graphic": "0x13BB"
+     },
+     "items": [
+      {
+       "name": "chainmail tunic of defense",
+       "amount": 2,
+       "graphic": "0x13BF"
+      },
+      {
+       "name": "ringmail gloves of defense",
+       "amount": 2,
+       "graphic": "0x13EB"
+      },
+      {
+       "name": "ringmail leggings of defense",
+       "amount": 2,
+       "graphic": "0x13F0"
+      },
+      {
+       "name": "chainmail coif of defense",
+       "amount": 1,
+       "graphic": "0x13BB"
+      },
+      {
+       "name": "chainmail leggings of defense",
+       "amount": 1,
+       "graphic": "0x13BE"
+      },
+      {
+       "name": "durable chainmail leggings of defense",
+       "amount": 1,
+       "graphic": "0x13BE"
+      },
+      {
+       "name": "ringmail sleeves of defense",
+       "amount": 1,
+       "graphic": "0x13EE"
+      },
+      {
+       "name": "ringmail tunic of defense",
+       "amount": 1,
+       "graphic": "0x13EC"
+      }
+     ]
+    },
+    {
+     "name": "plate",
+     "marker": {
+      "name": "orc helm of defense",
+      "amount": 1,
+      "graphic": "0x1F0B"
+     },
+     "items": [
+      {
+       "name": "durable female plate of defense",
+       "amount": 2,
+       "graphic": "0x1C04"
+      },
+      {
+       "name": "durable helmet of defense",
+       "amount": 1,
+       "graphic": "0x140A"
+      },
+      {
+       "name": "durable plate helm of defense",
+       "amount": 1,
+       "graphic": "0x1412"
+      },
+      {
+       "name": "durable platemail gloves of defense",
+       "amount": 1,
+       "graphic": "0x1414"
+      },
+      {
+       "name": "durable platemail gorget of defense",
+       "amount": 1,
+       "graphic": "0x1413"
+      },
+      {
+       "name": "fortified norse helm of defense",
+       "amount": 1,
+       "graphic": "0x140E"
+      },
+      {
+       "name": "massive platemail arms of defense",
+       "amount": 1,
+       "graphic": "0x1410"
+      },
+      {
+       "name": "orc helm of defense",
+       "amount": 1,
+       "graphic": "0x1F0B"
+      },
+      {
+       "name": "platemail arms of defense",
+       "amount": 1,
+       "graphic": "0x1410"
+      },
+      {
+       "name": "platemail gloves of defense",
+       "amount": 1,
+       "graphic": "0x1414"
+      },
+      {
+       "name": "platemail legs of defense",
+       "amount": 1,
+       "graphic": "0x1411"
+      },
+      {
+       "name": "substantial platemail gorget of defense",
+       "amount": 1,
+       "graphic": "0x1413"
+      },
+      {
+       "name": "substantial platemail legs of defense",
+       "amount": 1,
+       "graphic": "0x1411"
+      }
+     ]
+    }
+   ],
+   "loose": []
+  }
+ ],
+ "crates": [
+  {
+   "name": "new backpacks",
+   "items": [
+    {
+     "name": "backpack",
+     "amount": 57,
+     "graphic": "0x0E75"
+    }
+   ]
+  },
+  {
+   "name": "potions: agility",
+   "items": [
+    {
+     "name": "Blue Potion",
+     "amount": 30,
+     "graphic": "0x0F08"
+    }
+   ]
+  },
+  {
+   "name": "potions: cure",
+   "items": [
+    {
+     "name": "Orange Potion",
+     "amount": 27,
+     "graphic": "0x0F07"
+    },
+    {
+     "name": "unknown orange potion",
+     "amount": 12,
+     "graphic": "0x0F07"
+    }
+   ]
+  },
+  {
+   "name": "potions: explosion",
+   "items": []
+  },
+  {
+   "name": "potions: heal",
+   "items": [
+    {
+     "name": "Yellow Potion",
+     "amount": 29,
+     "graphic": "0x0F0C"
+    },
+    {
+     "name": "unknown yellow potion",
+     "amount": 14,
+     "graphic": "0x0F0C"
+    }
+   ]
+  },
+  {
+   "name": "potions: poison",
+   "items": [
+    {
+     "name": "Green Potion",
+     "amount": 49,
+     "graphic": "0x0F0A"
+    },
+    {
+     "name": "unknown green potion",
+     "amount": 15,
+     "graphic": "0x0F0A"
+    }
+   ]
+  },
+  {
+   "name": "potions: refresh",
+   "items": [
+    {
+     "name": "Red Potion",
+     "amount": 32,
+     "graphic": "0x0F0B"
+    },
+    {
+     "name": "unknown red potion",
+     "amount": 5,
+     "graphic": "0x0F0B"
+    }
+   ]
+  },
+  {
+   "name": "potions: strength",
+   "items": [
+    {
+     "name": "White Potion",
+     "amount": 25,
+     "graphic": "0x0F09"
+    }
+   ]
+  }
+ ]
+}
