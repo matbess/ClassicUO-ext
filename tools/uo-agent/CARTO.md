@@ -182,6 +182,18 @@ Needs: Clem's pack cleared to about 20 items, and 5 empty bags on the third floo
   holds three bags, 1753,1407 and 1753,1408 two each. The strip itself is empty now.
 - The nightly reboot (04:15) rolled the world back to about 03:58: Clem was holding the bag he'd had before the 04:10
   swap again, with 39 blanks and 54 drawn loose. The state was put right by hand and the loop went on at 04:20.
+- **2026-11-10 03:06: Cartography 100, the goal.** The vendor loop (trips.py) had sold every drawn map by 2026-11-09
+  16:37 (Cartography 98.5), buying them back as blanks; from then on he only drew (99.3 at 18:53, 100 at 03:06).
+  `put_away_at_gm` then filled 0x4045BFF2 and 0x409167BC to 100 and put 20 into 0x409167C1 (25), put the bag in
+  his pack (0x40836C28, 6 blanks) back at 1752,1402,46, and parked him in the safe zone (1756,1411), both door
+  halves shut. The state is `mode: done` (with `stay_in`): 3,769 blanks and 1,138 drawn maps in the bags.
+- Twice the user wanted every map in one bag so they could play Clem (2026-11-09). You don't need to sort that bag:
+  the server takes blanks from inside any bag in his pack and the drawn maps land loose; count that bag's blanks as
+  "maps in it minus the drawn ones" and put the drawn maps back in at the end (done with a small wrapper around
+  trips.py that replaced `drawing.blanks` for that one bag).
+- Before any more vendor trips: the user took his 300 gold out (2026-11-10 01:10), and the Ocllo Maps rune
+  (0x408F827E) is no longer in his reagent bag, where an unmarked rune (0x408F8282) lies instead. `find_runes` stops
+  trips.py at startup without it, even when he only draws.
 
 ## Running it (carto.py)
 
@@ -403,6 +415,7 @@ gump recorder and the cartography menu are done. Still to come:
 
 ## Next steps (in order)
 
+0. **Done 2026-11-10: Cartography 100** (Progress). Clem is parked; nothing is running for cartography.
 1. Done 2026-11-06: every blank drawn (Progress). Clem is paused until the user says what's next.
 2. Fold draw.py and work.py into carto.py once the other agent is done with the code.
 3. 2026-11-08: vendor trips written (trips.py, bridge 12, above). First runs watched closely: where the Ocllo rune
