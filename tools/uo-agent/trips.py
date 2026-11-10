@@ -335,6 +335,20 @@ def trim_to_fit(state, bag):
                     key=lambda b: (carto.floor_of(state['bags'][b]['spot'][2]) != carto.floor_of(spot[2]),
                                    max(abs(state['bags'][b]['spot'][0] - spot[0]),
                                        abs(state['bags'][b]['spot'][1] - spot[1]))))
+    if not others:
+        # only full bags left (2026-11-09 16:16): an empty bag takes the extra, as an overflow bag sold last, so the
+        # other full bags can put theirs into it too
+        empty = [b for b, v in state['bags'].items() if v['kind'] == 'blank' and v['maps'] == 0 and v.get('spot')]
+        if not empty and find_spares(state):
+            empty = [b for b, v in state['bags'].items() if v['kind'] == 'blank' and v['maps'] == 0 and v.get('spot')]
+        for b in empty:
+            if not carto.contents(b):
+                carto.note(state, b, 'completed', 0)
+                state['bags'][b]['overflow'] = True
+                carto.save_state(state)
+                say(f'{b} (empty, at {state["bags"][b]["spot"]}) takes the extra drawn maps: sold last')
+                others = [b]
+                break
     say(f'{bag} holds {len(maps)} drawn maps, {extra} more than fit in his pack: those go into {others[:3]} first')
     for other in others:
         have = len(carto.contents(other))
@@ -357,7 +371,8 @@ def next_completed(state):
     bags = [(b, v) for b, v in state['bags'].items() if v['kind'] == 'completed' and v.get('spot')]
     if not bags:
         return None
-    bags.sort(key=lambda bv: (-bv[1]['spot'][2], bv[1]['spot'][1], bv[1]['spot'][0]))
+    # an overflow bag (the extra maps of full bags, trim_to_fit) goes last, so it can take them all
+    bags.sort(key=lambda bv: (bool(bv[1].get('overflow')), -bv[1]['spot'][2], bv[1]['spot'][1], bv[1]['spot'][0]))
     return bags[0][0]
 
 
@@ -374,6 +389,7 @@ def put_blanks_away(state, sold_bag=None):
                 moved += 1
         maps = maps[moved:]
         spot = carto.put_down(sold_bag, state['trip_home'])
+        state['bags'].get(sold_bag, {}).pop('overflow', None)
         carto.note(state, sold_bag, 'blank', count + moved, spot=spot)
         say(f'{moved} blanks into {sold_bag}: it holds {count + moved} (blank) at {spot}')
     if not maps:
