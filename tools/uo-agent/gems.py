@@ -219,6 +219,24 @@ def opening_since(after):
                for m in call('GET', '/messages')['messages'])
 
 
+def open_from_inside():
+    """Open the (locked) vault door from inside. 2026-11-10 00:55: his client's auto-open opened it as he stepped up
+    ("Opening door...", "That is locked, but is usable from the inside.") but its open graphic never reached his
+    client; using it then closed it again, silently (opening from inside always says "usable from the inside"). So a
+    use that leaves it shut without a word is taken as having shut it: wait a moment and use it once more."""
+    for attempt in range(3):
+        a = call('POST', '/use', serial=VAULT_DOOR)
+        said = texts(a) or '(no message)'
+        end = time.time() + 1.5
+        while door_graphic() == SHUT and time.time() < end:
+            time.sleep(0.2)
+        if door_graphic() != SHUT:
+            say(f'vault door opened: {said}')
+            return
+        say(f'the vault door still shows shut after using it ({said}): again')
+    raise Stop(f'the vault door would not open from inside: {hex(door_graphic())}')
+
+
 def out_of_vault():
     """The user, 2026-11-09: the vault door is locked, but usable from the inside: open it, go through, and it stays
     locked when it closes. No key on the way out: the key ring turns the lock either way, so aiming it at the locked
@@ -235,7 +253,7 @@ def out_of_vault():
             while door_graphic() == SHUT and time.time() < end:
                 time.sleep(0.1)
         if door_graphic() == SHUT:
-            use_door(False)  # "That is locked, but is usable from the inside."
+            open_from_inside()  # "That is locked, but is usable from the inside."
         else:
             say('the vault door is open (his client opened it as he walked up)')
         step(DOORWAY, 'into the doorway')
@@ -663,7 +681,25 @@ def in_room(st, room):
 
 def into_room(shop):
     st = status()
-    steps = (shop['up'] if st['z'] < shop['room'][4] - 8 else []) + shop['in']
+    walk_steps((shop['up'] if st['z'] < shop['room'][4] - 8 else []) + shop['in'])
+    st = status()
+    if not in_room(st, shop['room']):
+        raise trips.GoHome(f"the way in didn't get him into the jeweler's room: he's at {st['x']},{st['y']},{st['z']}")
+    say(f"in the jeweler's room: at {st['x']},{st['y']},{st['z']}")
+
+
+def out_of_room(shop):
+    """Back down to the shop floor the way he came up (the jeweler came down while he was up there)."""
+    st = status()
+    back = list(reversed(shop['in'][:-1])) if in_room(st, shop['room']) else []
+    walk_steps(back + list(reversed(shop['up'])))
+    st = status()
+    if st['z'] >= shop['room'][4] - 8:
+        raise trips.GoHome(f"the way down from the jeweler's room left him upstairs at {st['x']},{st['y']},{st['z']}")
+    say(f"down from the jeweler's room: at {st['x']},{st['y']},{st['z']}")
+
+
+def walk_steps(steps):
     for step in steps:
         if isinstance(step, str) and step.startswith('door:'):
             _, serial, shut = step.split(':')
@@ -678,11 +714,7 @@ def into_room(shop):
         try:
             call('POST', '/walk', x=step[0], y=step[1], distance=0, run=1)
         except uo.BridgeError as e:
-            raise trips.GoHome(f'the way into the jeweler\'s room, at {step[0]},{step[1]}: {e}')
-    st = status()
-    if not in_room(st, shop['room']):
-        raise trips.GoHome(f"the way in didn't get him into the jeweler's room: he's at {st['x']},{st['y']},{st['z']}")
-    say(f"in the jeweler's room: at {st['x']},{st['y']},{st['z']}")
+            raise trips.GoHome(f'the way to or from the jeweler\'s room, at {step[0]},{step[1]}: {e}')
 
 
 def approach(vendor):
@@ -694,9 +726,16 @@ def approach(vendor):
     st = status()
     name = (here['entry'] or {}).get('name')
     shop = SHOP_ROOMS.get(name)
-    if shop and not in_room(st, shop['room']):
-        into_room(shop)
-    elif not shop and abs((m.get('z') or 0) - st['z']) > 10:
+    if shop:
+        # up to her room only when she's up there: 2026-11-10 01:01 Marnie was downstairs, 2 tiles from the landing,
+        # and he went up and called down to her, unheard, until he gave up (her trick used for nothing)
+        up_there = (m.get('z') or 0) >= shop['room'][4] - 8
+        upstairs = st['z'] >= shop['room'][4] - 8
+        if up_there and not in_room(st, shop['room']):
+            into_room(shop)
+        elif not up_there and upstairs:
+            out_of_room(shop)
+    elif abs((m.get('z') or 0) - st['z']) > 10:
         raise trips.GoHome(f'{m.get("name")} is on another floor (z {m.get("z")}, he is at {st["z"]}) and no way '
                            f'there is known for {name}')
     m = next((m for m in call('GET', '/nearby', range=trips.SIGHT)['mobiles'] if m['serial'] == vendor), m)
@@ -823,6 +862,11 @@ def sell_to(v, me, jeweler, entry):
             refusals.append(why)
             say(f'{label} buys nothing more: {why or "(nothing said)"}')
             if tricked or not trick_ok:
+                break
+            if 'no answer' in (why or '').lower():
+                # he never heard "<name> sell" (another floor, a wall): asking "<name> buy" won't reach him either,
+                # and the trick is once an hour (2026-11-10 01:01, Marnie: used for nothing)
+                say(f'{label} never answered: keeping the trick for when he can hear')
                 break
             buy_trick(serial, label)
             tricked = True

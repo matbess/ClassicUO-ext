@@ -48,6 +48,11 @@ The vault door 0x408AEA59 (metal, 1757,1412, z 26) stays on its tile: shut graph
   "That is locked, but is usable from the inside."), and the open graphic can come a moment after the words. The
   first try (20:48:03) read it as still shut, used it, and so shut it again, then went for the key. `out_of_vault()`
   now waits for the graphic when those words have come, and only uses the door if it's really still shut.
+- **The open graphic can also never come** (2026-11-10 00:55:31): his client's auto-open opened it ("Opening door...",
+  "usable from the inside"), the door still showed shut 1 s later, and the script's use closed it again without a
+  word (opening it from inside always says "That is locked, but is usable from the inside."; closing says nothing).
+  `open_from_inside()` now takes a use that leaves it showing shut with no message as having shut it, and uses it
+  again (up to three times). Run again from inside, it opened at once (00:57:57).
 - After anything going wrong at the door, `lock_up()` closes it, and uses the key only when the door is known to be
   unlocked (between "You unlock it." and "You lock it." on the way in).
 - Tested on its own with `gems.py vault-test` (20:55, in and straight out, stops at the door in the bag room).
@@ -100,8 +105,17 @@ and stuff when needed)."
   1891 from 1891,2808 up to 1891,2803, then 1893,2804, 1895,2806, open her door if shut, 1897,2805. A walk straight to
   her from the top of the stairs went back down them, over and over (the path finder ends a walk at the goal's x,y on
   whatever floor it reaches first).
-- **Vesper**: "no path to there" to Lamar 4 tiles from the landing (2875,721; likely behind a counter): the walk now
-  tries 3 tiles when 2 has no path (a vendor answers from 3). Not yet tried.
+- **Marnie isn't always upstairs** (2026-11-10 01:01): she was downstairs, 2 tiles from the landing; he went up to
+  her room anyway and called down to her, unheard, while she walked about below, and used her trick for nothing.
+  Now he goes up only when she's on the room's floor (her z), and comes back down (the way in, reversed) when she's
+  below and he's up. Not yet tried.
+- **The trick only for a jeweler who heard him**: "no answer" three times (another floor, a wall) isn't a refusal,
+  and "<name> buy" won't reach him either; the trick is kept for when he can hear.
+- **Vesper**: "no path to there" to Lamar 4 tiles from the landing, at 2 tiles and at 3 (2026-11-09 and 11-10). The
+  map files (uomap.py) show why: the rune lands in a room (x 2872-2878, y 712-718) north of the shop; a plaster wall
+  along y 719 has one gap, at **2875,719**, most likely a shut door; Lamar walks about behind it (2874-2876,
+  721-723), west of his counter (x 2877). These vendors don't hear through walls (Marnie), so he has to open that
+  door: its serial is needed for his rules' doors (read it with him there).
 - **A player in town**: home at once and 15 minutes inside, then on (the map trips' rule); the user's own characters
   and yellow (invulnerable) vendors aren't strangers; someone whose paperdoll doesn't come back (walked off: the
   bridge's 404 ended the first try in Britain) is asked again next look, and counts as a player after three.
@@ -123,6 +137,12 @@ and stuff when needed)."
 2,010, Kelia 58 for 3,992, Marnie 64 for 3,600, Vesper's Lamar none (no path), Annamarie 105 for 3,920; Nujel'm not
 needed. Home: the front clear, in, locked, parked; the gold into the chest by the forge.
 
+**The second tour (2026-11-10 00:55-01:04, the user: "go sell the gems again please")**: 134 gems (no loose gem in
+the chest this time), all sold for **7,785 gold** in 5 minutes: Lamar 21 for 1,995, Charlton 30 for 1,995, Kelia 36
+for 1,995 (every one bought nothing before the trick), Marnie none (downstairs while he was up: see above), Vesper's
+Lamar none (the door), Annamarie the last 47 for 1,800. The 7,785 went into the chest by the forge as a new pile (the
+24,900 from the first tour had been taken out). Fetch, sell and cleanup took 9 minutes in all.
+
 ## Phase 3: cleanup (`gems.py cleanup`, and the end of every `sell`), the user, 2026-11-09
 
 "The last part is the cleanup. You should go put the runebook back and put the gembag back. That will be the logic
@@ -141,5 +161,6 @@ The whole job from inside the tower: `gems.py fetch`, then `gems.py sell` (which
 
 ## Next
 
-- Vesper's jeweler: see whether 3 tiles reaches him.
+- Vesper's jeweler: the door at 2875,719 (its serial into his rules' doors, then a way in like Marnie's).
+- Marnie downstairs: the new floor check.
 - A gold run in a real tour (tested offline only so far).
