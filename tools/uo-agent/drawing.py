@@ -123,6 +123,46 @@ def wait_for_save(answer, limit=90):
         time.sleep(1)
 
 
+LAGS = []
+
+
+def late_answer(last):
+    """The server lagged: the draw's answer came 18 s late (2026-11-09 17:14) and the bridge, waiting 10 s, took the
+    silence for trouble and stopped. If the bridge stopped itself (not the user taking over) over a menu choice and the
+    result does come within 45 s, resume and return it. At most 3 in 10 minutes: more is real trouble."""
+    st = uo.call(info, 'GET', '/status')
+    if st.get('takenOver') or 'no answer after choosing' not in (st.get('halted') or ''):
+        return None
+    now = time.time()
+    LAGS[:] = [t for t in LAGS if now - t < 600]
+    if len(LAGS) >= 3:
+        return None
+    end = now + 45
+    while time.time() < end:
+        for m in uo.call(info, 'GET', '/messages', after=last)['messages']:
+            last = m['id']
+            low = m['text'].lower()
+            if not m.get('serial') and (SUCCESS in low or FAILURE in low):
+                LAGS.append(now)
+                uo.call(info, 'POST', '/resume')
+                say(f"the server lagged (the answer came late, after the bridge stopped: {st['halted']}): resumed")
+                return m['text']
+        time.sleep(1)
+    return None
+
+
+def choose(menu, index):
+    """The menu choice; a late answer from a lagging server doesn't end the run (late_answer)."""
+    last = uo.call(info, 'GET', '/status').get('lastMessageId', 0)
+    try:
+        return carto.act('POST', '/menu', serial=menu['serial'], id=menu['id'], index=index)
+    except SystemExit:
+        text = late_answer(last)
+        if text is None:
+            raise
+        return {'messages': [{'text': text}]}
+
+
 def draw_once():
     """One world map. Returns ('drawn' | 'failed' | 'wait', the server's text)."""
     answer = carto.act('POST', '/skill', id=SKILL)
@@ -141,7 +181,7 @@ def draw_once():
     if not index:
         carto.act('POST', '/menu', serial=menu['serial'], id=menu['id'], index=0)
         raise Stop(f"no world map on the menu: {[i['name'] for i in menu['items']]}")
-    answer = carto.act('POST', '/menu', serial=menu['serial'], id=menu['id'], index=index)
+    answer = choose(menu, index)
     text = result_of(answer)
     low = (text or '').lower()
     if SUCCESS in low:
