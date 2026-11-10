@@ -21,6 +21,11 @@ health, skills and spells aimed at creatures, running walks, doors and keys, and
 command themselves (`"handOver"`); only the user hands him back (`--resume`). Bridge 8 (cuo-agent24, installed
 2026-11-07) casts without waiting (`/cast wait=0`): the bridge aims the cursor, the outcome comes in the messages. Never leave Clem outside or unwatched.
 
+**Selling gems** (Clem, from 2026-11-09: the gem bag from the vault's gems chest and the Gems runebook from the
+chest by the stairs, then town to sell to several NPCs and home): read `GEMS.md` first; the tool is `gems.py`
+(`fetch` gets him ready; the vault door: in with the key like the front door, out without it, checked locked from
+outside).
+
 **Blacksmithing** (Icepick, from 2026-11-05: training to 100 at the forge and anvil on the tower's ground floor,
 crafting and smelting back; **reached 100 on 2026-11-07**): read `SMITHING.md` first; the tool is `smith.py`, the rules
 `rules/rules-Icepick-smith.json` (no guard, no pacing). Since 2026-11-07 he also smelts the junk gear in the vault's

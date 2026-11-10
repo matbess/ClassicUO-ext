@@ -37,7 +37,10 @@ the vault; the door and its key ring; no guard; full speed).
 - **The crates** stacked at 1758,1411 (bottom to top): smelting 6 0x408AD7D5 (z 26), 5 0x40538F75 (29), 1 0x4053812E
   (32), 2 0x4053DA72 (35), 3 0x4053C008 (38), 4 0x4053CE6E (41). On 2026-11-07: 2 held 56 items (394 stones), 3 58
   (397), 4 17 (98), 5 and 6 empty, 1 not shown.
-- **Out**: not tried yet (does the locked door open from inside, and does the key reach from 1758,1412?).
+- **Out** (found by Clem, 2026-11-09, GEMS.md): no key. The locked door opens from inside ("That is locked, but is
+  usable from the inside.") and stays locked: through the doorway, close it from 1756,1412, then use it once from
+  there to check ("That is locked."). The key can't be reached from 1758,1412 ("I can't reach that."), and on the
+  locked door it would only unlock it.
 - **Smelting needs an anvil too**: the hammer's menu answers "You must be near an anvil and a forge to smith
   items." without one. The vault had none, so the user placed one by the forge (2026-11-07): **anvil 0x408D4FB3 at
   1758,1408**. The spot is now **1759,1409** (the user moved him there; 1759,1410 reaches everything too): the

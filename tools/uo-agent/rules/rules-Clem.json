@@ -3,13 +3,16 @@
   // (CARTO.md). The tower is a T2A Tower multi centred on 1756,1408; floors at z 6, 26 and 46.
   // No guard (the user, 2026-11-05: he's safe inside the tower), so his bridge never raises, reads or writes
   // Agent/alarm.json and can't set off Icepick's or Burgers' guards.
-  // The vault (the chest room behind the locked door at 1757,1412 on the second floor, x 1758-1763) is not his:
-  // no area covers it or the door's column (x 1757) on that floor.
+  // The vault (the chest room behind the locked door at 1757,1412 on the second floor, x 1758-1763): not for his
+  // maps (CARTO.md), but he goes in for one thing: the gem bag in the gems chest (col 5, bottom), which he takes to
+  // town to sell (the user, 2026-11-09; GEMS.md). The vault door always ends locked and closed.
   "map": 0,
   "areas": [
     { "name": "ground floor hall", "box": [1750, 1410, 1763, 1413], "z": [0, 25] },
     { "name": "ground floor stairs room", "box": [1750, 1402, 1753, 1409], "z": [0, 25] },
     { "name": "bag room (2nd floor)", "box": [1750, 1402, 1756, 1413], "z": [26, 45] },
+    { "name": "vault door (2nd floor)", "box": [1757, 1412, 1757, 1412], "z": [26, 45] },
+    { "name": "vault (gems only)", "box": [1758, 1402, 1763, 1412], "z": [26, 45] },
     // overflow only, to be emptied (the user, 2026-11-05: the second floor holds the map bags; not the room above the
     // vault, not the roof)
     { "name": "3rd floor west (overflow)", "box": [1750, 1402, 1756, 1413], "z": [46, 65] },
@@ -37,8 +40,10 @@
   "handOver": true,
   // the front door, which must always stay locked and closed (the user, 2026-11-06), and the key ring locked down
   // outside it at 1758,1415
-  "doors": ["0x408AEA54", "0x408AEA55"],
-  "keys": ["0x4040A302"],
+  // the vault door (metal, 1757,1412, z 26: shut 0x0681, open 0x0682) and its key ring locked down in the bag room at
+  // 1756,1410 (z 38), as Icepick uses them (SMITHING.md); for the gem bag only (GEMS.md)
+  "doors": ["0x408AEA54", "0x408AEA55", "0x408AEA59"],
+  "keys": ["0x4040A302", "0x404099E0"],
   // a trapped pouch, used when he's paralysed
   "useFromBackpack": ["0x0E79"],
   // a tired horse (the user, 2026-11-06; MINING.md "Tired mount"): get away, dismount, say "all follow me", mount
