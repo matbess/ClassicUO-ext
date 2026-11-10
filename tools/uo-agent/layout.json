@@ -75,7 +75,7 @@
    },
    {
     "kind": "circle 1 scrolls",
-    "known": 8,
+    "known": 0,
     "marker": {
      "name": "Heal Scroll",
      "serial": "0x406FF258",
@@ -101,7 +101,7 @@
    },
    {
     "kind": "circle 8 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Energy Vortex Scro",
      "serial": "0x406DBEEF",
@@ -116,7 +116,7 @@
   "items": 16,
   "label": "chest: scrolls (col 5, top)",
   "loose": [],
-  "recorded": "2026-11-08 16:32"
+  "recorded": "2026-11-09 20:30"
  },
  "0x408FB1E0": {
   "bags": [
@@ -166,63 +166,63 @@
   "label": "chest: reagents (col 5, 2nd from top)",
   "loose": [
    {
-    "amount": 185,
+    "amount": 46,
+    "name": "Blood Moss",
+    "serial": "0x40462EBB",
+    "x": 43,
+    "y": 107
+   },
+   {
+    "amount": 198,
     "name": "Spider's Silk",
     "serial": "0x406FF9B6",
     "x": 72,
     "y": 133
    },
    {
-    "amount": 647,
+    "amount": 418,
     "name": "Garlic",
-    "serial": "0x40925029",
+    "serial": "0x408102C5",
     "x": 79,
     "y": 107
    },
    {
-    "amount": 982,
-    "name": "Ginseng",
-    "serial": "0x40925301",
-    "x": 97,
-    "y": 107
-   },
-   {
-    "amount": 160,
-    "name": "Black Pearls",
-    "serial": "0x406FF9B5",
-    "x": 18,
-    "y": 109
-   },
-   {
-    "amount": 163,
-    "name": "Nightshade",
-    "serial": "0x406FF9B4",
-    "x": 42,
-    "y": 133
-   },
-   {
-    "amount": 211,
+    "amount": 232,
     "name": "Mandrake Roots",
     "serial": "0x4072FED1",
     "x": 18,
     "y": 132
    },
    {
-    "amount": 197,
+    "amount": 202,
+    "name": "Nightshade",
+    "serial": "0x406FF9B4",
+    "x": 42,
+    "y": 133
+   },
+   {
+    "amount": 219,
     "name": "Sulfurous Ash",
     "serial": "0x406FF9C6",
     "x": 95,
     "y": 133
    },
    {
-    "amount": 481,
-    "name": "Blood Moss",
-    "serial": "0x4081FC17",
-    "x": 43,
+    "amount": 172,
+    "name": "Black Pearls",
+    "serial": "0x406FF9B5",
+    "x": 18,
+    "y": 109
+   },
+   {
+    "amount": 991,
+    "name": "Ginseng",
+    "serial": "0x40925301",
+    "x": 97,
     "y": 107
    }
   ],
-  "recorded": "2026-11-08 16:32"
+  "recorded": "2026-11-09 20:30"
  },
  "0x408FBF7C": {
   "bags": [
@@ -437,7 +437,7 @@
   "bags": [
    {
     "kind": "crossbows",
-    "known": 2,
+    "known": 0,
     "marker": {
      "name": "a heavy crossbow of daemon's breath (41 charges)",
      "serial": "0x408D644D",
@@ -447,12 +447,25 @@
     "serial": "0x4098CCEF",
     "x": 18,
     "y": 105
+   },
+   {
+    "kind": "bows",
+    "known": 0,
+    "marker": {
+     "name": "a bow of force",
+     "serial": "0x4077CDCF",
+     "x": 43,
+     "y": 129
+    },
+    "serial": "0x4098CD14",
+    "x": 36,
+    "y": 105
    }
   ],
-  "items": 2,
+  "items": 4,
   "label": "chest: archery (col 2, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-07 19:11"
+  "recorded": "2026-11-09 20:30"
  },
  "0x408FE0E7": {
   "bags": [],
@@ -480,7 +493,7 @@
   "items": 2,
   "label": "chest: gems (col 5, bottom)",
   "loose": [],
-  "recorded": "2026-11-08 16:32"
+  "recorded": "2026-11-09 20:30"
  },
  "0x408FF16B": {
   "bags": [
@@ -712,7 +725,7 @@
   "bags": [
    {
     "kind": "ID wands & staves (spares)",
-    "known": 0,
+    "known": 5,
     "marker": null,
     "serial": "0x4049D6B8",
     "x": 18,
@@ -744,18 +757,11 @@
     "y": 106
    },
    {
-    "amount": 54,
-    "name": "crossbow bolt",
-    "serial": "0x4095AFB1",
-    "x": 18,
-    "y": 123
-   },
-   {
-    "amount": 36,
-    "name": "feathers",
-    "serial": "0x4095AE52",
-    "x": 117,
-    "y": 105
+    "amount": 244,
+    "name": "cut cloth (191 yards)",
+    "serial": "0x40988811",
+    "x": 98,
+    "y": 129
    },
    {
     "amount": 1249,
@@ -765,43 +771,43 @@
     "y": 105
    },
    {
-    "amount": 244,
-    "name": "cut cloth (191 yards)",
-    "serial": "0x40988811",
-    "x": 98,
-    "y": 129
+    "amount": 36,
+    "name": "feathers",
+    "serial": "0x4095AE52",
+    "x": 117,
+    "y": 105
    },
    {
-    "amount": 207,
+    "amount": 55,
+    "name": "crossbow bolt",
+    "serial": "0x4095AFB1",
+    "x": 18,
+    "y": 123
+   },
+   {
+    "amount": 212,
     "name": "81 pieces of leather",
     "serial": "0x40988462",
     "x": 50,
     "y": 129
    }
   ],
-  "recorded": "2026-11-08 16:32"
+  "recorded": "2026-11-09 20:30"
  },
  "0x409020EB": {
   "bags": [],
-  "items": 2,
+  "items": 1,
   "label": "chest: needs your decision (col 6, 2nd from top)",
   "loose": [
    {
-    "amount": 1,
-    "name": "a jug of Cider / It's full.",
-    "serial": "0x40741B90",
+    "amount": 10,
+    "name": "10 log",
+    "serial": "0x4013CF4B",
     "x": 18,
-    "y": 105
-   },
-   {
-    "amount": 1,
-    "name": "bread loaf",
-    "serial": "0x407F21B7",
-    "x": 42,
     "y": 105
    }
   ],
-  "recorded": "2026-11-07 19:11"
+  "recorded": "2026-11-09 20:30"
  },
  "0x40902338": {
   "bags": [
