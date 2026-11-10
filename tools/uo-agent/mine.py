@@ -1464,8 +1464,13 @@ class Miner:
         held = sum(i.get('amount', 1) for i in self.ingots(self.bur))
         spares = self.burgers_spares()
         reagents, _ = self.burgers_reagents()
-        if any(reagents[g][0] < low for g, low in REAGENTS_LOW.items()):
-            return True  # too few for more than a trip or two: a must, wherever Icepick is
+        # too few for more than a trip or two: a must, wherever Icepick is. Not for one the bank had none of on the last
+        # visit: the trip would only burn two more of the recall reagents (2026-11-09 19:52: no blood moss in the bank,
+        # a trip at every handoff until the loop parked). The next ordinary trip looks again, and reagents_stop parks
+        # before he could get stuck at the bank.
+        short = self.state.get('bank_short') or []
+        if any(reagents[g][0] < low for g, low in REAGENTS_LOW.items() if g not in short):
+            return True
         # shovels alone are only a reason to go once he has none left to give (the user, 2026-11-01); when he's
         # at the bank anyway he tops up to BURGERS_SPARES
         out = spares == 0 and not self.bank_known_empty()
