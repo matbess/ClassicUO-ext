@@ -438,6 +438,11 @@ files further: they apply at once, without a new build.
   rollback: Icepick on foot and in sight where he had been digging (mounted and hidden at once, Hiding on the
   second try), Burgers with the shovels and the 39 iron of the last handoff. The loop picked up at block 36 with
   nothing to correct.
+- **And 2026-11-10 04:15** (the nightly reboot): back at 04:19, rolled back to about 03:59:50. Burgers came back
+  at the Ocllo bank with an empty pack (the 03:59:47 bank trip had been saved, so `bank_ingots` and
+  `bank_shovels` stood); Icepick mounted but in sight at 1141,1850, just off the forge after the 03:59:02 handoff
+  with 3 shovels and his 3 cure potions (hidden at once, first try). The handoffs from 04:02:44 on (270 ingots,
+  231 iron) never happened: totals 80085 / 63238 corrected to 79815 / 63007, back to block 65.
 - **A tile outside the area** (2026-11-05 09:38): on the long straight stretch to waypoint 31 (1101,1594 to
   1101,1649, along the area's west edge at x 1100) the client's path finder stepped Icepick to 1099,1649. The
   bridge stops every walk the moment it sees him outside the area, even one heading back in, so the replans and
