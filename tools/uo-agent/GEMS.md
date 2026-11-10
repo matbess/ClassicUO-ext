@@ -123,7 +123,23 @@ and stuff when needed)."
 2,010, Kelia 58 for 3,992, Marnie 64 for 3,600, Vesper's Lamar none (no path), Annamarie 105 for 3,920; Nujel'm not
 needed. Home: the front clear, in, locked, parked; the gold into the chest by the forge.
 
+## Phase 3: cleanup (`gems.py cleanup`, and the end of every `sell`), the user, 2026-11-09
+
+"The last part is the cleanup. You should go put the runebook back and put the gembag back. That will be the logic
+whether or not there are any gems left over, you just put them back in The Vault."
+- The Gems runebook back into the top left chest by the stairs (where `fetch` noted it was; else beside the other
+  runebooks), the gem bag, gems left in it or not, back into the vault's gems chest where it was (18,105 the first
+  time), the vault door as in phase 1 (in with the key, out without it, checked "That is locked." from the bag room),
+  parked. 21:50-21:51 the first time: 35 s.
+- **The chest by the stairs from the ground floor only**: a walk to "next to the chest" from the hall ended on the top
+  step of the stairs beside it (1751,1403, z 23), 9 above the chest: "I can't reach that.", which the bridge takes for
+  silence and halts on. Now he walks 1752,1407, then 1752,1403, and checks he's on the ground floor. From the smithy
+  (by the gold chest) he goes through the hall first (a hop straight for the stairs room crossed tiles outside his
+  areas).
+
+The whole job from inside the tower: `gems.py fetch`, then `gems.py sell` (which ends with the cleanup).
+
 ## Next
 
-- The empty gem bag and the Gems runebook after a tour: the user to say (both still in his pack).
 - Vesper's jeweler: see whether 3 tiles reaches him.
+- A gold run in a real tour (tested offline only so far).

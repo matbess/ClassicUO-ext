@@ -20,6 +20,9 @@ laid it out; every step is logged to ~/claude/uo-agent-work/gems/gems.log.
                                           jeweler in the Gems runebook in turn (the flag under the rune), sell the gems
                                           5 at a time until he refuses, the buy-window trick once an hour, sell again,
                                           on to the next; then home, fighting in as on the map trips (trips.py)
+  python3 -I gems.py cleanup              phase 3 (also the end of every sell): the Gems runebook back in its chest by
+                                          the stairs, the gem bag (gems left or not) back in the vault's gems chest,
+                                          the vault door locked and checked, parked
   python3 -I gems.py vault-out            only step 3 (he's in the vault): out, locked and closed
   python3 -I gems.py vault-test           steps 1 and 3 only (the user, 2026-11-09: show the door works first): in,
                                           straight out again, and he stays at the door in the bag room
@@ -271,6 +274,8 @@ def take_gem_bag(state):
     if len(bags) != 1:
         raise Stop(f'expected one gem bag in the gems chest, found {len(bags)}: {[b["serial"] for b in bags]}')
     bag = bags[0]['serial']
+    if bags[0].get('x') is not None:
+        state['bag_at'] = [bags[0]['x'], bags[0]['y']]  # where it goes back (cleanup)
     call('POST', '/open', serial=bag)
     inside = call('GET', '/contents', serial=bag, depth=1)['items']
     gems_before = sum(i.get('amount') or 1 for i in inside)
@@ -326,6 +331,9 @@ def take_runebook(state):
             found = a['serial']
     if not found:
         raise Stop('no runebook named for gems in the top left chest by the stairs')
+    at = next((i for i in inside if i['serial'] == found), {})
+    if at.get('x') is not None:
+        state['runebook_at'] = [at['x'], at['y']]  # where it goes back (cleanup)
     pack = status()['backpack']['serial']
     r = call('POST', '/move', serial=found, to=pack)
     if not r.get('moved') and not trips.in_pack(found):
@@ -335,6 +343,72 @@ def take_runebook(state):
     save_state(state)
     say(f'the Gems runebook {found} is in his pack')
     return found
+
+
+# ---- phase 3: cleanup (the user, 2026-11-09) ----
+# "The last part is the cleanup. You should go put the runebook back and put the gembag back. That will be the logic
+# whether or not there are any gems left over, you just put them back in The Vault."
+
+BOOK_CHEST_FROM = [(1752, 1407), (1752, 1403)]  # the stairs room, then in front of the chest wall (ground floor)
+BAG_AT = [18, 105]  # the gem bag's spot in the gems chest (layout.json, 2026-11-09 20:30), when fetch didn't note one
+
+
+def put_back(serial, chest, at, what):
+    r = call('POST', '/move', serial=serial, to=chest, x=at[0], y=at[1])
+    if trips.in_pack(serial):
+        raise Stop(f'{what} {serial} did not go back into {chest}: {r}')
+    say(f'{what} {serial} back in {chest} at {at[0]},{at[1]}')
+
+
+def cleanup(state):
+    """The Gems runebook back in the top left chest by the stairs, the gem bag (gems left in it or not) back in the
+    vault's gems chest, the vault door locked and closed and checked; parked."""
+    st = status()
+    if not trips.inside(st):
+        raise Stop(f"cleanup is done inside the tower ({st['x']},{st['y']},{st['z']})")
+    book = state.get('runebook')
+    if book and trips.in_pack(book):
+        trips.go_floor(1)
+        st = status()
+        if not (st['y'] >= 1410 or st['x'] <= 1753):
+            # from the smithy (the gold chest) by way of the hall: a hop straight for the stairs room cut across
+            # tiles outside his areas (2026-11-09 21:49, "that spot is outside the agent's area")
+            door.walk((1753, 1410))
+        # in front of the chest on the ground floor: a walk to "next to the chest" from the hall ended on the top
+        # step of the stairs beside it (1751,1403, z 23) and the server said "I can't reach that." (2026-11-09 21:49)
+        for p in BOOK_CHEST_FROM:
+            door.walk(p)
+        st = status()
+        if (st['x'], st['y']) != BOOK_CHEST_FROM[-1] or st['z'] > 15:
+            raise Stop(f"meant to stand in front of the chest by the stairs at {BOOK_CHEST_FROM[-1]}, but he's at "
+                       f"{st['x']},{st['y']},{st['z']}")
+        inside = carto.contents(BOOK_CHEST)
+        at = state.get('runebook_at')
+        if not at:
+            books = [i for i in inside if 'book' in kind(i) and i.get('x') is not None]
+            last = max(books, key=lambda i: i['x']) if books else {'x': 44, 'y': 70}
+            at = [min(last['x'] + 14, 130), last['y']]  # beside the other runebooks
+        put_back(book, BOOK_CHEST, at, 'the Gems runebook')
+        call('POST', '/close', serial=BOOK_CHEST)
+    bag = state.get('bag')
+    if bag and trips.in_pack(bag):
+        left = gems_carried()
+        if not in_vault(status()):
+            into_vault()
+        call('POST', '/walk', to=GEMS_CHEST, distance=1, run=1)
+        spot = uo.on_floor(info, GEMS_CHEST)
+        if not spot or spot['distance'] > carto.REACH:
+            raise Stop(f'could not get within reach of the gems chest: {spot}')
+        call('POST', '/open', serial=GEMS_CHEST)
+        put_back(bag, GEMS_CHEST, state.get('bag_at') or BAG_AT, f'the gem bag ({left} gems in it)')
+        call('POST', '/close', serial=GEMS_CHEST)
+        out_of_vault()
+    trips.go_floor(1)
+    trips.park()
+    st = status()
+    _, items = trips.pack_list()
+    say(f"cleanup done: parked at {st['x']},{st['y']},{st['z']}, {trips.count_items(items)} items in his pack, "
+        f"{st['weight']}/{st['weightMax']} stones")
 
 
 def fetch():
@@ -972,6 +1046,7 @@ def sell(state, limit=None):
         save_state(state)
     st = status()
     say(f"parked at {st['x']},{st['y']},{st['z']}, health {st['hits']}/{st['hitsMax']}, mana {st['mana']}")
+    cleanup(state)  # the runebook and the gem bag back where they came from, gems left or not (the user)
 
 
 def on_term(signum, frame):
@@ -983,7 +1058,7 @@ def on_term(signum, frame):
 def main():
     global info
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('command', choices=['fetch', 'sell', 'vault-out', 'vault-test', 'runebook'])
+    parser.add_argument('command', choices=['fetch', 'sell', 'cleanup', 'vault-out', 'vault-test', 'runebook'])
     parser.add_argument('--jewelers', type=int, help='sell: only the first N jewelers in the book not yet done')
     parser.add_argument('--resume', action='store_true', help='clear a takeover; only when the user hands him back')
     args = parser.parse_args()
@@ -1002,6 +1077,8 @@ def main():
     try:
         if args.command == 'fetch':
             fetch()
+        elif args.command == 'cleanup':
+            cleanup(load_state())
         elif args.command == 'sell':
             signal.signal(signal.SIGTERM, on_term)
             sell(load_state(), args.jewelers)
