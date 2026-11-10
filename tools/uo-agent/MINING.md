@@ -542,8 +542,9 @@ How it works:
   from snakes"; he wasn't). After every creature attack, and whenever the guard check sees it (bridge status
   `poisoned`), `check_poison` drinks a cure potion (orange, 0x0F07, allowed in his rules' `useFromBackpack`) if he
   carries one; with none he waits hidden for it to wear off. Still poisoned after `POISON_WAIT` (90) s, or under
-  half his hits: both are parked and the loop stops for the user. He carries no cure potions yet; Burgers (Healing
-  100, Anatomy 100, HEALING.md) could cure him with bandages if he carried some.
+  half his hits: both are parked and the loop stops for the user. The user puts cure potions on Burgers (2026-11-10:
+  "yes, he should. I will put some on burgers"); at every handoff Burgers tops Icepick up to `CURES_WANTED` (3) in
+  the trade, and the handoff line ends with both counts (`Cure potions: Icepick N, Burgers N`).
 - **Town guards are not strangers** (the user, 2026-11-09: "You are running from the guard, Olinda is the guard who
   killed the snake"). The guard who came for the snake stood by Icepick, and the loiter alarm sent him on two
   50-tile getaways. Now, before a getaway from a person, `town_guard` asks for their paperdoll (bridge 12's

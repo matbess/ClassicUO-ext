@@ -74,6 +74,8 @@ LOW_HITS = 0.5              # below this share of his hits he waits hidden until
 # fall below LOW_HITS) both are parked and the loop stops for the user
 POISON_WAIT = 90
 CURE_POTION = '0x0F07'      # an orange potion
+CURES_WANTED = 3            # Icepick carries this many; Burgers keeps the rest and tops him up at every handoff (the
+                            # user, 2026-11-10: "yes, he should. I will put some on burgers")
 WATCH_AFTER = 600           # seconds after an incident to keep watching for the same person
 GATE = (1141, 1666)         # where Burgers' gate to the "Mining gate location" rune comes out
 START = (1130, 1544)        # where the "Mining Start" rune leads (the top of the route)
@@ -555,11 +557,11 @@ class Miner:
         log(f"Icepick is poisoned ({s['hits']}/{s['hitsMax']} hits)")
         start, drunk = time.time(), 0
         while s.get('poisoned'):
-            potion = next((i for i in self.ice.pack() if i.get('graphic') == CURE_POTION), None)
+            potion = next(iter(self.cure_potions(self.ice)), None)
             if potion and drunk < 3:
                 drunk += 1
                 log('Icepick drinks a cure potion')
-                self.ice.call('POST', '/use', serial=potion['serial'])
+                self.ice.call('POST', '/use', serial=potion)
                 time.sleep(3)
             elif time.time() - start > POISON_WAIT or s['hits'] < LOW_HITS * s['hitsMax']:
                 how = self.leave_safe()
@@ -572,6 +574,20 @@ class Miner:
                 time.sleep(3)
             s = self.ice.status()
         log(f"Icepick is no longer poisoned ({s['hits']}/{s['hitsMax']} hits, after {time.time() - start:.0f} s)")
+
+    def cure_potions(self, c):
+        """The cure potions in a character's pack, loose or in a bag in it (not in the spellbook)."""
+        found = []
+        for i in c.pack():
+            if i.get('graphic') == CURE_POTION:
+                found.append(i['serial'])
+            elif i.get('container') and 'spellbook' not in (i.get('type') or ''):
+                try:
+                    found += [x['serial'] for x in c.call('GET', '/contents', serial=i['serial'])['items']
+                              if x.get('graphic') == CURE_POTION]
+                except uo.BridgeError:
+                    pass
+        return found
 
     def icepick_get_away(self, threat, flee=FLEE):
         """Ride straight away from the stranger (the user, 2026-11-01: not along the route, which can snag) to an
@@ -1519,7 +1535,8 @@ class Miner:
         bars = self.ingots(self.ice) + list(extra) + surplus
         need = max(0, SHOVELS_WANTED - len(self.shovels()))
         spares = self.burgers_shovels()[0][:need] if need else []
-        if not bars and not spares:
+        cures = self.cure_potions(self.bur)[:max(0, CURES_WANTED - len(self.cure_potions(self.ice)))]
+        if not bars and not spares and not cures:
             return
         # Icepick rides up to Burgers' spot, away from the forge (the user, 2026-11-02)
         self.to_burgers()
@@ -1540,8 +1557,8 @@ class Miner:
             time.sleep(0.5)
         for bar in bars:
             self.ice.call('POST', '/give', serial=bar['serial'], to=self.bur.status()['serial'])
-        for shovel in spares:
-            self.bur.call('POST', '/give', serial=shovel, to=self.ice.status()['serial'])
+        for item in spares + cures:
+            self.bur.call('POST', '/give', serial=item, to=self.ice.status()['serial'])
         self.ice.call('POST', '/trade', accept=1)
         self.bur.call('POST', '/trade', accept=1)
         time.sleep(1)
@@ -1557,10 +1574,12 @@ class Miner:
         totals['iron'] += iron
         self.save_state()
         log(f'handed Burgers {n} ingots ({iron} iron)' + (f' and {len(extra)} small ore piles' if extra else '')
-            + f"; gave Icepick {len(spares)} shovels. Iron in the bank: {self.bank_iron()}."
+            + f"; gave Icepick {len(spares)} shovels" + (f' and {len(cures)} cure potions' if cures else '')
+            + f". Iron in the bank: {self.bank_iron()}."
             + f" Run and hide: {len(self.state.get('unreviewed', []))} to review. Fights: {len(self.state.get('fights', []))}"
             + f" to review. Reagents: {self.reagent_counts()}."
-            + f" Shovels: {self.shovel_counts()}")
+            + f" Shovels: {self.shovel_counts()}. Cure potions: Icepick {len(self.cure_potions(self.ice))},"
+            + f" Burgers {len(self.cure_potions(self.bur))}")
         ice = self.ice.status()
         if (ice['x'], ice['y']) != BURGERS_WAIT:
             self.bur.walk(*BURGERS_WAIT, 0)
