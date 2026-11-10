@@ -10,6 +10,9 @@
   "areas": [
     { "name": "ground floor hall", "box": [1750, 1410, 1763, 1413], "z": [0, 25] },
     { "name": "ground floor stairs room", "box": [1750, 1402, 1753, 1409], "z": [0, 25] },
+    // the smithy, for the gold from selling gems: into the bottom chest of the stack by the forge (0x4074A4C1 at
+    // 1757,1407; the user, 2026-11-09; GEMS.md)
+    { "name": "smithy (the gold chest)", "box": [1755, 1407, 1758, 1409], "z": [0, 25] },
     { "name": "bag room (2nd floor)", "box": [1750, 1402, 1756, 1413], "z": [26, 45] },
     { "name": "vault door (2nd floor)", "box": [1757, 1412, 1757, 1412], "z": [26, 45] },
     { "name": "vault (gems only)", "box": [1758, 1402, 1763, 1412], "z": [26, 45] },
@@ -25,12 +28,24 @@
     { "name": "outside south-west", "box": [1715, 1430, 1745, 1485], "z": [-20, 40] },
     // Ocllo, the mapmaker's shop (trips.py, the user, 2026-11-08: the "Ocllo maps" rune in his reagent bag). Wide
     // for the first visits: narrowed to the shop and the way to it once the rune's spot is known
-    { "name": "Ocllo", "box": [3550, 2400, 3850, 2750], "z": [-30, 60] }
+    { "name": "Ocllo", "box": [3550, 2400, 3850, 2750], "z": [-30, 60] },
+    // the jewelers in the Gems runebook (GEMS.md; the user, 2026-11-09): 25 tiles round where each rune lands, worked
+    // out from the book's sextant coordinates (to be narrowed once each shop is known)
+    { "name": "jeweler: Britain Gems 1", "box": [1431, 1660, 1481, 1710], "z": [-30, 80] },
+    { "name": "jeweler: Britain Gems 2", "box": [1623, 1625, 1673, 1675], "z": [-30, 80] },
+    { "name": "jeweler: Jhelom Gems", "box": [1419, 3952, 1469, 4002], "z": [-30, 80] },
+    { "name": "jeweler: Trinsic Gems", "box": [1868, 2778, 1918, 2828], "z": [-30, 80] },
+    { "name": "jeweler: Vesper Gems", "box": [2851, 692, 2901, 742], "z": [-30, 80] },
+    { "name": "jeweler: Magincia Gems", "box": [3633, 2162, 3683, 2212], "z": [-30, 80] },
+    { "name": "jeweler: Nujel'm Gems", "box": [3750, 1147, 3800, 1197], "z": [-30, 80] }
   ],
   // vendors (bridge 12): only the mapmaker ("Cador the mapmaker": the user, 2026-11-08, several NPCs in the shop; say
   // his name and buy or sell), only maps (blank and drawn, 0x14EB), and never more than this much gold at once
-  "vendors": ["mapmaker"],
-  "goods": ["0x14EB"],
+  // and the jewelers in the Gems runebook (GEMS.md; the user, 2026-11-09: seven of them, sell only): the nine gems,
+  // citrine 0x0F15, sapphire 0x0F19, diamond 0x0F26, star sapphire 0x0F21, ruby 0x0F13, emerald 0x0F10, amethyst
+  // 0x0F16, tourmaline 0x0F2D, amber 0x0F25
+  "vendors": ["mapmaker", "jeweler"],
+  "goods": ["0x14EB", "0x0F15", "0x0F19", "0x0F26", "0x0F21", "0x0F13", "0x0F10", "0x0F16", "0x0F2D", "0x0F25"],
   "spend": 3000,
   // fights (bridge 7, COMBAT.md): skills and spells at creatures anybody may attack (never a person or a pet) and
   // at himself, and walks that don't wait
@@ -42,10 +57,12 @@
   // outside it at 1758,1415
   // the vault door (metal, 1757,1412, z 26: shut 0x0681, open 0x0682) and its key ring locked down in the bag room at
   // 1756,1410 (z 38), as Icepick uses them (SMITHING.md); for the gem bag only (GEMS.md)
-  "doors": ["0x408AEA54", "0x408AEA55", "0x408AEA59"],
+  // and shop doors on the way to a jeweler: Marnie's room upstairs in Trinsic (1896,2806, z 20; GEMS.md)
+  "doors": ["0x408AEA54", "0x408AEA55", "0x408AEA59", "0x4000FCF3"],
   "keys": ["0x4040A302", "0x404099E0"],
-  // a trapped pouch, used when he's paralysed
-  "useFromBackpack": ["0x0E79"],
+  // a trapped pouch, used when he's paralysed; and the Gems runebook (0x0EFA, a spellbook's graphic), opened to
+  // press a rune's Recall button (GEMS.md)
+  "useFromBackpack": ["0x0E79", "0x0EFA"],
   // a tired horse (the user, 2026-11-06; MINING.md "Tired mount"): get away, dismount, say "all follow me", mount
   // again; "remove thyself" (the house command) puts a creature off the front steps. His horse: "a horse" 0x00043254 (read 2026-11-06 with him dismounted inside).
   "say": ["all follow me", "remove thyself"],

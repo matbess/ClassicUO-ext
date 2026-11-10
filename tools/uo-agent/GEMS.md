@@ -62,8 +62,68 @@ The vault door 0x408AEA59 (metal, 1757,1412, z 26) stays on its tile: shut graph
 - Johnny's rules pause his bridge while anyone else is in the vault: Clem's visit holds up a running sort for about a
   minute. When the gem bag is gone, Johnny's sorting starts a new one (skill uo-sort, "Gems chest").
 
+## Phase 2: selling to the jewelers (`gems.py sell`), the user, 2026-11-09
+
+"There are 7 jewelers in the book who we can go sell to ... First, you recall to the npc, then you find the npc with
+the jeweler title and get near them and say '____ sell' and you sell as many gems as you can, 5 at a time. The npc will
+run out of money at some point and may already be out of money and refuse to buy anything. Once they are out of money
+you can do a trick one time (only works once per hour I think). when they refuse to buy gems you say '____ buy' and
+wait for the buy screen to open, then you close the buy screen. Once it's closed the npc will have a bit more money
+available to them. Then you go back and do '____ sell' again ... until they won't buy anymore. Once they refuse to buy
+again, it's time to move onto the next NPC. Now, it is possible that someone else was just selling and they will refuse
+to buy even if you do the trick ... So you just go to each of the 7 NPCs and do this same thing until all of the gems are
+gone or they all refuse to buy anymore then you come back to the tower (using the same logic carto did, with fighting
+and stuff when needed)."
+
+- **Recall with the flag under each rune** (the Recall button), never the book's charges (it has none: "Charges: 0").
+  The book is RunUO's runebook gump: each rune's buttons are 2 + 6 x slot + (0 a charge, 1 drop the rune, 2 set
+  default, **3 Recall**, 4 Gate Travel); paging (the corners, 1-8 at the bottom) is the client's own, and the bridge
+  presses any rune's button without paging. The runebook is graphic 0x0EFA (as a spellbook), in his rules'
+  `useFromBackpack`. Each rune's spot comes from its sextant coordinates in the book (RunUO's Sextant: the centre at
+  1323,1624, 5,120 x 4,096 tiles); every landing so far was on the tile they give.
+- **The book (2026-11-09)**, slot: name, spot, Recall button: 0 Britain Gems 1, 1456,1685, 5; 1 Britain Gems 2,
+  1648,1650, 11; 2 Jhelom Gems, 1444,3977, 17; 3 Trinsic Gems, 1893,2803, 23; 4 Vesper Gems, 2876,717, 29; 5 Magencia
+  Gems, 3658,2187, 35; 6 Nujelm Gems, 3775,1172, 41. His rules have a walking area of 25 tiles round each spot.
+- **The jewelers** (titled "the jeweler" on their paperdoll): Lamar (Britain 1, 0x00004C92), Charlton (Britain 2,
+  0x0002F36F), Kelia (Jhelom, 0x000095B6), Marnie (Trinsic, 0x00039AD4), Lamar (Vesper, 0x00048323), Annamarie
+  (Magincia, 0x0000ACC7). Jewelers within 12 tiles of the landing are all sold to.
+- **What they say**: out of money: "You have nothing I would be interested in." and no sell window; short of money
+  for a sale: "Sorry, I cannot afford but 203 gold at this time." (what he can still pay: the next offer fits within it,
+  then single gems); the trick: "Greetings. Have a look around." and his buy window (22 items), closed at once (closing
+  the window sends nothing: it's asking that gives him money). Lamar and Charlton bought nothing before the trick and
+  about 2,000 gold after; every jeweler bought after it.
+- **Prices** (2026-11-09): diamond 120, star sapphire 75, sapphire, emerald, amethyst 60, ruby, tourmaline 45, citrine,
+  amber 30 (a gold less now and then as he runs low). Sold the most valuable first, 5 of one kind a sale.
+- **Trinsic, Marnie upstairs** (the user: "you can't talk to Marnie without coming up the stairs"; "Go in the room with
+  marnie"): she's in a room on the upper floor (z 20) behind a door (0x4000FCF3 at 1896,2806, in his rules' doors);
+  from beside her wall she doesn't hear "Marnie sell". The way in (`SHOP_ROOMS` in gems.py): the shop's stairs at x
+  1891 from 1891,2808 up to 1891,2803, then 1893,2804, 1895,2806, open her door if shut, 1897,2805. A walk straight to
+  her from the top of the stairs went back down them, over and over (the path finder ends a walk at the goal's x,y on
+  whatever floor it reaches first).
+- **Vesper**: "no path to there" to Lamar 4 tiles from the landing (2875,721; likely behind a counter): the walk now
+  tries 3 tiles when 2 has no path (a vendor answers from 3). Not yet tried.
+- **A player in town**: home at once and 15 minutes inside, then on (the map trips' rule); the user's own characters
+  and yellow (invulnerable) vendors aren't strangers; someone whose paperdoll doesn't come back (walked off: the
+  bridge's 404 ended the first try in Britain) is asked again next look, and counts as a player after three.
+- **The gold** (the user, after the first tour ended at 389 of 390 stones): "As soon as he gets to within 10 stones of
+  his max weight then recall home and put the gold in the bottom chest next to the forge ... then you can go back to the
+  tour starting by returning to the same vendor you were in the middle of talking to." Gold weighs a stone per 50
+  coins. Before every sale he checks the sale fits under his max less 10 stones, and before Recalling on to the next
+  jeweler that he has room for at least 750 gold more; otherwise Magic Reflection, Recall home, the front-door fight,
+  in, and the gold onto the stack in the **bottom chest of the three stacked by the forge** (0x4074A4C1 at 1757,1407;
+  the forge is 0x408A3611 at 1755,1410; Icepick's ingot chest, his rules' "smithy (the gold chest)" area), then ready
+  again and back to the same jeweler. At the end of a tour the gold goes there too. 24,900 gold there after the first
+  tour (the 15,517 added onto 9,383).
+- In town, anything unforeseen (a bug too) or a bridge stop that isn't the user sends him home; only the user taking
+  over leaves him where he is. `gems.py sell` started while he's at one of the book's jewelers carries on from there.
+- Logs: `gems.log`; `visits.jsonl` (every jeweler: sold, gold, prices, the trick, what was said); `vendors.json` (the
+  NPCs seen, players, when each jeweler's trick was last used).
+
+**The first tour (2026-11-09 21:28-21:41)**: all 268 gems for **15,517 gold**: Lamar 21 for 1,995, Charlton 20 for
+2,010, Kelia 58 for 3,992, Marnie 64 for 3,600, Vesper's Lamar none (no path), Annamarie 105 for 3,920; Nujel'm not
+needed. Home: the front clear, in, locked, parked; the gold into the chest by the forge.
+
 ## Next
 
-- Phase 2: the selling itself (the user to say: the runebook's spots, which NPCs, where the gold goes, what to do with
-  anything unsold). The runebook needs the bridge to work its gump (bridge 6 has gumps; loose runes work with /cast
-  today).
+- The empty gem bag and the Gems runebook after a tour: the user to say (both still in his pack).
+- Vesper's jeweler: see whether 3 tiles reaches him.
