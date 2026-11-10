@@ -20,7 +20,6 @@ import json
 import os
 import random
 import re
-import shutil
 import sys
 import time
 
@@ -70,6 +69,11 @@ CREATURE_WAIT = 30
 CREATURE_STRIKES = 3        # this many creature attacks within CREATURE_WINDOW seconds: both hidden, the loop stops
 CREATURE_WINDOW = 600
 LOW_HITS = 0.5              # below this share of his hits he waits hidden until he has them back before digging on
+# poison (the user, 2026-11-09: "make sure you aren't poisoned, especially from snakes"): a cure potion in his pack is
+# drunk at once; with none he waits hidden for it to wear off, and if it hasn't after POISON_WAIT seconds (or his hits
+# fall below LOW_HITS) both are parked and the loop stops for the user
+POISON_WAIT = 90
+CURE_POTION = '0x0F07'      # an orange potion
 WATCH_AFTER = 600           # seconds after an incident to keep watching for the same person
 GATE = (1141, 1666)         # where Burgers' gate to the "Mining gate location" rune comes out
 START = (1130, 1544)        # where the "Mining Start" rune leads (the top of the route)
@@ -81,6 +85,9 @@ BURGERS_WAIT = (1140, 1849)  # where Burgers waits hidden: grass at the foot of 
 ICE_MEET = (1141, 1850)      # where Icepick comes up next to him
 NEXT_TO = ((1, 1), (0, 1), (1, 0), (-1, 1), (1, -1), (0, -1), (-1, 0), (-1, -1))
 GUILD_TAG = re.compile(r'said "\[[^"\]]*\]"$')  # a player's guild tag ("[title, ABBR]"): the server sends it like speech
+# a town guard's paperdoll title ("Olinda the guard"; a single click shows only the name here). The user, 2026-11-09:
+# Icepick ran twice from Olinda, the guard who had just killed a snake that bit him
+GUARD_TITLE = re.compile(r'\bguard$', re.I)
 HIDING = 21
 RECALL, GATE_TRAVEL = 32, 52
 # what each rune's single-click name must say (the user, 2026-11-01: always check the rune before using it)
@@ -99,10 +106,38 @@ def burgers_rules(bank):
     with open(os.path.join(mining.HERE, 'rules', 'rules-Burgers.json'), encoding='utf-8') as fh:
         text = fh.read()
     if bank:
-        import re
         text = re.sub(r'"pacing": \{[^}]*\}', BANK_PACING, text)
     with open(os.path.join(AGENT_DIR, 'rules-Burgers.json'), 'w', encoding='utf-8') as fh:
-        fh.write(text)
+        fh.write(with_guards(text))
+
+
+def icepick_rules():
+    """Icepick's mining rules in the client's Agent folder (smith.py may have left his smithing rules there)."""
+    with open(os.path.join(mining.HERE, 'rules', 'rules-Icepick.json'), encoding='utf-8') as fh:
+        text = fh.read()
+    with open(os.path.join(AGENT_DIR, 'rules-Icepick.json'), 'w', encoding='utf-8') as fh:
+        fh.write(with_guards(text))
+
+
+def known_guards():
+    """The town guards found so far (state.json `town_guards`: serial -> name)."""
+    try:
+        with open(STATE, encoding='utf-8') as fh:
+            return json.load(fh).get('town_guards') or {}
+    except (OSError, ValueError):
+        return {}
+
+
+def with_guards(text):
+    """Rules text with the town guards found so far added to the guard's "npcs", so the bridge leaves them alone."""
+    guards = [s for s in known_guards() if s not in text]
+    if not guards:
+        return text
+
+    def add(m):
+        have = m.group(1).strip()
+        return '"npcs": [' + have + (', ' if have else '') + ', '.join(f'"{s}"' for s in guards) + ']'
+    return re.sub(r'"npcs": \[([^\]]*)\]', add, text, count=1)
 
 
 def learned_npc(serial):
@@ -265,10 +300,11 @@ class Miner:
         self.noted = set()       # creatures already logged as having turned grey near Icepick
         self.creature_hits = []  # when creatures hit Icepick (CREATURE_STRIKES)
         self.repeats = {}        # serial -> how many incidents in a row with them (each doubles the wait)
+        self.not_guards = set()  # people whose paperdoll said they're not a town guard
         self.burgers_away = False  # Burgers recalled away during an alarm (only when he was seen)
         self.mcgee_far = None      # (tiles, since when) while McGee is more than 2 tiles off (keep_mcgee)
         self.stats = {'ore': 0, 'misses': 0, 'blocks': 0, 'empty': 0, 'forge visits': 0, 'ingots': 0,
-                      'bank trips': 0, 'gates': 0, 'incidents': 0}
+                      'bank trips': 0, 'gates': 0, 'incidents': 0, 'fights': 0}
         self.state = self.load_state()
         self.fatigue_seen = self.ice.status()['lastMessageId']
         self.biggest_dig = BIGGEST_DIG
@@ -292,7 +328,8 @@ class Miner:
             theirs = []
         if len(theirs) > len(self.state.get('reviewed') or []):
             self.state['reviewed'] = theirs
-            self.state['unreviewed'] = [i for i in self.state.get('unreviewed', []) if i['time'] > theirs[-1]['time']]
+            for kind in ('unreviewed', 'fights'):
+                self.state[kind] = [i for i in self.state.get(kind, []) if i['time'] > theirs[-1]['time']]
         with open(STATE, 'w', encoding='utf-8') as fh:
             json.dump(self.state, fh, indent=1)
 
@@ -300,12 +337,16 @@ class Miner:
 
     def check_guard(self):
         for c in (self.ice, self.bur):
-            g = c.status().get('guard') or {}
+            s = c.status()
+            g = s.get('guard') or {}
             if g.get('alarm'):
                 raise Alarm(f"{c.name}: {g['alarm']['reason']}")
+            if c is self.ice and s.get('poisoned'):
+                self.check_poison()
         # someone from an earlier incident turning up again near Icepick
         now = time.time()
-        self.watch = {s: t for s, t in self.watch.items() if t > now and not learned_npc(s)}
+        guards = self.state.get('town_guards') or {}
+        self.watch = {s: t for s, t in self.watch.items() if t > now and not learned_npc(s) and s not in guards}
         near = self.ice.call('GET', '/nearby', range=18)['mobiles']
         # a creature near him that has turned grey has gone after someone: only noted, for the user (2026-11-08: he
         # reacts to hits only; the guards only come once it has hit someone, and his bridge says "Guards!" at once)
@@ -331,16 +372,19 @@ class Miner:
             except Again:
                 continue
 
-    def incident(self, record):
+    def incident(self, record, kind='unreviewed'):
+        """Kept until the user says they've reviewed them (the user, 2026-11-02), shown with every handoff: run and
+        hides in `unreviewed`, fights (a creature hit Icepick) in `fights` (the user, 2026-11-09: report how many
+        fights along with the run and hides)."""
         record['time'] = time.strftime('%Y-%m-%d %H:%M:%S')
-        self.stats['incidents'] += 1
+        record['kind'] = kind
+        self.stats['incidents' if kind == 'unreviewed' else 'fights'] += 1
         with open(INCIDENTS, 'a', encoding='utf-8') as fh:
             fh.write(json.dumps(record) + '\n')
-        # kept until the user says they've reviewed them (the user, 2026-11-02), shown with every handoff
         s = self.ice.status()
         alarm = (record.get('icepick') or record.get('burgers') or {})
         threat = alarm.get('threat') or {}
-        self.state.setdefault('unreviewed', []).append({
+        self.state.setdefault(kind, []).append({
             'time': record['time'], 'what': record.get('what'),
             'who': f"{threat.get('name') or '?'} {threat.get('serial') or ''}".strip(),
             'where': f"Icepick at {s['x']},{s['y']}"})
@@ -373,6 +417,10 @@ class Miner:
                 if m['serial'] in self.watch:
                     threat = {'serial': m['serial'], 'name': m['name'], 'x': m['x'], 'y': m['y']}
             own_ice = True
+        if self.town_guard(threat):
+            for c in (self.ice, self.bur):
+                c.call('POST', '/guard', on=1)
+            return
         self.incident({'what': why, 'icepick': ai, 'burgers': ab})
         serial = (threat or {}).get('serial')
         if serial not in (None, '0x00000000'):
@@ -424,7 +472,7 @@ class Miner:
         """A creature hit Icepick (the user, 2026-11-08). His bridge has already said "Guards!" (rules "callGuards"),
         and in town a guard kills a creature at once once it has hit someone. So he only steps about CREATURE_FLEE
         tiles away from it, hides, and carries on as soon as it's gone (killed) or after CREATURE_WAIT seconds."""
-        self.incident({'what': why, 'icepick': ai, 'burgers': ab})
+        self.incident({'what': why, 'icepick': ai, 'burgers': ab}, kind='fights')
         now = time.time()
         self.creature_hits = [t for t in self.creature_hits if now - t < CREATURE_WINDOW] + [now]
         name = (threat or {}).get('name') or 'the creature'
@@ -445,6 +493,7 @@ class Miner:
             if not self.ice.status()['hidden']:
                 self.hide(self.ice, tries=1)
             time.sleep(3)
+        self.check_poison()
         if len(self.creature_hits) >= CREATURE_STRIKES:
             self.leave_safe()
             raise Stop(f'creatures have hit Icepick {len(self.creature_hits)} times in {CREATURE_WINDOW // 60} '
@@ -461,6 +510,68 @@ class Miner:
         for c in (self.ice, self.bur):
             c.call('POST', '/guard', on=1)
         log(f"creature: carrying on (Icepick {s['hits']}/{s['hitsMax']} hits)")
+
+    def town_guard(self, threat):
+        """Whether the person an alarm is about is a town guard: his paperdoll says "<name> the guard". One found is
+        kept in state.json (`town_guards`) and added to both characters' "npcs" rules, so their bridges leave him
+        alone from then on (the user, 2026-11-09: Icepick ran from Olinda, the guard who had killed the snake)."""
+        serial = (threat or {}).get('serial')
+        guards = self.state.setdefault('town_guards', {})
+        if serial in guards:
+            return True
+        if serial in (None, '0x00000000') or serial in self.not_guards or not self.person(threat):
+            return False
+        title = None
+        for c in (self.ice, self.bur):
+            try:
+                answer = c.call('POST', '/paperdoll', serial=serial)
+                title = ((answer or [{}])[0].get('title') or '').strip()
+                break
+            except uo.BridgeError:
+                continue  # too far off for this one
+        name = (threat or {}).get('name') or serial
+        log(f'paperdoll of {name} ({serial}): {title!r}')
+        if not title or not GUARD_TITLE.search(title):
+            self.not_guards.add(serial)
+            return False
+        guards[serial] = name
+        self.state['town_guards'] = dict(list(guards.items())[-100:])
+        self.save_state()
+        b = self.bur.status()
+        burgers_rules(bank=cheb((b['x'], b['y']), OCLLO_BANK) <= 10)
+        icepick_rules()
+        self.watch.pop(serial, None)
+        log(f'{name} is a town guard ("{title}"), not a stranger: no run and hide, carrying on (both bridges leave '
+            'him alone now)')
+        return True
+
+    def check_poison(self):
+        """The user, 2026-11-09: after an attack make sure Icepick isn't poisoned, above all by a snake. He drinks a
+        cure potion if he has one; otherwise he waits hidden for it to wear off. Still poisoned after POISON_WAIT
+        seconds, or his hits below LOW_HITS: both are parked and the loop stops for the user."""
+        s = self.ice.status()
+        if not s.get('poisoned'):
+            return
+        log(f"Icepick is poisoned ({s['hits']}/{s['hitsMax']} hits)")
+        start, drunk = time.time(), 0
+        while s.get('poisoned'):
+            potion = next((i for i in self.ice.pack() if i.get('graphic') == CURE_POTION), None)
+            if potion and drunk < 3:
+                drunk += 1
+                log('Icepick drinks a cure potion')
+                self.ice.call('POST', '/use', serial=potion['serial'])
+                time.sleep(3)
+            elif time.time() - start > POISON_WAIT or s['hits'] < LOW_HITS * s['hitsMax']:
+                how = self.leave_safe()
+                raise Stop(f"Icepick is still poisoned ({s['hits']}/{s['hitsMax']} hits) after "
+                           f"{time.time() - start:.0f} s, " + (f'{drunk} cure potions' if drunk else 'with no cure potion')
+                           + f'. Parked: {how}')
+            else:
+                if not s['hidden']:
+                    self.hide(self.ice, tries=1)
+                time.sleep(3)
+            s = self.ice.status()
+        log(f"Icepick is no longer poisoned ({s['hits']}/{s['hitsMax']} hits, after {time.time() - start:.0f} s)")
 
     def icepick_get_away(self, threat, flee=FLEE):
         """Ride straight away from the stranger (the user, 2026-11-01: not along the route, which can snag) to an
@@ -1447,7 +1558,8 @@ class Miner:
         self.save_state()
         log(f'handed Burgers {n} ingots ({iron} iron)' + (f' and {len(extra)} small ore piles' if extra else '')
             + f"; gave Icepick {len(spares)} shovels. Iron in the bank: {self.bank_iron()}."
-            + f" Run and hide: {len(self.state.get('unreviewed', []))} to review. Reagents: {self.reagent_counts()}."
+            + f" Run and hide: {len(self.state.get('unreviewed', []))} to review. Fights: {len(self.state.get('fights', []))}"
+            + f" to review. Reagents: {self.reagent_counts()}."
             + f" Shovels: {self.shovel_counts()}")
         ice = self.ice.status()
         if (ice['x'], ice['y']) != BURGERS_WAIT:
@@ -1685,8 +1797,7 @@ class Miner:
     def preflight(self):
         burgers_rules(bank=False)  # in case a run stopped in the middle of a bank trip
         # Icepick's mining rules, in case smith.py left his smithing rules in the client (SMITHING.md)
-        shutil.copyfile(os.path.join(mining.HERE, 'rules', 'rules-Icepick.json'),
-                        os.path.join(AGENT_DIR, 'rules-Icepick.json'))
+        icepick_rules()
         # after a login (a server reboot, say) the client knows nothing inside bags until they're opened
         for c in (self.ice, self.bur):
             pack = c.status()['backpack']
@@ -1828,17 +1939,19 @@ def main():
                 state = json.load(fh)
         except (OSError, ValueError):
             state = {}
-        items = state.get('unreviewed', [])
+        items, fights = state.get('unreviewed', []), state.get('fights', [])
         if args.incidents:
-            print(f'{len(items)} run-and-hide incidents to review' + (':' if items else ''))
-            for i in items:
-                print(f"  {i['time']}  {i['who']}  {i['where']}  ({i['what']})")
+            for what, its in (('run-and-hide incidents', items), ('fights', fights)):
+                print(f'{len(its)} {what} to review' + (':' if its else ''))
+                for i in its:
+                    print(f"  {i['time']}  {i['who']}  {i['where']}  ({i['what']})")
         else:
-            state['unreviewed'] = []
-            state.setdefault('reviewed', []).append({'time': time.strftime('%Y-%m-%d %H:%M:%S'), 'count': len(items)})
+            state['unreviewed'], state['fights'] = [], []
+            state.setdefault('reviewed', []).append({'time': time.strftime('%Y-%m-%d %H:%M:%S'), 'count': len(items),
+                                                     'fights': len(fights)})
             with open(STATE, 'w', encoding='utf-8') as fh:
                 json.dump(state, fh, indent=1)
-            print(f'marked {len(items)} incidents reviewed')
+            print(f'marked {len(items)} run and hides and {len(fights)} fights reviewed')
         return
     if running_loop():
         sys.exit(f'a mining loop is already running (pid {running_loop()}); --park or --stop it first')

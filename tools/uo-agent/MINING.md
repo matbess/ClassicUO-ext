@@ -14,8 +14,9 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
 - The work folder `~/claude/uo-agent-work/mining` (not in git) holds `mine.log`, `incidents.jsonl` and
   `state.json`: `next` (the block to dig next), `totals` (with a `note` of every correction), `emptied` (blocks
   found empty, with when), `bags` (the bank's ingot, shovel and reagent bags), `shovel_bag` (the bag in Burgers'
-  pack), `unreviewed` (run and hides), `bank_out_of_shovels`, `bank_shovels` and `bank_ingots` (the bank's shovels
-  and ingots as counted on the last bank trip).
+  pack), `unreviewed` (run and hides), `fights` (creatures that hit Icepick), `town_guards` (guards found by their
+  paperdolls), `bank_out_of_shovels`, `bank_shovels` and `bank_ingots` (the bank's shovels and ingots as counted on
+  the last bank trip).
 - Options: `--passes N`, `--from N --to M` (a stretch), `--bank` (a bank trip only), `--empty` (smelt and hand
   over only), `--incidents`, `--reviewed`, `--park`, `--stop`.
 - Before starting: both characters logged in with the Agent bridge option ticked, Icepick near McGee or on him,
@@ -44,7 +45,7 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
 - **What to tell the user** (they follow on the phone through Remote Control: plain messages, no push
   notifications):
   - every forge trip, in a few lines: the ingots handed over (and how many iron), the shovels given, the iron in
-    the bank, the run and hides to review, all four of Burgers' reagents, and the shovels: Burgers' spares and the
+    the bank, the run and hides and the fights to review, all four of Burgers' reagents, and the shovels: Burgers' spares and the
     bank's (counted on his last bank trip; the handoff line has both from 2026-11-08);
   - the iron in the bank rather than the total ever mined (the user, 2026-11-08: "I'd rather know how many are in
     the bank than the total we've ever mined"). Burgers counts the uncoloured ingots in the bank's ingot bag on
@@ -389,6 +390,9 @@ files further: they apply at once, without a new build.
   the last blood moss. Ordinary trips still look again; when the user restocks, set `bank_short` to [].
 - **Run-and-hide incidents to review** (the user, 2026-11-02 00:56): every guard incident is kept in the state
   (`unreviewed`) until the user says they've reviewed them, and every handoff line ends "Run and hide: N to review".
+  From 2026-11-09 fights (a creature hit Icepick) are counted apart, in `fights` ("Fights: N to review" after the run
+  and hides; the user: "report how many fights you engage in along with the run & hides"); `--incidents` lists
+  both and `--reviewed` clears both.
   `python3 mine.py --incidents` lists them (when, who, what, where); `--reviewed` (only when the user says so) sets
   the count back to 0. The full record stays in incidents.jsonl and the bridge's alarms.log; all logs are on the
   Mac (~/claude/uo-agent-work/mining), so a server reboot doesn't lose them.
@@ -534,6 +538,20 @@ How it works:
   1101,1649. In the same instant he said "Guards!" and the guard James came, "You see James attacking a water
   elemental!", "Thou hast suffered thy punishment, scoundrel." He rode 9 tiles off and hid; the elemental was gone
   at the first look, and he carried on at 17:31:28 with 94/100.
+- **Poison** (the user, 2026-11-09, after a snake bit Icepick at 23:08: "make sure you aren't poisoned, especially
+  from snakes"; he wasn't). After every creature attack, and whenever the guard check sees it (bridge status
+  `poisoned`), `check_poison` drinks a cure potion (orange, 0x0F07, allowed in his rules' `useFromBackpack`) if he
+  carries one; with none he waits hidden for it to wear off. Still poisoned after `POISON_WAIT` (90) s, or under
+  half his hits: both are parked and the loop stops for the user. He carries no cure potions yet; Burgers (Healing
+  100, Anatomy 100, HEALING.md) could cure him with bandages if he carried some.
+- **Town guards are not strangers** (the user, 2026-11-09: "You are running from the guard, Olinda is the guard who
+  killed the snake"). The guard who came for the snake stood by Icepick, and the loiter alarm sent him on two
+  50-tile getaways. Now, before a getaway from a person, `town_guard` asks for their paperdoll (bridge 12's
+  `/paperdoll`; a single click shows only the name here): a title ending "guard" ("Olinda the guard") makes them a
+  town guard, kept in state.json `town_guards` and added to both characters' rules `npcs` (`with_guards`, when the
+  rules are written), so the bridges leave them alone; no incident, and he carries on. Every title asked is logged
+  (`paperdoll of ...`). Olinda (0x00041A9D) was added by hand from the user's word; the title check itself is not
+  yet seen working on a guard.
 - Not used for mining: bridge 11 can also raise the alarm when a creature within `"creatures"` tiles turns grey, or
   for an `"avoid"` list of kinds. The user turned that down (an early getaway means it never hits him, so the guards
   never kill it and it keeps wandering about the route); both are left out of the rules.

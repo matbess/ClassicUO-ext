@@ -8,8 +8,8 @@
   // people walk past out here; the guard deals with anyone who stops or talks
   "pauseForPeople": false,
   "partners": ["Burgers", "0x000425CA"],
-  // shovels and pickaxes (both facings), and ore piles for smelting
-  "useFromBackpack": ["0x0F39", "0x0F3A", "0x0E85", "0x0E86", "0x19B7", "0x19B8", "0x19B9", "0x19BA"],
+  // shovels and pickaxes (both facings), ore piles for smelting, and cure potions (orange: drunk when poisoned)
+  "useFromBackpack": ["0x0F39", "0x0F3A", "0x0E85", "0x0E86", "0x19B7", "0x19B8", "0x19B9", "0x19BA", "0x0F07"],
   "say": ["all follow me"],
   "spells": [],
   // 21 Hiding, 35 Animal Taming (only ever aimed at his own horse, to tame McGee again if he goes wild: the user,
