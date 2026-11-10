@@ -6,8 +6,9 @@ empty after a restart; --known reads only what the client already knows and send
 
   inventory.py [--known] [--out PATH]
 
-Writes PATH (default vault/inventory.json here), which the page "The Vault" (vault/index.html) shows: publish both
-(skill uo-sort, "The Vault page"). Also refreshes layout.json for every chest it opens.
+Writes PATH (default vault/inventory.json here) and, by default, the same data into the page "The Vault"
+(vault/index.html), which is then published on its own (skill uo-sort, step 6). Also refreshes layout.json for every
+chest it opens.
 """
 import importlib.util
 import json
@@ -22,7 +23,8 @@ for module in ('uo', 'look', 'layout', 'survey'):
     globals()[module] = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(globals()[module])
 
-OUT = os.path.join(here, 'vault', 'inventory.json')  # published beside vault/index.html, the page
+OUT = os.path.join(here, 'vault', 'inventory.json')  # the data, kept in git
+PAGE = os.path.join(here, 'vault', 'index.html')  # the page; the data is written into it (window.VAULT)
 ROWS = ('top', '2nd from top', '3rd from top', 'bottom')
 # spell scrolls 0x1F2D-0x1F6C, 8 to a circle (the tiledata names are cut short: "Greater Heal Scrol")
 SPELLS = ['Reactive Armor', 'Clumsy', 'Create Food', 'Feeblemind', 'Heal', 'Magic Arrow', 'Night Sight', 'Weaken',
@@ -119,11 +121,28 @@ def main():
 
     data = {'updated': time.strftime('%Y-%m-%dT%H:%M:%S%z'), 'wall': wall, 'crates': crates}
     os.makedirs(os.path.dirname(out), exist_ok=True)
-    tmp = f'{out}.tmp'
+    write(out, json.dumps(data, indent=1))
+    if out == OUT:
+        embed(data)
+    say(f'INVENTORY DONE: {out}' + (f' and {PAGE}' if out == OUT else ''))
+
+
+def write(path, text):
+    tmp = f'{path}.{os.getpid()}.tmp'
     with open(tmp, 'w', encoding='utf-8') as fh:
-        json.dump(data, fh, indent=1)
-    os.replace(tmp, out)
-    say(f'INVENTORY DONE: {out}')
+        fh.write(text)
+    os.replace(tmp, path)
+
+
+def embed(data):
+    """Write the data into the page itself (the phone app didn't show a page that fetched it, 2026-11-10)."""
+    page = open(PAGE, encoding='utf-8').read()
+    block = '<script id="vault-data">window.VAULT = ' + json.dumps(data, separators=(',', ':')).replace('</', '<\\/') \
+        + ';</script>'
+    page, n = re.subn(r'<script id="vault-data">.*?</script>', lambda m: block, page, count=1, flags=re.S)
+    if n != 1:
+        raise SystemExit(f'no <script id="vault-data"> block in {PAGE}')
+    write(PAGE, page)
 
 
 if __name__ == '__main__':
