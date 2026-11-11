@@ -308,6 +308,10 @@ def go_floor(floor):
         return
     if have == 3:
         carto.go_to_floor(2)
+        if floor == 2:
+            # without this, go_floor(2) from the third floor went on down the ground floor stairs (2026-11-10 19:37,
+            # Johnny with a bag of maps for the vault, stopped at their top by his rules)
+            return
     # down from the second floor: the ground floor stairs top out at 1751,1403 (z 23)
     carto.walk(*carto.SECOND_FROM_GROUND)
     for p in (carto.GROUND_STAIRS_TOP, carto.GROUND_STAIRS_FOOT, (1752, 1407)):

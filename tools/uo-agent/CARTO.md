@@ -405,6 +405,19 @@ gump recorder and the cartography menu are done. Still to come:
   stay, the largest others carried up whole, the smallest poured; Razor's auto-search forgiven with trips.pick_up;
   the horse rested with the remount trick before any walk once it says it's fatigued: running up and down the stairs
   tires it within a few minutes).
+- **2026-11-10: every drawn map thrown away** (the user: "now we need to get rid of the drawn maps ... empty out all
+  the drawn maps into the trash can, then put the bags into the crate with bags along the eastern wall"; done by
+  Johnny so the user could play Clem: "leave Johnny in the room when you're done, just make sure the door is
+  locked"). 1,138 world maps from the 16 completed bags went into the vault's trash barrel (0x4068E2BB, 1758,1410)
+  one at a time from the doorway side (1758,1412, within reach); the 16 empty bags went into the new backpacks crate
+  (0x408AE270, 1763,1405). The state has no completed bags now, and their labels are gone. Johnny worked under a
+  temporary `Agent/rules-Here's Johnny.json` (the bag room, the 3rd floor west, the vault door and key, his horse
+  0x0003E4E0, handOver), deleted after; the door was unlocked from its doorway at the start, locked from there at
+  the end and checked from inside ("That is locked, but is usable from the inside.", then shut again). Learned: his
+  client's auto-open can open the door without its open graphic ever arriving (use `gems.open_from_inside`, never a
+  plain use); names.json had a stale name for a map's serial ("a wand of clumsy (20 charges)": serials come back),
+  so ask the server for names before throwing anything away; `trips.go_floor(2)` from the 3rd floor used to carry
+  on down to the ground floor (fixed).
 - **When the second floor's bags are full, skip the buyout.** Then the vendor isn't bought out when Clem comes to
   sell, and he restocks fewer blanks after the sale. Claude's plan (told to the user): sell anyway and buy back all he
   has; if that loses maps, storage gets room again and the buyouts resume.
