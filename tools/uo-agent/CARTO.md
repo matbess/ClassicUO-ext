@@ -393,6 +393,18 @@ gump recorder and the cartography menu are done. Still to come:
 - **Storage is the second floor only**: not the third floor, the room above the vault or the roof ("all those bags on
   the second floor should be plenty of maps"). Up to 100 maps a bag; blanks brought back are topped up into blank bags
   with room.
+- **Newer (the user, 2026-11-10): every blank is in two stacks in the third floor's west corner** ("take all the
+  blanks and stack them all into bags like that in that area, stack them as high as you can toward the ceiling";
+  then "make them even with both stacks having 19 bags"). 3,769 blanks in 38 bags of 100 (two hold 87 and 82):
+  19 bags at 1750,1410 (z 46-64) and 19 at 1750,1411 (z 46-64). The third floor there is the room south of a wall at
+  y 1409 (he can stand on x 1750-1752, y 1410-1412). **A tile takes 20 bags at most** (z 46-65; the server silently
+  refused a 21st at z 66, where the roof starts), so each stack has room for one more. Bags dropped at his feet go on
+  top of the stack. The 9 smallest blank bags were poured into the stacks and put back empty on their spots (8 on the
+  second floor, 0x40836C28 at 1752,1402,46); 0x409397A3 (1752,1403,46) was empty already. The second floor now
+  holds the drawn maps and those empty bags. Done with a one-off script (the plan from the state: the corner's bags
+  stay, the largest others carried up whole, the smallest poured; Razor's auto-search forgiven with trips.pick_up;
+  the horse rested with the remount trick before any walk once it says it's fatigued: running up and down the stairs
+  tires it within a few minutes).
 - **When the second floor's bags are full, skip the buyout.** Then the vendor isn't bought out when Clem comes to
   sell, and he restocks fewer blanks after the sale. Claude's plan (told to the user): sell anyway and buy back all he
   has; if that loses maps, storage gets room again and the buyouts resume.
