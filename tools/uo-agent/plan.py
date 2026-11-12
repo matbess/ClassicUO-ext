@@ -65,6 +65,8 @@ SET_PIECES = {'ringmail gloves', 'ringmail sleeves', 'chainmail leggings', 'chai
 FOOTWEAR = {'boots', 'thigh boots', 'shoes', 'sandals'}
 MISC = {'crystal ball'}  # things the user keeps that have no other home: the miscellaneous chest
 MISC_GRAPHICS = {'0x097C', '0x097D', '0x097E'}  # cheese: wedges and wheels (tiledata names carry plural codes)
+MISC_GRAPHICS |= look.layout.KEY_RINGS  # key rings, empty or with keys (the user, 2026-11-11: "keep the keyrings")
+SCISSORS = {'0x0F9E', '0x0F9F'}  # spares go loose in the supplies chest as Johnny's backup pair (the user, 2026-11-11)
 
 # armour bags for keepers and gear the user doesn't mind losing: (material, slot) -> bag kind, chest
 TYPE_BAG = {('plate', 'gloves'): ('plate gloves', 'plate'), ('plate', 'helm'): ('helms', 'helms'),
@@ -203,6 +205,8 @@ def decide(item, name):
         return 'limit', 'defense' if p == 0 else 'guarding'  # gear the user doesn't mind losing
     if t in ('torch', 'torches') or t.startswith('jug of cider') or t.startswith('bread loa'):
         return 'trash', 'torch or food'  # the user: torches 2026-11-04, cider and bread 2026-11-07
+    if item['graphic'] in SCISSORS:
+        return 'keep', ('supplies',)
     if t in MISC or item['graphic'] in MISC_GRAPHICS:
         return 'keep', ('misc',)  # kept, loose in the miscellaneous chest (the user, 2026-11-04)
     # cloth clothes, hats and footwear
@@ -299,6 +303,8 @@ def main():
             what = detail[0]
             if what == 'misc':
                 spec['place_in'].append([s, 'miscellaneous'])
+            elif what == 'supplies':
+                spec['place_in'].append([s, 'supplies'])
             elif what == 'wand':
                 groups[(detail[1], 'magic wands')].append(s)
             elif what == 'jewellery':

@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-11T21:29:01-0800",
+ "updated": "2026-11-11T21:33:11-0800",
  "wall": [
   {
    "name": "swords",
@@ -1222,7 +1222,13 @@
    "col": 5,
    "row": "3rd from top",
    "bags": [],
-   "loose": []
+   "loose": [
+    {
+     "name": "key ring",
+     "amount": 3,
+     "graphic": "0x1011"
+    }
+   ]
   },
   {
    "name": "gems",
@@ -1408,18 +1414,7 @@
    "col": 6,
    "row": "2nd from top",
    "bags": [],
-   "loose": [
-    {
-     "name": "key ring",
-     "amount": 3,
-     "graphic": "0x1011"
-    },
-    {
-     "name": "scissors",
-     "amount": 1,
-     "graphic": "0x0F9E"
-    }
-   ]
+   "loose": []
   },
   {
    "name": "supplies & ID wands",
@@ -1508,6 +1503,11 @@
      "name": "blank scrolls",
      "amount": 5,
      "graphic": "0x0EF3"
+    },
+    {
+     "name": "scissors",
+     "amount": 1,
+     "graphic": "0x0F9E"
     }
    ]
   },
