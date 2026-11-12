@@ -26,11 +26,33 @@ for module in ('uo', 'look', 'layout', 'survey'):
 OUT = os.path.join(here, 'vault', 'inventory.json')  # the data, kept in git
 PAGE = os.path.join(here, 'vault', 'index.html')  # the page; the data is written into it (window.VAULT)
 ROWS = ('top', '2nd from top', '3rd from top', 'bottom')
-# what a jeweler pays for one gem, in gold (Clem sells them: GEMS.md, "Prices", 2026-11-09). The page shows each
-# pile's worth and the gem bag's total (the user, 2026-11-11). Keyed by graphic, as in sortbatch.py's GEMS.
+# what a jeweler pays for one gem, in gold. The page shows each pile's worth and what all the gems sell for, marker
+# included (the user, 2026-11-11). Each recount takes the latest price Clem was quoted for each gem (VISITS, written
+# by gems.py on every jeweler visit); these are the fallback (GEMS.md, "Prices", 2026-11-09). Keyed by graphic.
 GEM_PRICES = {'0x0F26': 120, '0x0F21': 75, '0x0F19': 60, '0x0F10': 60, '0x0F16': 60, '0x0F13': 45, '0x0F2D': 45,
-              '0x0F15': 30, '0x0F25': 30}  # diamond, star sapphire, sapphire, emerald, amethyst, ruby, tourmaline,
-#                                            citrine, amber
+              '0x0F15': 30, '0x0F25': 30}
+GEM_NAMES = {'diamond': '0x0F26', 'star sapphire': '0x0F21', 'sapphire': '0x0F19', 'emerald': '0x0F10',
+             'amethyst': '0x0F16', 'ruby': '0x0F13', 'tourmaline': '0x0F2D', 'citrine': '0x0F15',
+             'piece of amber': '0x0F25'}  # as gems.py logs them
+VISITS = os.path.expanduser('~/claude/uo-agent-work/gems/visits.jsonl')
+
+
+def gem_prices():
+    """GEM_PRICES with the latest price a jeweler quoted Clem for each gem, and when each was quoted."""
+    prices, when = dict(GEM_PRICES), {}
+    try:
+        with open(VISITS, encoding='utf-8') as fh:
+            for line in fh:
+                try:
+                    visit = json.loads(line)
+                except ValueError:
+                    continue
+                for gem, price in (visit.get('prices') or {}).items():
+                    if gem in GEM_NAMES and isinstance(price, int) and price > 0:
+                        prices[GEM_NAMES[gem]], when[GEM_NAMES[gem]] = price, visit.get('time', '')
+    except OSError:
+        pass
+    return prices, when
 # spell scrolls 0x1F2D-0x1F6C, 8 to a circle (the tiledata names are cut short: "Greater Heal Scrol")
 SPELLS = ['Reactive Armor', 'Clumsy', 'Create Food', 'Feeblemind', 'Heal', 'Magic Arrow', 'Night Sight', 'Weaken',
           'Agility', 'Cunning', 'Cure', 'Harm', 'Magic Trap', 'Magic Untrap', 'Protection', 'Strength',
@@ -68,9 +90,12 @@ def entries(items, names):
         n = display(i, names)
         e = merged.setdefault(n, {'name': n, 'amount': 0, 'graphic': i['graphic']})
         e['amount'] += i.get('amount', 1)
-        if i['graphic'] in GEM_PRICES:
-            e['each'] = GEM_PRICES[i['graphic']]  # gold a jeweler pays for one
+        if i['graphic'] in PRICES:
+            e['each'] = PRICES[i['graphic']]  # gold a jeweler pays for one
     return sorted(merged.values(), key=lambda e: (-e['amount'] if e['amount'] > 1 else 0, e['name'].lower()))
+
+
+PRICES, PRICED = gem_prices()
 
 
 def main():
@@ -126,7 +151,8 @@ def main():
             crates.append({'name': text, 'items': entries(items, names)})
             say(f'{text}: {len(items)}')
 
-    data = {'updated': time.strftime('%Y-%m-%dT%H:%M:%S%z'), 'wall': wall, 'crates': crates}
+    data = {'updated': time.strftime('%Y-%m-%dT%H:%M:%S%z'), 'wall': wall, 'crates': crates,
+            'gem_prices_from': max(PRICED.values(), default='')}
     os.makedirs(os.path.dirname(out), exist_ok=True)
     write(out, json.dumps(data, indent=1))
     if out == OUT:
