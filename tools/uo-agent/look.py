@@ -85,11 +85,17 @@ def on_floor(info):
             and not any(k in i.get('type', '') for k in NOT_LOOT)]
 
 
+def reused(item, labels):
+    """A labelled bag lying on this floor: only loot bags go here, so it has been reused as one. The user takes the
+    whole gem bag to sell the gems and brings it back with loot (2026-11-07), and reuses Clem's old map backpacks
+    ("maps: blank (Clem's bag room)", 2026-11-11). The chests, crates and barrel are never on the list (on_floor)."""
+    return layout.is_bag(item) and bool(labels.get(item['serial']))
+
+
 def loot_on_floor(info):
     """Loot bags and loose loot on the floor: unlabelled things, and labelled bags (reused as loot bags)."""
     labels = uo.load_labels()
-    return [i for i in on_floor(info) if not labels.get(i['serial'])
-            or (i.get('container') and labels[i['serial']].startswith('bag: '))]
+    return [i for i in on_floor(info) if not labels.get(i['serial']) or reused(i, labels)]
 
 
 def main():
@@ -98,13 +104,12 @@ def main():
     info = uo.find_bridge(None)
     labels = uo.load_labels()
     here = on_floor(info)
-    # Only loot bags go on this floor, so a labelled bag lying here has been reused as one: the user takes the whole
-    # gem bag to sell the gems and brings it back with loot (2026-11-07). Its label goes; sortbatch starts a new
-    # gem bag when one is needed, and plan.py a new bag of any other kind.
-    reused = [i for i in here if i.get('container') and labels.get(i['serial'], '').startswith('bag: ')]
-    for i in reused:
+    # A labelled bag on this floor is a reused loot bag (reused()). Its label goes; sortbatch starts a new gem bag
+    # when one is needed, and plan.py a new bag of any other kind.
+    bags = [i for i in here if reused(i, labels)]
+    for i in bags:
         say(f"{labels[i['serial']]} is on the floor: reused as a loot bag, so it's loot now and its label is dropped")
-    uo.forget_labels([i['serial'] for i in reused])
+    uo.forget_labels([i['serial'] for i in bags])
     labels = uo.load_labels()
     floor = [i for i in here if not labels.get(i['serial'])]
     loose = [i for i in floor if kind(i) != 'container']
