@@ -49,7 +49,7 @@ def display(item, names):
     g = int(item['graphic'], 16)
     if 0x1F2D <= g <= 0x1F6C:
         return f'{SPELLS[g - 0x1F2D]} scroll'
-    if item.get('amount', 1) > 1 or item.get('container'):
+    if item.get('amount', 1) > 1 or layout.is_bag(item):
         return ' '.join(item.get('type', '?').split())
     name = (names.get(item['serial']) or '').split(' / ')[0].strip()
     name = re.sub(r'^(an?|the) ', '', name, flags=re.I)
@@ -82,10 +82,10 @@ def main():
         items = contents(bag)
         out = []
         for i in items:
-            if i.get('container') and depth < 2:
+            if layout.is_bag(i) and depth < 2:
                 out.append({'name': labels.get(i['serial'], display(i, names)), 'amount': 1, 'graphic': i['graphic'],
                             'items': entries(inside(i['serial'], depth + 1), names)})
-        return out + entries([i for i in items if not i.get('container')], names)
+        return out + entries([i for i in items if not layout.is_bag(i)], names)
 
     chests = [s for s, t in labels.items() if t.startswith('chest: ')]
     spots = {s: uo.on_floor(info, s) for s in chests}

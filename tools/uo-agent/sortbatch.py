@@ -328,8 +328,9 @@ def gem_bag():
         bag = new['serial']
         CONTENTS[bag], AREA[bag], OCCUPIED[bag] = [], [44, 65, 186, 159], []
         uo.save_label(bag, 'bag: gems (gems chest)')
-        GEM_BAG['needs marker'] = not any(i['graphic'] in GEMS for i in items)
         say('no gem bag in the gems chest (taken to sell the gems); started a new one')
+    # a new bag, or the old one brought back empty with its marker sold too (2026-11-10): a gem goes under it
+    GEM_BAG['needs marker'] = not any(i['graphic'] in GEMS for i in items)
     learn(bag)
     GEM_BAG['serial'] = bag
     return bag
@@ -455,7 +456,7 @@ def main():
             return 'exceptional' in names.get(serial, '')
 
         sets = [[b, {set_piece(i) for i in learn(b['serial']) if gm(i['serial'])}]
-                for b in sorted((i for i in learn(c) if i.get('container')), key=lambda i: (i['y'], i['x']))]
+                for b in sorted((i for i in learn(c) if layout.is_bag(i)), key=lambda i: (i['y'], i['x']))]
         missing = [s for s in plan['sets'] if not set_piece(inv[s])]
         if missing:
             sys.exit('not GM set pieces: ' + ', '.join(f"{s} {inv[s]['type']}" for s in missing))

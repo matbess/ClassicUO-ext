@@ -17,9 +17,10 @@ import sys
 import time
 
 here = os.path.dirname(os.path.realpath(__file__))
-spec = importlib.util.spec_from_file_location('uo', os.path.join(here, 'uo.py'))
-uo = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(uo)
+for module in ('uo', 'layout'):
+    spec = importlib.util.spec_from_file_location(module, os.path.join(here, module + '.py'))
+    globals()[module] = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(globals()[module])
 
 NOT_LOOT = ('wooden chest', 'crate', 'cut cloth', 'barrel')
 # graphics sortbatch.py sorts by itself; kept in step with it
@@ -49,7 +50,7 @@ def kind(item):
             return k
     if t.endswith('potion'):
         return 'potion'
-    if item.get('container'):
+    if layout.is_bag(item):  # not a key ring: those are items like any other, and plan.py decides them
         return 'container'
     return 'gear'
 
@@ -106,11 +107,11 @@ def main():
     uo.forget_labels([i['serial'] for i in reused])
     labels = uo.load_labels()
     floor = [i for i in here if not labels.get(i['serial'])]
-    loose = [i for i in floor if not i.get('container')]
+    loose = [i for i in floor if kind(i) != 'container']
     if loose:
         say('loose on the floor (not in a bag; sort these by hand): '
             + ', '.join(f"{i['serial']} {i['type']}" for i in loose))
-    inv, loot, queue = {}, [], [i['serial'] for i in floor if i.get('container')]
+    inv, loot, queue = {}, [], [i['serial'] for i in floor if kind(i) == 'container']
     while queue:
         bag = queue.pop(0)
         items = open_once(info, bag)
@@ -119,7 +120,7 @@ def main():
         for i in items:
             i['bag'] = bag
             inv[i['serial']] = i
-            if i.get('container'):
+            if kind(i) == 'container':
                 queue.append(i['serial'])
     kinds = collections.defaultdict(list)
     for i in inv.values():

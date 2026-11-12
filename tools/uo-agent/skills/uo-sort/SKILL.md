@@ -85,7 +85,7 @@ Batch working files go in `~/claude/uo-agent-work/batchN` (scratch, not needed l
 
 ## Order of work (Claude decides the order; ask the user about policy only)
 
-1. **Look:** `python3 look.py ~/claude/uo-agent-work/batchN`, with N the next unused number (`ls ~/claude/uo-agent-work`). Anything on the room floor except the chests, crates, barrel, labelled containers and cut cloth is the queue. Loose items not in a bag are listed; sort those by hand. Only loot bags go on this floor, so a labelled bag lying there has been reused as a loot bag: look.py drops its label, treats it as loot, and it goes to the backpacks crate at the end. The forge in the room is labelled and stays.
+1. **Look:** `python3 look.py ~/claude/uo-agent-work/batchN`, with N the next unused number (`ls ~/claude/uo-agent-work`). Anything on the room floor except the chests, crates, barrel, labelled containers and cut cloth is the queue. Loose items not in a bag are listed; sort those by hand. Only loot bags go on this floor, so a labelled bag lying there has been reused as a loot bag: look.py drops its label, treats it as loot, and it goes to the backpacks crate at the end. The forge in the room is labelled and stays. Key rings are never opened, as using one asks "What do you want to unlock?" instead of showing its keys (2026-11-11). look.py treats them as items, and they go to needs-your-decision until the user gives them a rule.
 2. **Identify, but never spend a charge without checking first** (the user's rule, 2026-11-01): `python3 idall.py $(cat BATCHDIR/targets.txt)` in the background.
    - It names each item first: one single-click, or none if names.json already knows the name.
    - Only items the server calls "magic X" ("a magic chainmail coif", "magic wand") get the wand.

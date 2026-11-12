@@ -14,6 +14,9 @@ import time
 
 HERE = os.path.dirname(os.path.realpath(__file__))
 LAYOUT = os.path.join(HERE, 'layout.json')
+# key rings: the client calls them containers, but using one asks "What do you want to unlock?" instead of opening it
+# (2026-11-11), so they're never bags: never opened, and they lie in a chest or a loot bag like any other item
+KEY_RINGS = {'0x1011', '0x1769', '0x176A', '0x176B'}
 
 
 def _read(path):
@@ -28,6 +31,11 @@ def load():
     return _read(LAYOUT)
 
 
+def is_bag(item):
+    """A container that opens: anything the client calls a container except a key ring."""
+    return bool(item.get('container')) and item.get('graphic') not in KEY_RINGS
+
+
 def _box(item):
     vx, vy, vw, vh = item['art']['visible']
     return item['x'] + vx, item['y'] + vy, vw, vh
@@ -37,8 +45,8 @@ def pair(items, unmarked=()):
     """Match each bag with its marker: the nearest item under the bag that overlaps it sideways, or failing that
     (a full chest) the nearest one just to its right. Bags in unmarked get none.
     Returns ([(bag, marker or None)], loose items)."""
-    bags = [i for i in items if i.get('container')]
-    others = [i for i in items if not i.get('container') and 'art' in i]
+    bags = [i for i in items if is_bag(i)]
+    others = [i for i in items if not is_bag(i) and 'art' in i]
     pairs = []
     for b in bags:
         if b['serial'] in unmarked:
@@ -57,7 +65,7 @@ def pair(items, unmarked=()):
             used.add(m)
     by_serial = {i['serial']: i for i in items}
     return ([(b, by_serial.get(marker_of.get(b['serial']))) for b in bags],
-            [i for i in items if not i.get('container') and i['serial'] not in used])
+            [i for i in items if not is_bag(i) and i['serial'] not in used])
 
 
 def record(chest, items):
