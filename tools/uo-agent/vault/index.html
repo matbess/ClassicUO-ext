@@ -155,6 +155,9 @@ function sum(items) {
 function worth(items) {  // gold a jeweler pays for the gems among them
   return items.reduce((t, i) => t + (i.items ? worth(i.items) : (i.each || 0) * i.amount), 0);
 }
+function bagGems(b) {  // the user sells the marker gem with the bag (2026-11-11)
+  return (b.marker && b.marker.each ? [b.marker] : []).concat(b.items);
+}
 function chestItems(c) {
   return c.loose.concat(...c.bags.map((b) => (b.marker ? [b.marker] : []).concat(b.items)));
 }
@@ -213,8 +216,8 @@ function render() {
     const bags = c.bags.filter(bagHit).map((b) => {
       const full = q && b.name.toLowerCase().includes(q) ? '' : q;
       return `<div class="bag"><div class="bag-head"><h3>${show(b.name, q)}</h3><span class="amt muted num">${fmt(sum(b.items))}</span></div>`
-        + (worth(b.items) ? `<div class="worth">Sells for <b>${fmt(worth(b.items))} gold</b> at a jeweler</div>` : '')
-        + (b.marker ? `<div class="marker">Marker under the bag: ${show(b.marker.name, q)}${b.marker.each ? ` (not counted: it stays in the chest; worth ${fmt(b.marker.each * b.marker.amount)} gp)` : ''}</div>` : '')
+        + (worth(bagGems(b)) ? `<div class="worth">Sells for <b>${fmt(worth(bagGems(b)))} gold</b> at a jeweler${b.marker && b.marker.each ? ', with the marker gem' : ''}</div>` : '')
+        + (b.marker ? `<div class="marker">Marker under the bag: ${show(b.marker.name, q)}${b.marker.each ? ` (${fmt(b.marker.each * b.marker.amount)} gp, sold with the bag)` : ''}</div>` : '')
         + (list(b.items, full) || '<div class="marker">Empty</div>') + '</div>';
     });
     const loose = list(c.loose, q);
@@ -234,8 +237,8 @@ function header() {
   const total = (n) => (chest(n) ? sum(chestItems(chest(n))) : 0);
   const potions = data.crates.filter((c) => c.name.startsWith('potions: ')).reduce((t, c) => t + sum(c.items), 0);
   const bags = data.wall.reduce((t, c) => t + c.bags.length, 0);
-  const gemBag = chest('gems') ? worth([].concat(...chest('gems').bags.map((b) => b.items))) : 0;
-  const parts = [['chests', data.wall.length], ['bags', bags], ['gems', total('gems')], ['gold for the gem bag', gemBag], ['reagents', total('reagents')], ['scrolls', total('scrolls')], ['potions', potions]];
+  const gemBag = chest('gems') ? worth([].concat(...chest('gems').bags.map(bagGems))) : 0;
+  const parts = [['chests', data.wall.length], ['bags', bags], ['gems', total('gems')], ['gold for the gems', gemBag], ['reagents', total('reagents')], ['scrolls', total('scrolls')], ['potions', potions]];
   $('totals').innerHTML = parts.map(([k, v]) => `<span class="total"><b>${fmt(v)}</b><span class="muted">${k}</span></span>`).join('');
 }
 
