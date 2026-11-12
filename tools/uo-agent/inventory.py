@@ -26,6 +26,11 @@ for module in ('uo', 'look', 'layout', 'survey'):
 OUT = os.path.join(here, 'vault', 'inventory.json')  # the data, kept in git
 PAGE = os.path.join(here, 'vault', 'index.html')  # the page; the data is written into it (window.VAULT)
 ROWS = ('top', '2nd from top', '3rd from top', 'bottom')
+# what a jeweler pays for one gem, in gold (Clem sells them: GEMS.md, "Prices", 2026-11-09). The page shows each
+# pile's worth and the gem bag's total (the user, 2026-11-11). Keyed by graphic, as in sortbatch.py's GEMS.
+GEM_PRICES = {'0x0F26': 120, '0x0F21': 75, '0x0F19': 60, '0x0F10': 60, '0x0F16': 60, '0x0F13': 45, '0x0F2D': 45,
+              '0x0F15': 30, '0x0F25': 30}  # diamond, star sapphire, sapphire, emerald, amethyst, ruby, tourmaline,
+#                                            citrine, amber
 # spell scrolls 0x1F2D-0x1F6C, 8 to a circle (the tiledata names are cut short: "Greater Heal Scrol")
 SPELLS = ['Reactive Armor', 'Clumsy', 'Create Food', 'Feeblemind', 'Heal', 'Magic Arrow', 'Night Sight', 'Weaken',
           'Agility', 'Cunning', 'Cure', 'Harm', 'Magic Trap', 'Magic Untrap', 'Protection', 'Strength',
@@ -63,6 +68,8 @@ def entries(items, names):
         n = display(i, names)
         e = merged.setdefault(n, {'name': n, 'amount': 0, 'graphic': i['graphic']})
         e['amount'] += i.get('amount', 1)
+        if i['graphic'] in GEM_PRICES:
+            e['each'] = GEM_PRICES[i['graphic']]  # gold a jeweler pays for one
     return sorted(merged.values(), key=lambda e: (-e['amount'] if e['amount'] > 1 else 0, e['name'].lower()))
 
 

@@ -1240,53 +1240,63 @@
      "marker": {
       "name": "tourmaline",
       "amount": 1,
-      "graphic": "0x0F2D"
+      "graphic": "0x0F2D",
+      "each": 45
      },
      "items": [
       {
        "name": "pieces of amber",
        "amount": 12,
-       "graphic": "0x0F25"
+       "graphic": "0x0F25",
+       "each": 30
       },
       {
        "name": "star sapphires",
        "amount": 12,
-       "graphic": "0x0F21"
+       "graphic": "0x0F21",
+       "each": 75
       },
       {
        "name": "citrines",
        "amount": 11,
-       "graphic": "0x0F15"
+       "graphic": "0x0F15",
+       "each": 30
       },
       {
        "name": "rubies",
        "amount": 9,
-       "graphic": "0x0F13"
+       "graphic": "0x0F13",
+       "each": 45
       },
       {
        "name": "diamonds",
        "amount": 8,
-       "graphic": "0x0F26"
+       "graphic": "0x0F26",
+       "each": 120
       },
       {
        "name": "sapphires",
        "amount": 8,
-       "graphic": "0x0F19"
+       "graphic": "0x0F19",
+       "each": 60
       },
       {
        "name": "amethysts",
        "amount": 7,
-       "graphic": "0x0F16"
+       "graphic": "0x0F16",
+       "each": 60
       },
       {
        "name": "emeralds",
        "amount": 6,
-       "graphic": "0x0F10"
+       "graphic": "0x0F10",
+       "each": 60
       },
       {
        "name": "tourmalines",
        "amount": 6,
-       "graphic": "0x0F2D"
+       "graphic": "0x0F2D",
+       "each": 45
       }
      ]
     }
