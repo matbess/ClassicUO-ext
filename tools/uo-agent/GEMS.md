@@ -143,6 +143,13 @@ for 1,995 (every one bought nothing before the trick), Marnie none (downstairs w
 Lamar none (the door), Annamarie the last 47 for 1,800. The 7,785 went into the chest by the forge as a new pile (the
 24,900 from the first tour had been taken out). Fetch, sell and cleanup took 9 minutes in all.
 
+**The third tour (2026-11-11 22:38-22:46, the user: "I added even more gems, please go sell the gems now")**: 143
+gems (the loose tourmaline onto its stack), all sold for **8,070 gold**, exactly the list prices: Lamar 44 for 3,660,
+Chastity (Britain 2's jeweler now: Charlton's gone) 34 for 2,010, Kelia 56 for 2,130, Marnie the last 9 for 270
+(upstairs this time: the floor check took him up, opened her door; no trick needed). Home: an ettin by the tower's
+east side never came for him, left be; 22,471 gold in the chest by the forge after. His reagents had moved to a new
+bag (0x407660FB): fetch stopped on the old serial's 404, `restock.find_bag()` now finds it by its contents.
+
 ## Phase 3: cleanup (`gems.py cleanup`, and the end of every `sell`), the user, 2026-11-09
 
 "The last part is the cleanup. You should go put the runebook back and put the gembag back. That will be the logic
@@ -162,5 +169,5 @@ The whole job from inside the tower: `gems.py fetch`, then `gems.py sell` (which
 ## Next
 
 - Vesper's jeweler: the door at 2875,719 (its serial into his rules' doors, then a way in like Marnie's).
-- Marnie downstairs: the new floor check.
+- Marnie downstairs: the new floor check (upstairs worked on 11-11).
 - A gold run in a real tour (tested offline only so far).

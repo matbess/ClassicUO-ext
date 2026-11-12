@@ -42,6 +42,7 @@ HERE = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, HERE)
 import uo  # noqa: E402
 import door  # noqa: E402
+import restock  # noqa: E402
 
 WORK = os.path.expanduser('~/claude/uo-agent-work/combat')
 LOG = os.path.join(WORK, 'fight.log')
@@ -86,7 +87,7 @@ HEAL, CURE, FIREBALL, GREATER_HEAL, LIGHTNING, MAGIC_REFLECTION, ENERGY_BOLT = 4
 MANA = {HEAL: 4, CURE: 6, FIREBALL: 9, GREATER_HEAL: 11, LIGHTNING: 11, MAGIC_REFLECTION: 14, ENERGY_BOLT: 20}
 NAMES = {HEAL: 'Heal', CURE: 'Cure', FIREBALL: 'Fireball', GREATER_HEAL: 'Greater Heal', LIGHTNING: 'Lightning',
          MAGIC_REFLECTION: 'Magic Reflection', ENERGY_BOLT: 'Energy Bolt'}
-REAGENT_BAG = '0x40677564'  # Razor's restock and scavenger hot bag in his pack
+REAGENT_BAG = '0x407660FB'  # his reagent bag (2026-11-11; 0x40677564 before): setup() checks it with restock.find_bag()
 BLACK_PEARL, BLOOD_MOSS, GARLIC, GINSENG, MANDRAKE, NIGHTSHADE, SPIDERS_SILK, SULFUROUS_ASH = (
     0x0F7A, 0x0F7B, 0x0F84, 0x0F85, 0x0F86, 0x0F88, 0x0F8D, 0x0F8C)
 REAGENTS = {HEAL: (GARLIC, GINSENG, SPIDERS_SILK), CURE: (GARLIC, GINSENG), FIREBALL: (BLACK_PEARL,), GREATER_HEAL: (GARLIC, GINSENG, MANDRAKE, SPIDERS_SILK),
@@ -1909,6 +1910,14 @@ def setup(bridge_info, partner=None):
     ASYNC = st['bridge'] >= 8  # cast and go on (cuo-agent24)
     BRIDGE = st['bridge']
     PARTNER = partner.lower() if partner else None
+    # his reagent bag by what's in it, should it have changed (2026-11-11: a wrong serial read no reagents, and so
+    # he'd have cast nothing)
+    global REAGENT_BAG
+    restock.info = restock.info or info
+    try:
+        REAGENT_BAG = restock.find_bag()
+    except Exception as e:  # noqa: BLE001 (fighting with no counts is still better than not starting)
+        say(f'looking for his reagent bag: {e!r}')
     return st
 
 

@@ -23,7 +23,9 @@ sys.path.insert(0, HERE)
 import uo  # noqa: E402
 
 LOG = os.path.expanduser('~/claude/uo-agent-work/combat/restock.log')
-BAG = '0x40677564'       # his reagent bag (Razor's restock and scavenger hot bag), in his pack
+BAG = '0x407660FB'       # his reagent bag, in his pack (2026-11-11; 0x40677564 before, Razor's restock and
+                         # scavenger hot bag): find_bag() finds it by what's in it when this one is gone
+PLAIN_BAG = 0x0E76       # only plain bags are looked into for it: his pouches are trapped (opening one sets it off)
 CHEST = '0x40746D31'     # the restock chest, ground floor stairs room, 1752,1402,10
 MINIMUM = 25             # any below this: restock (the user)
 # restock-agent-1's amounts, as it left the bag (2026-11-06 16:27)
@@ -65,9 +67,42 @@ def stacks(container):
     return out
 
 
+def reagents_in(container):
+    return sum(i.get('amount', 1) for i in call('GET', '/contents', serial=container, depth=1)['items']
+               if int(i['graphic'], 16) in TARGET)
+
+
+def find_bag():
+    """His reagent bag: BAG while it's in his pack, else the plain bag in his pack holding the most reagents
+    (2026-11-11: the user moved his reagents to a new bag, 0x407660FB in place of 0x40677564, and the old serial gave
+    404s: no counts, and so no spells in a fight). Sets BAG and returns it."""
+    global BAG
+    pack = call('GET', '/status')['backpack']['serial']
+    top = call('GET', '/contents', serial=pack, depth=1)['items']
+    if any(i['serial'] == BAG for i in top):
+        return BAG
+    best = None
+    for i in top:
+        if int(i['graphic'], 16) != PLAIN_BAG or not i.get('container'):
+            continue
+        n = reagents_in(i['serial'])
+        if not n:  # the client may not know what's in it yet
+            call('POST', '/open', serial=i['serial'])
+            call('POST', '/close', serial=i['serial'])
+            n = reagents_in(i['serial'])
+        if n and (not best or n > best[1]):
+            best = (i['serial'], n)
+    if not best:
+        raise Stop(f'no reagent bag in his pack (it was {BAG})')
+    say(f'his reagent bag is {best[0]} now (it was {BAG}): {best[1]} reagents in it')
+    BAG = best[0]
+    return BAG
+
+
 def counts(refresh=True):
     """graphic -> how many in his reagent bag. refresh: open and close it first, so the client knows every stack."""
     if refresh:
+        find_bag()
         call('POST', '/open', serial=BAG)
         call('POST', '/close', serial=BAG)
     have = {g: 0 for g in TARGET}

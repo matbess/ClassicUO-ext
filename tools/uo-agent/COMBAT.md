@@ -132,7 +132,7 @@ fight. Nothing goes to town until fighting works.
 - **Before leaving the tower** (the user, 2026-11-06): always make sure he has enough reagents; if any is below 25,
   restock first. The user does it with Razor's restock-agent-1 (their macro 'restock-clem') at the wooden chest
   0x40746D31 in the ground floor stairs room (1752,1402,10): Razor asks "Target a container to restock from, or
-  target yourself to use your bank box.", then moves each reagent from the chest into his reagent bag 0x40677564,
+  target yourself to use your bank box.", then moves each reagent from the chest into his reagent bag (0x40677564 then),
   one a second, and it's done at "Finished N queued actions in N seconds." (recorded in combat/restock1.jsonl). It
   tops them up to garlic, spider's silk, ginseng 35; mandrake root, nightshade, black pearl 45; sulfurous ash, blood
   moss 40. `restock.py` does the same through the bridge (onto his stacks, so they merge), and `door.py out` runs it
@@ -286,7 +286,9 @@ the door (dire wolf, water elemental, troll, skeleton, headless one, mongbat), a
   gets "You must wait for that spell to have an effect." (2026-11-06 16:13). So: only cast standing still. Hit while
   casting: "Your concentration is disturbed, thus ruining thy spell." Mana: Energy Bolt 20, Paralyze 14, Fireball 9, Heal 4; about 1 a second back,
   2 a second meditating ("You enter a meditative trance." ... "You are at peace.").
-- Reagents are in bag 0x40677564 (Razor's restock and scavenger hot bag). After a login the client knows nothing in
+- Reagents are in bag 0x407660FB since 2026-11-11 (before that 0x40677564, Razor's restock and scavenger hot bag;
+  the user moved them to a new bag, and the old serial read no reagents: no spells in a fight). `restock.find_bag()`
+  finds the bag by what's in it (only plain bags: his pouches are trapped) and `fight.setup()` uses it. After a login the client knows nothing in
   bags: open it once; after that the counts stay current while it's closed (checked). Black pearls run out first
   (Recall, Fireball, Energy Bolt).
 - Razor's scavenger loots into that bag by itself (its pick-ups take action slots); the user loots corpses with grid
