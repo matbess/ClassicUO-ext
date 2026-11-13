@@ -1974,6 +1974,17 @@ def main():
         return
     if running_loop():
         sys.exit(f'a mining loop is already running (pid {running_loop()}); --park or --stop it first')
+    # the lumberjacking loop (lumber.py, LUMBERJACKING.md) uses Icepick too: never both at once
+    import subprocess
+    try:
+        with open(os.path.expanduser('~/claude/uo-agent-work/lumber/lumber.pid'), encoding='utf-8') as fh:
+            lumber_pid = int(fh.read().strip())
+        ps = subprocess.run(['ps', '-p', str(lumber_pid), '-o', 'command='], capture_output=True, text=True)
+        if 'lumber.py' in ps.stdout and '--park' not in ps.stdout and '--stop' not in ps.stdout:
+            sys.exit(f'the lumberjacking loop is running (pid {lumber_pid}; it uses Icepick too); park it first: '
+                     'python3 -I lumber.py --park')
+    except (OSError, ValueError):
+        pass
     os.makedirs(WORK, exist_ok=True)
     with open(PID_FILE, 'w', encoding='utf-8') as fh:
         fh.write(str(os.getpid()))
