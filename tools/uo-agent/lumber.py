@@ -92,6 +92,9 @@ BURGERS_MARGIN = 8          # Burgers is kept this many stones under his most, s
 AXE_BAG = '0x40766101'      # the blue bag in his pack: "whatever axes I put in the blue bag" (the user, 2026-11-12)
 ICEPICK_AXES = 4            # spare axes in his blue bag, topped up by Burgers at every handoff (the user, 2026-11-12:
                             # "just like mining"); the first hatchet broke after about 80 chops
+ICEPICK_SAWS = 3            # saws Icepick carries, topped up by Burgers at the handoff like the axes (a saw lasts about
+                            # 70 sawings, 6-7 a load: 2026-11-13)
+BURGERS_SAWS = 1            # Burgers' spare saw, from the bank's saws on every bank trip
 BURGERS_AXES = 2            # Burgers' spares, topped up from an axe bag in his bank on every bank trip (the user,
                             # 2026-11-12: 8 was too many, about 8 stones each; Icepick carries the spares, Burgers only
                             # covers a break between bank trips); more than this go back into the bank
@@ -443,6 +446,24 @@ class Lumberjack(mine.Miner):
                        + (' (none in his bank either)' if self.bank_out_of_axes() else '') + f'. Parked: {how}')
         self.reagents_stop(mine.REAGENTS_RESERVE)
 
+    def burgers_saws(self):
+        """Burgers' spare saws, loose in his pack or in a bag in it."""
+        pack = self.bur.status()['backpack']['serial']
+        found = []
+        for item in self.bur.call('GET', '/contents', serial=pack, depth=2)['items']:
+            if item.get('graphic') in SAWS:
+                found.append(item['serial'])
+            if 'spellbook' not in (item.get('type') or ''):
+                found += [i['serial'] for i in item.get('items', []) if i.get('graphic') in SAWS]
+        return found
+
+    def bank_saw_list(self, bags, bank):
+        """The saws in the bank: in its saw bag, or loose in the bank box."""
+        found = []
+        for w in ([bags['saws']] if bags.get('saws') else []) + [bank]:
+            found += [i['serial'] for i in self.bur.call('GET', '/contents', serial=w)['items'] if i.get('graphic') in SAWS]
+        return found
+
     def burgers_axes(self):
         """Burgers' spare axes, loose in his pack or in a bag in it."""
         pack = self.bur.status()['backpack']['serial']
@@ -480,7 +501,8 @@ class Lumberjack(mine.Miner):
         boards = self.piles(BOARDS, 'board') + self.piles(LOGS, 'logs')
         cures = self.cure_potions(self.bur)[:max(0, mine.CURES_WANTED - len(self.cure_potions(self.ice)))]
         axes = self.burgers_axes()[:max(0, ICEPICK_AXES - len(self.axes_in_bag()))]
-        if not boards and not cures and not axes:
+        saws = self.burgers_saws()[:max(0, ICEPICK_SAWS - self.saws_of(self.ice))]
+        if not boards and not cures and not axes and not saws:
             return
         self.to_burgers()
         b = self.bur.status()
@@ -511,7 +533,7 @@ class Lumberjack(mine.Miner):
         kept = sum(p.get('amount', 1) for p in boards) - sum(a for _, a in given)
         if kept:
             log(f'Burgers can only carry part of the load ({b["weight"]}/{b["weightMax"]}): Icepick keeps {kept} for the next handoff')
-        for item in axes + cures:
+        for item in axes + saws + cures:
             self.bur.call('POST', '/give', serial=item, to=self.ice.status()['serial'])
         self.ice.call('POST', '/trade', accept=1)
         self.bur.call('POST', '/trade', accept=1)
@@ -533,6 +555,7 @@ class Lumberjack(mine.Miner):
         need = self.attention()
         log(('NEEDS YOU: ' + '; '.join(need) + ' || ' if need else '') + f'handed Burgers {n} boards' + (f' and {logs} logs' if logs else '')
             + (f'; gave Icepick {len(axes)} axes' if axes else '')
+            + (f' and {len(saws)} saws' if saws else '')
             + (f'; gave Icepick {len(cures)} cure potions' if cures else '')
             + f". Total: {totals['boards']} boards. Boards in the bank: {self.bank_boards()}."
             + f" Run and hide: {len(self.state.get('unreviewed', []))} to review. Fights: {len(self.state.get('fights', []))}"
@@ -700,6 +723,16 @@ class Lumberjack(mine.Miner):
                 log(f'Burgers took {min(want, len(spare))} axes from the bank; ' +
                     (f'{left} left there' if spare else 'the bank has none (the user needs to put more in)'))
                 self.state['bank_out_of_axes'] = None if spare else time.time()
+            try:  # a spare saw for Icepick (2026-11-13: the user keeps 20 in the bank)
+                want = BURGERS_SAWS - len(self.burgers_saws())
+                if want > 0:
+                    spare = self.bank_saw_list(bags, bank)[:want]
+                    for item in spare:
+                        self.bur.call('POST', '/move', serial=item, to=self.bur.status()['backpack']['serial'])
+                    if spare:
+                        log(f'Burgers took {len(spare)} saw{"" if len(spare) == 1 else "s"} from the bank')
+            except Exception as e:
+                log(f"couldn't take a saw from the bank: {e!r}")
             try:  # counts for the update (one going wrong mustn't leave him standing at the bank)
                 self.state['bank_axes'] = {'count': len(self.bank_axe_list(bags, bank)), 'time': time.strftime('%H:%M')}
                 self.state['bank_saws'] = {'count': self.bank_saw_count(bags, bank), 'time': time.strftime('%H:%M')}
@@ -778,9 +811,13 @@ class Lumberjack(mine.Miner):
                 elif have[g][0] < mine.REAGENTS_WARN:
                     need.append(f'{name}: Burgers is down to {have[g][0]}')
             saws = self.saws_of(self.ice)
-            if saws <= 1:
-                need.append(f'Icepick has {saws} saw{"" if saws == 1 else "s"} left (without one the logs stay logs and '
-                            'he fills up four times faster)')
+            saws_b = len(self.burgers_saws())
+            saws_bank = (self.state.get('bank_saws') or {}).get('count')
+            if saws <= 1 and saws_b == 0:
+                need.append(f'Icepick has {saws} saw{"" if saws == 1 else "s"} left and Burgers none (without one the logs '
+                            'stay logs and he fills up four times faster)')
+            elif saws_bank == 0:
+                need.append(f'no spare saws in the bank (Icepick has {saws}, Burgers {saws_b})')
         except Exception as e:
             need.append(f"(couldn't check what's running out: {e!r})")
         return need

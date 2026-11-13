@@ -38,7 +38,7 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
   hand-off so I see it. Not run & hides or fights.. stuff that will end the loop (out of something)"): the handoff
   line and the update start with it while anything will end the loop unless restocked (no axes in the bank or
   axes running out, Icepick down to one cure potion (the user: 3 on him is enough; Burgers needs none), a recall reagent under 35 in the bank bag or under 20 on Burgers,
-  Icepick down to one saw). Put it first in every message, every time, until it's gone.
+  Icepick down to one saw with none on Burgers, or no saws left in the bank). Put it first in every message, every time, until it's gone.
 - **The nightly reboot** (about 04:15) stops it as it does mining ("the game is not responding"): wait for both
   bridges, hide anyone in sight, check `halted` and `resume`, then start again. Wood isn't counted like ingots, so
   there's no total to correct beyond the handoffs after the save point (state.json `totals`).
@@ -65,6 +65,9 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
   what he can carry), takes axes from an axe bag in his bank (up to 2; the user: "burgers only needs like 2 extras"; more go back), restocks his recall reagents to 35, recalls
   back on "Lumber meet" and hides. Icepick waits hidden by the meeting spot meanwhile. Out of axes everywhere: both
   parked, the loop stops.
+- Saws (2026-11-13): Icepick keeps 3, topped up by Burgers at the handoff; Burgers carries 1 spare from the bank's
+  saws (the user keeps about 20 there, in a bag the loop finds by what's in it). A saw lasts about 70 sawings (75,
+  70, 69), 6-7 a load.
 - Boards go into a bag in the bank that has boards in it, else loose in the bank box as one pile (the user,
   2026-11-12: "I don't mind it if there's 1 stack of all the boards in the bank box"; a pile holds up to 60,000).
 
