@@ -731,6 +731,22 @@ class Miner:
                     self.bur.call('POST', '/cancel')
                     log(f"a world save held up Burgers' Recall ({RUNE_NAMES[key]}); casting again")
                     continue
+                if not r.get('moved') and self.bur.status().get('targeting'):
+                    # the bridge answered on another message before the cursor came (2026-11-13 02:25: "It begins to
+                    # rain."; the loop stopped with him at the bank, cursor up): answer the cursor with the rune
+                    log(f"Burgers' Recall cursor ({RUNE_NAMES[key]}) came after the answer; aiming it at the rune")
+                    try:
+                        uo.call(self.bur.info, 'POST', '/target', serial=serial)
+                    except uo.BridgeError as e:
+                        if e.code != 423:
+                            raise
+                        uo.call(self.bur.info, 'POST', '/resume')  # the teleport says nothing: taken for silence
+                    for _ in range(8):
+                        s = self.bur.status()
+                        r['moved'] = cheb((s['x'], s['y']), (b['x'], b['y'])) > 5
+                        if r['moved']:
+                            break
+                        time.sleep(0.5)
                 return r
             except Fizzled:
                 time.sleep(2)
