@@ -62,7 +62,7 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
   how long they last. Out of axes: to Burgers for more.
 - At Burgers: saw, trade the boards (and any logs) for spare axes (Icepick back up to 4 in the blue bag; the user:
   "just like mining") and cure potions (up to 3); Burgers then banks the boards (every handoff: a load is most of
-  what he can carry), takes axes from an axe bag in his bank (up to 8), restocks his recall reagents to 35, recalls
+  what he can carry), takes axes from an axe bag in his bank (up to 2; the user: "burgers only needs like 2 extras"; more go back), restocks his recall reagents to 35, recalls
   back on "Lumber meet" and hides. Icepick waits hidden by the meeting spot meanwhile. Out of axes everywhere: both
   parked, the loop stops.
 - Boards go into a bag in the bank that has boards in it, else loose in the bank box as one pile (the user,

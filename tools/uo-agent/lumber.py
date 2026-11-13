@@ -92,7 +92,9 @@ BURGERS_MARGIN = 8          # Burgers is kept this many stones under his most, s
 AXE_BAG = '0x40766101'      # the blue bag in his pack: "whatever axes I put in the blue bag" (the user, 2026-11-12)
 ICEPICK_AXES = 4            # spare axes in his blue bag, topped up by Burgers at every handoff (the user, 2026-11-12:
                             # "just like mining"); the first hatchet broke after about 80 chops
-BURGERS_AXES = 8            # Burgers' spares, topped up from an axe bag in his bank on every bank trip
+BURGERS_AXES = 2            # Burgers' spares, topped up from an axe bag in his bank on every bank trip (the user,
+                            # 2026-11-12: 8 was too many, about 8 stones each; Icepick carries the spares, Burgers only
+                            # covers a break between bank trips); more than this go back into the bank
 # hatchet, double axe, large battle axe first (what the blue bag held), then the other axes; not a war axe (a mace)
 AXES = ('0x0F43', '0x0F44', '0x0F4B', '0x0F4C', '0x13FA', '0x13FB', '0x0F49', '0x0F4A', '0x0F47', '0x0F48',
         '0x1442', '0x1443', '0x0F45', '0x0F46')
@@ -664,6 +666,12 @@ class Lumberjack(mine.Miner):
             except Exception as e:  # a count gone wrong mustn't leave him standing at the bank
                 log(f"couldn't count the boards in the bank: {e!r}")
             want = BURGERS_AXES - len(self.burgers_axes())
+            if want < 0:
+                # more than he should carry (8 before the user cut it to 2): the rest back into the bank's axe bag
+                back = self.burgers_axes()[:-want]
+                for item in back:
+                    self.bur.call('POST', '/move', serial=item, to=bags.get('axes') or bank)
+                log(f'Burgers put {len(back)} axes back in the bank (he carries {BURGERS_AXES})')
             if want > 0:
                 spare = self.bank_axe_list(bags, bank)
                 if not spare and bags.get('axes'):
