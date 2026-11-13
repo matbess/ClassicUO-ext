@@ -696,6 +696,21 @@ class Miner:
                     time.sleep(0.5)
                     s = self.bur.status()
                     r['moved'] = cheb((s['x'], s['y']), (b['x'], b['y'])) > 5
+                if not r.get('moved') and any('world save' in m['text'].lower() for m in r.get('messages', [])):
+                    # a world save began as he cast (2026-11-13 01:35, lumberjacking): the server held everything,
+                    # the target cursor came 8 s later, after "world save complete", and the loop had stopped with him
+                    # in sight. Wait for the save to finish, cancel the late cursor, and cast again
+                    last = max([m['id'] for m in r.get('messages', [])] or [0])
+                    done = any('save complete' in m['text'].lower() for m in r.get('messages', []))
+                    for _ in range(0 if done else 60):
+                        if any('save complete' in m['text'].lower()
+                               for m in self.bur.call('GET', '/messages', after=last)['messages']):
+                            break
+                        time.sleep(1)
+                    time.sleep(1)
+                    self.bur.call('POST', '/cancel')
+                    log(f"a world save held up Burgers' Recall ({RUNE_NAMES[key]}); casting again")
+                    continue
                 return r
             except Fizzled:
                 time.sleep(2)
