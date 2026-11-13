@@ -237,6 +237,10 @@ class Lumberjack(mine.Miner):
             d = self.menu(a, 'what do you want to make')
             a = self.ice.call('POST', '/menu', serial=d['serial'], id=d['id'], index=self.menu_index(d, 'board'))
             texts = self.craft_result(a)
+            if any('worn out' in t.lower() for t in texts):
+                # "You have worn out your tool!" (2026-11-13 01:47: the first saw, after about 75 sawings)
+                left = len([i for i in self.ice.pack() if i.get('graphic') in SAWS])
+                log(f'a saw wore out; Icepick has {left} left')
             if not self.piles(LOGS, 'logs'):
                 break
         time.sleep(0.5)

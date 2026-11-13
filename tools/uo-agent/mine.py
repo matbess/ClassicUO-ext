@@ -386,7 +386,7 @@ class Miner:
                     f"({m['notoriety']}): it's after someone")
         if self.watch:
             for m in near:
-                if m['serial'] in self.watch:
+                if m['serial'] in self.watch and m.get('human'):  # (a creature back in sight is no stranger)
                     raise Alarm(f"Icepick: {m['name'] or m['serial']} is back in sight ({m['distance']} tiles)")
 
     def safely(self, step, *a):
@@ -426,6 +426,15 @@ class Miner:
             # the guard took a guild tag over someone's name for speech (the user, 2026-11-02: ignore those); someone
             # standing close still sets off the loiter alarm
             log(f'(a guild tag, not speech; carrying on: {reasons[-1]})')
+            for c in (self.ice, self.bur):
+                c.call('POST', '/guard', on=1)
+            return
+        # a creature's noise (2026-11-13 01:54, lumberjacking: 'a bull said "*looks furious*"', and Icepick ran from it
+        # twice): the guard takes it for talk, but creatures are only dealt with when they hit him (the user,
+        # 2026-11-08: "only react to hits"; "Guards!" and stepping away then, creature_attack)
+        noise_from = (ai or {}).get('threat') or (ab or {}).get('threat')
+        if reasons and all(' said "' in r for r in reasons) and self.creature(noise_from):
+            log(f"(a creature's noise, not a person talking; carrying on: {reasons[-1]})")
             for c in (self.ice, self.bur):
                 c.call('POST', '/guard', on=1)
             return
@@ -484,6 +493,17 @@ class Miner:
             raise Stop(f'a rune is missing from Burgers\' pack ({", ".join(missing) or "see the alarm"}); '
                        'both are hidden; the loop has stopped')
         log('the stranger has gone; carrying on')
+
+    def creature(self, threat):
+        """Whether the one the bridge blamed is a creature: in sight and not a person, or out of sight with a
+        creature's name ("a bull", "an eagle")."""
+        serial = (threat or {}).get('serial')
+        if serial in (None, '0x00000000'):
+            return False
+        for m in self.ice.call('GET', '/nearby', range=18)['mobiles']:
+            if m['serial'] == serial:
+                return not m.get('human')
+        return ((threat or {}).get('name') or '').lower().startswith(('a ', 'an '))
 
     def person(self, threat):
         """Whether the one the bridge blamed is a person (a player or an NPC), not a creature. Nobody in sight counts

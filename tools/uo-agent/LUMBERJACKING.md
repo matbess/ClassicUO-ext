@@ -99,6 +99,15 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
 - 2026-11-13 00:33, the first run and hide: Bert stood within 3 tiles of Icepick on his way to Burgers; his paperdoll
   said "Bert the beggar". Icepick rode 49 tiles off, hid, waited 30 s, carried on at 00:35:47. From then on any
   lower-case job title counts as a townsperson, like the guards (MINING.md, "Townspeople too").
+- 2026-11-13 01:35, a world save began as Burgers cast Recall at the start of a bank trip: the cursor came 8 s later,
+  after "world save complete", and the loop stopped with him in sight holding 520 boards (cursor cancelled and hidden
+  by hand at 01:35:44, then `--unload`). mine.py's recall now waits a save out and casts again.
+- 01:47, **the first saw wore out** ("You have worn out your tool!") after about 75 sawings; the loop logs each one.
+- 01:54, 'a bull said "*looks furious*"': the guard took a creature's emote for talk and Icepick rode off twice (the
+  second time the bull was "back in sight"). Creatures are only dealt with when they hit him (the user, 2026-11-08),
+  so a creature's noise is now ignored and creatures aren't watched for coming back (mine.py, shared with mining).
+- Pacing off from 00:43 (pacing.py): loads of ~520 boards every 8-11 minutes, about 2,800-3,500 boards an hour;
+  Lumberjacking 41 -> 50.8 by 01:53. Double axes and large battle axes last 108-122 chops.
 - So far a block takes about a minute and a load about 20 minutes, so a lap of 595 blocks is about 10-11 hours
   with the handoffs (each about 1.5 minutes).
 
