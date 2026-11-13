@@ -96,6 +96,9 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
 - 23:01-23:09, blocks 23-32: 10 blocks in 9 minutes, 98 chops, 31 good (310 logs), 56 misses (better as his skill
   rises), 2 saws; parked at 1135,1771. **The second hatchet broke after 262 chops** (counted by the loop from new;
   the first one's ~80 had probably been used before, as the user thought). Then a double axe.
+- 2026-11-13 00:33, the first run and hide: Bert stood within 3 tiles of Icepick on his way to Burgers; his paperdoll
+  said "Bert the beggar". Icepick rode 49 tiles off, hid, waited 30 s, carried on at 00:35:47. From then on any
+  lower-case job title counts as a townsperson, like the guards (MINING.md, "Townspeople too").
 - So far a block takes about a minute and a load about 20 minutes, so a lap of 595 blocks is about 10-11 hours
   with the handoffs (each about 1.5 minutes).
 

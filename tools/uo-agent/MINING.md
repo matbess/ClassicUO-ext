@@ -558,6 +558,11 @@ How it works:
   rules are written), so the bridges leave them alone; no incident, and he carries on. Every title asked is logged
   (`paperdoll of ...`). Olinda (0x00041A9D) was added by hand from the user's word; the title check itself is not
   yet seen working on a guard.
+- **Townspeople too** (the user, 2026-11-13: "yes I thought we already did that"): any paperdoll title "<name> the
+  <job>" with the job all lower case is a townsperson, treated like a guard (no run and hide, kept in
+  `town_guards`, added to both rules' `npcs`): "Bert the beggar" sent Icepick on a lumberjacking run and hide at
+  00:34 that day. A player's skill title has a capitalised rank ("the Adept Lumberjack") and never matches
+  (`NPC_TITLE` in mine.py, shared with lumber.py).
 - Not used for mining: bridge 11 can also raise the alarm when a creature within `"creatures"` tiles turns grey, or
   for an `"avoid"` list of kinds. The user turned that down (an early getaway means it never hits him, so the guards
   never kill it and it keeps wandering about the route); both are left out of the rules.

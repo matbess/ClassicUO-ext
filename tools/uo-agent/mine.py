@@ -90,6 +90,10 @@ GUILD_TAG = re.compile(r'said "\[[^"\]]*\]"$')  # a player's guild tag ("[title,
 # a town guard's paperdoll title ("Olinda the guard"; a single click shows only the name here). The user, 2026-11-09:
 # Icepick ran twice from Olinda, the guard who had just killed a snake that bit him
 GUARD_TITLE = re.compile(r'\bguard$', re.I)
+# any townsperson's title: "<name> the <job>", the job all lower case ("Bert the beggar", 2026-11-13, who loitered by
+# Icepick and sent him on a run and hide; "Cador the mapmaker"). A player's skill title has a capitalised rank ("the
+# Adept Lumberjack"), so it never matches (the user, 2026-11-13: treat townspeople like the guards)
+NPC_TITLE = re.compile(r"\bthe [a-z][a-z' -]*$")
 HIDING = 21
 RECALL, GATE_TRAVEL = 32, 52
 # what each rune's single-click name must say (the user, 2026-11-01: always check the rune before using it)
@@ -533,7 +537,7 @@ class Miner:
                 continue  # too far off for this one
         name = (threat or {}).get('name') or serial
         log(f'paperdoll of {name} ({serial}): {title!r}')
-        if not title or not GUARD_TITLE.search(title):
+        if not title or not (GUARD_TITLE.search(title) or NPC_TITLE.search(title)):
             self.not_guards.add(serial)
             return False
         guards[serial] = name
@@ -543,7 +547,8 @@ class Miner:
         burgers_rules(bank=cheb((b['x'], b['y']), OCLLO_BANK) <= 10)
         icepick_rules()
         self.watch.pop(serial, None)
-        log(f'{name} is a town guard ("{title}"), not a stranger: no run and hide, carrying on (both bridges leave '
+        kind = 'town guard' if GUARD_TITLE.search(title) else 'townsperson'
+        log(f'{name} is a {kind} ("{title}"), not a stranger: no run and hide, carrying on (both bridges leave '
             'him alone now)')
         return True
 
