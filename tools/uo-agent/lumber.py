@@ -61,7 +61,7 @@ Stop, Alarm, Again, Parked, NoWay = mine.Stop, mine.Alarm, mine.Again, mine.Park
 
 def install_rules(src, dest):
     with open(os.path.join(mining.HERE, 'rules', src), encoding='utf-8') as fh:
-        text = fh.read()
+        text = mine.paced(fh.read())  # the town pacing flag (pacing.py; off since 2026-11-13)
     return text, os.path.join(mine.AGENT_DIR, dest)
 
 

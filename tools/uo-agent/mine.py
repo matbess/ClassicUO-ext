@@ -104,13 +104,35 @@ RUNE_GRAPHICS = ('0x1F14', '0x1F15', '0x1F16', '0x1F17')
 
 AGENT_DIR = uo.AGENT_DIR
 BANK_PACING = '"pacing": { "gap": [1100, 1400], "burst": 50, "break": [1100, 1400] }'
+# The human-like pacing out in town, mining's and lumberjacking's (the user, 2026-11-13: "I want to remove that pacing
+# for lumberjacking and for mining. There should be a flag around it so we can enable/disable it. Disable it for
+# now."). The flag is pacing.json {"town_pacing": true|false} next to this file; `python3 -I pacing.py on|off` sets it
+# and hands a running loop the new rules at once. Off: full speed (the bridge's 1.1 s floor, no breaks, no aim
+# pause), repeat strokes at the same rock or tree as quick as before. On: the rules files' own pacing.
+PACING_FLAG = os.path.join(mining.HERE, 'pacing.json')
+FULL_SPEED = ('"pacing": { "gap": [1100, 1100], "burst": 1000, "break": [1100, 1100], "aim": [0, 0], '
+              '"repeat": [300, 700], "repeatAim": [100, 300] }')
+
+
+def town_pacing():
+    """Whether the slow, human-like pacing is on (pacing.json; on if the file is missing, the old safe way)."""
+    try:
+        with open(PACING_FLAG, encoding='utf-8') as fh:
+            return bool(json.load(fh).get('town_pacing', True))
+    except (OSError, ValueError):
+        return True
+
+
+def paced(text):
+    """Rules text with the pacing the flag asks for: the file's own when town pacing is on, else full speed."""
+    return text if town_pacing() else re.sub(r'"pacing": \{[^}]*\}', FULL_SPEED, text)
 
 
 def burgers_rules(bank):
     """Burgers' rules in the client's Agent folder: the normal ones, or with quick pacing for the bank (the user,
     2026-11-01: the bank doesn't have to follow the slow pace). The bridge reloads the file when it changes."""
     with open(os.path.join(mining.HERE, 'rules', 'rules-Burgers.json'), encoding='utf-8') as fh:
-        text = fh.read()
+        text = paced(fh.read())
     if bank:
         text = re.sub(r'"pacing": \{[^}]*\}', BANK_PACING, text)
     with open(os.path.join(AGENT_DIR, 'rules-Burgers.json'), 'w', encoding='utf-8') as fh:
@@ -120,7 +142,7 @@ def burgers_rules(bank):
 def icepick_rules():
     """Icepick's mining rules in the client's Agent folder (smith.py may have left his smithing rules there)."""
     with open(os.path.join(mining.HERE, 'rules', 'rules-Icepick.json'), encoding='utf-8') as fh:
-        text = fh.read()
+        text = paced(fh.read())
     with open(os.path.join(AGENT_DIR, 'rules-Icepick.json'), 'w', encoding='utf-8') as fh:
         fh.write(with_guards(text))
 

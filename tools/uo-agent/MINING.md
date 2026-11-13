@@ -248,8 +248,12 @@ There are now a couple of other players on the server (2026-11-01), besides the 
 
 ## Pacing (the user, 2026-11-01)
 
-**Only mining is paced** (the user, 2026-11-05): everything else, the bank included (mine.py's quick bank pacing) and
-everything inside the tower or house, runs at full speed (1.1 s between requests, no breaks; root AGENTS.md).
+**Off since 2026-11-13, behind a flag** (the user: "remove that pacing for lumberjacking and for mining. There should be
+a flag around it so we can enable/disable it. Disable it for now."): `python3 -I pacing.py on|off` (pacing.json). Off,
+mine.py and lumber.py write Icepick's and Burgers' rules at full speed (1.1 s between requests, no breaks, no aim
+pause; repeat strokes as quick as below); on, the rules files' own pacing below. A running loop gets the change at
+once. Before that, only mining was paced (the user, 2026-11-05); everything inside the tower or house and the bank
+runs at full speed (root AGENTS.md).
 
 The server has no moderation now, but the moderator might come back and enforce old rules without the user hearing
 about it first. So nothing is ever done faster than a person might. The user first asked for 1-2 s between actions,

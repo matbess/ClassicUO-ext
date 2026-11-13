@@ -11,8 +11,8 @@ This is the user's fork of ClassicUO (github.com/matbess/ClassicUO-ext). All of 
   clients sharing one `settings.json`.
 - The server is a private one based on the UOSA (Second Age, T2A-era) server code, hosted elsewhere by someone who no
   longer plays. Besides the user's brother (who cooperates) there are now a couple of other players (2026-11-01).
-  There's no moderation now, but the user wants to be safe if old rules come back: mining is paced slower than a
-  person would bother to be (see MINING.md, "Pacing"); nothing else is (see "Pacing is for mining only" below).
+  There's no moderation now. Mining and lumberjacking out in town had a slow, human-like pacing in case old rules come
+  back; since 2026-11-13 it's behind a flag and **off** (see "Pacing" below).
   Staff get the normal guard like anyone
   else (the user, 2026-11-04: the old stand-still-and-tell-the-user rule for staff is gone).
 - `UOSecondAge.app` is the original UOSA launcher: leave it untouched. Game data files: `~/Games/UOSA-data`.
@@ -32,11 +32,14 @@ This is the user's fork of ClassicUO (github.com/matbess/ClassicUO-ext). All of 
 - **Clem outside the tower** (the user, 2026-11-06; `tools/uo-agent/COMBAT.md`): the front door always ends locked
   and closed; never stop watching him while he's out unless the user is controlling him; always park him back
   inside; never leave him standing among creatures; once the user takes over, only they hand him back.
-- **Pacing is for mining only** (the user, 2026-11-05: "for johnny too, for everyone"). Only Icepick's digging out in
-  town has the slow, human-like pacing (MINING.md, "Pacing"). Everything else runs at **full speed**: inside the
-  tower or house (Johnny's sorting, Clem's cartography, Icepick's smithing) and the bank (mine.py switches Burgers to
-  quick pacing there). Full speed is the bridge's floor of 1.1 s between requests, no breaks, and no waits added in
-  scripts: in the rules file `"pacing": { "gap": [1100, 1100], "burst": 1000, "break": [1100, 1100], "aim": [0, 0] }`.
+- **Pacing** (the user, 2026-11-05: "for johnny too, for everyone"; 2026-11-13: "remove that pacing for lumberjacking
+  and for mining. There should be a flag around it so we can enable/disable it. Disable it for now."). Everything
+  runs at **full speed**: inside the tower or house (Johnny's sorting, Clem's cartography, Icepick's smithing), the
+  bank, and now mining and lumberjacking out in town too. Full speed is the bridge's floor of 1.1 s between requests,
+  no breaks, and no waits added in scripts: in the rules file `"pacing": { "gap": [1100, 1100], "burst": 1000,
+  "break": [1100, 1100], "aim": [0, 0] }`. The town pacing (mining's and lumberjacking's slow, human-like gaps,
+  MINING.md "Pacing") is kept in their rules files behind a flag: `python3 -I tools/uo-agent/pacing.py on|off`
+  (`tools/uo-agent/pacing.json`; off since 2026-11-13). mine.py and lumber.py write full-speed rules while it's off.
 
 ## What the fork adds (one commit per feature)
 

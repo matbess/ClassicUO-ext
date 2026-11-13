@@ -116,7 +116,8 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
   (hue 3) in his backpack; on 2026-11-12 it held 2 hatchets, 2 double axes and 4 large battle axes.
 - **Which trees**: not a grid (only some trees stand in rows); the route and how many trees to skip are worked out
   in the area itself.
-- **Pacing**: "it might need some pacing, we'll see." Start with mining's pacing (he's out in town), quick repeat
+- **Pacing**: off since 2026-11-13, for lumberjacking and mining alike, behind a flag (`pacing.py on|off`; MINING.md,
+  "Pacing"). Before that: "it might need some pacing, we'll see." Start with mining's pacing (he's out in town), quick repeat
   swings at the same tree, and adjust when the user has watched it.
 
 ## Chopping, recorded (the user by hand, 2026-11-12 20:27-20:31; `uo record`, ~/claude/uo-agent-work/lumber/chop1.jsonl)
@@ -270,4 +271,4 @@ Icepick's lumberjacking rules put in the client, his guard on, mounted the whole
 - How long axes last (the loop logs each one's chops), and so how many Burgers should carry.
 - How long the wood takes to come back (state.json `emptied` has when each block ran dry; a lap is likely most of a
   day, far longer).
-- Pacing: mining's for now; the user will say after watching.
+- (Pacing: settled 2026-11-13, off; see "Pacing" in the job.)
