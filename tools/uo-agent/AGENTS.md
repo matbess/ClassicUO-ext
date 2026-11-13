@@ -37,6 +37,10 @@ to 100): read `HEALING.md` first; the tool is `heal.py`, the rules `rules/rules-
 cuo-agent27) adds `useOnGround` kinds (double-clicked where they lie) and `patients` (the user's characters `/use` may
 aim at). Burgers is also mining's banker: check before running it.
 
+**Lumberjacking** (Icepick, from 2026-11-12: chopping mounted in the guarded town around the mining route, logs
+turned into boards, boards handed to Burgers to bank): read `LUMBERJACKING.md` first. Planning stage; it takes turns
+with mining (both use Icepick).
+
 **To sort loot, follow `skills/uo-sort/SKILL.md`.** It has the procedure, the safety rules, everything learned about
 the server, and the user's keep rules. It's installed as the user-level skill `uo-sort` through a symlink
 (`~/.claude/skills/uo-sort/SKILL.md` -> this repo's `tools/uo-agent/skills/uo-sort/SKILL.md`), so edit it here and

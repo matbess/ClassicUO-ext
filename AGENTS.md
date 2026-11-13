@@ -51,7 +51,8 @@ This is the user's fork of ClassicUO (github.com/matbess/ClassicUO-ext). All of 
 
 The agent bridge and its tools are how Claude sorts the user's loot (as Johnny), mines (as Icepick, with
 Burgers banking), trains Cartography (as Clem), fights (as Clem, a bard-mage, outside the tower) and trains Healing
-(Burgers bandaging Isabel's ghost: **`tools/uo-agent/HEALING.md`**, `heal.py`). Everything
+(Burgers bandaging Isabel's ghost: **`tools/uo-agent/HEALING.md`**, `heal.py`), and is starting on lumberjacking
+(Icepick: **`tools/uo-agent/LUMBERJACKING.md`**). Everything
 about the bridge and sorting lives in **`tools/uo-agent/AGENTS.md`**; mining is in **`tools/uo-agent/MINING.md`**
 (the user's rules, the route, the guard, everything tested) and `mine.py`; cartography is in
 **`tools/uo-agent/CARTO.md`** and `carto.py`; fighting and the front door in **`tools/uo-agent/COMBAT.md`**,
