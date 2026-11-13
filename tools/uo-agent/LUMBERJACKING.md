@@ -124,7 +124,7 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
   Icepick holds (boards, logs, the axe in hand and the count in the blue bag) against the log's sawings, handoffs
   and axe changes.
 - **The first full lap finished 2026-11-13 05:58** (blocks 0-594, from 2026-11-12 22:04, pacing off from 00:43):
-  **19,130 boards in the bank**; Lumberjacking 25.6 -> 71.1; 34 axes broken (double axes and large battle axes
+  **19,130 boards in the bank**; Lumberjacking 25.6 -> 71.1; 35 axes broken (33 overnight from 23:40; double axes and large battle axes
   about 119 chops on average), 3 saws worn out (75, 70, 69 sawings); 6 run and hides to review (Bert the beggar, a
   bull five times before creature noises were ignored), 1 fight (a snake at 05:19: "Guards!", killed at once, not
   poisoned). At full speed a load of ~520 boards came every 7-10 minutes. Both parked at the meeting spot,
@@ -135,7 +135,7 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
   looked in (it remembered one axe bag only). The bank trip now opens every bag in the bank box and counts and takes
   axes and saws from all of them (the axe bag and the saw bag first). Also there: 20 saws in the saw bag, 10 shovels,
   26,289 ingots, 19,130 boards loose in the box.
-- **How long axes last** (`axe_life`, 34 broken in the first lap): double axes 107-129 chops (30 of them, about 117
+- **How long axes last** (`axe_life`, 34 of the first lap's 35: the first hatchet, at 22:05, broke before chops were counted): double axes 107-129 chops (30 of them, about 117
   on average; one more read 192, inflated by the reboot's rollback), large battle axes 109 and 111, the one hatchet
   262 (probably a different kind of tool, or barely used before). A chop counts whether it gets wood or not. At
   Lumberjacking ~70 a block takes about 6 chops, so a lap of 595 blocks is about 3,500 chops: **about 30 axes a
