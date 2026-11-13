@@ -108,6 +108,18 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
   so a creature's noise is now ignored and creatures aren't watched for coming back (mine.py, shared with mining).
 - Pacing off from 00:43 (pacing.py): loads of ~520 boards every 8-11 minutes, about 2,800-3,500 boards an hour;
   Lumberjacking 41 -> 50.8 by 01:53. Double axes and large battle axes last 108-122 chops.
+- 02:25, Burgers' Recall home from the bank answered on "It begins to rain." before its cursor came: the loop
+  stopped with him at the bank, cursor up (aimed at the rune by hand). mine.py's recall now aims a late cursor itself.
+- 03:40 and 03:48, two blocks by the castle (x ~1280) skipped: the ride stalled short of the spot and the tree was 3
+  tiles off. The loop now walks closer once before giving a tree up.
+- **The nightly reboot, 2026-11-13 04:15** (as in mining): the loop stopped ("the game is not responding"), both back
+  at 04:19, Icepick mounted but in sight (hidden at once). Rolled back to about 04:00: Icepick held 160 boards, 120
+  logs and the axe taken at 03:58 (3 axes in the bag), which fits only the moment between his 03:58:28 and
+  04:00:14 sawings. So the handoffs of 04:03 and 04:12 never happened (bank 12,790, not 13,850): state.json backed
+  up (state.before-reboot-fix.json), `next` back to 406 (the block on at the save), `emptied` after 04:00 dropped,
+  totals -1060 (noted), the 04:08 broken axe taken off `axe_life`. How to find the save point after a reboot: what
+  Icepick holds (boards, logs, the axe in hand and the count in the blue bag) against the log's sawings, handoffs
+  and axe changes.
 - So far a block takes about a minute and a load about 20 minutes, so a lap of 595 blocks is about 10-11 hours
   with the handoffs (each about 1.5 minutes).
 
