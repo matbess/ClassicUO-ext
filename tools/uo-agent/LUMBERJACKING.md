@@ -23,13 +23,17 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
   Icepick on McGee anywhere in the area, Burgers at the meeting spot or the Ocllo bank (the start-up finishes his
   trip), mine.py not running.
 - **Watch** `~/claude/uo-agent-work/lumber/lumber.log` with a Monitor (re-arm at every expiry, from the last event's
-  time, as in MINING.md), filtered to: `Icepick at|runes|axes|axe|sawed|to Burgers|handed|bank|Recall|lap |ALARM|
+  time, as in MINING.md), filtered to: `UPDATE|Icepick at|runes|axes|axe|sawed|to Burgers|handed|bank|Recall|lap |ALARM|
   alarm|STOPPED|PARKED|Traceback|Error|done:|incident|creature|poison|no way|reagents low|missing|already empty`.
 - **Stop** only with `python3 -I lumber.py --park` (both mounted and hidden, guards off), or `--stop` in an
   emergency (then hide them by hand). Never pkill by name.
-- **Tell the user** (plain messages, no push notifications): every handoff in a few lines (boards handed and in
-  the bank, axes on Icepick, Burgers and in the bank, reagents, cure potions, Lumberjacking), every broken axe and
-  how many chops it lasted, bank trips, alarms, incidents, stops and parks. Not every block.
+- **Tell the user** (plain messages, no push notifications) after **every bank trip**, from the `UPDATE:` line it
+  logs then (the user, 2026-11-12: "tell me the stuff that mining told me"): boards handed, in the bank and in all;
+  axes (Icepick in hand and in the bag, Burgers, the bank) and the ones that broke since the last update with how
+  many chops each lasted; saws (Icepick, Burgers, the bank); reagents (Burgers' and the bank bag's); cure potions;
+  run and hides and fights (a creature hit him and the guards were called), new ones with who and when, and how
+  many to review; the chopping since the last update and his Lumberjacking. Also alarms, incidents, stops and
+  parks as they happen. Not every block.
 - **The nightly reboot** (about 04:15) stops it as it does mining ("the game is not responding"): wait for both
   bridges, hide anyone in sight, check `halted` and `resume`, then start again. Wood isn't counted like ingots, so
   there's no total to correct beyond the handoffs after the save point (state.json `totals`).

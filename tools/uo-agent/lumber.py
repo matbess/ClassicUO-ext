@@ -123,6 +123,11 @@ class Lumberjack(mine.Miner):
                       'axes broken': 0, 'handoffs': 0, 'bank trips': 0, 'incidents': 0, 'fights': 0}
         self.runes = {'bank': mining.RUNES['bank'], 'start': mining.RUNES['start'], 'meet': lumbering.RUNE_MEET}
         self.axe_type = {}
+        # for the update after every bank trip (the user, 2026-11-12: everything mining told them, and more)
+        self.at_update = dict(self.stats)   # the counts at the last update, for "since then"
+        self.broken_since = []              # axes broken since the last update: (kind, chops)
+        self.update_since = time.strftime('%Y-%m-%d %H:%M:%S')
+        self.last_handed = 0
 
     def load_state(self):
         try:
@@ -365,6 +370,7 @@ class Lumberjack(mine.Miner):
                 kind = self.axe_type.get(axe, 'axe')
                 self.state.setdefault('axe_life', []).append({'time': time.strftime('%Y-%m-%d %H:%M'), 'axe': axe,
                                                               'type': kind, 'chops': n})
+                self.broken_since.append((kind, n))
                 log(f'the {kind} {axe} broke after {n} chops; {len(self.axes_in_bag())} left in the bag')
             self.save_state()
             if not answers:
@@ -480,6 +486,7 @@ class Lumberjack(mine.Miner):
         if self.ice.status().get('trade') or self.bur.status().get('trade'):
             raise Stop('the trade between Icepick and Burgers did not finish')
         n = sum(p.get('amount', 1) for p in boards if is_kind(p, BOARDS, 'board'))
+        self.last_handed = n
         logs = sum(p.get('amount', 1) for p in boards if is_kind(p, LOGS, 'logs'))
         totals = self.state.setdefault('totals', {'boards': 0, 'logs': 0})
         totals['boards'] += n
@@ -608,10 +615,21 @@ class Lumberjack(mine.Miner):
                 log(f'Burgers took {min(want, len(spare))} axes from the bank; ' +
                     (f'{left} left there' if spare else 'the bank has none (the user needs to put more in)'))
                 self.state['bank_out_of_axes'] = None if spare else time.time()
-                self.state['bank_axes'] = {'count': left, 'time': time.strftime('%H:%M')}
+            try:  # counts for the update (one going wrong mustn't leave him standing at the bank)
+                self.state['bank_axes'] = {'count': len(self.bank_axe_list(bags, bank)), 'time': time.strftime('%H:%M')}
+                self.state['bank_saws'] = {'count': self.bank_saw_count(bags, bank), 'time': time.strftime('%H:%M')}
+            except Exception as e:
+                log(f"couldn't count the axes and saws in the bank: {e!r}")
             self.save_state()
             if bags.get('reagents'):
                 self.restock_reagents(bags['reagents'])
+                try:
+                    stock = self.bur.call('GET', '/contents', serial=bags['reagents'])['items']
+                    self.state['bank_reagents'] = {name: sum(i.get('amount', 1) for i in stock if i.get('graphic') == g)
+                                                   for g, name in mine.REAGENTS.items()}
+                    self.save_state()
+                except Exception as e:
+                    log(f"couldn't count the reagents in the bank: {e!r}")
             burgers_rules(bank=False)
             self.bur.call('GET', '/rules')
             r = self.recall('meet')
@@ -626,6 +644,65 @@ class Lumberjack(mine.Miner):
         if missing:
             raise Stop(f"a rune is missing from Burgers' pack after the bank trip: {missing}")
         self.hide(self.bur)
+        self.update()
+
+    def bank_saw_count(self, bags, bank):
+        """Saws in the bank: loose in the bank box or in any of its bags the loop knows."""
+        n = 0
+        for w in [bank] + [b for b in set(bags.values()) if b]:
+            n += sum(1 for i in self.bur.call('GET', '/contents', serial=w)['items'] if i.get('graphic') in SAWS)
+        return n
+
+    def saws_of(self, c):
+        pack = c.status()['backpack']['serial']
+        n = 0
+        for item in c.call('GET', '/contents', serial=pack, depth=2)['items']:
+            if item.get('graphic') in SAWS:
+                n += 1
+            if 'spellbook' not in (item.get('type') or ''):
+                n += sum(1 for i in item.get('items', []) if i.get('graphic') in SAWS)
+        return n
+
+    def update(self):
+        """After every bank trip, one line with everything (the user, 2026-11-12): boards, axes, saws, reagents (Burgers'
+        and the bank bag's), cure potions, run and hides, fights (a creature hit him and the guards were called),
+        broken axes, and the chopping since the last update."""
+        try:
+            si = self.ice.status()
+            in_hand = any(h.get('graphic') in AXES for h in si['hands'])
+            have, _ = self.burgers_reagents()
+            bank_r = self.state.get('bank_reagents') or {}
+            since = {k: self.stats.get(k, 0) - self.at_update.get(k, 0) for k in ('blocks', 'chops', 'misses', 'logs')}
+            totals = self.state.get('totals') or {}
+            ax_bank = (self.state.get('bank_axes') or {}).get('count', '?')
+            saw_bank = (self.state.get('bank_saws') or {}).get('count', '?')
+
+            def news(kind):
+                new = [i for i in self.state.get(kind, []) if i['time'] > self.update_since]
+                text = f'{len(new)} new' + (' (' + '; '.join(f"{i['time'][11:16]} {i['who']}: {(i.get('what') or '')[:70]}"
+                                                              for i in new) + ')' if new else '')
+                return text + f", {len(self.state.get(kind, []))} to review"
+            parts = [
+                f"boards: {self.last_handed} handed this time, {(self.state.get('bank_boards') or {}).get('count', '?')} in "
+                f"the bank, {totals.get('boards', 0)} in all",
+                f"axes: Icepick {'1 in hand + ' if in_hand else ''}{len(self.axes_in_bag())} in the bag, Burgers "
+                f"{len(self.burgers_axes())}, bank {ax_bank}; broken since the last update: "
+                + (', '.join(f'{k} after {n} chops' for k, n in self.broken_since) or 'none'),
+                f'saws: Icepick {self.saws_of(self.ice)}, Burgers {self.saws_of(self.bur)}, bank {saw_bank}',
+                'reagents: Burgers ' + ', '.join(f'{name} {have[g][0]}' for g, name in mine.REAGENTS.items())
+                + '; bank bag ' + ', '.join(f"{name} {bank_r.get(name, '?')}" for name in mine.REAGENTS.values()),
+                f'cure potions: Icepick {len(self.cure_potions(self.ice))}, Burgers {len(self.cure_potions(self.bur))}',
+                'run and hides: ' + news('unreviewed'),
+                'fights (a creature hit him, guards called): ' + news('fights'),
+                f"since the last update: {since['blocks']} blocks, {since['chops']} chops, {since['logs'] // 10} good, "
+                f"{since['misses']} misses; Lumberjacking {self.skill('Lumberjacking')}",
+            ]
+            log('UPDATE: ' + ' | '.join(parts))
+        except Exception as e:  # the update is for the user; it mustn't stop the loop
+            log(f"couldn't put the update together: {e!r}")
+        self.at_update = dict(self.stats)
+        self.broken_since = []
+        self.update_since = time.strftime('%Y-%m-%d %H:%M:%S')
 
     # ---- the lap ----
 
