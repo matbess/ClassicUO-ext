@@ -346,7 +346,7 @@ class Lumberjack(mine.Miner):
 
     def chop_tree(self, tree):
         x, y, z, g = tree
-        first, quiet = True, 0
+        first, quiet, closer = True, 0, False
         before = self.ice.status()['weight']
         while True:
             self.check_guard()
@@ -361,6 +361,16 @@ class Lumberjack(mine.Miner):
             except uo.BridgeError as e:
                 if e.code == 404:
                     continue  # the axe wore out as the answer came: the next one
+                if e.code == 409 and 'too far' in (e.message or '') and not closer:
+                    # a ride that stalled short of the spot (by the castle, 2026-11-13 03:40 and 03:48: 3 tiles off):
+                    # once, let the client's path finder take him within reach of the tree itself
+                    closer = True
+                    try:
+                        self.ice.walk(x, y, 2)
+                    except uo.BridgeError as e2:
+                        if e2.code not in (403, 409):
+                            raise
+                    continue
                 if e.code in (403, 409):
                     log(f'chop {x},{y}: {e.message}')
                     return 'refused'
