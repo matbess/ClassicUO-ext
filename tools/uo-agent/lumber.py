@@ -567,6 +567,8 @@ class Lumberjack(mine.Miner):
                 bags['boards'] = item['serial']
             elif any(i.get('graphic') in AXES for i in inside):
                 bags['axes'] = item['serial']
+            elif any(i.get('graphic') in SAWS for i in inside):
+                bags['saws'] = item['serial']  # (the user keeps spare saws in the bank too, 2026-11-12)
             elif any(i.get('graphic') in mine.REAGENTS for i in inside):
                 bags['reagents'] = item['serial']
         if bags.get('boards'):
@@ -648,7 +650,7 @@ class Lumberjack(mine.Miner):
                 log("no bag with boards in Burgers' bank yet: the boards go into the bank box itself")
             # every bag the loop uses is opened before it's counted: after a login or a trip away the client knows
             # nothing inside a bag until it's shown (2026-11-12 23:00: the axe bag unopened read as empty)
-            for bag in (bags.get('boards'), bags.get('reagents'), bags.get('axes')):
+            for bag in (bags.get('boards'), bags.get('reagents'), bags.get('axes'), bags.get('saws')):
                 if bag:
                     self.bur.call('POST', '/open', serial=bag)
             for kind, graphics, word in (('boards', BOARDS, 'board'), ('logs', LOGS, 'logs')):
