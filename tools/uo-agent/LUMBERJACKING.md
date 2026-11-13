@@ -123,6 +123,13 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
   totals -1060 (noted), the 04:08 broken axe taken off `axe_life`. How to find the save point after a reboot: what
   Icepick holds (boards, logs, the axe in hand and the count in the blue bag) against the log's sawings, handoffs
   and axe changes.
+- **The first full lap finished 2026-11-13 05:58** (blocks 0-594, from 2026-11-12 22:04, pacing off from 00:43):
+  **19,130 boards in the bank**; Lumberjacking 25.6 -> 71.1; 34 axes broken (double axes and large battle axes
+  about 119 chops on average), 3 saws worn out (75, 70, 69 sawings); 6 run and hides to review (Bert the beggar, a
+  bull five times before creature noises were ignored), 1 fight (a snake at 05:19: "Guards!", killed at once, not
+  poisoned). At full speed a load of ~520 boards came every 7-10 minutes. Both parked at the meeting spot,
+  Icepick holding the last ~200 stones of the lap. The bank bag's black pearl (16) and mandrake root (25) were
+  running low.
 - So far a block takes about a minute and a load about 20 minutes, so a lap of 595 blocks is about 10-11 hours
   with the handoffs (each about 1.5 minutes).
 
