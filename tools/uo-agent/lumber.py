@@ -457,12 +457,26 @@ class Lumberjack(mine.Miner):
                 found += [i['serial'] for i in item.get('items', []) if i.get('graphic') in SAWS]
         return found
 
-    def bank_saw_list(self, bags, bank):
-        """The saws in the bank: in its saw bag, or loose in the bank box."""
+    def bank_places(self, bags, bank, first=None):
+        """Every bag in the bank box, then the box itself: tools are counted and taken from all of them, not only the
+        bag the loop remembers (2026-11-13: 2 double axes in a second bag went uncounted all night). `first` (a
+        remembered bag) is used up first. The bank trip opens them all, so the client knows what's inside."""
+        in_bank = self.bur.call('GET', '/contents', serial=bank)['items']
+        places = [i['serial'] for i in in_bank if i.get('container')]
+        if first in places:
+            places.remove(first)
+            places.insert(0, first)
+        return places + [bank]
+
+    def bank_tools(self, graphics, bags, bank, first=None):
         found = []
-        for w in ([bags['saws']] if bags.get('saws') else []) + [bank]:
-            found += [i['serial'] for i in self.bur.call('GET', '/contents', serial=w)['items'] if i.get('graphic') in SAWS]
+        for w in self.bank_places(bags, bank, first):
+            found += [i['serial'] for i in self.bur.call('GET', '/contents', serial=w)['items'] if i.get('graphic') in graphics]
         return found
+
+    def bank_saw_list(self, bags, bank):
+        """The saws in the bank, in any of its bags or loose in the box (the saw bag first)."""
+        return self.bank_tools(SAWS, bags, bank, bags.get('saws'))
 
     def burgers_axes(self):
         """Burgers' spare axes, loose in his pack or in a bag in it."""
@@ -656,12 +670,8 @@ class Lumberjack(mine.Miner):
         log(f"Burgers is now {b['weight']}/{b['weightMax']}")
 
     def bank_axe_list(self, bags, bank):
-        """The axes in the bank: in its axe bag, or loose in the bank box."""
-        where = [bags['axes']] if bags.get('axes') else []
-        found = []
-        for w in where + [bank]:
-            found += [i['serial'] for i in self.bur.call('GET', '/contents', serial=w)['items'] if i.get('graphic') in AXES]
-        return found
+        """The axes in the bank, in any of its bags or loose in the box (the axe bag first)."""
+        return self.bank_tools(AXES, bags, bank, bags.get('axes'))
 
     def bank_trip(self):
         """Burgers to the Ocllo bank with the boards, and back to his spot. The bank is relaxed: guard off there."""
@@ -685,11 +695,11 @@ class Lumberjack(mine.Miner):
             to = bags.get('boards') or bank
             if not bags.get('boards'):
                 log("no bag with boards in Burgers' bank yet: the boards go into the bank box itself")
-            # every bag the loop uses is opened before it's counted: after a login or a trip away the client knows
-            # nothing inside a bag until it's shown (2026-11-12 23:00: the axe bag unopened read as empty)
-            for bag in (bags.get('boards'), bags.get('reagents'), bags.get('axes'), bags.get('saws')):
-                if bag:
-                    self.bur.call('POST', '/open', serial=bag)
+            # every bag in the bank is opened before anything's counted: after a login or a trip away the client knows
+            # nothing inside a bag until it's shown (2026-11-12 23:00: the axe bag unopened read as empty), and spare
+            # axes or saws can be in any bag (2026-11-13: 2 axes in a second bag were missed)
+            for bag in [i['serial'] for i in self.bur.call('GET', '/contents', serial=bank)['items'] if i.get('container')]:
+                self.bur.call('POST', '/open', serial=bag)
             for kind, graphics, word in (('boards', BOARDS, 'board'), ('logs', LOGS, 'logs')):
                 there = self.bur.call('GET', '/contents', serial=to)['items']
                 for pile in [i for i in self.bur.pack() if is_kind(i, graphics, word)]:
@@ -765,11 +775,8 @@ class Lumberjack(mine.Miner):
         self.update()
 
     def bank_saw_count(self, bags, bank):
-        """Saws in the bank: loose in the bank box or in any of its bags the loop knows."""
-        n = 0
-        for w in [bank] + [b for b in set(bags.values()) if b]:
-            n += sum(1 for i in self.bur.call('GET', '/contents', serial=w)['items'] if i.get('graphic') in SAWS)
-        return n
+        """Saws in the bank: in any of its bags or loose in the box."""
+        return len(self.bank_saw_list(bags, bank))
 
     def saws_of(self, c):
         pack = c.status()['backpack']['serial']
