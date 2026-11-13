@@ -38,8 +38,9 @@ cuo-agent27) adds `useOnGround` kinds (double-clicked where they lie) and `patie
 aim at). Burgers is also mining's banker: check before running it.
 
 **Lumberjacking** (Icepick, from 2026-11-12: chopping mounted in the guarded town around the mining route, logs
-turned into boards, boards handed to Burgers to bank): read `LUMBERJACKING.md` first. Planning stage; it takes turns
-with mining (both use Icepick).
+turned into boards, boards handed to Burgers to bank): read `LUMBERJACKING.md` first; the loop is `lumber.py` (mine.py's
+Miner with the mining parts swapped out), the tour `lumbering.py`, the rules `rules/rules-Icepick-lumber.json` and
+`rules/rules-Burgers-lumber.json`. It takes turns with mining (both use Icepick): never run both.
 
 **To sort loot, follow `skills/uo-sort/SKILL.md`.** It has the procedure, the safety rules, everything learned about
 the server, and the user's keep rules. It's installed as the user-level skill `uo-sort` through a symlink

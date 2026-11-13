@@ -6,13 +6,70 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
 
 ## Status (2026-11-12)
 
-- Planning. The area is ridden, a tree chopped and sawn by hand (recorded), and the first bridge test passed
-  (20:53, below): wood is shared by 8x8 blocks, chopping and sawing work through bridge 12. Next: the meeting spot,
-  the block planner and `lumber.py`.
-- Mining is parked while Icepick lumberjacks (both use him). His lumberjacking rules
-  (`rules/rules-Icepick-lumber.json`) are in the client since the test; mine.py puts the mining rules back when it
-  starts, and lumber.py will put its own in, as smith.py does.
+- **`lumber.py` works** (tested 2026-11-12 22:04-22:17, below): chopping three blocks, parking, sawing, the
+  handoff of boards to Burgers and his bank trip. Next: a longer stretch with the user watching, then whole laps.
+- Mining is parked while Icepick lumberjacks (both use him). lumber.py puts the lumberjacking rules for both into
+  the client (`rules/rules-Icepick-lumber.json`, `rules/rules-Burgers-lumber.json`); mine.py puts the mining ones back
+  when it starts. lumber.py refuses to start while mine.py runs; **never start mine.py while lumber.py runs.**
 - Installed client: cuo-agent31, bridge 12; no new bridge needed.
+- Waiting on the user: spare axes in Burgers' bank (the bank had none on 2026-11-12 22:16), cure potions for
+  Burgers (he has none to top Icepick up with).
+
+## Running it from a Claude session
+
+- **Start** as a background task, with absolute paths: `cd ~/claude/ClassicUO/tools/uo-agent; exec python3 -I
+  ~/claude/ClassicUO/tools/uo-agent/lumber.py --laps 1` (it carries on from `next` in the state; `--from N --to M`
+  for a stretch, which parks both at its end). Before starting: both logged in with the Agent bridge option,
+  Icepick on McGee anywhere in the area, Burgers at the meeting spot or the Ocllo bank (the start-up finishes his
+  trip), mine.py not running.
+- **Watch** `~/claude/uo-agent-work/lumber/lumber.log` with a Monitor (re-arm at every expiry, from the last event's
+  time, as in MINING.md), filtered to: `Icepick at|runes|axes|axe|sawed|to Burgers|handed|bank|Recall|lap |ALARM|
+  alarm|STOPPED|PARKED|Traceback|Error|done:|incident|creature|poison|no way|reagents low|missing|already empty`.
+- **Stop** only with `python3 -I lumber.py --park` (both mounted and hidden, guards off), or `--stop` in an
+  emergency (then hide them by hand). Never pkill by name.
+- **Tell the user** (plain messages, no push notifications): every handoff in a few lines (boards handed and in
+  the bank, axes on Icepick, Burgers and in the bank, reagents, cure potions, Lumberjacking), every broken axe and
+  how many chops it lasted, bank trips, alarms, incidents, stops and parks. Not every block.
+- **The nightly reboot** (about 04:15) stops it as it does mining ("the game is not responding"): wait for both
+  bridges, hide anyone in sight, check `halted` and `resume`, then start again. Wood isn't counted like ingots, so
+  there's no total to correct beyond the handoffs after the save point (state.json `totals`).
+
+## lumber.py (2026-11-12)
+
+- It's mine.py's `Miner` with the mining parts swapped out (a subclass, `Lumberjack`), so the safety is mining's
+  unchanged: the guard and getting away from people (FLEE 50 tiles inside the lumberjacking area), "Guards!" and
+  stepping away from creatures, poison and cure potions, town guards (the ones found while mining are copied over),
+  McGee, the tired horse, rides planned on the map with learned buildings, lag, world saves, park and stop. It
+  points mine.py's module settings at its own work folder (`~/claude/uo-agent-work/lumber`: lumber.log,
+  state.json, incidents.jsonl, lumber.pid, park), the meeting spot, the runes (bank, Mining Start for Burgers'
+  get-away, Lumber meet) and the three recall reagents only.
+- Each block: a random tree and spot to chop from (lumbering.choose), ridden to mounted; chopped until "not enough
+  wood" (another tree of the block if the server won't let him chop the first). The block and when it ran dry go
+  in state.json `emptied`.
+- Weight: before every chop, if another good chop (20 stones) could take him past 393 he saws; if he's still over
+  340 after sawing he's full, and goes to Burgers. A full load is about 500 boards (250 stones).
+- Axes: the one in his hands; when it breaks ("You broke your axe.") the next from the blue bag. Every axe's chops
+  are counted (state.json `axe_uses`) and a broken one's life is logged and kept (`axe_life`): the user wants to know
+  how long they last. Out of axes: to Burgers for more.
+- At Burgers: saw, trade the boards (and any logs) for spare axes (Icepick back up to 4 in the blue bag; the user:
+  "just like mining") and cure potions (up to 3); Burgers then banks the boards (every handoff: a load is most of
+  what he can carry), takes axes from an axe bag in his bank (up to 8), restocks his recall reagents to 35, recalls
+  back on "Lumber meet" and hides. Icepick waits hidden by the meeting spot meanwhile. Out of axes everywhere: both
+  parked, the loop stops.
+- Boards go into a bag in the bank that has boards in it, else loose in the bank box as one pile (the user,
+  2026-11-12: "I don't mind it if there's 1 stack of all the boards in the bank box"; a pile holds up to 60,000).
+
+## Tested 2026-11-12 (the user watching)
+
+- 22:04-22:07, `--from 0 --to 2`: start-up (rules in, guards on, runes checked by name, Burgers to his spot and
+  hidden), 3 blocks chopped until empty in 4 minutes: 47 chops, 10 good (100 logs), 34 misses, 3 empties;
+  Lumberjacking 25.6 -> 28.4. Parked both, mounted and hidden.
+- **The first hatchet broke** at 22:05:13 ("You broke your axe.", with the logs of that chop) after about 80 chops
+  counting misses (it may have been used before); the loop took the next one from the blue bag. At ~15 chops a
+  block for now, an axe lasts about 5 blocks: many axes (the user will get more).
+- 22:15-22:17, `--unload`: 100 logs sawn (337 -> 187 stones: **a board is half a stone, confirmed**), 210 boards
+  handed to Burgers, his bank trip (no bag with boards yet, so loose in the bank box: 210 there), no axes in the
+  bank, 5 black pearl, 6 blood moss, 6 mandrake root restocked, back on Lumber meet, both parked hidden. 1.5 minutes.
 
 ## The job (the user, 2026-11-12)
 
@@ -179,5 +236,7 @@ Icepick's lumberjacking rules put in the client, his guard on, mounted the whole
 
 ## Open questions
 
-- The central meeting spot for Burgers, and his rune there.
-- When to saw: at a weight threshold (sawing quarters the logs' weight), to settle in lumber.py.
+- How long axes last (the loop logs each one's chops), and so how many Burgers should carry.
+- How long the wood takes to come back (state.json `emptied` has when each block ran dry; a lap is likely most of a
+  day, far longer).
+- Pacing: mining's for now; the user will say after watching.

@@ -1,0 +1,30 @@
+{
+  // Burgers for the lumberjacking (see LUMBERJACKING.md): waits hidden at 1200,1716 by the building in the middle of
+  // the tree area (the user, 2026-11-12, off the main road), takes the boards to the Ocllo bank. lumber.py puts this
+  // file into the client as rules-Burgers.json (mine.py puts the mining one back when it starts).
+  "map": 0,
+  "areas": [
+    { "name": "lumber meet", "box": [1194, 1710, 1206, 1722], "z": [-10, 20] },
+    // his get-away: the Mining Start rune lands him here, where he hides until the stranger has gone
+    { "name": "mining start", "box": [1124, 1538, 1136, 1550], "z": [-10, 20] }
+  ],
+  "pauseForPeople": false,
+  "partners": ["Icepick", "0x00040F4D", "Clem", "0x0004344A"],  // Clem: the user's own character (2026-11-02)
+  "say": ["bank", "all follow me"],
+  // 32 Recall
+  "spells": [32],
+  // 21 Hiding
+  "skills": [21],
+  "mounts": [],
+  "guard": { "onAlarm": "hide", "hideAfter": 5, "talk": true, "loiter": [3, 3], "attack": true,
+             // any hits lost: he says "Guards!" at once, then gets away and hides as for anyone (MINING.md)
+             "callGuards": "Guards!",
+             // his runes: Ocllo Bank, Mining Start, Mining Forge, Mining gate location, Lumber meet. One that goes
+             // missing was stolen.
+             "watchItems": ["0x406EDA8E", "0x406EBB72", "0x406EDA9E", "0x406EC754", "0x406EAA75"],
+             // the Ocllo bankers, Sacha
+             "npcs": ["0x0001EFC6", "0x0000D57D", "0x00023934"],
+             "fidgets": [6] },
+  // out in town: mining's pace (the bank trip switches to quick pacing, as in mining)
+  "pacing": { "gap": [2500, 4000], "burst": 5, "break": [6000, 10000], "aim": [700, 1500] }
+}
