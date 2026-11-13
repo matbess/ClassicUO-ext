@@ -6,10 +6,13 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
 
 ## Status (2026-11-12)
 
-- Planning. The area is ridden and a tree chopped and its logs sawn into boards by hand (recorded, below). Mining
-  is parked while Icepick lumberjacks (both use him); each loop puts its own rules file into the client's Agent
-  folder, as smith.py does.
-- Installed client: cuo-agent31, bridge 12. No new bridge is expected to be needed (see "The bridge" below).
+- Planning. The area is ridden, a tree chopped and sawn by hand (recorded), and the first bridge test passed
+  (20:53, below): wood is shared by 8x8 blocks, chopping and sawing work through bridge 12. Next: the meeting spot,
+  the block planner and `lumber.py`.
+- Mining is parked while Icepick lumberjacks (both use him). His lumberjacking rules
+  (`rules/rules-Icepick-lumber.json`) are in the client since the test; mine.py puts the mining rules back when it
+  starts, and lumber.py will put its own in, as smith.py does.
+- Installed client: cuo-agent31, bridge 12; no new bridge needed.
 
 ## The job (the user, 2026-11-12)
 
@@ -102,10 +105,32 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
 
 ## The bridge
 
-Bridge 12 (cuo-agent31) seems to have what's needed: `/equip` puts an axe in his hands; `/use` with `x`, `y`, `z`,
-`graphic` aims an item in his hands at a static (the tree's graphic) and waits up to 6 s for the server's answer
-(enough: chops answered in 2-4 s); the saw is a tool used from the backpack (`useFromBackpack` 0x1034) whose menus
-are answered with `/menu`, as smith.py does with the hammer.
+Bridge 12 (cuo-agent31) has what's needed (tested 2026-11-12 20:53): `/equip` puts an axe in his hands; `/use` with
+`x`, `y`, `z`, `graphic` aims the axe in his hands at a tree (its static's graphic, `reach=2`) and waits for the
+server's answer (2-4 s, inside its 6 s); `/walk?x=&y=&distance=2` rides him next to a tree; the saw is a tool used
+from the backpack (`useFromBackpack` 0x1034) whose menus are answered with `/menu`, as smith.py does with the hammer.
+
+## The first bridge test (2026-11-12 20:53-20:54, the user watching; scratch `test1.py`, `test1.log`)
+
+Icepick's lumberjacking rules put in the client, his guard on, mounted the whole time, mining's pacing:
+
+| tree | 8x8 block | answers |
+|---|---|---|
+| A 1128,1572 (fresh block) | 141,196 | miss, LOGS, LOGS, LOGS, miss, LOGS, empty: 40 logs |
+| B 1132,1575, same block | 141,196 | **empty at the first chop**: the block's wood was gone |
+| C 1124,1575, 4 tiles west over the line | 140,196 | LOGS, empty: 10 logs |
+
+- **Confirmed: wood is shared by the 8x8 blocks of the map grid**, as the ore is. The rule is one tree per block,
+  chopped until "not enough wood", then the next block.
+- A block's wood varies: 1-4 good chops so far (10-40 logs) over six blocks.
+- **A board weighs half a stone**: 50 logs (100 stones) sawn into 50 boards took him from 216 to 141. Sawing
+  quarters the weight; one saw use did all 50 in one go, "You create the item." about 6 s after the last menu.
+- 5 good chops and the sawing took 70 s in all, riding included. Lumberjacking 23.6 -> 25.6.
+
+## The handoff (the user, 2026-11-12)
+
+- **Burgers meets Icepick somewhere central in the tree area**, not at the forge. The spot, and a rune for Burgers
+  to recall to it, still to choose.
 
 ## Burgers (the user, 2026-11-12)
 
@@ -129,7 +154,12 @@ are answered with `/menu`, as smith.py does with the hammer.
   server placed there (MINING.md, "Buildings the map doesn't show"). To check on the spot.
 - The horse got tired twice on the ride (the user's remount macro); the loop's tired-horse handling covers it.
 
+- **The rules' area** (`lumber_area.py`, 2026-11-12): everything inside the ride in bands of 3 rows (130 boxes),
+  less what's past the guard edges (mining_area.py's x 1100, y 1898 and the canyon, and y 1543 in the north), plus
+  mining's corridor and getting-away boxes: the user rode along the foot of the mountain, and the trees between the
+  ride and the rock (chopped by hand at 1124,1557 and 1124,1560) lay just outside the loop. 180 boxes in all.
+
 ## Open questions
 
-- Where Icepick and Burgers meet for the handoff (the forge spot at 1140,1849, or somewhere in the tree area).
-- When to convert: at a weight threshold (one conversion halves the logs' weight), measured in the tests.
+- The central meeting spot for Burgers, and his rune there.
+- When to saw: at a weight threshold (sawing quarters the logs' weight), to settle in lumber.py.
