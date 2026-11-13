@@ -37,7 +37,7 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
 - **"NEEDS YOU"** (the user, 2026-11-12: "if something needs my attention right away keep repeating it at each
   hand-off so I see it. Not run & hides or fights.. stuff that will end the loop (out of something)"): the handoff
   line and the update start with it while anything will end the loop unless restocked (no axes in the bank or
-  axes running out, no cure potions on Burgers, a recall reagent under 35 in the bank bag or under 20 on Burgers,
+  axes running out, Icepick down to one cure potion (the user: 3 on him is enough; Burgers needs none), a recall reagent under 35 in the bank bag or under 20 on Burgers,
   Icepick down to one saw). Put it first in every message, every time, until it's gone.
 - **The nightly reboot** (about 04:15) stops it as it does mining ("the game is not responding"): wait for both
   bridges, hide anyone in sight, check `halted` and `resume`, then start again. Wood isn't counted like ingots, so

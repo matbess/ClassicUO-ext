@@ -679,9 +679,12 @@ class Lumberjack(mine.Miner):
                             'ends the loop)')
             elif ax_ice + ax_bur <= 2:
                 need.append(f'axes running out: Icepick has {ax_ice}, Burgers {ax_bur}')
+            # cure potions are relaxed (the user, 2026-11-12: he's never been poisoned; 3 on Icepick is all that's
+            # needed): only when Icepick is down to one (after any top-up from Burgers at the handoff)
             cures_b, cures_i = len(self.cure_potions(self.bur)), len(self.cure_potions(self.ice))
-            if cures_b == 0:
-                need.append(f'Burgers has no cure potions (Icepick has {cures_i}; poisoned with none ends the loop)')
+            if cures_i <= 1:
+                need.append(f'Icepick is down to {cures_i} cure potion{"" if cures_i == 1 else "s"} (Burgers has {cures_b}; '
+                            'poisoned with none ends the loop)')
             have, _ = self.burgers_reagents()
             bank_r = self.state.get('bank_reagents') or {}
             for g, name in mine.REAGENTS.items():
