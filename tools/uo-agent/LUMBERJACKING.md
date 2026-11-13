@@ -79,6 +79,20 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
 - 22:15-22:17, `--unload`: 100 logs sawn (337 -> 187 stones: **a board is half a stone, confirmed**), 210 boards
   handed to Burgers, his bank trip (no bag with boards yet, so loose in the bank box: 210 there), no axes in the
   bank, 5 black pearl, 6 blood moss, 6 mandrake root restocked, back on Lumber meet, both parked hidden. 1.5 minutes.
+- 22:37-22:58, `--to 32` (blocks 3-22): Burgers started at the bank (the user put him there with spare axes) and
+  the start-up finished his trip: 8 axes taken from an axe bag in the bank (2 left), reagents counted (bank bag:
+  black pearl 90, blood moss 118, mandrake root 99). Then 20 blocks in 19 minutes: 217 chops, 53 good (530 logs),
+  144 misses, one block already empty (148,224: someone else's chopping), 7 saws; Lumberjacking 28.4 -> 31.5; no
+  axe broke. A full load came at about 20 minutes: 530 boards.
+- **Burgers too heavy to recall** (22:58): the 530 boards (265 stones) on top of his 8 spare axes (about 8 stones
+  each) took him to 404/390, and his Recall to the bank answered "Thou art too encumbered to move."; the loop
+  stopped with both hidden at the meeting spot. Fixed: the handoff gives only what Burgers can carry and still keep
+  8 stones under his most (Icepick keeps the rest for the next handoff), a full load is now 320 stones after sawing
+  (about 480 boards), and before any recall a Burgers who is too heavy hands boards back to Icepick first (a step
+  shows each of them for the trade). Recovered with `--unload` at 22:59: 54 boards back, Burgers 377/390, banked:
+  686 boards in the bank.
+- The update at 23:00 said the bank had no axes: its axe bag was counted without being opened (after a trip away
+  the client knows nothing inside a bag until it's shown). Every bag the loop uses is opened first now.
 
 ## The job (the user, 2026-11-12)
 
