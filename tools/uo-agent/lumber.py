@@ -86,7 +86,9 @@ mine.burgers_rules = burgers_rules
 
 LIMIT = mine.LIMIT          # never over this (393 of his 390: over it every step tires him; MINING.md)
 CHOP = 20                   # a good chop: 10 logs of 2 stones (2026-11-12)
-FULL_AT = 340               # after sawing, still above this: he's full of boards; to Burgers
+FULL_AT = 320               # after sawing, still above this: he's full of boards; to Burgers (340 made 530 boards,
+                            # more than Burgers could carry with his spare axes, 2026-11-12 22:58)
+BURGERS_MARGIN = 8          # Burgers is kept this many stones under his most, so he can still recall
 AXE_BAG = '0x40766101'      # the blue bag in his pack: "whatever axes I put in the blue bag" (the user, 2026-11-12)
 ICEPICK_AXES = 4            # spare axes in his blue bag, topped up by Burgers at every handoff (the user, 2026-11-12:
                             # "just like mining"); the first hatchet broke after about 80 chops
@@ -476,8 +478,23 @@ class Lumberjack(mine.Miner):
             if seen and seen[0].get('name'):
                 break
             time.sleep(0.5)
+        # only what Burgers can carry and still recall (2026-11-12 22:58: 530 boards and his 8 spare axes took him to
+        # 404/390, "Thou art too encumbered to move." and no Recall); Icepick keeps the rest for the next handoff
+        b = self.bur.status()
+        room = b['weightMax'] - BURGERS_MARGIN - b['weight']
+        given = []
         for pile in boards:
-            self.ice.call('POST', '/give', serial=pile['serial'], to=bur_serial)
+            each = 0.5 if is_kind(pile, BOARDS, 'board') else 2
+            amount = min(pile.get('amount', 1), int(max(0, room) / each))
+            if amount <= 0:
+                continue
+            self.ice.call('POST', '/give', serial=pile['serial'], to=bur_serial,
+                          amount=amount if amount < pile.get('amount', 1) else None)
+            room -= amount * each
+            given.append((pile, amount))
+        kept = sum(p.get('amount', 1) for p in boards) - sum(a for _, a in given)
+        if kept:
+            log(f'Burgers can only carry part of the load ({b["weight"]}/{b["weightMax"]}): Icepick keeps {kept} for the next handoff')
         for item in axes + cures:
             self.bur.call('POST', '/give', serial=item, to=self.ice.status()['serial'])
         self.ice.call('POST', '/trade', accept=1)
@@ -485,9 +502,9 @@ class Lumberjack(mine.Miner):
         time.sleep(1)
         if self.ice.status().get('trade') or self.bur.status().get('trade'):
             raise Stop('the trade between Icepick and Burgers did not finish')
-        n = sum(p.get('amount', 1) for p in boards if is_kind(p, BOARDS, 'board'))
+        n = sum(a for p, a in given if is_kind(p, BOARDS, 'board'))
         self.last_handed = n
-        logs = sum(p.get('amount', 1) for p in boards if is_kind(p, LOGS, 'logs'))
+        logs = sum(a for p, a in given if is_kind(p, LOGS, 'logs'))
         totals = self.state.setdefault('totals', {'boards': 0, 'logs': 0})
         totals['boards'] += n
         totals['logs'] = totals.get('logs', 0) + logs
@@ -557,6 +574,46 @@ class Lumberjack(mine.Miner):
         self.save_state()
         return bags
 
+    def lighten_burgers(self):
+        """Too heavy to recall ("Thou art too encumbered to move.", 2026-11-12 22:58 at 404/390): Burgers hands enough
+        boards back to Icepick first. Both must be in sight of each other for the trade: a step shows each."""
+        b = self.bur.status()
+        over = b['weight'] - (b['weightMax'] - BURGERS_MARGIN)
+        if over <= 0:
+            return
+        boards = [i for i in self.bur.pack() if is_kind(i, BOARDS, 'board')]
+        if not boards:
+            raise Stop(f"Burgers is too heavy to recall ({b['weight']}/{b['weightMax']}) and has no boards to hand back")
+        pile = max(boards, key=lambda i: i.get('amount', 1))
+        n = min(pile.get('amount', 1), int(over / 0.5) + 10)
+        log(f"Burgers is too heavy to recall ({b['weight']}/{b['weightMax']}); he hands {n} boards back to Icepick")
+        s = self.ice.status()
+        if cheb((s['x'], s['y']), (b['x'], b['y'])) > 1:
+            self.to_burgers()
+        elif s['hidden']:
+            self.step_aside(self.ice, [(b['x'], b['y'])])
+        if self.bur.status()['hidden']:
+            s = self.ice.status()
+            self.step_aside(self.bur, [(s['x'], s['y'])])
+        ice_serial = self.ice.status()['serial']
+        for _ in range(10):
+            seen = [m for m in self.bur.call('GET', '/nearby', range=3)['mobiles'] if m['serial'] == ice_serial]
+            if seen and seen[0].get('name'):
+                break
+            time.sleep(0.5)
+        self.bur.call('POST', '/give', serial=pile['serial'], to=ice_serial,
+                      amount=n if n < pile.get('amount', 1) else None)
+        self.bur.call('POST', '/trade', accept=1)
+        self.ice.call('POST', '/trade', accept=1)
+        time.sleep(1)
+        if self.ice.status().get('trade') or self.bur.status().get('trade'):
+            raise Stop('the trade handing boards back to Icepick did not finish')
+        totals = self.state.setdefault('totals', {'boards': 0, 'logs': 0})
+        totals['boards'] -= n
+        self.save_state()
+        b = self.bur.status()
+        log(f"Burgers is now {b['weight']}/{b['weightMax']}")
+
     def bank_axe_list(self, bags, bank):
         """The axes in the bank: in its axe bag, or loose in the bank box."""
         where = [bags['axes']] if bags.get('axes') else []
@@ -576,6 +633,7 @@ class Lumberjack(mine.Miner):
             self.bur.call('GET', '/rules')
             b = self.bur.status()
             if cheb((b['x'], b['y']), mine.OCLLO_BANK) > 10:
+                self.lighten_burgers()
                 r = self.recall('bank')
                 if not r['moved']:
                     raise Stop(f"Burgers' Recall to the bank didn't work: {[m['text'] for m in r['messages']][-2:]}")
@@ -586,7 +644,9 @@ class Lumberjack(mine.Miner):
             to = bags.get('boards') or bank
             if not bags.get('boards'):
                 log("no bag with boards in Burgers' bank yet: the boards go into the bank box itself")
-            for bag in (bags.get('boards'), bags.get('reagents')):
+            # every bag the loop uses is opened before it's counted: after a login or a trip away the client knows
+            # nothing inside a bag until it's shown (2026-11-12 23:00: the axe bag unopened read as empty)
+            for bag in (bags.get('boards'), bags.get('reagents'), bags.get('axes')):
                 if bag:
                     self.bur.call('POST', '/open', serial=bag)
             for kind, graphics, word in (('boards', BOARDS, 'board'), ('logs', LOGS, 'logs')):
