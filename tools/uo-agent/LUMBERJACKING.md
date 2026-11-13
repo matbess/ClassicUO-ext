@@ -79,9 +79,29 @@ Bridge 12 (cuo-agent31) seems to have what's needed: `/equip` puts an axe in his
 item. To check in the tests: whether `/use`'s 6 s wait for the server's answer (LAND_RESULT_TIMEOUT) covers a chop of
 several swings, and whether `/use` with a target allows the logs in his own pack.
 
+## Burgers (the user, 2026-11-12)
+
+- He doesn't carry shovels while lumberjacking (so a load of boards fits); he may carry spare axes later, depending
+  on how long they last.
+
+## The area (the user's ride, 2026-11-12 20:02-20:06)
+
+- The user rode Icepick round the edge from the top of the mining route (1131,1544): down the mountain range, east
+  along the south edge, north up the east side (by the castle moat), and west back to the start. Recorded in
+  `~/claude/uo-agent-work/lumber/bounds.jsonl` (not in git); the picture is `area.png` there (scratch script
+  `area_map.py`).
+- Inside the ride: about 60,000 tiles, x 1091-1338, y 1529-1912. The map files show **1,339 trees** in it (422
+  "tree", 249 oak, 247 walnut, 221 cedar, 130 willow, 70 o'hii), in 1,294 different 4x3 patches: if the patches
+  are RunUO's 4x3, nearly every tree has its own wood and none need skipping.
+- Guard edges the user touched on purpose ("left the protection" / "now under the protection"): north by the
+  start (out at 1138,1536, in at 1132,1543), west (out at 1091,1624, in at 1100,1645), south (out at 1195,1911, in
+  by 1195,1904) and north-east by the castle (out at 1285,1529, in at 1285,1549). Mounted, the message arrives a
+  few tiles late, so the rules' edges keep a margin inside these (as mining's do).
+- The dark brown rectangles on the map look like fields; the one Icepick rode into while mining was a building the
+  server placed there (MINING.md, "Buildings the map doesn't show"). To check on the spot.
+- The horse got tired twice on the ride (the user's remount macro); the loop's tired-horse handling covers it.
+
 ## Open questions
 
 - Where Icepick and Burgers meet for the handoff (the forge spot at 1140,1849, or somewhere in the tree area).
-- Burgers' room: he carries 40 spare shovels for mining (about 200 of his 390 stones), so a full load of boards
-  may not fit. Leave the shovels in the bank while lumberjacking, or bank more often?
 - When to convert: at a weight threshold (one conversion halves the logs' weight), measured in the tests.
