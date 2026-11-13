@@ -497,7 +497,8 @@ class Lumberjack(mine.Miner):
                 self.ice.call('POST', '/move', serial=item, to=AXE_BAG)
             except uo.BridgeError as e:
                 log(f"couldn't put the axe {item} in the blue bag ({e}); it stays loose in his pack")
-        log(f'handed Burgers {n} boards' + (f' and {logs} logs' if logs else '')
+        need = self.attention()
+        log(('NEEDS YOU: ' + '; '.join(need) + ' || ' if need else '') + f'handed Burgers {n} boards' + (f' and {logs} logs' if logs else '')
             + (f'; gave Icepick {len(axes)} axes' if axes else '')
             + (f'; gave Icepick {len(cures)} cure potions' if cures else '')
             + f". Total: {totals['boards']} boards. Boards in the bank: {self.bank_boards()}."
@@ -663,6 +664,40 @@ class Lumberjack(mine.Miner):
                 n += sum(1 for i in item.get('items', []) if i.get('graphic') in SAWS)
         return n
 
+    def attention(self):
+        """What will end the loop unless the user restocks it, repeated at every handoff and update until it's fixed
+        (the user, 2026-11-12: "if something needs my attention right away keep repeating it at each hand-off so I
+        see it. Not run & hides or fights.. stuff that will end the loop (out of something)")."""
+        need = []
+        try:
+            si = self.ice.status()
+            ax_ice = len(self.axes_in_bag()) + sum(1 for h in si['hands'] if h.get('graphic') in AXES)
+            ax_bur = len(self.burgers_axes())
+            ax_bank = (self.state.get('bank_axes') or {}).get('count')
+            if ax_bank == 0:
+                need.append(f"no spare axes in Burgers' bank (Icepick has {ax_ice}, Burgers {ax_bur}; out of axes "
+                            'ends the loop)')
+            elif ax_ice + ax_bur <= 2:
+                need.append(f'axes running out: Icepick has {ax_ice}, Burgers {ax_bur}')
+            cures_b, cures_i = len(self.cure_potions(self.bur)), len(self.cure_potions(self.ice))
+            if cures_b == 0:
+                need.append(f'Burgers has no cure potions (Icepick has {cures_i}; poisoned with none ends the loop)')
+            have, _ = self.burgers_reagents()
+            bank_r = self.state.get('bank_reagents') or {}
+            for g, name in mine.REAGENTS.items():
+                in_bank = bank_r.get(name)
+                if in_bank is not None and in_bank < mine.REAGENTS_WANTED:
+                    need.append(f'{name}: only {in_bank} left in the bank bag (Burgers has {have[g][0]})')
+                elif have[g][0] < mine.REAGENTS_WARN:
+                    need.append(f'{name}: Burgers is down to {have[g][0]}')
+            saws = self.saws_of(self.ice)
+            if saws <= 1:
+                need.append(f'Icepick has {saws} saw{"" if saws == 1 else "s"} left (without one the logs stay logs and '
+                            'he fills up four times faster)')
+        except Exception as e:
+            need.append(f"(couldn't check what's running out: {e!r})")
+        return need
+
     def update(self):
         """After every bank trip, one line with everything (the user, 2026-11-12): boards, axes, saws, reagents (Burgers'
         and the bank bag's), cure potions, run and hides, fights (a creature hit him and the guards were called),
@@ -697,6 +732,9 @@ class Lumberjack(mine.Miner):
                 f"since the last update: {since['blocks']} blocks, {since['chops']} chops, {since['logs'] // 10} good, "
                 f"{since['misses']} misses; Lumberjacking {self.skill('Lumberjacking')}",
             ]
+            need = self.attention()
+            if need:
+                parts.insert(0, 'NEEDS YOU: ' + '; '.join(need))
             log('UPDATE: ' + ' | '.join(parts))
         except Exception as e:  # the update is for the user; it mustn't stop the loop
             log(f"couldn't put the update together: {e!r}")

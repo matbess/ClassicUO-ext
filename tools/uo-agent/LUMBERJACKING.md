@@ -23,7 +23,7 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
   Icepick on McGee anywhere in the area, Burgers at the meeting spot or the Ocllo bank (the start-up finishes his
   trip), mine.py not running.
 - **Watch** `~/claude/uo-agent-work/lumber/lumber.log` with a Monitor (re-arm at every expiry, from the last event's
-  time, as in MINING.md), filtered to: `UPDATE|Icepick at|runes|axes|axe|sawed|to Burgers|handed|bank|Recall|lap |ALARM|
+  time, as in MINING.md), filtered to: `NEEDS YOU|UPDATE|Icepick at|runes|axes|axe|sawed|to Burgers|handed|bank|Recall|lap |ALARM|
   alarm|STOPPED|PARKED|Traceback|Error|done:|incident|creature|poison|no way|reagents low|missing|already empty`.
 - **Stop** only with `python3 -I lumber.py --park` (both mounted and hidden, guards off), or `--stop` in an
   emergency (then hide them by hand). Never pkill by name.
@@ -34,6 +34,11 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
   run and hides and fights (a creature hit him and the guards were called), new ones with who and when, and how
   many to review; the chopping since the last update and his Lumberjacking. Also alarms, incidents, stops and
   parks as they happen. Not every block.
+- **"NEEDS YOU"** (the user, 2026-11-12: "if something needs my attention right away keep repeating it at each
+  hand-off so I see it. Not run & hides or fights.. stuff that will end the loop (out of something)"): the handoff
+  line and the update start with it while anything will end the loop unless restocked (no axes in the bank or
+  axes running out, no cure potions on Burgers, a recall reagent under 35 in the bank bag or under 20 on Burgers,
+  Icepick down to one saw). Put it first in every message, every time, until it's gone.
 - **The nightly reboot** (about 04:15) stops it as it does mining ("the game is not responding"): wait for both
   bridges, hide anyone in sight, check `halted` and `resume`, then start again. Wood isn't counted like ingots, so
   there's no total to correct beyond the handoffs after the save point (state.json `totals`).
