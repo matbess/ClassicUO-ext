@@ -134,8 +134,21 @@ Icepick's lumberjacking rules put in the client, his guard on, mounted the whole
   not next to the main road". **Burgers waits at 1200,1716, Icepick comes to 1200,1714**, beside a building to the
   north-west (wooden doors at 1199,1711 and 1194,1713). About 25 tiles west of the middle of the trees (1230,1715),
   off the dirt road through 1223-1227,1708. Inside Icepick's area.
-- Burgers needs a rune marked at his spot (for the way back from the bank), and rules for this job: his spot and
-  the bank.
+- **His rune**: the user marked "Lumber meet" on his spot (2026-11-12): 0x406EAA75 in Burgers' pack ("a recall rune
+  for Lumber meet"). Still to make: his rules for this job (his spot and the bank).
+
+## The tour (`lumbering.py`, 2026-11-12)
+
+- `lumbering.py plan` lists every choppable tree inside Icepick's area from the map files (o'hii left out), keeps
+  those with a walkable tile inside the area within 2 tiles to chop from, and groups them by 8x8 block: **595
+  blocks, 1,332 trees**. It orders the blocks into one loop (nearest neighbour, then 2-opt), measuring each hop
+  along walkable ground (so nothing cuts across the mountain), starting at the block nearest the meeting spot.
+  The order is saved in `routes/lumber-tour.json` (only the block order: the trees and stand spots come from the
+  map each time), so the loop's place in it keeps its meaning; plan again only on purpose.
+- A lap is about **4,500 tiles of riding** between blocks, hops of 8 tiles on average and 29 at most. It runs south
+  from the meeting spot through the south-west lobe, east along the south, up the east side by the castle, across
+  the north and back down the west side to the meeting spot. `lumbering.py draw OUT.png` draws it.
+- Each visit picks a random tree of the block and a random spot within reach to chop from (`choose`, as mining's).
 
 ## Burgers (the user, 2026-11-12)
 
