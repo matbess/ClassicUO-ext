@@ -129,8 +129,13 @@ Icepick's lumberjacking rules put in the client, his guard on, mounted the whole
 
 ## The handoff (the user, 2026-11-12)
 
-- **Burgers meets Icepick somewhere central in the tree area**, not at the forge. The spot, and a rune for Burgers
-  to recall to it, still to choose.
+- **Burgers meets Icepick somewhere central in the tree area**, not at the forge.
+- **The spot** (the user, 2026-11-12 21:0x, standing both there): "a little bit over by this building so they're
+  not next to the main road". **Burgers waits at 1200,1716, Icepick comes to 1200,1714**, beside a building to the
+  north-west (wooden doors at 1199,1711 and 1194,1713). About 25 tiles west of the middle of the trees (1230,1715),
+  off the dirt road through 1223-1227,1708. Inside Icepick's area.
+- Burgers needs a rune marked at his spot (for the way back from the bank), and rules for this job: his spot and
+  the bank.
 
 ## Burgers (the user, 2026-11-12)
 
