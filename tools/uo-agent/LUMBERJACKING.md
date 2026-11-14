@@ -58,18 +58,17 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
   points mine.py's module settings at its own work folder (`~/claude/uo-agent-work/lumber`: lumber.log,
   state.json, incidents.jsonl, lumber.pid, park), the meeting spot, the runes (bank, Mining Start for Burgers'
   get-away, Lumber meet) and the three recall reagents only.
-- **Strangers (the user, 2026-11-14)**, instead of mining's ride-off-at-once for people:
-  - Someone without a job title stands within 3 tiles: Icepick rides 6-10 tiles off, hides and watches. Townspeople
-    do an idle fidget (animations 5 and 6; the wandering ones every minute or so, 80% within 2-4 minutes) and the
-    bridge learns them as NPCs for good: then he goes back to work and the run and hide comes off the review list.
-  - No fidget in 3 minutes: taken for a player. He stays hidden until they leave (out of sight 30 seconds) or
-    fidget after all, for up to 10 minutes in all, then goes back to work anyway (no blocks skipped).
-  - Coming within 3 tiles again, while he works or watches: the same again (each time a run and hide to review).
-    No "back in sight" alarms for them any more.
-  - A stranger who speaks to him: he rides far off (FLEE) and hides for 10 minutes, then goes back to work.
-  - Hits, thefts, trades and the server's "attacking you" go the old way. Titled townspeople (by the paperdoll) and
-    creatures' noise never get this far. Already hidden when someone stands close (by the meeting spot while
-    Burgers banks): he watches from where he is.
+- **People (the user, 2026-11-14: "a lot of NPCs around ... the stables and the animal pen ... I don't want you to
+  get stuck in this area constantly running and hiding"; "look at ALL the people you can see")**, instead of
+  mining's ride-off-at-once:
+  - Someone new in sight (not a known NPC, not watched in the last 30 minutes): Icepick hides where he is and watches
+    everyone in sight at once for up to 3 minutes. NPCs do an idle fidget (animations 5 and 6; the wandering ones
+    every minute or so) and the bridge learns them for good; titled ones are known by their paperdoll. As soon as
+    all in sight are known NPCs, or after 3 minutes, back to work. Not a run and hide (`watches` in the stats).
+  - Someone unknown within 3 tiles while he's in sight: he moves about 10 tiles off, hides and watches again.
+  - Someone within 3 tiles who speaks to him: he rides far off (FLEE), hides for 10 minutes, then back to work (a
+    run and hide to review). Speech from further off is not to him.
+  - Hits, thefts, trades, the server's "attacking you", Burgers' own alarms and creatures go mining's way.
 - A park or stop leaves Burgers where he is unless this run's last Recall sent him away (2026-11-14 11:59: a one-off
   script's park recalled him from the bank while the user was using him there, on his last mandrake root).
 - Each block: a random tree and spot to chop from (lumbering.choose), ridden to mounted; chopped until "not enough
