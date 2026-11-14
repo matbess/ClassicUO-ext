@@ -591,7 +591,7 @@ class Miner:
         self.watch.pop(serial, None)
         kind = 'town guard' if GUARD_TITLE.search(title) else 'townsperson'
         log(f'{name} is a {kind} ("{title}"), not a stranger: no run and hide, carrying on (both bridges leave '
-            'him alone now)')
+            'them alone now)')
         return True
 
     def check_poison(self):
