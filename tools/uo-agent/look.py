@@ -73,16 +73,22 @@ def open_once(info, serial):
             raise
 
 
+# the user's carpentry stock (2026-11-14: "you should not sort the lumber/boards that are on the ground. I am using
+# that for leveling up carpentry"): boards and logs lying loose on the floor are never loot. Logs inside a loot bag
+# still become boards (sortbatch).
+CARPENTRY = STACKABLES['boards'] | STACKABLES['logs']
+
+
 def on_floor(info):
-    """What lies on the room floor (inside the rules area and height) apart from the chests, crates, barrel and cloth.
-    Read only."""
+    """What lies on the room floor (inside the rules area and height) apart from the chests, crates, barrel and cloth,
+    and the user's loose boards and logs. Read only."""
     rules = uo.call(info, 'GET', '/rules')
     x1, y1, x2, y2 = rules['areas'][0]['box']
     z1, z2 = rules['areas'][0]['z']
     nearby = uo.call(info, 'GET', '/nearby', range=14)
     nearby = nearby.get('items', nearby) if isinstance(nearby, dict) else nearby
     return [i for i in nearby if x1 <= i['x'] <= x2 and y1 <= i['y'] <= y2 and z1 <= i['z'] <= z2
-            and not any(k in i.get('type', '') for k in NOT_LOOT)]
+            and not any(k in i.get('type', '') for k in NOT_LOOT) and i['graphic'] not in CARPENTRY]
 
 
 def reused(item, labels):
