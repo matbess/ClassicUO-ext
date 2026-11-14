@@ -137,6 +137,16 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
   `emptied` from 04:01 on dropped (29), totals -944, the 04:01 and 04:14 broken axes off `axe_life`, the axe back in
   hand given about 107 chops in `axe_uses` (estimated), the bank counts set back to 03:54's. Restarted 04:20 with
   `--laps 0`; the bank count after Burgers finished his trip (16,048) matched.
+- **The first `--laps 0` run, 2026-11-14 00:06-11:03** (the user had moved the 34,440 boards to the house for
+  carpentry, so the bank count started from 0): blocks 472-594, two full laps (01:04-05:55 and 05:55-10:19, about
+  4.5 hours each at full speed) and 0-104 of the next. 45,366 boards (79,806 in all), Lumberjacking 82.5 to 95.6,
+  50 double axes broken (121-137 chops, average 128), 9 saws worn out, a bank trip every 6-7 minutes (2 of each
+  recall reagent). It ended on its own by the reagent floor: the bank bag ran out of mandrake root at 09:33 (blood
+  moss at 10:31) and at 11:03 Burgers was down to 3 mandrake root, so both were parked at the meeting spot,
+  mounted and hidden. Hollis by the animal pen at 02:40 (2 run and hides, blocks 226-230 skipped for 20 minutes);
+  Allan the artist and Gillian the farmer let be as townspeople. **To start again** after restocking the bank bag:
+  Burgers carries only 3 mandrake root and won't set off on a trip with fewer than 5, so either put 2 or more in
+  his pack, or (with the bank restocked) one bank trip with the 3 he has (he restocks there).
 - **The first full lap finished 2026-11-13 05:58** (blocks 0-594, from 2026-11-12 22:04, pacing off from 00:43):
   **19,130 boards in the bank**; Lumberjacking 25.6 -> 71.1; 35 axes broken (33 overnight from 23:40; double axes and large battle axes
   about 119 chops on average), 3 saws worn out (75, 70, 69 sawings); 6 run and hides to review (Bert the beggar, a
