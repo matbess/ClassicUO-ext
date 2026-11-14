@@ -24,7 +24,7 @@
              // in town), so nothing is said before that
              "callGuards": "Guards!",
              // the idle fidget animations only NPCs do (seen: Sacha, 6); anyone doing one is learned as an NPC
-             "fidgets": [6] },
+             "fidgets": [5, 6] },
   // the user, 2026-11-01: slower than a person would bother to be (gap and break in milliseconds; aim is the pause
   // between the target cursor appearing and the click, from build cuo-agent10 on)
   // repeat / repeatAim: another stroke of the shovel at the same rock can be quick (the user, 2026-11-01), from cuo-agent11

@@ -379,6 +379,10 @@ files further: they apply at once, without a new build.
   marks anyone doing one as an NPC for good (`Agent/npcs-learned.json`); the guard ignores them. Installed
   2026-11-02 00:05; the first animation caught was Sacha's **6** (twice), now in both rules (`"fidgets": [6]`). In
   UO, human animations 5 and 6 are the two idle fidgets; add 5 once a townsperson is seen doing it.
+  **5 added 2026-11-14** (all four rules, `"fidgets": [5, 6]`): the bridges' animation logs showed townspeople with
+  job titles (Allan the artist, Dolores the peasant) and the regulars by the meeting spot and the bank doing 5 as
+  often as 6. Hollis by the animal pen was never learned: the alarm fires after 3 seconds and Icepick rides out of
+  sight, so there's little time to see a fidget, and one doing only 5 wasn't counted.
 - **Icepick carries 3 shovels** (the user, 2026-11-02 00:30): with 2 he ran out before his pack was full.
 - **No bank trip at the end of a pass** (the user, 2026-11-02 00:35): the gate to the top needs all of Burgers' mana,
   so at the end he smelts, hands over and gates Icepick up; the bank waits for the south half of the next pass
