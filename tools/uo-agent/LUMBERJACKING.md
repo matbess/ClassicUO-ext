@@ -129,6 +129,14 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
   totals -1060 (noted), the 04:08 broken axe taken off `axe_life`. How to find the save point after a reboot: what
   Icepick holds (boards, logs, the axe in hand and the count in the blue bag) against the log's sawings, handoffs
   and axe changes.
+- **And 2026-11-14 04:15**: both back at 04:19, Icepick hidden and mounted at the meeting spot, Burgers at the Ocllo
+  bank in sight (where the bank trip left him; the start-up finishes it). Rolled back to about 04:00: Burgers still
+  held the 472 boards of the 03:59:40 handoff (not yet put in the bank, 04:00:11) and Icepick had 52 boards and the
+  axe that broke at 04:01:51 back in his hand. So the handoffs of 04:06 and 04:12 never happened: state backed up
+  (state.before-reboot-fix-2026-11-14.json), `next` 393 (block 158,195: 392 was emptied at 03:58, 393 at 04:01),
+  `emptied` from 04:01 on dropped (29), totals -944, the 04:01 and 04:14 broken axes off `axe_life`, the axe back in
+  hand given about 107 chops in `axe_uses` (estimated), the bank counts set back to 03:54's. Restarted 04:20 with
+  `--laps 0`; the bank count after Burgers finished his trip (16,048) matched.
 - **The first full lap finished 2026-11-13 05:58** (blocks 0-594, from 2026-11-12 22:04, pacing off from 00:43):
   **19,130 boards in the bank**; Lumberjacking 25.6 -> 71.1; 35 axes broken (33 overnight from 23:40; double axes and large battle axes
   about 119 chops on average), 3 saws worn out (75, 70, 69 sawings); 6 run and hides to review (Bert the beggar, a
