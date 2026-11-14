@@ -150,6 +150,7 @@ class Lumberjack(mine.Miner):
         self.block_spot = None              # the block being chopped (its trees' centre)
         self.watched = {}                   # serial -> when Icepick last watched them (people, for NPC fidgets)
         self.partners = None                # Icepick's rules' partners (names and serials), from his bridge
+        self.clicked = set()                # people single-clicked once for "(invulnerable)"
 
     def load_state(self):
         try:
@@ -336,10 +337,28 @@ class Lumberjack(mine.Miner):
                 if m.get('human') and not m.get('dead') and not self.is_partner(m)]
 
     def known_npc(self, m):
-        """A learned NPC (it fidgeted) or a titled townsperson (by the paperdoll, asked once per person)."""
+        """A learned NPC (it fidgeted), an invulnerable one (its name label on a single click says "(invulnerable)":
+        vendors and the like, the user showed it 2026-11-14 with Jewel, Slade and Garrett by the stables) or a titled
+        townsperson (by the paperdoll). Clicked and asked once per person."""
         serial = m['serial']
         if mine.learned_npc(serial) or serial in (self.state.get('town_guards') or {}):
             return True
+        if serial not in self.clicked:
+            self.clicked.add(serial)
+            try:
+                label = ' '.join((self.ice.call('POST', '/name', serial=serial) or [{}])[0].get('lines') or [])
+            except uo.BridgeError:
+                label = ''
+            if '(invulnerable)' in label:
+                guards = self.state.setdefault('town_guards', {})
+                guards[serial] = m['name']
+                self.state['town_guards'] = dict(list(guards.items())[-100:])
+                self.save_state()
+                b = self.bur.status()
+                burgers_rules(bank=cheb((b['x'], b['y']), mine.OCLLO_BANK) <= 10)
+                icepick_rules()
+                log(f"{m['name']} is an NPC (\"{label}\"): not a stranger (both bridges leave them alone now)")
+                return True
         if serial in self.not_guards:
             return False
         return self.town_guard({'serial': serial, 'name': m['name'], 'x': m['x'], 'y': m['y']})
