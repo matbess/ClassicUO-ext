@@ -8,6 +8,9 @@
   // (the user, 2026-11-07). In the vault: the six smelting crates stacked at 1758,1411, the trash barrel at 1758,1410
   // and the vault's forge at 1758,1409.
   "map": 0,
+  // the user takes over (2026-11-14, every character; uo.py "the user taking a character over"): any command of
+  // their own stops every action until they hand him back (uo --char NAME handback)
+  "handOver": true,
   "areas": [
     { "name": "tower smithy", "box": [1755, 1407, 1757, 1410], "z": [0, 25] },
     { "name": "ground floor hall", "box": [1750, 1410, 1763, 1413], "z": [0, 25] },

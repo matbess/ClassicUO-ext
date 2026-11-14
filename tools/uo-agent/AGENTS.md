@@ -42,6 +42,24 @@ turned into boards, boards handed to Burgers to bank): read `LUMBERJACKING.md` f
 Miner with the mining parts swapped out), the tour `lumbering.py`, the rules `rules/rules-Icepick-lumber.json` and
 `rules/rules-Burgers-lumber.json`. It takes turns with mining (both use Icepick): never run both.
 
+**The user taking over (every character, every tool; the user, 2026-11-14: "that should be shared across all the
+skills/agents").** Every character's rules have `"handOver": true`: any command the user gives a character themselves
+(a step, a spell, a skill, a double-click, a target, war mode, an attack; not Razor's lifts and drops or single
+clicks) makes its bridge refuse every action (423 "the user took over"; `takenOver` in /status) until it's handed
+back. The shared part is in `uo.py` ("the user taking a character over"): `uo.TakenOver` (raised for that 423),
+`uo.taken_over(info)`, `uo.login_routine(info, taken)` (the client's own double-clicks at login, the one known false
+takeover), and `uo.call` refuses `/resume` over a takeover unless the caller passes `handback=True`. Rules for every
+tool and every session:
+- check `takenOver` (or catch `uo.TakenOver`) and stop at once: send nothing more to that character (no park, no
+  hide, no recall, no "going home"), and don't act on the others in a way that depends on them;
+- never resume over it. Only the user hands a character back: `uo --char NAME handback`, or a tool's `--resume`
+  (which passes `handback=True`), run only when the user says so. The login routine (and fight.py's checked Razor
+  double-clicks) are the only automatic resumes;
+- one-off scripts too: never reuse a loop's park or "leave safe" step for a character the script didn't move
+  (2026-11-14 11:59: a script's park recalled Burgers from the bank while the user was using him there).
+mine.py and lumber.py stop on a takeover of either Icepick or Burgers (`UserHas`, a Stop that touches nobody);
+Clem's tools (door, fight, trips, gems, carto, drawing, restock) and heal.py already worked this way.
+
 **To sort loot, follow `skills/uo-sort/SKILL.md`.** It has the procedure, the safety rules, everything learned about
 the server, and the user's keep rules. It's installed as the user-level skill `uo-sort` through a symlink
 (`~/.claude/skills/uo-sort/SKILL.md` -> this repo's `tools/uo-agent/skills/uo-sort/SKILL.md`), so edit it here and

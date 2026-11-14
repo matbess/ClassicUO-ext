@@ -1,6 +1,9 @@
 {
   // Burgers, who waits hidden 10 tiles from the forge (1140,1849), takes the ingots to the Ocllo bank and brings shovels (see MINING.md).
   "map": 0,
+  // the user takes over (2026-11-14, every character; uo.py "the user taking a character over"): any command of
+  // their own stops every action until they hand him back (uo --char NAME handback)
+  "handOver": true,
   "areas": [
     { "name": "forge", "box": [1136, 1844, 1153, 1863], "z": [-10, 20] }  // wider 2026-11-02: he waits at 1140,1849, 10 tiles from the forge
   ],

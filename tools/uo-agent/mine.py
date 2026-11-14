@@ -182,6 +182,24 @@ class Stop(Exception):
     """Something the user must hear about now; the loop ends."""
 
 
+class UserHas(Stop):
+    """The user took Icepick or Burgers over (uo.py, "the user taking a character over"): the loop ends at once and
+    sends nothing more to either of them; only the user hands a character back (uo --char NAME handback)."""
+
+
+def check_taken_over(c, st=None):
+    """Raise UserHas while the user has this character; the client's login routine counts as no takeover."""
+    taken = (st if st is not None else c.status()).get('takenOver')
+    if not taken:
+        return
+    if uo.login_routine(c.info, taken):
+        uo.call(c.info, 'POST', '/resume')
+        log(f"{c.name}: the client's login routine counted as a takeover ({taken}); resumed")
+        return
+    raise UserHas(f'the user took {c.name} over ({taken}); the loop has stopped and sends nothing more to either '
+                  'character until they hand him back')
+
+
 class Alarm(Exception):
     """A guard went off (or a stranger seen again after an incident)."""
 
@@ -259,6 +277,9 @@ class Char:
     def call(self, method, endpoint, **params):
         try:
             return uo.call(self.info, method, endpoint, **params)
+        except uo.TakenOver:
+            check_taken_over(self)
+            raise Again()  # (only the login routine's, resumed)
         except uo.BridgeError as e:
             text = e.message or ''
             if e.code == 409 and text.startswith('alarm'):
@@ -330,6 +351,7 @@ class Miner:
         self.repeats = {}        # serial -> how many incidents in a row with them (each doubles the wait)
         self.not_guards = set()  # people whose paperdoll said they're not a town guard
         self.burgers_away = False  # Burgers recalled away during an alarm (only when he was seen)
+        self.burgers_sent = None   # where this run's last Recall sent Burgers ('bank', 'start', or home)
         self.mcgee_far = None      # (tiles, since when) while McGee is more than 2 tiles off (keep_mcgee)
         self.stats = {'ore': 0, 'misses': 0, 'blocks': 0, 'empty': 0, 'forge visits': 0, 'ingots': 0,
                       'bank trips': 0, 'gates': 0, 'incidents': 0, 'fights': 0}
@@ -366,6 +388,7 @@ class Miner:
     def check_guard(self):
         for c in (self.ice, self.bur):
             s = c.status()
+            check_taken_over(c, s)
             g = s.get('guard') or {}
             if g.get('alarm'):
                 raise Alarm(f"{c.name}: {g['alarm']['reason']}")
@@ -703,6 +726,7 @@ class Miner:
         raise Stop(f'Burgers has no rune named "{want}"')
 
     def recall(self, key):
+        self.burgers_sent = key
         serial = self.rune(key)
         for attempt in range(3):
             try:
@@ -1992,9 +2016,14 @@ class Miner:
         self.mount()
         self.hide(self.ice)
         b = self.bur.status()
-        if cheb((b['x'], b['y']), BURGERS_WAIT) > 15:
-            self.burgers_back()
-        self.burgers_to_wait()
+        if cheb((b['x'], b['y']), BURGERS_WAIT) > 15 and self.burgers_sent in (None, 'forge', 'meet'):
+            # away, but not sent there by this run: the user has him (2026-11-14 11:59: a park recalled him from the
+            # bank while the user was using him there, on his last mandrake root). Left alone.
+            log(f"Burgers is at {b['x']},{b['y']}, which this run didn't send him to (the user has him?): left alone")
+        else:
+            if cheb((b['x'], b['y']), BURGERS_WAIT) > 15:
+                self.burgers_back()
+            self.burgers_to_wait()
         si, sb = self.ice.status(), self.bur.status()
         # hidden, they don't need the guard, and with it off the user can play them (the user, 2026-11-03 20:17);
         # one left in sight keeps his (the next run's preflight turns both back on)

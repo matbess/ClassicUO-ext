@@ -61,6 +61,7 @@ Batch working files go in `~/claude/uo-agent-work/batchN` (scratch, not needed l
 - Sorting runs at **full speed** (the user, 2026-11-05: pacing is for mining only): the bridge's floor of 1.1 s between actions and no breaks (`rules.json`). Don't add waits in scripts, and never go around the bridge.
   - This came from 2026-10-31, when about 55 fast opens came just before the server stalled for everyone.
   - Pacing is set in `rules.json` and has a floor of 1.1 s.
+- **The user can take Johnny over** (2026-11-14, every character: `"handOver": true`; ../../AGENTS.md "The user taking over"): any command of their own makes the bridge refuse everything ("the user took over"). Stop the batch there and tell the user; never resume over it. Only `uo handback`, when the user says so.
 - Long batches still take a while, so use background tasks for them and keep requests to a few dozen actions.
 - If the bridge stops because the server didn't answer, find out why before anything else. Never retry blindly.
   - World saves freeze the server for several seconds. They are routine. The bridge holds new actions while it knows a save is running, but an action already sent when the save starts can still stop it. Then wait for "world save complete", check whether the interrupted action went through, and carry on without asking. The scripts do this themselves (`uo.wait_out_world_save`).

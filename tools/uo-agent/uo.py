@@ -39,7 +39,8 @@
                                fidgets), and the NPCs learned that way (Agent/npcs-learned.json)
   uo cancel                    cancel a target cursor
   uo rules                     show the rules as the bridge sees them (Agent/rules-NAME.json or rules.json)
-  uo resume                    carry on after the bridge stopped because the server went quiet
+  uo resume                    carry on after the bridge stopped because the server went quiet (never over a takeover)
+  uo handback                  the user hands the character back after taking it over (only when they say so)
   uo actions                   what the bridge sent and when, next to the server's "You must wait"
   uo clear                     is anyone else in the agent's area? (exit code 0 when clear)
   uo waitclear [--every SECS]  check every minute until the area is clear
@@ -96,6 +97,40 @@ class BridgeError(Exception):
         super().__init__(f'{code}: {message}' if code else message)
         self.code = code
         self.message = message
+
+
+# ---- the user taking a character over (shared by every tool; the user, 2026-11-14) ----
+# With "handOver": true in a character's rules (every character's, since 2026-11-14), any command the user gives that
+# character themselves (a step, a spell, a skill, a double-click, a target, war mode, an attack) makes its bridge
+# refuse every action (423 "the user took over") until /resume. What every tool does (AGENTS.md, "The user taking
+# over"): stop at once and send nothing more to that character (no park, no hide, no recall); never resume over it.
+# Only the user hands a character back: `uo --char NAME handback`, run only when they say so. The one known false
+# takeover, the client's own double-clicks at login, is recognised here and may be resumed.
+
+class TakenOver(BridgeError):
+    """The user has taken the character over: send it nothing more until they hand it back."""
+
+
+def taken_over(info):
+    """The bridge's takeover note ("a step at 12:03:20") while the user has the character, else None."""
+    return call(info, 'GET', '/status').get('takenOver')
+
+
+def login_routine(info, taken):
+    """A takeover that is the client's own login routine, not the user (HEALING.md: at every login something
+    double-clicks a bag, the character, the backpack and the bag again, one a second, starting within a second of
+    "WorldMap loaded!"): "a double-click at HH:MM:SS" from 2 s before to 10 s after the last "WorldMap loaded!"."""
+    if not (taken or '').startswith('a double-click at '):
+        return False
+    loaded = [m['time'] for m in call(info, 'GET', '/messages')['messages'] if m['text'] == 'WorldMap loaded!']
+    if not loaded:
+        return False
+
+    def seconds(hms):
+        h, m, sec = hms.split(':')
+        return int(h) * 3600 + int(m) * 60 + float(sec)
+
+    return -2 <= seconds(taken.rsplit(' ', 1)[-1]) - seconds(loaded[-1]) <= 10
 
 
 def find_bridge(character):
@@ -280,6 +315,11 @@ def _keep_both(pairs):
 
 
 def call(info, method, endpoint, **params):
+    # never resume over the user's takeover (only `handback`, when the user says so, or the login routine's)
+    if method == 'POST' and endpoint == '/resume' and not params.pop('handback', False):
+        taken = taken_over(info)
+        if taken and not login_routine(info, taken):
+            raise TakenOver(423, f'the user took over ({taken}); only they hand the character back')
     # (the endpoint isn't called "path": /travel takes a query parameter of that name)
     query = urllib.parse.urlencode({k: v for k, v in params.items() if v is not None})
     url = f"http://127.0.0.1:{info['port']}{endpoint}" + (f'?{query}' if query else '')
@@ -295,6 +335,8 @@ def call(info, method, endpoint, **params):
             message = json.load(e).get('error', e.reason)
         except ValueError:
             message = e.reason
+        if e.code == 423 and 'the user took over' in str(message):
+            raise TakenOver(e.code, message)
         raise BridgeError(e.code, message)
     except (TimeoutError, OSError) as e:
         if isinstance(e, urllib.error.URLError):
@@ -532,6 +574,7 @@ def main():
     sub.add_parser('rules')
     sub.add_parser('clear')
     sub.add_parser('resume')
+    sub.add_parser('handback')
     sub.add_parser('actions')
     sub.add_parser('waitclear').add_argument('--every', type=int, default=60)
     sub.add_parser('skills').add_argument('name', nargs='?')
@@ -653,6 +696,8 @@ def main():
         result = call(info, 'GET', '/rules')
     elif c == 'resume':
         result = call(info, 'POST', '/resume')
+    elif c == 'handback':
+        result = call(info, 'POST', '/resume', handback=True)
     elif c == 'skills':
         result = call(info, 'GET', '/skills', name=args.name)
     elif c == 'gumps':
@@ -745,7 +790,7 @@ def main():
             result = result['contents']
         print(describe(result['container']))
         print_items(result['items'], '    ')
-    elif c in ('close', 'cancel', 'rules', 'resume'):
+    elif c in ('close', 'cancel', 'rules', 'resume', 'handback'):
         print(json.dumps(result))
     elif c == 'walk' and 'tilesLeft' not in result:  # --nowait: on his way
         print(('already there' if result['arrived'] else 'walking' if result['walking'] else 'not walking') +

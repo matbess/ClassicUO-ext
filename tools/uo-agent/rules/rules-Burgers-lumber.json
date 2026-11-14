@@ -3,6 +3,9 @@
   // the tree area (the user, 2026-11-12, off the main road), takes the boards to the Ocllo bank. lumber.py puts this
   // file into the client as rules-Burgers.json (mine.py puts the mining one back when it starts).
   "map": 0,
+  // the user takes over (2026-11-14, every character; uo.py "the user taking a character over"): any command of
+  // their own stops every action until they hand him back (uo --char NAME handback)
+  "handOver": true,
   "areas": [
     { "name": "lumber meet", "box": [1194, 1710, 1206, 1722], "z": [-10, 20] },
     // his get-away: the Mining Start rune lands him here, where he hides until the stranger has gone

@@ -458,7 +458,7 @@ def main():
     if stopped and not args.resume:
         sys.exit(f'the user has him ({stopped}); --resume only once they hand him back')
     if stopped:
-        call('POST', '/resume')
+        call('POST', '/resume', handback=True)  # --resume: the user handed him back
         say(f'resumed, as the user said (was: {stopped})')
     try:
         {'out': go_out, 'in': go_in, 'check': check, 'retrap': retrap}[args.step]()

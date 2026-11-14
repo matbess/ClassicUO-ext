@@ -1,6 +1,9 @@
 {
   // where the agent may work: the chest room on the second floor of the house
   "map": 0,
+  // the user takes over (2026-11-14, every character; uo.py "the user taking a character over"): any command of
+  // their own stops every action until they hand him back (uo --char NAME handback)
+  "handOver": true,
   "area": [1758, 1402, 1763, 1412],
   "z": [26, 45],
 

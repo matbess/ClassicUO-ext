@@ -290,7 +290,7 @@ def razor_click(bag=None):
     if not why:
         return False
     try:
-        uo.call(info, 'POST', '/resume')
+        uo.call(info, 'POST', '/resume', handback=True)  # (Razor's click, checked above)
     except uo.BridgeError:
         return False
     say(f'the bridge took {why} for the user taking over ({took}): resumed')
@@ -1942,7 +1942,7 @@ def main():
     if st['y'] < AREA[1]:  # the doorway (y 1414), where door.py out leaves him, counts
         sys.exit('he is not outside (door.py out first)')
     if stopped:
-        call('POST', '/resume')
+        call('POST', '/resume', handback=True)  # --resume: the user handed him back
         say(f'resumed, as the user said (was: {stopped})')
     try:
         Fight(args.minutes, args.route, front=args.front).run()

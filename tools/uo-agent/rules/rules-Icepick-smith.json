@@ -4,6 +4,9 @@
   // He stands at 1756,1409 on the ground floor: the forge (1755,1410), the anvil (1756,1410) and the ingot chest
   // (the bottom wooden chest at 1757,1407, z 6) are all within a tile or two, so he never walks.
   "map": 0,
+  // the user takes over (2026-11-14, every character; uo.py "the user taking a character over"): any command of
+  // their own stops every action until they hand him back (uo --char NAME handback)
+  "handOver": true,
   "areas": [
     { "name": "tower smithy", "box": [1755, 1407, 1757, 1410], "z": [0, 25] }
   ],
