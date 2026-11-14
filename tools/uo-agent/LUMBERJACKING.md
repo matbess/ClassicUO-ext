@@ -18,8 +18,14 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
 ## Running it from a Claude session
 
 - **Start** as a background task, with absolute paths: `cd ~/claude/ClassicUO/tools/uo-agent; exec python3 -I
-  ~/claude/ClassicUO/tools/uo-agent/lumber.py --laps 1` (it carries on from `next` in the state; `--from N --to M`
-  for a stretch, which parks both at its end). Before starting: both logged in with the Agent bridge option,
+  ~/claude/ClassicUO/tools/uo-agent/lumber.py --laps 0` (it carries on from `next` in the state; `--from N --to M`
+  for a stretch, which parks both at its end). `--laps 0` is lap after lap until something runs out (the user,
+  2026-11-14: "keep going as long as it can, e.g. until he runs out of axes"); `--laps N` parks both after N laps.
+  It ends on its own, parked, when Icepick's last axe breaks with none left on Burgers or in the bank, or before
+  Burgers' recall reagents could drop under 3 of each (the user: "keep at least 3 of each reagent on Burgers so he
+  can recall to the bank and stuff later"): he doesn't set off on a bank trip with fewer than 5 of any (a trip is 2
+  recalls), and it stops right after a trip that left him under 5 of one his bank bag had none of. With no saws
+  left it doesn't stop: logs stay logs. Before starting: both logged in with the Agent bridge option,
   Icepick on McGee anywhere in the area, Burgers at the meeting spot or the Ocllo bank (the start-up finishes his
   trip), mine.py not running.
 - **Watch** `~/claude/uo-agent-work/lumber/lumber.log` with a Monitor (re-arm at every expiry, from the last event's

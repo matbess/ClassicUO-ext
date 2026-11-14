@@ -4,6 +4,7 @@ tree in each until "not enough wood", saws the logs into boards when they get he
 rides to Burgers by the building in the middle of the area and hands them over; Burgers banks them in Ocllo.
 
   python3 lumber.py [--laps N] [--from BLOCK] [--to BLOCK]
+                                   --laps 0: lap after lap until something runs out (axes, or Burgers' reagents)
   python3 lumber.py --unload       only saw, hand the boards to Burgers and send him to the bank, then stop
   python3 lumber.py --bank         only a bank trip for Burgers
   python3 lumber.py --park         ask the running loop to park both (mounted and hidden) and end
@@ -95,11 +96,14 @@ ICEPICK_AXES = 4            # spare axes in his blue bag, topped up by Burgers a
 ICEPICK_SAWS = 3            # saws Icepick carries, topped up by Burgers at the handoff like the axes (a saw lasts about
                             # 70 sawings, 6-7 a load: 2026-11-13)
 BURGERS_SAWS = 1            # Burgers' spare saw, from the bank's saws on every bank trip
-BURGERS_AXES = 2            # Burgers' spares
-AVOID_RANGE = 18            # tiles: blocks this near where a person kept standing are skipped (Hollis by the animal pen
-AVOID_FOR = 20 * 60         # at 1288,1770, 2026-11-13: back in sight at every return, the waits doubling to 4 minutes), topped up from an axe bag in his bank on every bank trip (the user,
+BURGERS_AXES = 2            # Burgers' spares, topped up from an axe bag in his bank on every bank trip (the user,
                             # 2026-11-12: 8 was too many, about 8 stones each; Icepick carries the spares, Burgers only
                             # covers a break between bank trips); more than this go back into the bank
+KEEP_REAGENTS = 3           # the user, 2026-11-14: when the loop stops, Burgers still has at least this many of each
+                            # recall reagent (to recall to the bank and so on later). A bank trip takes 2 recalls, so
+                            # he doesn't set off on one with fewer than KEEP_REAGENTS + 2 of any
+AVOID_RANGE = 18            # tiles: blocks this near where a person kept standing are skipped (Hollis by the animal pen
+AVOID_FOR = 20 * 60         # at 1288,1770, 2026-11-13: back in sight at every return, the waits doubling to 4 minutes)
 # hatchet, double axe, large battle axe first (what the blue bag held), then the other axes; not a war axe (a mace)
 AXES = ('0x0F43', '0x0F44', '0x0F4B', '0x0F4C', '0x13FA', '0x13FB', '0x0F49', '0x0F4A', '0x0F47', '0x0F48',
         '0x1442', '0x1443', '0x0F45', '0x0F46')
@@ -477,7 +481,7 @@ class Lumberjack(mine.Miner):
             how = self.leave_safe()
             raise Stop('Icepick has no axes left and Burgers has none to give'
                        + (' (none in his bank either)' if self.bank_out_of_axes() else '') + f'. Parked: {how}')
-        self.reagents_stop(mine.REAGENTS_RESERVE)
+        self.reagents_stop(KEEP_REAGENTS + 2)  # one the bank had none of, too few for another trip: stop now
 
     def burgers_saws(self):
         """Burgers' spare saws, loose in his pack or in a bag in it."""
@@ -710,7 +714,9 @@ class Lumberjack(mine.Miner):
     def bank_trip(self):
         """Burgers to the Ocllo bank with the boards, and back to his spot. The bank is relaxed: guard off there."""
         self.stats['bank trips'] += 1
-        self.reagents_stop(2, only_if_bank_short=False)
+        b = self.bur.status()
+        if cheb((b['x'], b['y']), mine.OCLLO_BANK) > 10:  # (already at the bank, he restocks before recalling back)
+            self.reagents_stop(KEEP_REAGENTS + 2, only_if_bank_short=False)
         log('Burgers takes the boards to the bank')
         self.bur.call('POST', '/guard', on=0)
         try:
@@ -972,8 +978,11 @@ class Lumberjack(mine.Miner):
         self.preflight()
         first = self.args.start if self.args.start is not None else self.state.get('next', 0)
         last = self.args.end if self.args.end is not None else len(self.tour) - 1
-        for lap in range(self.args.laps):
-            log(f'lap {lap + 1}: blocks {first} to {last} of {len(self.tour)}')
+        lap = 0
+        while not self.args.laps or lap < self.args.laps:  # --laps 0: until something runs out (the user, 2026-11-14)
+            lap += 1
+            log(f'lap {lap}: blocks {first} to {last} of {len(self.tour)}'
+                + ('' if self.args.laps else ' (lap after lap until something runs out)'))
             for n in range(first, last + 1):
                 self.state['next'] = n
                 self.save_state()
@@ -1039,7 +1048,7 @@ def park_or_stop(park):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--laps', type=int, default=1)
+    p.add_argument('--laps', type=int, default=1, help='laps of the tour; 0: lap after lap until something runs out')
     p.add_argument('--from', dest='start', type=int, help='first block of the tour (default: where the last run stopped)')
     p.add_argument('--to', dest='end', type=int, help='last block (a test stretch: both parked at the end)')
     p.add_argument('--unload', action='store_true', help='only saw, hand the boards to Burgers and bank them, then stop')
