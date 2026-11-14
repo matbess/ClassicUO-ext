@@ -95,7 +95,9 @@ ICEPICK_AXES = 4            # spare axes in his blue bag, topped up by Burgers a
 ICEPICK_SAWS = 3            # saws Icepick carries, topped up by Burgers at the handoff like the axes (a saw lasts about
                             # 70 sawings, 6-7 a load: 2026-11-13)
 BURGERS_SAWS = 1            # Burgers' spare saw, from the bank's saws on every bank trip
-BURGERS_AXES = 2            # Burgers' spares, topped up from an axe bag in his bank on every bank trip (the user,
+BURGERS_AXES = 2            # Burgers' spares
+AVOID_RANGE = 18            # tiles: blocks this near where a person kept standing are skipped (Hollis by the animal pen
+AVOID_FOR = 20 * 60         # at 1288,1770, 2026-11-13: back in sight at every return, the waits doubling to 4 minutes), topped up from an axe bag in his bank on every bank trip (the user,
                             # 2026-11-12: 8 was too many, about 8 stones each; Icepick carries the spares, Burgers only
                             # covers a break between bank trips); more than this go back into the bank
 # hatchet, double axe, large battle axe first (what the blue bag held), then the other axes; not a war axe (a mace)
@@ -135,6 +137,8 @@ class Lumberjack(mine.Miner):
         self.broken_since = []              # axes broken since the last update: (kind, chops)
         self.update_since = time.strftime('%Y-%m-%d %H:%M:%S')
         self.last_handed = 0
+        self.avoid = {}                     # serial -> (spot, until, name): someone who stays put by a block
+        self.block_spot = None              # the block being chopped (its trees' centre)
 
     def load_state(self):
         try:
@@ -299,8 +303,37 @@ class Lumberjack(mine.Miner):
 
     # ---- chopping ----
 
+    def wait_until_gone(self, threat, gone_after=mine.GONE_AFTER):
+        """As mine.py's, but a person back in sight again by the same block (mining's doubled wait was for the one
+        place it has) has the blocks around them skipped for a while instead, and the wait stays short."""
+        serial = (threat or {}).get('serial')
+        if serial and self.repeats.get(serial, 0) >= 2:
+            spot = (threat['x'], threat['y']) if threat.get('x') else self.block_spot
+            if spot:
+                name = threat.get('name') or serial
+                self.avoid[serial] = (spot, time.time() + AVOID_FOR, name)
+                log(f'{name} keeps standing by {spot[0]},{spot[1]}: the blocks within {AVOID_RANGE} tiles of there are '
+                    f'skipped for {AVOID_FOR // 60} minutes')
+                gone_after = mine.GONE_AFTER
+        return super().wait_until_gone(threat, gone_after)
+
+    def avoided(self, n):
+        here = lumbering.centre(self.tour[n])
+        now = time.time()
+        for serial, (spot, until, name) in list(self.avoid.items()):
+            if until < now:
+                self.avoid.pop(serial)
+            elif cheb(here, spot) <= AVOID_RANGE:
+                return name, spot
+        return None
+
     def chop_block(self, n):
         t = self.tour[n]
+        self.block_spot = lumbering.centre(t)
+        skip = self.avoided(n)
+        if skip:
+            log(f'block {n} skipped: {skip[0]} keeps standing by {skip[1][0]},{skip[1][1]}')
+            return
         if not self.room():
             self.unload('a full pack')
         tree, stand, others = lumbering.choose(t)
@@ -568,8 +601,9 @@ class Lumberjack(mine.Miner):
                 log(f"couldn't put the axe {item} in the blue bag ({e}); it stays loose in his pack")
         need = self.attention()
         log(('NEEDS YOU: ' + '; '.join(need) + ' || ' if need else '') + f'handed Burgers {n} boards' + (f' and {logs} logs' if logs else '')
-            + (f'; gave Icepick {len(axes)} axes' if axes else '')
-            + (f' and {len(saws)} saws' if saws else '')
+            + (f'; gave Icepick ' + ' and '.join(f'{n} {w}{"" if n == 1 else "s"}' for n, w in
+                                                 ((len(axes), 'axe'), (len(saws), 'saw')) if n)
+               if axes or saws else '')
             + (f'; gave Icepick {len(cures)} cure potions' if cures else '')
             + f". Total: {totals['boards']} boards. Boards in the bank: {self.bank_boards()}."
             + f" Run and hide: {len(self.state.get('unreviewed', []))} to review. Fights: {len(self.state.get('fights', []))}"

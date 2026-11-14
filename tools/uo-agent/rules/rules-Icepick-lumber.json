@@ -18,7 +18,7 @@
   "mounts": ["0x00042FCB"],
   // mining's guard: get away and hide from people, "Guards!" the moment a creature hits him; town guards are NPCs
   "guard": { "onAlarm": "hide", "hideAfter": 5, "talk": true, "loiter": [3, 3], "attack": true, "watchItems": [],
-             "npcs": ["0x00023934", "0x00041A9D"], "callGuards": "Guards!", "fidgets": [6] },
+             "npcs": ["0x00023934", "0x00041A9D", "a bull", "a cow", "a goat", "a pig", "a sheep", "a chicken", "a llama", "a horse"], "callGuards": "Guards!", "fidgets": [6] },
   // mining's pacing to start with (out in town; the user: "it might need some pacing, we'll see"); repeat swings
   // at the same tree are quick, like digs
   "pacing": { "gap": [2500, 4000], "burst": 5, "break": [6000, 10000], "aim": [700, 1500],
