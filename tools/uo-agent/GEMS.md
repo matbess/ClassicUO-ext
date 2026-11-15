@@ -18,7 +18,8 @@ The user's steps, "this is what you'll need to repeat every single time you go s
    (0x408FE3A0, 1762,1402,26). There's a gem bag there and **one loose gem beside it, which shows what's in the
    bag**: that gem goes into the bag (onto its own kind's stack), then the whole bag into his pack.
 2. **The Gems runebook** is downstairs in the **top left chest by the stairs** (0x4058ABA9, 1752,1402,14, right above
-   the reagents chest): into his pack. That chest also holds the gold and three other runebooks (unnamed, "Map Makers
+   the reagents chest): into his pack. (Since 2026-11-14 the runebooks, a new Gems book 0x40761A3B among them, are in
+   the bottom chest of that stack, 0x4074D82B at 1752,1402,6; both are looked in, bottom first.) That chest also holds the gold and three other runebooks (unnamed, "Map Makers
    and Ships", "Tinkers"); the Gems one is 0x4067FDD7, "Gems ... crafted by ScribeMaster", found by its name.
 3. **Reagents**: restock if any is below 25 (restock.py, from the chest right below it).
 Then he's ready to go; `fetch` parks him in the safe zone.
@@ -149,6 +150,16 @@ Chastity (Britain 2's jeweler now: Charlton's gone) 34 for 2,010, Kelia 56 for 2
 (upstairs this time: the floor check took him up, opened her door; no trick needed). Home: an ettin by the tower's
 east side never came for him, left be; 22,471 gold in the chest by the forge after. His reagents had moved to a new
 bag (0x407660FB): fetch stopped on the old serial's 404, `restock.find_bag()` now finds it by its contents.
+
+**The fourth tour (2026-11-14 22:43-22:53, "go sell the gems again please")**: 242 gems (the loose tourmaline onto
+its stack), all sold for **14,402 gold** (the list prices came to 14,400): Lamar 32 for 3,270; Troy (Britain 2's
+jeweler now) 53 for 3,810; Demitria (Jhelom's now: Kelia's gone) 35 for 2,010; Francesca (Trinsic's now, on the ground
+floor beside the landing) 77 for 3,962; Vesper's Lamar none (the door); Kanda (Magincia's now) the last 45 for 1,350.
+Most of the jewelers had been replaced since 11-11; each bought nothing before the trick. He was at 349 of 390 stones
+with 13,052 gold after Trinsic, room enough for the rest, so no trip home with the gold yet. **The runebooks had
+moved**: the user put them in the bottom chest of the stack by the stairs (0x4074D82B, 1752,1402,6) with a new Gems
+book (0x40761A3B, the same seven runes and spots) in place of ScribeMaster's 0x4067FDD7; `take_runebook` now looks in
+the bottom chest, then the top one, and the cleanup puts the book back in the one it came from.
 
 ## Phase 3: cleanup (`gems.py cleanup`, and the end of every `sell`), the user, 2026-11-09
 

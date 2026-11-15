@@ -65,6 +65,10 @@ DOORWAY = (1757, 1412)
 VAULT_SIDE = (1758, 1412)     # just inside
 GEMS_CHEST = '0x408FE3A0'     # column 5, bottom (1762,1402,26): the gem bag and the loose gem that marks it
 BOOK_CHEST = '0x4058ABA9'     # ground floor, the top left chest by the stairs (1752,1402,14): the Gems runebook
+# the runebooks, Gems among them, moved to the bottom chest of that stack (0x4074D82B, 1752,1402,6) by 2026-11-14, with
+# a new Gems book (0x40761A3B); the old one (0x4067FDD7, ScribeMaster's) is gone. Both chests are looked in, bottom
+# first, and the book goes back to the one it came from.
+BOOK_CHESTS = ['0x4074D82B', BOOK_CHEST]
 GEMS = ('amber', 'amethyst', 'citrine', 'diamond', 'emerald', 'ruby', 'sapphire', 'star sapphire', 'tourmaline')
 
 info = None
@@ -337,29 +341,31 @@ def take_runebook(state):
     if known and any(i['serial'] == known for i in trips.walk_items(items)):
         say(f'the Gems runebook {known} is in his pack already')
         return known
-    carto.come_within_reach(BOOK_CHEST)
-    call('POST', '/open', serial=BOOK_CHEST)
-    inside = call('GET', '/contents', serial=BOOK_CHEST, depth=1)['items']
-    books = [i['serial'] for i in inside if 'book' in kind(i)] or \
-            [i['serial'] for i in inside if int(i['graphic'], 16) != trips.GOLD and not i.get('container')]
-    if not books:
-        raise Stop('no runebook in the top left chest by the stairs: ' + ', '.join(kind(i) or i['graphic'] for i in inside))
-    found = None
-    for a in call('POST', '/name', serial=','.join(books)):
-        text = ' '.join(a.get('lines', []))
-        say(f"in the chest: {a['serial']} \"{text}\"")
-        if 'gem' in text.lower():
-            found = a['serial']
+    found, chest, inside = None, None, []
+    for chest in BOOK_CHESTS:
+        carto.come_within_reach(chest)
+        call('POST', '/open', serial=chest)
+        inside = call('GET', '/contents', serial=chest, depth=1)['items']
+        books = [i['serial'] for i in inside if 'book' in kind(i)]
+        for a in (call('POST', '/name', serial=','.join(books)) if books else []):
+            text = ' '.join(a.get('lines', []))
+            say(f"in the chest {chest}: {a['serial']} \"{text}\"")
+            if 'gem' in text.lower() and not found:
+                found = a['serial']
+        if found:
+            break
+        call('POST', '/close', serial=chest)
     if not found:
-        raise Stop('no runebook named for gems in the top left chest by the stairs')
+        raise Stop('no runebook named for gems in the chests by the stairs (' + ', '.join(BOOK_CHESTS) + ')')
     at = next((i for i in inside if i['serial'] == found), {})
     if at.get('x') is not None:
         state['runebook_at'] = [at['x'], at['y']]  # where it goes back (cleanup)
+    state['runebook_chest'] = chest
     pack = status()['backpack']['serial']
     r = call('POST', '/move', serial=found, to=pack)
     if not r.get('moved') and not trips.in_pack(found):
         raise Stop(f'the Gems runebook {found} did not go into his pack: {r}')
-    call('POST', '/close', serial=BOOK_CHEST)
+    call('POST', '/close', serial=chest)
     state['runebook'] = found
     save_state(state)
     say(f'the Gems runebook {found} is in his pack')
@@ -403,14 +409,15 @@ def cleanup(state):
         if (st['x'], st['y']) != BOOK_CHEST_FROM[-1] or st['z'] > 15:
             raise Stop(f"meant to stand in front of the chest by the stairs at {BOOK_CHEST_FROM[-1]}, but he's at "
                        f"{st['x']},{st['y']},{st['z']}")
-        inside = carto.contents(BOOK_CHEST)
+        chest = state.get('runebook_chest') or BOOK_CHEST
+        inside = carto.contents(chest)
         at = state.get('runebook_at')
         if not at:
             books = [i for i in inside if 'book' in kind(i) and i.get('x') is not None]
             last = max(books, key=lambda i: i['x']) if books else {'x': 44, 'y': 70}
             at = [min(last['x'] + 14, 130), last['y']]  # beside the other runebooks
-        put_back(book, BOOK_CHEST, at, 'the Gems runebook')
-        call('POST', '/close', serial=BOOK_CHEST)
+        put_back(book, chest, at, 'the Gems runebook')
+        call('POST', '/close', serial=chest)
     bag = state.get('bag')
     if bag and trips.in_pack(bag):
         left = gems_carried()
