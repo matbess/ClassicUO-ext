@@ -38,8 +38,7 @@ for module in ('uo', 'layout'):
     globals()[module] = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(globals()[module])
 
-BACKPACK = '0x4079CC26'
-SCISSORS_GRAPHICS = ('0x0F9E', '0x0F9F')  # any pair in Johnny's backpack: the user plays him and may take them
+SCISSORS_GRAPHICS = ('0x0F9E', '0x0F9F')  # any pair in the sorter's backpack, else the spare pair in supplies
 SPARES = '0x4049D6B8'
 SCROLL_BAGS = {1: '0x40832F6B', 2: '0x4086BE0E', 3: '0x4092B7CC', 4: '0x4092B7D2', 5: '0x4092B7BF', 6: '0x4092B7BB',
                7: '0x407B195C', 8: '0x4087FCC6'}
@@ -68,13 +67,15 @@ def say(text):
 
 
 info = uo.find_bridge(None)
+ME = uo.call(info, 'GET', '/status')  # Johnny, or Clem when Johnny is offline (the user, 2026-11-14)
+BACKPACK, WHO = ME['backpack']['serial'], ME['character'].split()[-1]
 names = uo.load_names()
 labels = uo.load_labels
 
 
 def call(method, path, **params):
     while True:
-        while uo.others_in_area(info):
+        while uo.people_to_wait_for(info):
             say('paused: someone is in the room; checking again in a minute')
             time.sleep(60)
         try:
@@ -90,7 +91,7 @@ def call(method, path, **params):
 
 def move(serial, to, x=None, y=None):
     while True:
-        while uo.others_in_area(info):
+        while uo.people_to_wait_for(info):
             say('paused: someone is in the room; checking again in a minute')
             time.sleep(60)
         try:
@@ -196,7 +197,7 @@ def room_in(name):
 
 
 def deliver(serials, name, inv):
-    """Carry items to the smelting or trash containers in loads, as much as Johnny can carry at a time."""
+    """Carry items to the smelting or trash containers in loads, as much as the sorter can carry at a time."""
     pending = list(serials)
     while pending:
         load = []
@@ -211,7 +212,7 @@ def deliver(serials, name, inv):
                 move(serial, BACKPACK)
             load.append(serial)
         if not load:
-            sys.exit('Johnny is carrying too much to pick anything up')
+            sys.exit(f'{WHO} is carrying too much to pick anything up')
         for serial in load:
             while True:
                 c = room_in(name)
@@ -227,16 +228,30 @@ def deliver(serials, name, inv):
 
 
 def cut_up(serials, inv):
-    """Cut leather and cloth with the scissors in Johnny's backpack, 15 at a time so the cuttings never weigh him
-    down, and pile the cut leather and cloth in the supplies chest."""
+    """Cut leather and cloth with the scissors in the sorter's backpack, 15 at a time so the cuttings never weigh
+    him down, and pile the cut leather and cloth in the supplies chest. With none in his pack (Clem has none), he
+    borrows the spare pair from the supplies chest and puts it back after."""
     pending = list(serials)
     if not pending:
         return
     CONTENTS.pop(BACKPACK, None)
     scissors = next((i['serial'] for i in learn(BACKPACK) if i['graphic'] in SCISSORS_GRAPHICS), None)
+    borrowed = None
+    if not set(SCISSORS_GRAPHICS) & set(call('GET', '/rules').get('useFromBackpack', [])):
+        say(f"CAN'T CUT: {WHO}'s rules (useFromBackpack) don't let him use scissors: {len(pending)} items to cut are "
+            'left in their loot bags: ' + ', '.join(names.get(s, inv[s]['type']) for s in pending))
+        return
+    if scissors is None:
+        c = chest('supplies')
+        CONTENTS.pop(c, None)
+        spare = next((i for i in learn(c) if i['graphic'] in SCISSORS_GRAPHICS), None)
+        if spare:
+            move(spare['serial'], BACKPACK)
+            scissors, borrowed = spare['serial'], (spare['x'], spare['y'])
+            say(f'borrowed the spare scissors from the supplies chest')
     if scissors is None:  # 2026-11-08: the user had taken them; the cutting is left in the loot bags for later
-        say(f'NO SCISSORS in Johnny\'s backpack: {len(pending)} items to cut are left in their loot bags: '
-            + ', '.join(names.get(s, inv[s]['type']) for s in pending))
+        say(f'NO SCISSORS in {WHO}\'s backpack or the supplies chest: {len(pending)} items to cut are left in their '
+            'loot bags: ' + ', '.join(names.get(s, inv[s]['type']) for s in pending))
         return
     while pending:
         before = {i['serial'] for i in call('GET', '/contents', serial=BACKPACK)['items']}
@@ -250,6 +265,9 @@ def cut_up(serials, inv):
         for item in call('GET', '/contents', serial=BACKPACK)['items']:
             if item['serial'] not in before and item['serial'] != scissors:
                 say(f"{item['type']} x{item.get('amount', 1)} -> supplies ({stack(item, c)})")
+    if borrowed:
+        move(scissors, chest('supplies'), *borrowed)
+        say('the spare scissors back in the supplies chest')
 
 
 def menu_answer(answer, title):
@@ -273,7 +291,7 @@ def menu_choose(menu, name):
 
 
 def make_boards(serials, inv):
-    """Logs into boards with the saw in Johnny's backpack (the user, 2026-11-09): saw, "Other", "board" turns a whole
+    """Logs into boards with the saw in the sorter's backpack (Johnny's; the user, 2026-11-09): saw, "Other", "board" turns a whole
     pile into boards at once ("You create the item."). Carpentry needs no skill for boards. The boards go on their pile
     in the supplies chest. With no saw, the logs stay in their loot bags."""
     if not serials:
@@ -281,7 +299,7 @@ def make_boards(serials, inv):
     CONTENTS.pop(BACKPACK, None)
     saw = next((i['serial'] for i in learn(BACKPACK) if i['graphic'] in SAWS), None)
     if saw is None:
-        say(f"NO SAW in Johnny's backpack: {len(serials)} piles of logs are left in their loot bags")
+        say(f"NO SAW in {WHO}'s backpack: {len(serials)} piles of logs are left in their loot bags")
         return
     for serial in serials:
         amount = inv[serial].get('amount', 1)

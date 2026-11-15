@@ -77,6 +77,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -184,6 +185,14 @@ def others_in_area(info):
 
     return [m['name'] or 'someone' for m in near['mobiles']
             if (m['human'] or m['dead']) and (m['name'] or '').lower() not in ignore and inside(m)]
+
+
+def people_to_wait_for(info):
+    """others_in_area for the sorting scripts, unless the character's rules say not to pause for people: Clem sorts
+    with "pauseForPeople": false (the user, 2026-11-14: Icepick does carpentry in the vault while Clem sorts)."""
+    if call(info, 'GET', '/rules').get('pauseForPeople') is False:
+        return []
+    return others_in_area(info)
 
 
 def read_alarm():
@@ -354,6 +363,17 @@ def load_names():
         return {}
 
 
+def kept_over(old, new):
+    """Whether new may replace old in names.json. Identifying is per character on this server (2026-11-14: Johnny's
+    "a wand of identification (32 charges)" is "magic wand" to Clem), so an unidentified "magic X" never replaces a
+    known name of the same X. A different thing (a serial the server reused: "world map" then "magic ringmail
+    leggings") does replace it."""
+    m = re.match(r'^(?:an? )?magic (.+)$', (new or '').split(' / ')[0].strip(), re.I)
+    if not old or not m or re.match(r'^(?:an? )?magic ', old, re.I):
+        return True
+    return m.group(1).lower() not in old.lower()
+
+
 def remember_names(result):
     """Keep every item name seen in a bridge answer."""
     found = {}
@@ -373,6 +393,9 @@ def remember_names(result):
     walk(result)
     if found:
         names = load_names()
+        for k, v in list(found.items()):
+            if not kept_over(names.get(k), v):
+                del found[k]
         if any(names.get(k) != v for k, v in found.items()):
             names.update(found)
             write_json(NAMES, names, 1)

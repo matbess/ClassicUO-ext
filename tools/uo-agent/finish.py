@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Leave Johnny ready for the user to play once sorting is done.
+"""Leave the sorter (Johnny, or Clem when Johnny is offline) ready for the user to play once sorting is done.
 
   finish.py
 
@@ -31,7 +31,9 @@ def main():
     info = uo.find_bridge(None)
     for item in uo.call(info, 'GET', '/status')['hands']:
         name = uo.call(info, 'POST', '/name', serial=item['serial'])[0]['lines']
-        if any('identification' in line for line in name):
+        # any wand or staff: the sorter only ever holds the ID tool idall.py took from the pouch. Its name won't do:
+        # identifying is per character here, so Johnny's ID wands are "magic wand" to Clem (2026-11-14)
+        if any('identification' in line for line in name) or any(w in item.get('type', '') for w in ('wand', 'staff')):
             result = uo.move(info, item['serial'], SPARES)
             if not result['moved']:
                 sys.exit(f"{item['serial']} did not go into the spares pouch")
@@ -44,9 +46,10 @@ def main():
         counts.append((text.split(' (')[0], len(pieces)))
     say(f"SMELTING: {sum(n for _, n in counts)} pieces waiting to be smelted ("
         + ', '.join(f'{name}: {n}' for name, n in counts) + ')')
-    x1, y1, x2, y2 = uo.call(info, 'GET', '/rules')['areas'][0]['box']
+    x1, y1, x2, y2 = look.VAULT['box']
     walked = uo.call(info, 'POST', '/walk', x=(x1 + x2) // 2, y=(y1 + y2) // 2, distance=0)
-    say(f"Johnny is at {walked['x']},{walked['y']}" + ('' if walked['arrived'] else ' (the middle was blocked)'))
+    who = uo.call(info, 'GET', '/status')['character'].split()[-1]
+    say(f"{who} is at {walked['x']},{walked['y']}" + ('' if walked['arrived'] else ' (the middle was blocked)'))
     # loot the user brought while the batch ran (2026-11-08: Clem dropped a bag 11 s after look.py had looked)
     left = look.loot_on_floor(info)
     if left:

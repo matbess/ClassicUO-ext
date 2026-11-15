@@ -39,7 +39,7 @@ def charges(name):
 
 def wait_until_clear(info):
     while True:
-        others = uo.others_in_area(info)
+        others = uo.people_to_wait_for(info)
         if not others:
             return
         say(f"paused: {', '.join(others)} in the room; checking again in a minute")
@@ -109,8 +109,10 @@ def swap(info, wand):
 
 
 def needing_id(info, targets):
-    """The targets still to identify. Names not known yet are asked for in one paced request per ten."""
-    unknown = [t for t in targets if t not in uo.load_names()]
+    """The targets still to identify. Every name is asked for afresh, in one paced request per ten: names.json can
+    hold a stale name for a serial the server has reused (2026-11-14: "magic ringmail leggings" listed as "world map",
+    one of Clem's sold maps, so they weren't identified and went to smelting)."""
+    unknown = list(targets)
     for i in range(0, len(unknown), 10):
         while True:
             wait_until_clear(info)

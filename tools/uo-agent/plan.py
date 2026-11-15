@@ -203,8 +203,10 @@ def decide(item, name):
         if cursed:  # the user's trash list: never kept as gear they don't mind losing
             return scrap(t), 'curse'
         return 'limit', 'defense' if p == 0 else 'guarding'  # gear the user doesn't mind losing
-    if t in ('torch', 'torches') or t.startswith('jug of cider') or t.startswith('bread loa'):
-        return 'trash', 'torch or food'  # the user: torches 2026-11-04, cider and bread 2026-11-07
+    if t in ('torch', 'torches') or t.startswith('jug of cider') or t.startswith('bread loa') or t.startswith('apple'):
+        return 'trash', 'torch or food'  # the user: torches 2026-11-04, cider and bread 2026-11-07, apples 2026-11-14
+    if 'treasure map' in n:  # the user, 2026-11-14: "find a place for them"
+        return 'keep', ('maps',)
     if item['graphic'] in SCISSORS:
         return 'keep', ('supplies',)
     if t in MISC or item['graphic'] in MISC_GRAPHICS:
@@ -305,6 +307,8 @@ def main():
                 spec['place_in'].append([s, 'miscellaneous'])
             elif what == 'supplies':
                 spec['place_in'].append([s, 'supplies'])
+            elif what == 'maps':
+                groups[('treasure maps', 'miscellaneous')].append(s)
             elif what == 'wand':
                 groups[(detail[1], 'magic wands')].append(s)
             elif what == 'jewellery':

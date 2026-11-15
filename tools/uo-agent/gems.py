@@ -24,6 +24,9 @@ laid it out; every step is logged to ~/claude/uo-agent-work/gems/gems.log.
                                           the stairs, the gem bag (gems left or not) back in the vault's gems chest,
                                           the vault door locked and checked, parked
   python3 -I gems.py vault-out            only step 3 (he's in the vault): out, locked and closed
+  python3 -I gems.py vault-in             only step 1: into the vault, door locked and closed (Clem sorting loot when
+                                          Johnny is offline, the user 2026-11-14; uo-sort skill)
+  python3 -I gems.py vault-home           out of the vault as in step 3, then down and parked in the safe zone
   python3 -I gems.py vault-test           steps 1 and 3 only (the user, 2026-11-09: show the door works first): in,
                                           straight out again, and he stays at the door in the bag room
   python3 -I gems.py runebook             step 4 only (the user, 2026-11-09: try the runebook first): the Gems
@@ -1102,7 +1105,8 @@ def on_term(signum, frame):
 def main():
     global info
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('command', choices=['fetch', 'sell', 'cleanup', 'vault-out', 'vault-test', 'runebook'])
+    parser.add_argument('command', choices=['fetch', 'sell', 'cleanup', 'vault-out', 'vault-test', 'runebook',
+                                            'vault-in', 'vault-home'])
     parser.add_argument('--jewelers', type=int, help='sell: only the first N jewelers in the book not yet done')
     parser.add_argument('--resume', action='store_true', help='clear a takeover; only when the user hands him back')
     args = parser.parse_args()
@@ -1133,6 +1137,17 @@ def main():
             st = status()
             say(f"vault test done: he stays at {st['x']},{st['y']},{st['z']}; the door's graphic {hex(door_graphic())} "
                 f"(shut is {hex(SHUT)})")
+        elif args.command == 'vault-in':
+            if not in_vault(status()):
+                into_vault()
+            say('in the vault')
+        elif args.command == 'vault-home':
+            if in_vault(status()):
+                out_of_vault()
+            trips.go_floor(1)
+            trips.park()
+            st = status()
+            say(f"home: parked at {st['x']},{st['y']},{st['z']}")
         elif args.command == 'runebook':
             take_runebook(load_state())
             st = status()

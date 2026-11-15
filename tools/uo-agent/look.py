@@ -23,6 +23,9 @@ for module in ('uo', 'layout'):
     spec.loader.exec_module(globals()[module])
 
 NOT_LOOT = ('wooden chest', 'crate', 'cut cloth', 'barrel')
+# the chest room on the second floor: Johnny's whole rules area, one of Clem's (he sorts too when Johnny is offline,
+# the user 2026-11-14)
+VAULT = {'box': [1758, 1402, 1763, 1412], 'z': [26, 45]}
 # graphics sortbatch.py sorts by itself; kept in step with it
 STACKABLES = {
     'reagent': {'0x0F7A', '0x0F7B', '0x0F84', '0x0F85', '0x0F86', '0x0F88', '0x0F8D', '0x0F8C'},
@@ -57,7 +60,7 @@ def kind(item):
 
 def open_once(info, serial):
     while True:
-        while uo.others_in_area(info):
+        while uo.people_to_wait_for(info):
             say('paused: someone is in the room; checking again in a minute')
             time.sleep(60)
         try:
@@ -82,9 +85,8 @@ CARPENTRY = STACKABLES['boards'] | STACKABLES['logs']
 def on_floor(info):
     """What lies on the room floor (inside the rules area and height) apart from the chests, crates, barrel and cloth,
     and the user's loose boards and logs. Read only."""
-    rules = uo.call(info, 'GET', '/rules')
-    x1, y1, x2, y2 = rules['areas'][0]['box']
-    z1, z2 = rules['areas'][0]['z']
+    x1, y1, x2, y2 = VAULT['box']
+    z1, z2 = VAULT['z']
     nearby = uo.call(info, 'GET', '/nearby', range=14)
     nearby = nearby.get('items', nearby) if isinstance(nearby, dict) else nearby
     return [i for i in nearby if x1 <= i['x'] <= x2 and y1 <= i['y'] <= y2 and z1 <= i['z'] <= z2
