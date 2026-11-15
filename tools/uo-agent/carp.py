@@ -528,6 +528,10 @@ def run(forced_item):
         raise Stop(f"the user has Icepick ({status()['takenOver']}); waiting for them to hand him back")
     cancel_open_menus()
     call('POST', '/open', serial=pack_serial())
+    # the server only answers a drop into a container opened since the login (uo.move); without this every throw
+    # into the barrel after the 04:15 reboot got no answer and looked like the server lagging (2026-11-15)
+    call('POST', '/open', serial=BARREL)
+    call('POST', '/close', serial=BARREL)
     value = skill()
     state.setdefault('start_skill', value)
     # anything crafted left in his pack from before a stop goes in the barrel: only items named exactly like what he
