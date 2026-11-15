@@ -61,6 +61,7 @@ WAIT_LOOK = 60              # seconds between looks while waiting for supplies
 # the user's table (2026-11-14), by Carpentry's displayed value: (below, item); fishing poles need Tailoring 40
 ITEMS = [
     (37.0, 'small crate'),
+    (47.0, 'medium crate'),
     # "ballot box: 5 Boards or Logs" under Misc. Add-Ons: not on the menu at 47.0, there at 48.1 (2026-11-14)
     (55.0, 'ballot box'),
     (68.4, 'wooden shield'),
@@ -73,6 +74,9 @@ NEEDS_CLOTH = ('fishing pole',)
 LEFTOVER_NAMES = {'crate', 'small crate', 'medium crate', 'ballot box', 'ballot box deed', 'wooden shield',
                   'fishing pole', 'quarter staff', 'quarterstaff', 'gnarled staff'}
 TAILORING_NEEDED = 40.0
+# how far above the table's level an item may still be missing from the menus before the loop stops (the ballot
+# box turned up between 47.0 and 48.1)
+UNLOCK_GRACE = 2.0
 
 
 class Stop(Exception):
@@ -460,6 +464,22 @@ def supplies_kinds():
     return SAW_GRAPHICS + BOARD_GRAPHICS + CLOTH_GRAPHICS
 
 
+def item_start(item):
+    """The value the table starts the item at."""
+    below = 0.0
+    for b, name in ITEMS:
+        if name == item:
+            return below
+        below = b
+    return below
+
+
+def previous_item(item):
+    names = [n for _, n in ITEMS]
+    i = names.index(item) if item in names else 0
+    return names[i - 1] if i > 0 else None
+
+
 def item_for(value):
     for below, name in ITEMS:
         if value < below:
@@ -541,12 +561,31 @@ def run(forced_item):
             if item in NEEDS_CLOTH:
                 top_up(CLOTH_GRAPHICS, PACK_CLOTH, CLOTH_LOW, CLOTH_WEIGHT, 'cloth')
             before = {i['serial'] for i in pack()}
-            # an item not on the menus: stop and tell the user (the user, 2026-11-14: "If you run into a problem
-            # again I do NOT want you to keep going. You must stop and tell me."). The ballot box wasn't on the
-            # menu at 47.0 but was at 48.1, so an item can turn up a little above the table's level.
-            sub, index = find_item(state, s, item)
+            # The ballot box wasn't on the menu at 47.0 but was at 48.1: an item can turn up a little above the
+            # table's level, and that isn't an error (the user, 2026-11-14: "Don't stop a level early again and
+            # think it's an error"). So the one before it carries on, and the item is looked for again after each
+            # gain. Still missing UNLOCK_GRACE above its level: stop and tell the user (the user, 2026-11-14: "if
+            # you can't make an item that you're supposed to make", stop; never switch to anything else).
+            start = item_start(item)
+            waiting = state.get('waiting_for') == item and state.get('waiting_at') == value
+            sub, index = (None, None) if waiting else find_item(state, s, item)
             if sub is None:
-                raise Stop(f'{item} is on none of the saw\'s menus at {SKILL} {value}')
+                before_it = previous_item(item)
+                if not before_it or value >= start + UNLOCK_GRACE:
+                    raise Stop(f'{item} is on none of the saw\'s menus at {SKILL} {value} (the table starts it at '
+                               f'{start})')
+                if state.get('waiting_for') != item:
+                    say(f'{item} is not on the menus yet at {SKILL} {value}: {before_it} until it turns up '
+                        f'(stops if it is still missing at {start + UNLOCK_GRACE:.1f})')
+                state['waiting_for'], state['waiting_at'] = item, value
+                sub, index = find_item(state, s, before_it)
+                if sub is None:
+                    raise Stop(f'neither {item} nor {before_it} is on the menus at {SKILL} {value}')
+                item = before_it
+            elif state.get('waiting_for') == item:
+                state.pop('waiting_for', None)
+                state.pop('waiting_at', None)
+                say(f'{item} is on the menus now ({SKILL} {value})')
             answer = choose(sub, index)
             text = craft_result(answer)
             interrupted = 0
