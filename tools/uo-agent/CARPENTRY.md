@@ -25,7 +25,7 @@ fishing poles need).
   500 (the user).
 - Cloth: a pile at 1759,1408 (1,750 from 35 bolts: **a bolt cuts into 50 cloth**, checked 2026-11-14). Estimated use
   for the fishing poles: about 3,600 (950 crafts; a failure loses about half the materials), the user is getting 5,000.
-- Saws: his pack (three at the start), then the user's bags of saws in the small crate at 1760,1408.
+- Saws: his pack, then any container in his corner (1758-1761, 1408-1410): the small crate at 1760,1408 and three crates at 1761,1408-1410 (2026-11-14). About 51 crafts a saw at first (79, 57, 19).
 - Trash barrel at 1758,1410.
 - Rules: `rules/rules-Icepick-carp.json`, an area of just that corner. The house's green decoration is cut cloth too,
   so cut cloth isn't in "neverTouch" here; the small box keeps him off the decoration.

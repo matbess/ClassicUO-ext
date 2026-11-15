@@ -42,11 +42,10 @@ PID = os.path.join(WORK, 'carp.pid')
 STOP_FILE = os.path.join(WORK, 'stop')
 
 BARREL = '0x4068E2BB'       # trash barrel at 1758,1410: deletes after 3 minutes, or at once on the 50th item
-SAW_CRATE = '0x4091AFF3'    # small crate at 1760,1408: the user's bags of saws
 SAW_GRAPHICS = ('0x1034', '0x1035', '0x1028', '0x1029')   # saws and dovetail saws
 BOARD_GRAPHICS = ('0x1BD7', '0x1BD8', '0x1BD9', '0x1BDA', '0x1BDB', '0x1BDC')
 CLOTH_GRAPHICS = ('0x1766', '0x1767')
-FLOOR_BOX = (1758, 1408, 1760, 1410)    # the rules area: piles of boards and cloth are looked for here only
+FLOOR_BOX = (1758, 1408, 1761, 1410)    # the rules area: piles of boards and cloth are looked for here only
 SKILL = 'Carpentry'
 CAP = 100.0
 PACK_BOARDS = 500           # the user: he can hold 500 boards at a time
@@ -260,21 +259,34 @@ def wait_for(why, ready):
     say(f'supplies back ({why.split(":")[0]}); carrying on')
 
 
-def saw_bags():
-    """The bags (or loose saws) in the saw crate, opened when the client knows nothing inside."""
-    crate = call('GET', '/item', serial=SAW_CRATE)['item']
-    if not crate.get('knownItems'):
-        call('POST', '/open', serial=SAW_CRATE)
+def saw_containers():
+    """Every container lying in his corner (the user's saw crate, wherever in the corner it is now; it was moved
+    away on 2026-11-14 16:30 and the loop stopped on the missing serial)."""
     found = []
-    for i in contents(SAW_CRATE):
-        if i.get('graphic') in SAW_GRAPHICS:
+    for i in call('GET', '/nearby', range=3).get('items', []):
+        if not i.get('container') or i.get('x') is None:
+            continue
+        if FLOOR_BOX[0] <= i['x'] <= FLOOR_BOX[2] and FLOOR_BOX[1] <= i['y'] <= FLOOR_BOX[3] \
+                and 26 <= i.get('z', 0) <= 30 and i['serial'] != BARREL:
             found.append(i)
-        elif i.get('container'):
-            inner = contents(i['serial'])
-            if not inner and not i.get('knownItems'):
-                call('POST', '/open', serial=i['serial'])
+    return found
+
+
+def saw_bags():
+    """The saws in the containers in his corner, loose or in bags (opened when the client knows nothing inside)."""
+    found = []
+    for box in saw_containers():
+        if not box.get('knownItems'):
+            call('POST', '/open', serial=box['serial'])
+        for i in contents(box['serial']):
+            if i.get('graphic') in SAW_GRAPHICS:
+                found.append(i)
+            elif i.get('container'):
                 inner = contents(i['serial'])
-            found += of_kind(inner, SAW_GRAPHICS)
+                if not inner and not i.get('knownItems'):
+                    call('POST', '/open', serial=i['serial'])
+                    inner = contents(i['serial'])
+                found += of_kind(inner, SAW_GRAPHICS)
     return found
 
 
@@ -287,7 +299,7 @@ def saw(state):
         spares = saw_bags()
         if spares:
             break
-        wait_for('saws: none in his pack and none in the crate', lambda: bool(saw_bags()))
+        wait_for('saws: none in his pack and none in a container in his corner (1758-1761,1408-1410)', lambda: bool(saw_bags()))
     call('POST', '/move', serial=spares[0]['serial'], to=pack_serial())
     left = len(spares) - 1
     say(f"took saw {spares[0]['serial']} from the crate; {left} left there")

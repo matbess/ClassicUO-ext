@@ -9,7 +9,7 @@
   // the user takes over (2026-11-14, every character; uo.py "the user taking a character over")
   "handOver": true,
   "areas": [
-    { "name": "carpentry corner", "box": [1758, 1408, 1760, 1410], "z": [26, 30] }
+    { "name": "carpentry corner", "box": [1758, 1408, 1761, 1410], "z": [26, 30] }
   ],
   // no guard, no pausing: safe inside the house; the user's other characters walk past
   "pauseForPeople": false,
