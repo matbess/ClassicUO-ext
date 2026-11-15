@@ -75,6 +75,8 @@ Batch working files go in `~/claude/uo-agent-work/batchN` (scratch, not needed l
 
 ## Things learned about this server and client
 
+- **Identifying is per character** (2026-11-14): gear Johnny identified single-clicks as "magic X" for Clem, his ID wands included. names.json keeps the identified name (`uo.kept_over`), and finish.py returns any wand or staff in hand to the spares pouch. A server may also reuse a serial, so idall.py asks for fresh names before deciding what needs a charge.
+
 - **The client forgets container contents when it restarts.** After every restart, open each container before moving things into or out of it, including containers nested in chests (such as the ID spares pouch). Otherwise the bridge answers 404 "no such item nearby".
 - **Reopening a container can bring only its contents.** If the server still counts the container as open (closing a window is never sent to the server), it sends the contents without the "show window" message. The bridge counts either as an answer.
 - **The action delay also runs from drops.** "You must wait" can still show up now and then. The bridge retries once, which is harmless. The gap is 1.1 s in `rules.json`.
