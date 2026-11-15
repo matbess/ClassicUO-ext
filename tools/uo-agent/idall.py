@@ -47,8 +47,11 @@ def wait_until_clear(info):
 
 
 def name_of(item):
-    # after a client restart the bridge has forgotten names; names.json remembers them
-    return item.get('name') or uo.load_names().get(item['serial'], '')
+    # after a client restart the bridge has forgotten names; names.json remembers them. And identifying is per
+    # character: to Clem, Johnny's ID wands are "magic wand", so names.json's identified name wins (2026-11-14)
+    known = uo.load_names().get(item['serial'], '')
+    seen = item.get('name') or ''
+    return known if known and not uo.kept_over(known, seen) else (seen or known)
 
 
 def wand_in_hand(info):
