@@ -460,8 +460,13 @@ def main():
     for serial, part in plan.get('place_in', []):
         c = chest(part)
         learn(c)
-        target = pile_in(c, inv[serial]) if inv[serial].get('amount', 1) > 1 else None
-        if target:  # a pile onto its pile (raw meat in the miscellaneous chest, 2026-11-14)
+        target = pile_in(c, inv[serial])
+        # a pile onto its pile (raw meat in the miscellaneous chest, 2026-11-14), and a single piece onto a pile of
+        # its kind (one cut of raw ribs, 2026-11-14); two single items (key rings) never stack
+        if target and inv[serial].get('amount', 1) == 1 and \
+                next((i.get('amount', 1) for i in CONTENTS[c] if i['serial'] == target), 1) < 2:
+            target = None
+        if target:
             move(serial, target)
             say(f"{names.get(serial, inv[serial]['type'])} -> {labels().get(c)} (merged)")
             continue
