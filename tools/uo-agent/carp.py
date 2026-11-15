@@ -459,16 +459,10 @@ def trash(serial, what):
     except uo.BridgeError as e:
         if uo.resume_after_barrel_emptied(info, e):
             return
-        # the barrel can empty itself without saying so (2026-11-14 19:48: a deed dropped, no answer, and the deed
-        # gone): the drop got no answer and the item is no longer anywhere he can see, so it was deleted
-        if e.code == 423 and 'went quiet' in e.message and not status().get('holding'):
-            try:
-                uo.call(info, 'GET', '/item', serial=serial)
-            except uo.BridgeError as gone:
-                if gone.code == 404:
-                    uo.call(info, 'POST', '/resume')
-                    say(f'the barrel took {what} {serial} without a word (emptied itself); resumed')
-                    return
+        # a lag during the drop (2026-11-14 19:48, the user: "the server lagged"): wait for the server like every
+        # other step, then carry on; the item went in the barrel or is still in his pack for the next round
+        if e.code == 423 and 'went quiet' in e.message and lag_over(e.message):
+            return
         raise Stop(f'throwing {what} {serial} away: {e}')
 
 
