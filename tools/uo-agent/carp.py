@@ -279,13 +279,13 @@ def saw_containers():
 OPENED = set()     # containers opened this run
 
 
-def saw_bags():
+def saw_bags(open_unknown=True):
     """The saws in the containers in his corner, loose or in bags (opened when the client knows nothing inside)."""
     found = []
     for box in saw_containers():
         # an empty crate always shows 0 known items, so open each container once a run only (2026-11-14: the user
         # asked why he kept opening the two empty crates)
-        if not box.get('knownItems') and box['serial'] not in OPENED:
+        if open_unknown and not box.get('knownItems') and box['serial'] not in OPENED:
             call('POST', '/open', serial=box['serial'])
             OPENED.add(box['serial'])
         for i in contents(box['serial']):
@@ -293,7 +293,7 @@ def saw_bags():
                 found.append(i)
             elif i.get('container'):
                 inner = contents(i['serial'])
-                if not inner and not i.get('knownItems') and i['serial'] not in OPENED:
+                if open_unknown and not inner and not i.get('knownItems') and i['serial'] not in OPENED:
                     call('POST', '/open', serial=i['serial'])
                     OPENED.add(i['serial'])
                     inner = contents(i['serial'])
@@ -326,7 +326,9 @@ def supplies_line(state):
     cloth = sum(amount(i) for i in of_kind(pack(), CLOTH_GRAPHICS))
     floor_cloth = sum(amount(p) for p in floor_piles(CLOTH_GRAPHICS))
     try:
-        spare = len(saw_bags())
+        # counted from what the client already knows: nothing is opened just to count (the user, 2026-11-14:
+        # "why does he keep opening empty crates?")
+        spare = len(saw_bags(open_unknown=False))
     except Stop:
         spare = '?'
     broken = state.get('broken', [])
