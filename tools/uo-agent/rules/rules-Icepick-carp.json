@@ -16,6 +16,9 @@
   // saws and dovetail saws (both facings), used from his pack
   "useFromBackpack": ["0x1034", "0x1035", "0x1028", "0x1029"],
   "mounts": ["0x00042FCB"],
+  // medium crates (both facings): chests.py puts a new crate for the wooden chests down at his feet when the last
+  // one is full (the bridge only puts things down on his own tile; the user stacks it, 2026-11-15)
+  "dropOnGround": ["0x0E3E", "0x0E3F"],
   // full speed (the user, 2026-11-05); the bridge never goes below 1.1 s between actions
   "pacing": { "gap": [1100, 1100], "burst": 1000, "break": [1100, 1100], "aim": [0, 0] }
 }
