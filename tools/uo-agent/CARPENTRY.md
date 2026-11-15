@@ -58,3 +58,12 @@ fishing poles need).
 ## Progress
 
 - 2026-11-14 16:00: started at 40.2 on medium crates.
+- 2026-11-14: ballot boxes weren't on the menu at 47.0 but were at 48.1 (Misc. Add-Ons, 5 boards); wooden shields
+  at 55 (Weapons and Armor, 9 boards); the user: an item turning up a little late is not an error, but stop and tell
+  them if it can't be made (carp.py waits up to 2 points behind the item before it).
+- 2026-11-15 00:47: fishing poles at 68.4 (Weapons and Armor, 5 boards + 5 cloth), about 12 crafts per 0.1, about
+  2,700 cloth to 74; quarter staves at 74 (6 boards).
+- **The nightly reboot** (2026-11-15 04:15): the loop stops with "the game is not responding". The clients log back
+  in at about 04:19; the takeover note then is the login routine's double-clicks (`uo --char Icepick resume` checks
+  that), then start `carp.py run` again. Rolled back to just before 04:00 (76.9 -> 76.2). After a login his client
+  knows nothing inside the saw crates, so the supplies line says 0 spare saws until he next needs one.
