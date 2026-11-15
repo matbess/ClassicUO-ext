@@ -1,0 +1,21 @@
+{
+  // Icepick's rules while he trains Carpentry in the chest room (CARPENTRY.md, from 2026-11-14). carp.py copies this
+  // file into the client's Agent/rules-Icepick.json; mine.py and lumber.py put their own rules back at their start.
+  // He stands at 1759,1410 (z 26): the boards (1760,1409 and 1760,1410), the cloth pile (1759,1408) and the trash
+  // barrel (1758,1410) are all within reach, so he never walks. The area is kept to that patch on purpose: the house's
+  // green cut-cloth decoration is the same kind of item as the cloth pile, so cut cloth isn't in "neverTouch" here and
+  // the small box is what keeps him off the decoration.
+  "map": 0,
+  // the user takes over (2026-11-14, every character; uo.py "the user taking a character over")
+  "handOver": true,
+  "areas": [
+    { "name": "carpentry corner", "box": [1758, 1408, 1760, 1410], "z": [26, 30] }
+  ],
+  // no guard, no pausing: safe inside the house; the user's other characters walk past
+  "pauseForPeople": false,
+  // saws and dovetail saws (both facings), used from his pack
+  "useFromBackpack": ["0x1034", "0x1035", "0x1028", "0x1029"],
+  "mounts": ["0x00042FCB"],
+  // full speed (the user, 2026-11-05); the bridge never goes below 1.1 s between actions
+  "pacing": { "gap": [1100, 1100], "burst": 1000, "break": [1100, 1100], "aim": [0, 0] }
+}

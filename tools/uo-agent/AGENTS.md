@@ -42,6 +42,10 @@ turned into boards, boards handed to Burgers to bank): read `LUMBERJACKING.md` f
 Miner with the mining parts swapped out), the tour `lumbering.py`, the rules `rules/rules-Icepick-lumber.json` and
 `rules/rules-Burgers-lumber.json`. It takes turns with mining (both use Icepick): never run both.
 
+**Carpentry** (Icepick, from 2026-11-14: to 100 in the chest room from the floor's boards, everything made into the
+trash barrel): read `CARPENTRY.md` first; the loop is `carp.py`, the rules `rules/rules-Icepick-carp.json`. It uses
+Icepick, so not with mining or lumberjacking.
+
 **The user taking over (every character, every tool; the user, 2026-11-14: "that should be shared across all the
 skills/agents").** Every character's rules have `"handOver": true`: any command the user gives a character themselves
 (a step, a spell, a skill, a double-click, a target, war mode, an attack; not Razor's lifts and drops or single
