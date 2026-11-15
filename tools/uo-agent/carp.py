@@ -61,8 +61,9 @@ WAIT_LOOK = 60              # seconds between looks while waiting for supplies
 # the user's table (2026-11-14), by Carpentry's displayed value: (below, item); fishing poles need Tailoring 40
 ITEMS = [
     (37.0, 'small crate'),
-    (47.0, 'medium crate'),
-    (55.0, 'ballot box'),
+    # ballot box deeds (the user's table for 47-55) don't exist on this server (2026-11-14 at 47: none on any menu),
+    # so medium crates carry on to 55
+    (55.0, 'medium crate'),
     (68.4, 'wooden shield'),
     (74.0, 'fishing pole'),
     (80.0, 'quarter staff'),
