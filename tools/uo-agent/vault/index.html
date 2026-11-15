@@ -155,6 +155,7 @@ function sum(items) {
 function worth(items) {  // gold a jeweler pays for the gems among them
   return items.reduce((t, i) => t + (i.items ? worth(i.items) : (i.each || 0) * i.amount), 0);
 }
+// a bag's count includes its marker, like the chest totals (the user, 2026-11-14: the treasure maps bag said 0 with a map as its marker)
 function bagGems(b) {  // the user sells the marker gem with the bag (2026-11-11)
   return (b.marker && b.marker.each ? [b.marker] : []).concat(b.items);
 }
@@ -215,10 +216,10 @@ function render() {
     const bagHit = (b) => !q || b.name.toLowerCase().includes(q) || (b.marker && matches(b.marker, q)) || b.items.some((i) => matches(i, q));
     const bags = c.bags.filter(bagHit).map((b) => {
       const full = q && b.name.toLowerCase().includes(q) ? '' : q;
-      return `<div class="bag"><div class="bag-head"><h3>${show(b.name, q)}</h3><span class="amt muted num">${fmt(sum(b.items))}</span></div>`
+      return `<div class="bag"><div class="bag-head"><h3>${show(b.name, q)}</h3><span class="amt muted num">${fmt(sum((b.marker ? [b.marker] : []).concat(b.items)))}</span></div>`
         + (worth(bagGems(b)) ? `<div class="worth">Sells for <b>${fmt(worth(bagGems(b)))} gold</b> at a jeweler${b.marker && b.marker.each ? ', with the marker gem' : ''}${data.gem_prices_from ? ` <span class="muted">(prices Clem was quoted, last on ${new Date(data.gem_prices_from.replace(' ', 'T')).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })})</span>` : ''}</div>` : '')
         + (b.marker ? `<div class="marker">Marker under the bag: ${show(b.marker.name, q)}${b.marker.each ? ` (${fmt(b.marker.each * b.marker.amount)} gp, sold with the bag)` : ''}</div>` : '')
-        + (list(b.items, full) || '<div class="marker">Empty</div>') + '</div>';
+        + (list(b.items, full) || `<div class="marker">${b.marker ? 'Nothing in the bag yet; the marker is the only one' : 'Empty'}</div>`) + '</div>';
     });
     const loose = list(c.loose, q);
     if (q && !bags.length && !loose) return '';
