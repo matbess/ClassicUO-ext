@@ -61,9 +61,8 @@ WAIT_LOOK = 60              # seconds between looks while waiting for supplies
 # the user's table (2026-11-14), by Carpentry's displayed value: (below, item); fishing poles need Tailoring 40
 ITEMS = [
     (37.0, 'small crate'),
-    # ballot box deeds (the user's table for 47-55) don't exist on this server (2026-11-14 at 47: none on any menu),
-    # so medium crates carry on to 55
-    (55.0, 'medium crate'),
+    # "ballot box: 5 Boards or Logs" under Misc. Add-Ons: not on the menu at 47.0, there at 48.1 (2026-11-14)
+    (55.0, 'ballot box'),
     (68.4, 'wooden shield'),
     (74.0, 'fishing pole'),
     (80.0, 'quarter staff'),
@@ -454,6 +453,12 @@ def supplies_kinds():
     return SAW_GRAPHICS + BOARD_GRAPHICS + CLOTH_GRAPHICS
 
 
+def previous_item(item):
+    names = [n for _, n in ITEMS]
+    i = names.index(item) if item in names else 0
+    return names[i - 1] if i > 0 else None
+
+
 def item_for(value):
     for below, name in ITEMS:
         if value < below:
@@ -535,9 +540,25 @@ def run(forced_item):
             if item in NEEDS_CLOTH:
                 top_up(CLOTH_GRAPHICS, PACK_CLOTH, CLOTH_LOW, CLOTH_WEIGHT, 'cloth')
             before = {i['serial'] for i in pack()}
-            sub, index = find_item(state, s, item)
+            # an item can turn up on the menus a little above the table's level (the ballot box: not at 47.0, there
+            # at 48.1): keep making the one before it, and look for it again after each gain only
+            fallback = previous_item(item)
+            waiting = state.get('waiting_for') == item and state.get('waiting_at') == value and fallback
+            sub, index = (None, None) if waiting else find_item(state, s, item)
             if sub is None:
-                raise Stop(f'{item} is on none of the saw\'s menus at {SKILL} {value} (a different name?)')
+                if not fallback:
+                    raise Stop(f'{item} is on none of the saw\'s menus at {SKILL} {value} (a different name?)')
+                if state.get('waiting_for') != item:
+                    say(f'{item} is not on the menus yet at {SKILL} {value}: {fallback} until it turns up')
+                state['waiting_for'], state['waiting_at'] = item, value
+                sub, index = find_item(state, s, fallback)
+                if sub is None:
+                    raise Stop(f'neither {item} nor {fallback} is on the menus at {SKILL} {value}')
+                item = fallback
+            elif state.get('waiting_for') == item:
+                state.pop('waiting_for', None)
+                state.pop('waiting_at', None)
+                say(f'{item} is on the menus now ({SKILL} {value})')
             answer = choose(sub, index)
             text = craft_result(answer)
             interrupted = 0
