@@ -272,19 +272,26 @@ def saw_containers():
     return found
 
 
+OPENED = set()     # containers opened this run
+
+
 def saw_bags():
     """The saws in the containers in his corner, loose or in bags (opened when the client knows nothing inside)."""
     found = []
     for box in saw_containers():
-        if not box.get('knownItems'):
+        # an empty crate always shows 0 known items, so open each container once a run only (2026-11-14: the user
+        # asked why he kept opening the two empty crates)
+        if not box.get('knownItems') and box['serial'] not in OPENED:
             call('POST', '/open', serial=box['serial'])
+            OPENED.add(box['serial'])
         for i in contents(box['serial']):
             if i.get('graphic') in SAW_GRAPHICS:
                 found.append(i)
             elif i.get('container'):
                 inner = contents(i['serial'])
-                if not inner and not i.get('knownItems'):
+                if not inner and not i.get('knownItems') and i['serial'] not in OPENED:
                     call('POST', '/open', serial=i['serial'])
+                    OPENED.add(i['serial'])
                     inner = contents(i['serial'])
                 found += of_kind(inner, SAW_GRAPHICS)
     return found
