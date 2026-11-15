@@ -460,6 +460,11 @@ def main():
     for serial, part in plan.get('place_in', []):
         c = chest(part)
         learn(c)
+        target = pile_in(c, inv[serial]) if inv[serial].get('amount', 1) > 1 else None
+        if target:  # a pile onto its pile (raw meat in the miscellaneous chest, 2026-11-14)
+            move(serial, target)
+            say(f"{names.get(serial, inv[serial]['type'])} -> {labels().get(c)} (merged)")
+            continue
         x, y = free_spot(c, inv[serial]['art'])
         put(inv[serial], c, x, y)
         say(f"{names.get(serial, inv[serial]['type'])} -> {labels().get(c)}")

@@ -203,8 +203,12 @@ def decide(item, name):
         if cursed:  # the user's trash list: never kept as gear they don't mind losing
             return scrap(t), 'curse'
         return 'limit', 'defense' if p == 0 else 'guarding'  # gear the user doesn't mind losing
-    if t in ('torch', 'torches') or t.startswith('jug of cider') or t.startswith('bread loa') or t.startswith('apple'):
-        return 'trash', 'torch or food'  # the user: torches 2026-11-04, cider and bread 2026-11-07, apples 2026-11-14
+    if t in ('torch', 'torches') or t.startswith('jug of cider') or t.startswith('bread loa') or t.startswith('apple') \
+            or t.startswith('candle'):
+        return 'trash', 'torch or food'  # the user: torches 2026-11-04, cider and bread 2026-11-07, apples and candles
+    #                                    2026-11-14
+    if re.search(r'\braw\b', t):  # raw ribs, birds, fish steaks, legs of lamb: kept for cooking (the user, 2026-11-14),
+        return 'keep', ('misc',)   # piled in the miscellaneous chest
     if 'treasure map' in n:  # the user, 2026-11-14: "find a place for them"
         return 'keep', ('maps',)
     if item['graphic'] in SCISSORS:

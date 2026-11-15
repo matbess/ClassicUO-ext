@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-14T17:52:56-0800",
+ "updated": "2026-11-14T18:03:36-0800",
  "wall": [
   {
    "name": "swords",
@@ -1264,6 +1264,11 @@
    ],
    "loose": [
     {
+     "name": "cuts of raw ribs",
+     "amount": 128,
+     "graphic": "0x09F1"
+    },
+    {
      "name": "key ring",
      "amount": 3,
      "graphic": "0x1011"
@@ -1469,18 +1474,7 @@
    "col": 6,
    "row": "2nd from top",
    "bags": [],
-   "loose": [
-    {
-     "name": "cuts of raw ribs",
-     "amount": 128,
-     "graphic": "0x09F1"
-    },
-    {
-     "name": "candle",
-     "amount": 1,
-     "graphic": "0x0A28"
-    }
-   ]
+   "loose": []
   },
   {
    "name": "supplies & ID wands",
