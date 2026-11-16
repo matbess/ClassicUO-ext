@@ -393,6 +393,17 @@ def pile_in(container, item):
     return None
 
 
+def merge_onto(container, item):
+    """The pile in the container this item should join: a pile onto its pile (raw meat in the miscellaneous chest,
+    2026-11-14), or a single piece onto a pile of its kind (one cut of raw ribs). Two single items never stack: key
+    rings and gear look alike to the server."""
+    target = pile_in(container, item)
+    if target and item.get('amount', 1) == 1 and \
+            next((i.get('amount', 1) for i in CONTENTS[container] if i['serial'] == target), 1) < 2:
+        return None
+    return target
+
+
 def put(item, container, x=None, y=None):
     move(item['serial'], container, x, y)
     CONTENTS[container].append(dict(item, x=x if x is not None else 0, y=y if y is not None else 0))
@@ -454,18 +465,18 @@ def main():
     for serial, bag in plan.get('into', []):
         bag = uo.resolve(bag)  # a serial, or the label of a bag made above ("bag: plate legs")
         learn(bag)
+        target = merge_onto(bag, inv[serial])
+        if target:  # food onto its pile in the cooked food bag (2026-11-15)
+            move(serial, target)
+            say(f"{names.get(serial, inv[serial]['type'])} -> {labels().get(bag, bag)} (merged)")
+            continue
         x, y = free_spot(bag, inv[serial]['art'])
         put(inv[serial], bag, x, y)
         say(f"{names.get(serial, inv[serial]['type'])} -> {labels().get(bag, bag)}")
     for serial, part in plan.get('place_in', []):
         c = chest(part)
         learn(c)
-        target = pile_in(c, inv[serial])
-        # a pile onto its pile (raw meat in the miscellaneous chest, 2026-11-14), and a single piece onto a pile of
-        # its kind (one cut of raw ribs, 2026-11-14); two single items (key rings) never stack
-        if target and inv[serial].get('amount', 1) == 1 and \
-                next((i.get('amount', 1) for i in CONTENTS[c] if i['serial'] == target), 1) < 2:
-            target = None
+        target = merge_onto(c, inv[serial])
         if target:
             move(serial, target)
             say(f"{names.get(serial, inv[serial]['type'])} -> {labels().get(c)} (merged)")

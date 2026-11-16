@@ -65,6 +65,10 @@ SET_PIECES = {'ringmail gloves', 'ringmail sleeves', 'chainmail leggings', 'chai
 FOOTWEAR = {'boots', 'thigh boots', 'shoes', 'sandals'}
 MISC = {'crystal ball'}  # things the user keeps that have no other home: the miscellaneous chest
 MISC_GRAPHICS = {'0x097C', '0x097D', '0x097E'}  # cheese: wedges and wheels (tiledata names carry plural codes)
+# cooked food, kept in a "cooked food" bag in the miscellaneous chest (the user, 2026-11-15). Raw food is matched on the
+# word "raw" before this; bread, cider and apples are trash before it too.
+COOKED = re.compile(r'^(fish steaks?|cooked birds?|cuts? of ribs|legs? of lamb|hams?|sausages?|slabs? of bacon|'
+                    r'chicken legs?|.*\bpies?\b|muffins?|cakes?|cookies)$')
 MISC_GRAPHICS |= look.layout.KEY_RINGS  # key rings, empty or with keys (the user, 2026-11-11: "keep the keyrings")
 SCISSORS = {'0x0F9E', '0x0F9F'}  # spares go loose in the supplies chest as Johnny's backup pair (the user, 2026-11-11)
 
@@ -209,6 +213,8 @@ def decide(item, name):
     #                                    2026-11-14
     if re.search(r'\braw\b', t):  # raw ribs, birds, fish steaks, legs of lamb: kept for cooking (the user, 2026-11-14),
         return 'keep', ('misc',)   # piled in the miscellaneous chest
+    if COOKED.match(t):  # the user, 2026-11-15: "create a cooked food area ... next to raw food in a different bag"
+        return 'keep', ('cooked',)
     if 'treasure map' in n:  # the user, 2026-11-14: "find a place for them"
         return 'keep', ('maps',)
     if item['graphic'] in SCISSORS:
@@ -313,6 +319,8 @@ def main():
                 spec['place_in'].append([s, 'supplies'])
             elif what == 'maps':
                 groups[('treasure maps', 'miscellaneous')].append(s)
+            elif what == 'cooked':
+                groups[('cooked food', 'miscellaneous')].append(s)
             elif what == 'wand':
                 groups[(detail[1], 'magic wands')].append(s)
             elif what == 'jewellery':
