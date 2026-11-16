@@ -94,6 +94,13 @@ def craft(state, item):
         return new[0]
 
 
+def on_ground(serial):
+    """Lying on the ground: only ground items have a distance and nothing they're inside of (an item in his pack has
+    x and y too, its place in the pack: the first check took the crate in his pack for one set down, 2026-11-15)."""
+    found = carp.call('GET', '/item', serial=serial)
+    return 'distance' in found['item'] and not found.get('insideOf')
+
+
 def new_crate(state):
     """Makes a medium crate and puts it down at his feet."""
     while True:
@@ -101,14 +108,14 @@ def new_crate(state):
         if c:
             break
         say('a crate failed; again')
-    try:
-        uo.call(carp.info, 'POST', '/move', serial=c['serial'], ground=1)
-    except uo.BridgeError as e:
-        raise Stop(f'putting the new crate {c["serial"]} down: {e}')
-    carp.call('POST', '/open', serial=c['serial'])
+    # the server gave no answer when he put a crate down at his feet (2026-11-15 15:25: it stayed in his pack), so
+    # the user takes it out of his pack and sets it down; he waits, sending nothing, until it's on the ground
     state['crates'].append(c['serial'])
     save(state)
-    say(f'NEW CRATE {c["serial"]} put down at his feet (1759,1410): the user stacks it on the others')
+    carp.wait_for(f'new crate {c["serial"]} is in his pack: the user sets it down in his corner',
+                  lambda: on_ground(c['serial']))
+    carp.call('POST', '/open', serial=c['serial'])
+    say(f'NEW CRATE {c["serial"]} is down; filling it')
     return c['serial']
 
 
@@ -124,7 +131,18 @@ def run(count):
     carp.cancel_open_menus()
     carp.call('POST', '/open', serial=carp.pack_serial())
     crate = state['crates'][-1]
-    carp.call('POST', '/open', serial=crate)
+    try:
+        uo.call(carp.info, 'GET', '/item', serial=crate)
+        if not on_ground(crate):
+            carp.wait_for(f'crate {crate} is in his pack: the user sets it down in his corner',
+                          lambda: on_ground(crate))
+        carp.call('POST', '/open', serial=crate)
+    except uo.BridgeError as e:
+        if e.code != 404:
+            raise
+        # the user took the full crate away (2026-11-15: "Make a new [crate] and then put the other 100 in it")
+        say(f'crate {crate} is gone (the user took it): a new crate')
+        crate = new_crate(state)
     goal = state['made'] + count
     run_crafts = run_failed = 0
     say(f'start: Carpentry {carp.skill()}; {state["made"]} wooden chests made so far, making {count} more '
