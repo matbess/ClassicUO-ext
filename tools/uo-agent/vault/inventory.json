@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-14T20:48:36-0800",
+ "updated": "2026-11-15T23:31:36-0800",
  "wall": [
   {
    "name": "swords",
@@ -245,6 +245,11 @@
      "items": [
       {
        "name": "heavy crossbow of daemon's breath and force (38 charges)",
+       "amount": 1,
+       "graphic": "0x13FD"
+      },
+      {
+       "name": "heavy crossbow of power",
        "amount": 1,
        "graphic": "0x13FD"
       },
@@ -970,33 +975,33 @@
        "graphic": "0x1F4B"
       },
       {
-       "name": "Lightning scroll",
-       "amount": 70,
-       "graphic": "0x1F4A"
-      },
-      {
        "name": "Arch Cure scroll",
-       "amount": 69,
+       "amount": 71,
        "graphic": "0x1F45"
       },
       {
-       "name": "Fire Field scroll",
-       "amount": 66,
-       "graphic": "0x1F48"
+       "name": "Lightning scroll",
+       "amount": 71,
+       "graphic": "0x1F4A"
       },
       {
        "name": "Greater Heal scroll",
-       "amount": 66,
+       "amount": 68,
        "graphic": "0x1F49"
       },
       {
+       "name": "Fire Field scroll",
+       "amount": 67,
+       "graphic": "0x1F48"
+      },
+      {
        "name": "Arch Protection scroll",
-       "amount": 62,
+       "amount": 64,
        "graphic": "0x1F46"
       },
       {
        "name": "Curse scroll",
-       "amount": 56,
+       "amount": 57,
        "graphic": "0x1F47"
       }
      ]
@@ -1016,7 +1021,7 @@
       },
       {
        "name": "Incognito scroll",
-       "amount": 76,
+       "amount": 80,
        "graphic": "0x1F4F"
       },
       {
@@ -1026,17 +1031,17 @@
       },
       {
        "name": "Blade Spirits scroll",
-       "amount": 67,
+       "amount": 69,
        "graphic": "0x1F4D"
       },
       {
        "name": "Paralyze scroll",
-       "amount": 65,
+       "amount": 66,
        "graphic": "0x1F52"
       },
       {
        "name": "Dispel Field scroll",
-       "amount": 63,
+       "amount": 65,
        "graphic": "0x1F4E"
       },
       {
@@ -1046,7 +1051,7 @@
       },
       {
        "name": "Summon Creature scroll",
-       "amount": 58,
+       "amount": 60,
        "graphic": "0x1F54"
       }
      ]
@@ -1061,13 +1066,18 @@
      "items": [
       {
        "name": "Mark scroll",
-       "amount": 144,
+       "amount": 147,
        "graphic": "0x1F59"
       },
       {
        "name": "Invisibility scroll",
-       "amount": 117,
+       "amount": 118,
        "graphic": "0x1F58"
+      },
+      {
+       "name": "Explosion scroll",
+       "amount": 75,
+       "graphic": "0x1F57"
       },
       {
        "name": "Mass Curse scroll",
@@ -1075,23 +1085,18 @@
        "graphic": "0x1F5A"
       },
       {
-       "name": "Explosion scroll",
-       "amount": 74,
-       "graphic": "0x1F57"
-      },
-      {
        "name": "Paralyze Field scroll",
-       "amount": 72,
+       "amount": 73,
        "graphic": "0x1F5B"
       },
       {
        "name": "Reveal scroll",
-       "amount": 66,
+       "amount": 69,
        "graphic": "0x1F5C"
       },
       {
        "name": "Energy Bolt scroll",
-       "amount": 56,
+       "amount": 65,
        "graphic": "0x1F56"
       },
       {
@@ -1111,7 +1116,7 @@
      "items": [
       {
        "name": "Gate Travel scroll",
-       "amount": 143,
+       "amount": 144,
        "graphic": "0x1F60"
       },
       {
@@ -1121,33 +1126,33 @@
       },
       {
        "name": "Meteor Swarm scroll",
-       "amount": 81,
+       "amount": 84,
        "graphic": "0x1F63"
       },
       {
+       "name": "Mass Dispel scroll",
+       "amount": 75,
+       "graphic": "0x1F62"
+      },
+      {
        "name": "Chain Lightning scroll",
-       "amount": 72,
+       "amount": 73,
        "graphic": "0x1F5D"
       },
       {
        "name": "Energy Field scroll",
-       "amount": 71,
+       "amount": 72,
        "graphic": "0x1F5E"
       },
       {
-       "name": "Mass Dispel scroll",
+       "name": "Flamestrike scroll",
        "amount": 71,
-       "graphic": "0x1F62"
+       "graphic": "0x1F5F"
       },
       {
        "name": "Mana Vampire scroll",
-       "amount": 57,
+       "amount": 58,
        "graphic": "0x1F61"
-      },
-      {
-       "name": "Flamestrike scroll",
-       "amount": 54,
-       "graphic": "0x1F5F"
       }
      ]
     },
@@ -1212,27 +1217,27 @@
    "loose": [
     {
      "name": "Ginseng",
-     "amount": 1053,
+     "amount": 1062,
      "graphic": "0x0F85"
     },
     {
      "name": "Sulfurous Ash",
-     "amount": 294,
+     "amount": 297,
      "graphic": "0x0F8C"
     },
     {
      "name": "Spider's Silk",
-     "amount": 270,
+     "amount": 276,
      "graphic": "0x0F8D"
     },
     {
      "name": "Garlic",
-     "amount": 239,
+     "amount": 248,
      "graphic": "0x0F84"
     },
     {
      "name": "Nightshade",
-     "amount": 95,
+     "amount": 107,
      "graphic": "0x0F88"
     },
     {
@@ -1241,14 +1246,14 @@
      "graphic": "0x0F7A"
     },
     {
+     "name": "Blood Moss",
+     "amount": 30,
+     "graphic": "0x0F7B"
+    },
+    {
      "name": "Mandrake Roots",
      "amount": 27,
      "graphic": "0x0F86"
-    },
-    {
-     "name": "Blood Moss",
-     "amount": 15,
-     "graphic": "0x0F7B"
     }
    ]
   },
@@ -1277,11 +1282,6 @@
      "name": "key ring",
      "amount": 3,
      "graphic": "0x1011"
-    },
-    {
-     "name": "crystal ball",
-     "amount": 1,
-     "graphic": "0x0E2D"
     }
    ]
   },
@@ -1300,58 +1300,52 @@
      },
      "items": [
       {
-       "name": "emeralds",
-       "amount": 40,
-       "graphic": "0x0F10",
-       "each": 60
+       "name": "tourmalines",
+       "amount": 5,
+       "graphic": "0x0F2D",
+       "each": 45
       },
       {
        "name": "pieces of amber",
-       "amount": 33,
+       "amount": 4,
        "graphic": "0x0F25",
        "each": 30
       },
       {
-       "name": "diamonds",
-       "amount": 30,
-       "graphic": "0x0F26",
-       "each": 120
-      },
-      {
-       "name": "sapphires",
-       "amount": 27,
-       "graphic": "0x0F19",
-       "each": 60
-      },
-      {
        "name": "amethysts",
-       "amount": 26,
+       "amount": 2,
        "graphic": "0x0F16",
        "each": 60
       },
       {
        "name": "star sapphires",
-       "amount": 23,
+       "amount": 2,
        "graphic": "0x0F21",
        "each": 75
       },
       {
-       "name": "citrines",
-       "amount": 22,
-       "graphic": "0x0F15",
-       "each": 30
+       "name": "diamond",
+       "amount": 1,
+       "graphic": "0x0F26",
+       "each": 120
       },
       {
-       "name": "tourmalines",
-       "amount": 22,
-       "graphic": "0x0F2D",
-       "each": 45
+       "name": "emerald",
+       "amount": 1,
+       "graphic": "0x0F10",
+       "each": 60
       },
       {
-       "name": "rubies",
-       "amount": 18,
+       "name": "ruby",
+       "amount": 1,
        "graphic": "0x0F13",
        "each": 45
+      },
+      {
+       "name": "sapphire",
+       "amount": 1,
+       "graphic": "0x0F19",
+       "each": 60
       }
      ]
     }
@@ -1479,7 +1473,13 @@
    "col": 6,
    "row": "2nd from top",
    "bags": [],
-   "loose": []
+   "loose": [
+    {
+     "name": "fish steaks",
+     "amount": 10,
+     "graphic": "0x097B"
+    }
+   ]
   },
   {
    "name": "supplies & ID wands",
@@ -1541,7 +1541,7 @@
     },
     {
      "name": "cut up leather",
-     "amount": 677,
+     "amount": 679,
      "graphic": "0x1081"
     },
     {
@@ -1551,7 +1551,7 @@
     },
     {
      "name": "crossbow bolt",
-     "amount": 68,
+     "amount": 71,
      "graphic": "0x1BFB"
     },
     {
@@ -1731,7 +1731,7 @@
    "items": [
     {
      "name": "backpack",
-     "amount": 86,
+     "amount": 66,
      "graphic": "0x0E75"
     }
    ]
@@ -1821,5 +1821,5 @@
    ]
   }
  ],
- "gem_prices_from": "2026-11-11 22:44:22"
+ "gem_prices_from": "2026-11-14 22:51:40"
 }
