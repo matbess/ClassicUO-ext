@@ -311,13 +311,31 @@ def saw(state):
         if spares:
             break
         wait_for('saws: none in his pack and none in a container in his corner (1758-1761,1408-1410)', lambda: bool(saw_bags()))
-    call('POST', '/move', serial=spares[0]['serial'], to=pack_serial())
-    left = len(spares) - 1
-    say(f"took saw {spares[0]['serial']} from the crate; {left} left there")
-    if left < 3:
-        say(f'saws low: {left} spare in the crate')
-    state.setdefault('saws', {})[spares[0]['serial']] = 0
-    return spares[0]['serial']
+    # a crate can be out of his sight behind something set down in his corner (2026-11-15 16:00: "That is out of
+    # sight" for the crate at 1761,1408 with the chest crate at 1760,1409): try the saws in the other crates
+    blocked = set()
+    for spare in spares:
+        box = spare.get('container')
+        if box in blocked:
+            continue
+        try:
+            uo.call(info, 'POST', '/move', serial=spare['serial'], to=pack_serial())
+        except uo.TakenOver as e:
+            raise Stop(f'the user took Icepick over ({e.message}); waiting for them to hand him back')
+        except uo.BridgeError as e:
+            if e.code == 409 and 'out of sight' in e.message:
+                say(f"saw {spare['serial']} is out of his sight ({box}); trying another crate")
+                if box:
+                    blocked.add(box)
+                continue
+            raise Stop(f"taking saw {spare['serial']}: {e}")
+        left = len(spares) - 1
+        say(f"took saw {spare['serial']} from the crate; {left} left there")
+        if left < 3:
+            say(f'saws low: {left} spare in the crate')
+        state.setdefault('saws', {})[spare['serial']] = 0
+        return spare['serial']
+    raise Stop('every crate with saws in it is out of his sight')
 
 
 def supplies_line(state):
