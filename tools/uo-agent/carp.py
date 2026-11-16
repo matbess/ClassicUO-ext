@@ -554,8 +554,11 @@ def run(forced_item):
     state.setdefault('start_skill', value)
     # anything crafted left in his pack from before a stop goes in the barrel: only items named exactly like what he
     # makes (a magic "gnarled staff of ..." of his own stays); everything else in his pack now is kept
-    keep = set()
+    # serials the user asked for (state "keep", e.g. the crate of crates he made for them on 2026-11-15) stay
+    keep = set(state.get('keep', []))
     for i in pack():
+        if i['serial'] in keep:
+            continue
         if norm(i.get('type')) in LEFTOVER_NAMES:
             trash(i['serial'], i.get('type'))
             say(f"threw away {i.get('type')} {i['serial']} left in his pack")
