@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-15T23:31:36-0800",
+ "updated": "2026-11-15T23:45:10-0800",
  "wall": [
   {
    "name": "swords",
@@ -1263,6 +1263,21 @@
    "row": "3rd from top",
    "bags": [
     {
+     "name": "cooked food",
+     "marker": {
+      "name": "fish steak",
+      "amount": 1,
+      "graphic": "0x097B"
+     },
+     "items": [
+      {
+       "name": "fish steaks",
+       "amount": 9,
+       "graphic": "0x097B"
+      }
+     ]
+    },
+    {
      "name": "treasure maps",
      "marker": {
       "name": "tattered treasure map",
@@ -1473,13 +1488,7 @@
    "col": 6,
    "row": "2nd from top",
    "bags": [],
-   "loose": [
-    {
-     "name": "fish steaks",
-     "amount": 10,
-     "graphic": "0x097B"
-    }
-   ]
+   "loose": []
   },
   {
    "name": "supplies & ID wands",
@@ -1731,7 +1740,7 @@
    "items": [
     {
      "name": "backpack",
-     "amount": 66,
+     "amount": 65,
      "graphic": "0x0E75"
     }
    ]
