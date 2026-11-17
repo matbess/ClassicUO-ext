@@ -11,7 +11,7 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
 - Mining is parked while Icepick lumberjacks (both use him). lumber.py puts the lumberjacking rules for both into
   the client (`rules/rules-Icepick-lumber.json`, `rules/rules-Burgers-lumber.json`); mine.py puts the mining ones back
   when it starts. lumber.py refuses to start while mine.py runs; **never start mine.py while lumber.py runs.**
-- Installed client: cuo-agent31, bridge 12; no new bridge needed.
+- Installed client: cuo-agent32, bridge 13 (2026-11-17: a takeover switches the guard off).
 - Waiting on the user: spare axes in Burgers' bank (the bank had none on 2026-11-12 22:16), cure potions for
   Burgers (he has none to top Icepick up with).
 
