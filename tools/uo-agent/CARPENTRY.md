@@ -67,3 +67,7 @@ fishing poles need).
   in at about 04:19; the takeover note then is the login routine's double-clicks (`uo --char Icepick resume` checks
   that), then start `carp.py run` again. Rolled back to just before 04:00 (76.9 -> 76.2). After a login his client
   knows nothing inside the saw crates, so the supplies line says 0 spare saws until he next needs one.
+- 2026-11-16 23:44: **Carpentry 100.0 (GM)** on gnarled staves (from 94.0 at 13:27, about 2 hours a point above 97;
+  about 22k boards for the last 6 points). About 7,950 boards and 171 spare saws left.
+- Beds (and the loom, dressform, spinning wheel) never showed on his menus: they need Tailoring 75 (65 for the loom
+  etc.), and his is 40.1. A Cooking category (water troughs, 150 boards) turned up at about 99.
