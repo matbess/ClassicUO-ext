@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-16T22:37:16-0800",
+ "updated": "2026-11-16T22:38:10-0800",
  "wall": [
   {
    "name": "swords",
@@ -1526,11 +1526,6 @@
        "graphic": "0x0DF5"
       },
       {
-       "name": "wand of identification (23 charges)",
-       "amount": 1,
-       "graphic": "0x0DF3"
-      },
-      {
        "name": "wand of identification (26 charges)",
        "amount": 1,
        "graphic": "0x0DF4"
@@ -1539,6 +1534,11 @@
        "name": "wand of identification (49 charges)",
        "amount": 1,
        "graphic": "0x0DF4"
+      },
+      {
+       "name": "wand of identification (5 charges)",
+       "amount": 1,
+       "graphic": "0x0DF3"
       }
      ]
     }

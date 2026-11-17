@@ -181,6 +181,12 @@ def main():
             raise uo.BridgeError(0, f'using the wand on {target} did nothing: ' + ('; '.join(texts) or 'no message'))
 
     say(f'identified {done} items; {wand} has {left} charges left')
+    # Keep the count in names.json: the sorter can't see its own charges when another character identified the wand
+    # ("magic wand" to Clem, 2026-11-14), so the name there is all there is; without this it read 23 every batch.
+    names = uo.load_names()
+    if wand and charges(names.get(wand) or '') is not None and done:
+        names[wand] = re.sub(r'\(\d+ charges?\)', f'({left} charges)', names[wand])
+        uo.write_json(uo.NAMES, names, 1)
 
 
 if __name__ == '__main__':
