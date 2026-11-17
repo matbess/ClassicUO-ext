@@ -63,6 +63,9 @@ tool and every session:
   (2026-11-14 11:59: a script's park recalled Burgers from the bank while the user was using him there).
 mine.py and lumber.py stop on a takeover of either Icepick or Burgers (`UserHas`, a Stop that touches nobody);
 Clem's tools (door, fight, trips, gems, carto, drawing, restock) and heal.py already worked this way.
+The guard goes off with the takeover too (bridge 13, cuo-agent32): before that, a guard left on with an old alarm
+kept using Hiding on Burgers while the user played him (2026-11-16 23:30). With an older client, turn the guard off
+(`uo --char NAME guard off` works over a takeover) when a loop stops other than by parking.
 
 **To sort loot, follow `skills/uo-sort/SKILL.md`.** It has the procedure, the safety rules, everything learned about
 the server, and the user's keep rules. It's installed as the user-level skill `uo-sort` through a symlink
