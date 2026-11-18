@@ -75,6 +75,14 @@ The clients run every character at once, so this stops every loop. In order:
    `wineserver -k` while a client runs (root `AGENTS.md`, `tools/build/README.md`).
 5. After the install: tell the sessions it's done and what changed. Each restarts its own loop once the user has
    logged its characters back in.
+6. **When the user says the clients are back** (the user, 2026-11-18: "message the other agents that we're logged
+   back in now"): check each character, read only (`uo --char NAME status` for Clem, Icepick, Burgers and Johnny),
+   then message every UO session:
+   - that the clients are back, and on which bridge or build;
+   - which characters are logged in, where each stands, and which aren't logged in;
+   - which character you're using now, so nobody else drives it.
+
+   They restart their loops when their user says so; the message doesn't start anything by itself.
 
 ## 4. Commits: never let work get lost
 
