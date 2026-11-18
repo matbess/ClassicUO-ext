@@ -50,6 +50,11 @@ Icepick, so not with mining or lumberjacking.
 on the forge ONE AT A TIME, since a double-click cooks a whole stack for one skill check; Int to 100): read
 `COOKING.md` first; the loop is `cook.py`, the rules `rules/rules-Icepick-cook.json`. Never the raw pile on the floor.
 
+**The Castle** (from 2026-11-18: the user's new house, where the loot moves from the tower and Clem will live): read
+`CASTLE.md` first. It covers getting in (two locked doors and a rune in a secure box), the 180 chests (the east
+wall is primary, the west wall mirrors it, the south-east chests are the user's own behind a locked-down table, and
+the south-west chests are the friend's and never touched) and the dump chests.
+
 **The user taking over (every character, every tool; the user, 2026-11-14: "that should be shared across all the
 skills/agents").** Every character's rules have `"handOver": true`: any command the user gives a character themselves
 (a step, a spell, a skill, a double-click, a target, war mode, an attack; not Razor's lifts and drops or single

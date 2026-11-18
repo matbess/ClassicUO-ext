@@ -35,6 +35,7 @@ symlink to `tools/uo-agent`). This skill lives at `tools/uo-agent/skills/uo/SKIL
    | Fighting, the tower's front door | Clem | `COMBAT.md` | `fight.py`, `door.py`, `restock.py` |
    | Healing on a ghost | Burgers | `HEALING.md` | `heal.py` |
    | Cooking fish steaks for Intelligence | Icepick | `COOKING.md` | `cook.py` |
+   | The Castle (new home, 2026-11-18): getting in, its chests, the move from the tower | Clem | `CASTLE.md` | `castle.py` (to come) |
 
    Each doc ends with how to run it, what the user's words mean, and what to tell them. `HISTORY.md` is old notes.
 3. **Check what else is going on.** Several Claude sessions work on the same characters.
