@@ -85,7 +85,7 @@
   "say": ["all follow me", "remove thyself", "i wish to release this", "i wish to lock this down"],
   "mounts": ["0x00043254"],
   // bags of maps are put down at his feet: backpack, bag, pouch
-  // and the castle's south-east table (0x0B34), moved through his pack (the bridge only puts things down at his feet)
+  // and the castle's south-east table (0x0B34), put down beside him (bridge 15)
   "dropOnGround": ["0x0E75", "0x0E76", "0x0E79", "0x0B34"],
   // no pausing (the user, 2026-11-05: people walk around the tower; nothing should stop because of that)
   "pauseForPeople": false,

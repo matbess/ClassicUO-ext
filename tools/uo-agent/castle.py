@@ -21,8 +21,8 @@ The user's procedure (2026-11-18, recorded while they walked him through it, "co
 - central door (0x40913571, shut at 935,2341): from 935,2343 unlock it with the key ring on the courtyard side
   (0x408CB8EE), open it, walk in to 935,2340, lock it, close it.
 The south-east table (0x408793A4, locked down at 943,2349): "I wish to release this" and target it, then it's moved
-aside (the bridge puts things down only at his feet, so it goes through his pack to 945,2350); back the same way,
-"I wish to lock this down" and target it. The user's friend's side (the south-west table and chests) is never touched
+aside to 945,2350 from 944,2349, as the user did (bridge 15 puts things down anywhere within reach); back the same
+way, "I wish to lock this down" and target it. The user's friend's side (the south-west table and chests) is never touched
 (offLimits in his rules).
 
 If the user gives Clem a command themselves, the bridge refuses every action and this stops at once; only the user
@@ -258,8 +258,7 @@ def go_out():
 
 
 def table(action):
-    t = call('GET', '/item', serial=TABLE)['item']
-    at = (t['x'], t['y'])
+    at = spot_or_none(TABLE)
     if action == 'open':
         if at == TABLE_ASIDE:
             say('the table is aside already: the way to the chests is open')
@@ -268,22 +267,28 @@ def table(action):
             raise Stop(f'the table stands at {at}, neither in its place {TABLE_HOME} nor aside {TABLE_ASIDE}')
         step(TABLE_STAND, 'get next to the table')
         house_command('i wish to release this', 'no longer locked down')
-        through_pack(TABLE_ASIDE)
-        step(TABLE_STAND, 'step back next to the table')
+        put_table(TABLE_ASIDE)
         say('the table is aside: the way to the chests is open (close it again when done)')
     else:
-        if at == TABLE_ASIDE:
-            through_pack(TABLE_HOME)
-            step(TABLE_STAND, 'step off the table')
-        elif at != TABLE_HOME:
+        if at not in (TABLE_ASIDE, TABLE_HOME):
             raise Stop(f'the table stands at {at}, neither aside {TABLE_ASIDE} nor in its place {TABLE_HOME}')
-        else:
+        if where() != TABLE_STAND:
             step(TABLE_STAND, 'get next to the table')
+        if at == TABLE_ASIDE:
+            put_table(TABLE_HOME)
         house_command('i wish to lock this down', 'locked down')
         lines = ' '.join(a for r in call('POST', '/name', serial=TABLE) for a in r.get('lines', [])).lower()
         if 'locked down' not in lines:
             raise Stop(f'the table at {TABLE_HOME} does not say "locked down": {lines!r}')
         say('the table is back in its place and locked down')
+
+
+def put_table(to):
+    """The table picked up and put down on `to`, from where he stands (both within reach)."""
+    r = call('POST', '/move', serial=TABLE, ground=1, x=to[0], y=to[1])
+    if spot_or_none(TABLE) != to:
+        raise Stop(f'the table did not go down at {to}: {texts(r) or r}')
+    say(f'the table is at {to[0]},{to[1]}')
 
 
 def house_command(words, want):
@@ -298,19 +303,6 @@ def house_command(words, want):
     if want not in (texts(t) + ' ' + texts(a)).lower():
         raise Stop(f'"{words}" on the table: {texts(t) or "no answer"}')
     say(f'"{words}": {texts(t)}')
-
-
-def through_pack(to):
-    """The table from where it stands to `to`: into his pack, then down at his feet on `to`."""
-    pack = status()['backpack']['serial']
-    r = call('POST', '/move', serial=TABLE, to=pack)
-    if spot_or_none(TABLE) is not None:
-        raise Stop(f'the table did not go into his pack: {texts(r) or r}')
-    step(to, 'carry the table there')
-    r = call('POST', '/move', serial=TABLE, ground=1)
-    if spot_or_none(TABLE) != to:
-        raise Stop(f'the table did not go down at {to}: {texts(r) or r}')
-    say(f'the table is at {to[0]},{to[1]}')
 
 
 def spot_or_none(serial):
@@ -335,6 +327,8 @@ def main():
         return
     if st.get('bridge', 0) < 14:
         sys.exit('needs bridge 14 (cuo-agent33): Recall on the rune in the secure box')
+    if args.step == 'table' and st.get('bridge', 0) < 15:
+        sys.exit('needs bridge 15 (cuo-agent34): putting the table down beside him')
     stopped = st.get('takenOver') or st.get('halted')
     if stopped and not args.resume:
         sys.exit(f'the user has him ({stopped}); --resume only once they hand him back')

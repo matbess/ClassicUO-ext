@@ -88,8 +88,8 @@ The user's friend has no owner commands, so the tables are for the owner side. T
 - Clem's rules (`rules/rules-Clem.json`) have the castle (2026-11-18): its rooms as areas (not the south-west rooms),
   both doors and their key rings, the two house phrases, the table in "dropOnGround", and the friend's 24
   south-west chests and their table in "offLimits".
-- The table moves through his pack: the bridge only puts things down at the character's feet, so it goes into his
-  pack, he stands on the new spot, and it goes down there.
+- The table is picked up and put down beside him, from 944,2349 (bridge 15, the user, 2026-11-18: "change the
+  bridge so you can set down items anywhere near you"). Built, not installed yet: until then `table` refuses.
 - Open question: the west dump chests (933,2349 and 933,2350) are behind the friend's table, which Clem never
   touches. How should loot dumped there be reached?
 - Step 3: the courtyard rune **stays in the box; Clem never carries one** (the user, 2026-11-18: "That's a security

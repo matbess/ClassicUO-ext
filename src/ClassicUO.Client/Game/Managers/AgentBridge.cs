@@ -39,7 +39,7 @@ namespace ClassicUO.Game.Managers
     {
         private const int FIRST_PORT = 7780;
         private const int LAST_PORT = 7789;
-        private const int VERSION = 14; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs); 7: fights (creatures' health, skills and spells aimed at creatures, running walks that don't wait, doors and keys; the user takes over by giving a command of their own); 8: /cast wait=0 answers at once and the bridge aims the spell's cursor itself when it comes, so the agent keeps moving and looking while the spell goes off, and reads the outcome from the messages (the user, 2026-11-06: "Cast .. then do all the other normal stuff and when a result from the spell shows up result=success/fail"); cursor=0 for a spell with no target (Magic Reflection); 9: /use wait=0 double-clicks and answers at once (a trapped pouch to break paralysis goes off without a word, and waiting for one stopped the bridge); 10: bandages: "useOnGround" kinds are double-clicked where they lie (the pile of bandages on the tower floor) and /use aims at a "patients" character (Isabel's ghost, to train Healing; the user, 2026-11-08); 11: the guard yells for the town guards ("callGuards") the moment the character loses hits (the guards only come for a creature once it has hit someone), and watches creatures: one close by that turns on someone (Criminal, Murderer, Enemy), or a kind to keep away from ("avoid"), sets off the alarm (the user, 2026-11-08, after a creature hit Icepick in town); 12: vendors: /shop says "<name> buy|sell" to a vendor whose title the rules allow and reads his window, /buy and /sell deal in the rules' goods only, /paperdoll reads people's titles (an NPC's "Cador the mapmaker"; a single click shows only the name here) (Clem's trips to the mapmaker, the user, 2026-11-08; AgentBridgeShop.cs); 13: the user taking over switches the guard off (it kept hiding Burgers under the user, 2026-11-16); 14: Recall on any recall rune within reach, not only carried ones (a box, a chest, the bank): the castle's courtyard rune stays in the secure box in its entrance room (the user, 2026-11-18: "You should be able to recall from any rune")
+        private const int VERSION = 15; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs); 7: fights (creatures' health, skills and spells aimed at creatures, running walks that don't wait, doors and keys; the user takes over by giving a command of their own); 8: /cast wait=0 answers at once and the bridge aims the spell's cursor itself when it comes, so the agent keeps moving and looking while the spell goes off, and reads the outcome from the messages (the user, 2026-11-06: "Cast .. then do all the other normal stuff and when a result from the spell shows up result=success/fail"); cursor=0 for a spell with no target (Magic Reflection); 9: /use wait=0 double-clicks and answers at once (a trapped pouch to break paralysis goes off without a word, and waiting for one stopped the bridge); 10: bandages: "useOnGround" kinds are double-clicked where they lie (the pile of bandages on the tower floor) and /use aims at a "patients" character (Isabel's ghost, to train Healing; the user, 2026-11-08); 11: the guard yells for the town guards ("callGuards") the moment the character loses hits (the guards only come for a creature once it has hit someone), and watches creatures: one close by that turns on someone (Criminal, Murderer, Enemy), or a kind to keep away from ("avoid"), sets off the alarm (the user, 2026-11-08, after a creature hit Icepick in town); 12: vendors: /shop says "<name> buy|sell" to a vendor whose title the rules allow and reads his window, /buy and /sell deal in the rules' goods only, /paperdoll reads people's titles (an NPC's "Cador the mapmaker"; a single click shows only the name here) (Clem's trips to the mapmaker, the user, 2026-11-08; AgentBridgeShop.cs); 13: the user taking over switches the guard off (it kept hiding Burgers under the user, 2026-11-16); 14: Recall on any recall rune within reach, not only carried ones (a box, a chest, the bank): the castle's courtyard rune stays in the secure box in its entrance room (the user, 2026-11-18: "You should be able to recall from any rune"); 15: /move ground=1 puts an item down on any spot within reach (x, y), not only at the feet, and the item may lie on the ground already (the castle's south-east table moved aside; the user, 2026-11-18)
         private const int GUARD_INTERVAL = 250;  // milliseconds between the guard's checks
         private const int GUARDS_GAP = 2000;     // milliseconds: no yelling for the guards more often than this
         private const int ALARM_FILE_INTERVAL = 1000;
@@ -764,7 +764,7 @@ namespace ClassicUO.Game.Managers
 
                     if (GetInt(query, "ground", 0) == 1)
                     {
-                        return DropAtFeet(GetSerial(query), GetInt(query, "amount", 0));
+                        return DropOnGround(GetSerial(query), GetInt(query, "amount", 0), GetInt(query, "x", 0xFFFF), GetInt(query, "y", 0xFFFF));
                     }
 
                     return Move(GetSerial(query), GetSerial(query, "to"), GetInt(query, "x", 0xFFFF), GetInt(query, "y", 0xFFFF), GetInt(query, "amount", 0));
@@ -1524,9 +1524,12 @@ namespace ClassicUO.Game.Managers
             );
         }
 
-        // puts a carried item (or part of a stack) down on the character's own tile; only kinds the rules list under
-        // "dropOnGround" (ore: a dig that overloads the miner leaves him too tired to ride, the user, 2026-11-02)
-        private byte[] DropAtFeet(uint serial, int amount)
+        // puts an item (or part of a stack) down on the ground: on the character's own tile, or on a spot x, y within
+        // reach; the item may be carried or lie on the ground within reach (a table moved aside). Only kinds the rules
+        // list under "dropOnGround" (ore: a dig that overloads the miner leaves him too tired to ride, the user,
+        // 2026-11-02; the castle's south-east table, the user, 2026-11-18: "change the bridge so you can set down items
+        // anywhere near you")
+        private byte[] DropOnGround(uint serial, int amount, int toX, int toY)
         {
             Rules rules = RequireRules();
             int x = 0, y = 0, z = 0;
@@ -1542,19 +1545,18 @@ namespace ClassicUO.Game.Managers
                         throw new BridgeException(403, "the rules don't allow putting that on the ground (dropOnGround)");
                     }
 
-                    if (!IsCarried(item))
-                    {
-                        throw new BridgeException(403, "only something carried can be put down");
-                    }
-
                     PlayerMobile p = _world.Player;
+                    (x, y, z) = (toX == 0xFFFF ? p.X : toX, toY == 0xFFFF ? p.Y : toY, p.Z);
 
-                    if (!rules.Contains(_world.MapIndex, p.X, p.Y, p.Z))
+                    if (Math.Max(Math.Abs(x - p.X), Math.Abs(y - p.Y)) > REACH)
                     {
-                        throw new BridgeException(403, "the character is outside the agent's area");
+                        throw new BridgeException(409, $"{x},{y} is too far away to put something down (reach is {REACH})");
                     }
 
-                    (x, y, z) = (p.X, p.Y, p.Z);
+                    if (!rules.Contains(_world.MapIndex, p.X, p.Y, p.Z) || !rules.Contains(_world.MapIndex, x, y, z))
+                    {
+                        throw new BridgeException(403, "the character or the spot is outside the agent's area");
+                    }
                 },
                 amount
             );
@@ -1572,7 +1574,7 @@ namespace ClassicUO.Game.Managers
 
             PaceFromNow();
 
-            bool answered = WaitFor(() => _world.Items.Get(serial)?.OnGround ?? false, MOVE_TIMEOUT);
+            bool answered = WaitFor(() => _world.Items.Get(serial) is Item put && put.OnGround && put.X == x && put.Y == y, MOVE_TIMEOUT);
             Thread.Sleep(SETTLE_TIME);
 
             if (!answered && !OnGame(() => HasSystemMessageAfter(before)))
@@ -1595,7 +1597,7 @@ namespace ClassicUO.Game.Managers
                 () =>
                 {
                     Item item = _world.Items.Get(serial);
-                    bool down = item != null && item.OnGround;
+                    bool down = item != null && item.OnGround && item.X == x && item.Y == y;
 
                     ReleaseHeldItem();
 
