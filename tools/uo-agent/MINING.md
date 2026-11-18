@@ -612,3 +612,22 @@ planner keeps its waypoints off an open gate, but the client's path finder rides
 walks him from the gate tile two tiles straight toward the next dig spot (west: 1139,1666; south: 1141,1668), so
 the ride starts on the far side. The Mining Start gate keeps the old south-east step (to_start doesn't know the
 next spot; no returns were seen there).
+
+## Onto the gate: find it, and try again (2026-11-17)
+
+The user saw Icepick ride past Burgers' open gate at the forge. The log agreed: 11 of 21 gates that day ended "did
+not go through; still at 1141,1850". Icepick's one step onto the gate (1140,1849, diagonal from him) came back
+`arrived: False` without him moving, just after Burgers stepped aside to 1140,1850, the tile between them. The
+likely cause is that Icepick's client hadn't seen Burgers leave the gate yet, or that Burgers on the corner tile
+blocked the diagonal step. Then the loop went on without him.
+
+Now `gate_to` makes up to three tries. Each try:
+- finds the moongate in Icepick's own `/nearby` (an item whose type contains "moongate", the one nearest Burgers'
+  tile) and walks onto that tile (the user: "why can't you just detect where the gate is and walk into it");
+- waits up to 4 s for him to come out at the far end;
+- if he didn't go through, logs where both were and what the walk said, and moves Burgers off again if he's still
+  on the gate.
+
+Since then 8 of 8 gates have worked, 2 of them on the second try (both like before: the first step refused on the
+spot). A retry costs about 5 s. A short pause before the first step, or a step aside away from the corner tiles,
+might save that; neither has been tried.
