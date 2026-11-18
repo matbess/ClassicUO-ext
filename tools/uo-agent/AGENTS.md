@@ -73,6 +73,11 @@ the server, and the user's keep rules. It's installed as the user-level skill `u
 commit. If the symlink is missing on a new Mac: `mkdir -p ~/.claude/skills/uo-sort && ln -sf
 ~/claude/ClassicUO/tools/uo-agent/skills/uo-sort/SKILL.md ~/.claude/skills/uo-sort/SKILL.md`.
 
+**`/uo <task>` (the user, 2026-11-17)** is the way into everything else: the skill `skills/uo/SKILL.md` (linked
+from `~/.claude/skills/uo/SKILL.md` the same way) gets a new session oriented (docs, other sessions, running loops),
+lists the user's rules, and says how to automate something new or run an existing loop. Keep its project table up to
+date when a new job is added.
+
 This file is the background: how the pieces fit, the house, open items and history.
 
 ## How it fits together
