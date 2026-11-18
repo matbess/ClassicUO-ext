@@ -10,7 +10,7 @@ Update it when a new run adds data.
 - `carto/draws.jsonl`: Cartography to 100, Clem, 7,766 attempts
 - `lumber/lumber.log`: Lumberjacking 28→97, Icepick
 - `heal/`: Healing 98.4→100, Burgers, 1,490 bandages
-- `cook/`: Cooking from 0, Icepick, running
+- `cook/`: Cooking 0→59.5 and Int 23→100, Icepick, 2,656 steaks
 - the blackbox: Resisting Spells 97.3→100, Burgers
 
 Smithing, carpentry and lumberjacking logged the *shown* value. That carries a bonus over the base (Carpentry showed
@@ -69,11 +69,15 @@ items as the skill rises.
 
 ## Stats
 
-- Only the cooking run has stat data so far (COOKING.md). Int came only on steaks that also gave a Cooking gain (the
-  user: "You can't gain int without gaining cooking skill").
-- The rate so far: about 20% of steaks from Cooking 0 to 10 (Int 23→32), then none across the first 6 gains above 10.
-- Whether the stat's own level or the skill's level slows it down isn't known yet. The user thinks stats curve
-  differently from skills; the cooking run's `intGains` and bands will tell.
+- Only the cooking run has stat data so far (COOKING.md): Int 23 → 100 in 2,656 steaks while Cooking went 0.2 → 59.5.
+  Int came only on steaks that also gave a Cooking gain (the user: "You can't gain int without gaining cooking skill").
+- **Int followed the skill, not its own level:** about 1.3 Int per Cooking point in every band (9, 18, 14, 13, 10, 13
+  Int across the six bands), with no slowdown as Int neared 100 (Int 96 → 100 took 126 steaks). So the cost of a stat
+  point is the cost of about 0.75 skill points in whatever band the skill is in; estimate the skill level where the
+  stat lands, then cost the skill with the multipliers above. Only one run, with the stat well under its cap; the user
+  thinks stats curve differently, so check this on the next stat run.
+- Cooking itself (a shown value, from 0): 4.6 steaks a point under 10, then 43, 50, 46, 54, 72 for the bands 10-60,
+  flatter than the crafting skills because the burn rate fell from 77% to 35% as it rose.
 - A down-locked stat drops on most gains of an up one (Dex fell on 7 of the first 9 Int gains), even with the stat
   total far under the cap.
 - A down-locked skill drops as others rise once the skill total is at its cap: Burgers' Meditation went 4.2→0.

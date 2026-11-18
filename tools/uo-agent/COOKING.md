@@ -56,9 +56,15 @@ steaks per Int point so far (4 at the start) badly underestimates the rest. Int 
 | 10-20 | 430 | 10.0 | 18 | 43.0 | 23.9 (77% burnt) |
 | 20-30 | 500 | 10.0 | 14 | 50.0 | 35.7 (68% burnt) |
 | 30-40 | 460 | 10.0 | 13 | 46.0 | 35.4 (52% burnt) |
+| 40-50 | 536 | 10.0 | 10 | 53.6 | 53.6 (47% burnt) |
+| 50-59.5 | 685 | 9.5 | 13 | 72.1 | 52.7 (35% burnt) |
 
-(Fill in from `cook.py report` as each band finishes. Int 81 at Cooking 43.8 after 1638 steaks, 2026-11-18 01:04;
-about 1.3 Int per Cooking point all the way, so Int 100 at about Cooking 58.) Dex dropped one for most Int gains from the start (Dex is set
+**Done 2026-11-18 04:00:** Int 23 → 100 (Dex 24, locked) in **2,656 steaks** (1,220 cooked, 1,436 burnt), Cooking
+0.2 → 59.5, about 7 h 15 min of cooking at about 9.5 s a steak. Int came at about 1.3 per Cooking point the whole way,
+so Int 100 needed Cooking about 60. Herding never dropped (the skill total stayed under 700). 7,334 raw steaks were
+left in the chest; the cooked pile on the forge reached 59,487 (no floor pile was needed) and 32 cooked steaks stayed
+in his pack. The first estimates (1,100-1,600 more at Int 48) were close; the multiplier estimate in `cook.py` was
+within about 10% from Cooking 30 on. Dex dropped one for most Int gains from the start (Dex is set
 down), though his stat total (about 168) was under the cap: the server lowers a down stat on a gain by chance even
 below the cap.
 
