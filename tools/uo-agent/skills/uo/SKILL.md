@@ -108,8 +108,9 @@ symlink to `tools/uo-agent`). This skill lives at `tools/uo-agent/skills/uo/SKIL
    stop: no loops or checks left running.
 7. Commit (doc and tool together, a message saying what and why).
 
-**Estimating skill or stat training** (the user, 2026-11-17): skill gains slow down steeply as a skill rises, and
-very much at about 90, 95 and 99. Never project the early rate straight on. Record the work per 10-point band of the
+**Estimating skill or stat training** (the user, 2026-11-17): read `SKILLGAIN.md` first: the curve measured on this
+server across every training run (attempts per 0.1 by band, multipliers for projecting, "too easy means no gains",
+what's known about stats). Never project the early rate straight on. Record the work per 10-point band of the
 skill (`cook.py`'s `bands` is the pattern), say the estimate is a floor that will rise, and write each finished
 band's numbers into the job's doc so the next estimate starts from real data.
 

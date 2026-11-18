@@ -17,6 +17,9 @@
   // raw fish steaks are never picked up off the floor or dropped onto (the raw pile). Cooked ones aren't listed: the
   // cooked steaks go onto the cooked pile on the forge (the user, 2026-11-17), and neverTouch blocks that too
   "neverTouch": ["0x097A"],
+  // cooked steaks put down at his feet at 1757,1408 to start a second cooked pile next to the raw pile, once the
+  // pile on the forge is full (the user, 2026-11-17)
+  "dropOnGround": ["0x097B"],
   // raw fish steaks, double-clicked in his pack and aimed at the forge
   "useFromBackpack": ["0x097A"],
   "mounts": ["0x00042FCB"],

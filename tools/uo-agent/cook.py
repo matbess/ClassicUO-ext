@@ -49,6 +49,8 @@ SPOT = (1756, 1409)     # a tile from the forge, two from the chest
 RAW = '0x097A'          # raw fish steak
 COOKED_STEAK = '0x097B'
 PILE = '0x407D3384'     # the cooked steaks on the forge (58290 on 2026-11-17; a pile holds at most 60000)
+FLOOR_SPOT = (1757, 1408)  # where the second cooked pile starts, next to the raw pile at 1758,1408 (inside the area)
+PILE_MAX = 60000
 UNLOAD_EVERY = 100      # cooks between trips to the pile (the user: "put them over there once in a while")
 DOWN = ['Herding', 'Swordsmanship', 'Tactics', 'Wrestling']   # set down, in the user's order; Hiding after them
 TARGET_INT = 100
@@ -56,6 +58,10 @@ TARGET_INT = 100
 COOKED = 'put the cooked food into your backpack'
 BURNT = 'burn the food to a crisp'
 STAT = re.compile(r'your (strength|dexterity|intelligence) has changed by (-?\d+)\.\s+it is now (\d+)', re.I)
+NO_GAIN_LIMIT = 300     # steaks in a row with no Cooking gain: stop and tell (SKILLGAIN.md: an action that can't
+                        # fail any more gives no gains, and no gains means no Int)
+# SKILLGAIN.md: relative cost of a skill point by band (90-93 = 1), measured on this server across five skills
+MULTIPLIERS = [(60, 0.25), (70, 0.4), (80, 0.6), (85, 0.75), (90, 0.9), (93, 1.0), (95, 1.5), (97, 2.2), (100.1, 2.5)]
 RESULT_WAIT = 12        # seconds from aiming at the forge to the result (about 5)
 LAG_RESUMES = []
 
@@ -170,23 +176,39 @@ def wait_for_bridge(why):
     raise Stop('Icepick did not come back within 30 minutes')
 
 
+def multiplier(level):
+    for top, m in MULTIPLIERS:
+        if level < top:
+            return m
+    return MULTIPLIERS[-1][1]
+
+
 def estimate(state):
-    """Skill gains come slower as Cooking rises (very slow from about 90, 95, 99), so the steaks per Int point so
-    far isn't the estimate. Int comes with Cooking gains: Int points per Cooking point so far gives the Cooking level
-    where Int reaches the target; the steaks per Cooking point in the current band (10 points of Cooking) is the
-    cheapest the rest can be (higher bands only cost more). Returns (Int per Cooking point, Cooking needed, steaks per
-    Cooking point now, steaks still needed at least) or None."""
+    """Int comes with Cooking gains, and Cooking gains get dearer as Cooking rises (SKILLGAIN.md). Int points per
+    Cooking point so far gives the Cooking level where Int reaches the target; the steaks per Cooking point measured
+    now, scaled by SKILLGAIN.md's band multipliers, gives the steaks to get there. Returns (Int per Cooking point,
+    Cooking needed, steaks per Cooking point now, steaks still needed) or None."""
     gained = state['int'] - state['startInt']
     cooking_gained = state.get('cooking', 0) - state.get('startCooking', 0)
     if gained <= 0 or cooking_gained <= 0:
         return None
     per_point = gained / cooking_gained
-    need_cooking = state.get('cooking', 0) + max(0, state['target'] - state['int']) / per_point
-    band = state.get('bands', {}).get(str(int(state.get('cooking', 0) // 10)), {})
+    now = state.get('cooking', 0)
+    need_cooking = now + max(0, state['target'] - state['int']) / per_point
+    bands = state.get('bands', {})
+    band = bands.get(str(int(now // 10)), {})
+    if band.get('points', 0) < 1.0:     # too little in this band yet: the band below
+        band = bands.get(str(int(now // 10) - 1), {})
     if not band.get('points'):
         return per_point, need_cooking, None, None
     steaks_per_point = band['steaks'] / band['points']
-    return per_point, need_cooking, steaks_per_point, round(steaks_per_point * (need_cooking - state['cooking']))
+    base = steaks_per_point / multiplier(now)
+    need, level = 0.0, now
+    while level < min(need_cooking, 100.0):
+        step = min(0.1, need_cooking - level)
+        need += base * multiplier(level) * step
+        level += 0.1
+    return per_point, need_cooking, steaks_per_point, round(need)
 
 
 def describe_estimate(state):
@@ -196,7 +218,9 @@ def describe_estimate(state):
     per_point, need_cooking, steaks_per_point, need = e
     text = f'{per_point:.2f} Int per Cooking point, so Int {state["target"]} at about Cooking {need_cooking:.0f}'
     if need is not None:
-        text += f'; {steaks_per_point:.1f} steaks per Cooking point now, so at least {need} more steaks'
+        text += f'; {steaks_per_point:.1f} steaks per Cooking point now, so about {need} more steaks'
+    if need_cooking > 100:
+        text += ' (Cooking stops at 100 before Int gets there)'
     return text
 
 
@@ -220,23 +244,59 @@ def check_done(info, state):
     return sk
 
 
-def unload(info, pack):
-    """The cooked steaks in his pack onto the pile on the forge (the user, 2026-11-17). Returns how many."""
+def pile_amount(info, serial):
+    try:
+        return uo.call(info, 'GET', '/item', serial=serial).get('item', {}).get('amount') or 1
+    except uo.BridgeError as e:
+        if e.code == 404:
+            return None
+        raise
+
+
+def unload(info, pack, state):
+    """The cooked steaks in his pack onto the pile on the forge (the user, 2026-11-17); once it can't take them (a
+    pile holds at most 60000), onto a second cooked pile on the floor next to the raw pile (the user, 2026-11-17:
+    "make a cooked pile on the floor next to the uncooked pile"), started from FLOOR_SPOT. Returns how many."""
     moved = 0
     for i in uo.call(info, 'GET', '/contents', serial=pack)['items']:
         if (i.get('graphic') or '').upper() != COOKED_STEAK.upper():
             continue
         n = i.get('amount') or 1
-        r = act(info, 'POST', '/move', serial=i['serial'], to=PILE)
+        forge = pile_amount(info, PILE)
+        floor = pile_amount(info, state['floorPile']) if state.get('floorPile') else None
+        if forge is not None and forge + n <= PILE_MAX:
+            to, where = PILE, 'the pile on the forge'
+        elif floor is not None and floor + n <= PILE_MAX:
+            to, where = state['floorPile'], 'the cooked pile on the floor'
+        else:
+            start_floor_pile(info, i['serial'], n, state)
+            moved += n
+            continue
+        r = act(info, 'POST', '/move', serial=i['serial'], to=to)
         if not r.get('moved'):
-            pile = uo.call(info, 'GET', '/item', serial=PILE).get('item', {})
-            raise Stop(f'the cooked pile on the forge did not take {n} steaks (it holds {pile.get("amount")}; a pile '
-                       f'holds at most 60000): {[m["text"] for m in r.get("messages", [])]}')
+            raise Stop(f'{where} did not take {n} cooked steaks: {[m["text"] for m in r.get("messages", [])]}')
         moved += n
-    if moved:
-        pile = uo.call(info, 'GET', '/item', serial=PILE).get('item', {})
-        say(f'{moved} cooked steaks onto the pile on the forge (now {pile.get("amount")})')
+        say(f'{n} cooked steaks onto {where} (now {pile_amount(info, to)})')
     return moved
+
+
+def start_floor_pile(info, serial, n, state):
+    """A new cooked pile: step to FLOOR_SPOT, put the steaks down at his feet, step back to the cooking spot."""
+    r = act(info, 'POST', '/walk', x=FLOOR_SPOT[0], y=FLOOR_SPOT[1])
+    st = uo.call(info, 'GET', '/status')
+    if (st['x'], st['y']) != FLOOR_SPOT:
+        raise Stop(f'could not step to {FLOOR_SPOT} to start the cooked pile on the floor (at {st["x"]},{st["y"]})')
+    act(info, 'POST', '/move', serial=serial, ground=1)
+    item = uo.call(info, 'GET', '/item', serial=serial).get('item', {})
+    act(info, 'POST', '/walk', x=SPOT[0], y=SPOT[1])
+    st = uo.call(info, 'GET', '/status')
+    if (st['x'], st['y']) != SPOT:
+        raise Stop(f'could not step back to the cooking spot {SPOT} (at {st["x"]},{st["y"]})')
+    if item.get('container') or (item.get('x'), item.get('y')) != FLOOR_SPOT:
+        raise Stop(f'the cooked steaks did not land at {FLOOR_SPOT}: {item}')
+    state['floorPile'] = serial
+    save_state(state)
+    say(f'started a cooked pile on the floor at {FLOOR_SPOT[0]},{FLOOR_SPOT[1]} with {n} steaks ({serial})')
 
 
 def take_one(info, pack):
@@ -286,6 +346,7 @@ def cook_one(info, state, pack):
     band = state.setdefault('bands', {}).setdefault(str(int(state.get('cooking', 0) // 10)),
                                                    {'steaks': 0, 'points': 0.0, 'int': 0})
     band['steaks'] += 1
+    band['cooked'] = band.get('cooked', 0) + (result == 'cooked')
     for t in seen:
         m = STAT.search(t)
         if m:
@@ -324,12 +385,12 @@ def run(target):
         ', '.join(f'{n} {sk[n]["base"]} ({sk[n]["lock"]})' for n in DOWN) +
         f'; {sum(i.get("amount") or 1 for i in raw_items(info, CHEST))} raw steaks in the chest')
     last_cooking = sk['Cooking']['base']
-    unload(info, pack)
+    unload(info, pack, state)
     while True:
         try:
             sk = check_done(info, state)
             if st['weight'] > st['weightMax'] - 40 or (state['cooks'] and state['cooks'] % UNLOAD_EVERY == 0):
-                unload(info, pack)
+                unload(info, pack, state)
                 st = uo.call(info, 'GET', '/status')
             if st['weight'] > st['weightMax'] - 15:
                 raise Stop(f'too heavy to carry more cooked steaks ({st["weight"]}/{st["weightMax"]})')
@@ -339,6 +400,10 @@ def run(target):
             if gain > 0:
                 b = state['bands'][str(int(last_cooking // 10))]
                 b['points'] = round(b['points'] + gain, 1)
+                state['lastGainAt'] = state['cooks']
+            elif state['cooks'] - state.setdefault('lastGainAt', state['cooks']) >= NO_GAIN_LIMIT:
+                raise Stop(f'{NO_GAIN_LIMIT} steaks in a row with no Cooking gain at {sk["Cooking"]["base"]} '
+                           f'(Int {state["int"]}): fish steaks may be too easy for him now')
             last_cooking = state['cooking'] = sk['Cooking']['base']
             save_state(state)
             if state['cooks'] % 25 == 0 or gain:
@@ -364,11 +429,13 @@ def report():
     print(f"since {s['started']}: {s['cooks']} steaks ({s['cooked']} cooked, {s['burnt']} burnt); "
           f"Int {s['startInt']} -> {s['int']}, Dex {s['dex']}; Cooking {s.get('startCooking')} -> {s.get('cooking')}")
     print(describe_estimate(s) or 'no estimate yet')
-    print('by Cooking band: steaks, Cooking points gained, Int gained, steaks per Cooking point, steaks per Int')
+    print('by Cooking band: steaks, Cooking points gained, Int gained, steaks per Cooking point, steaks per Int, '
+          'burnt %')
     for k in sorted(s.get('bands', {}), key=int):
         b = s['bands'][k]
         print(f"  {int(k) * 10:3d}-{int(k) * 10 + 10:<3d} {b['steaks']:6d} {b['points']:6.1f} {b['int']:4d}"
-              f"  {b['steaks'] / b['points'] if b['points'] else 0:7.1f}  {b['steaks'] / b['int'] if b['int'] else 0:7.1f}")
+              f"  {b['steaks'] / b['points'] if b['points'] else 0:7.1f}  {b['steaks'] / b['int'] if b['int'] else 0:7.1f}"
+              + (f"  {100 - 100 * b['cooked'] / b['steaks']:5.0f}%" if 'cooked' in b else ''))
     print('last Int gains (time, steak #, Int):', s['intGains'][-5:])
 
 

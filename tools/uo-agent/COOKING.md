@@ -70,4 +70,10 @@ Cooked steaks (about 0.1 stone each) go onto the cooked pile on the forge (0x407
 2026-11-17: "put the cooked steaks on the pile on the forge if your weight gets too much. Or just put them over there
 once in a while"): at the start, every 100 steaks, and whenever he's within 40 stones of his max. Cooked steaks aren't
 in the rules' `neverTouch`, since that also blocks dropping onto a pile. A pile holds at most 60000 and this one had
-58290, so it has room for about 1700: when it won't take more, the loop stops and says so.
+58290, so it has room for about 1700. After that (the user, 2026-11-17: "make a cooked pile on the floor next to the
+uncooked pile") he steps to 1757,1408, puts the steaks down at his feet (the rules' `dropOnGround` allows cooked
+steaks only) and steps back; later loads go onto that pile (`floorPile` in the state).
+
+How fast it goes, by band, and how the estimate works: SKILLGAIN.md (the curve measured on every training run).
+Cooking 10-20 burns 98% of steaks and costs about 39 steaks a Cooking point (2026-11-17, first 100 steaks); a band
+where nearly nothing burns any more would give no gains, so the loop stops after 300 steaks with no Cooking gain.
