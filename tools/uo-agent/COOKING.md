@@ -52,9 +52,13 @@ steaks per Int point so far (4 at the start) badly underestimates the rest. Int 
 
 | Cooking band | Steaks | Cooking points | Int points | Steaks per Cooking point | Steaks per Int |
 |---|---|---|---|---|---|
-| 0-10 | 44 | 9.4 | 9 | 4.7 | 4.9 |
+| 0-10 | 45 | 9.8 | 9 | 4.6 | 5.0 |
+| 10-20 | 430 | 10.0 | 18 | 43.0 | 23.9 (77% burnt) |
+| 20-30 | 500 | 10.0 | 14 | 50.0 | 35.7 (68% burnt) |
+| 30-40 | 460 | 10.0 | 13 | 46.0 | 35.4 (52% burnt) |
 
-(Fill in from `cook.py report` as each band finishes.) Dex dropped one for most Int gains from the start (Dex is set
+(Fill in from `cook.py report` as each band finishes. Int 81 at Cooking 43.8 after 1638 steaks, 2026-11-18 01:04;
+about 1.3 Int per Cooking point all the way, so Int 100 at about Cooking 58.) Dex dropped one for most Int gains from the start (Dex is set
 down), though his stat total (about 168) was under the cap: the server lowers a down stat on a gain by chance even
 below the cap.
 
