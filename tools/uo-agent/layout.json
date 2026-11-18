@@ -4,13 +4,13 @@
   "items": 0,
   "label": "chest: leather + caps (col 3, 3rd from top)",
   "loose": [],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x4080C375": {
   "bags": [
    {
     "kind": "circle 3 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Unlock Scroll",
      "serial": "0x40888CB7",
@@ -23,7 +23,7 @@
    },
    {
     "kind": "circle 4 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Recall",
      "serial": "0x4097351D",
@@ -36,7 +36,7 @@
    },
    {
     "kind": "circle 5 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Paralyze Scroll",
      "serial": "0x40885A02",
@@ -49,7 +49,7 @@
    },
    {
     "kind": "circle 6 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Explosion Scroll",
      "serial": "0x406FFA2C",
@@ -62,7 +62,7 @@
    },
    {
     "kind": "circle 7 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Energy Fied Scroll",
      "serial": "0x406FFAB1",
@@ -75,7 +75,7 @@
    },
    {
     "kind": "circle 1 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Heal Scroll",
      "serial": "0x406FF258",
@@ -88,7 +88,7 @@
    },
    {
     "kind": "circle 2 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Agility Scroll",
      "serial": "0x408BFD2C",
@@ -101,7 +101,7 @@
    },
    {
     "kind": "circle 8 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Energy Vortex Scro",
      "serial": "0x406DBEEF",
@@ -116,7 +116,7 @@
   "items": 16,
   "label": "chest: scrolls (col 5, top)",
   "loose": [],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FB1E0": {
   "bags": [
@@ -137,13 +137,13 @@
   "items": 2,
   "label": "chest: jewellery (col 4, top)",
   "loose": [],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FB713": {
   "bags": [
    {
     "kind": "fencing",
-    "known": 0,
+    "known": 3,
     "marker": {
      "name": "a surpassingly accurate kryss of ghoul's touch (14 charges)",
      "serial": "0x40616228",
@@ -158,7 +158,7 @@
   "items": 2,
   "label": "chest: fencing (col 2, top)",
   "loose": [],
-  "recorded": "2026-11-16 22:35"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FB8BC": {
   "bags": [],
@@ -222,7 +222,7 @@
     "y": 107
    }
   ],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FBF7C": {
   "bags": [
@@ -256,13 +256,13 @@
   "items": 4,
   "label": "chest: magic clothing (col 4, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FC111": {
   "bags": [
    {
     "kind": "helms",
-    "known": 0,
+    "known": 9,
     "marker": {
      "name": "an orc helm of guarding",
      "serial": "0x406FFBE2",
@@ -277,13 +277,13 @@
   "items": 2,
   "label": "chest: helms (col 4, bottom)",
   "loose": [],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FC781": {
   "bags": [
    {
     "kind": "attack wands",
-    "known": 0,
+    "known": 43,
     "marker": {
      "name": "a wand of lightning (9 charges)",
      "serial": "0x402C2735",
@@ -296,7 +296,7 @@
    },
    {
     "kind": "healing wands",
-    "known": 0,
+    "known": 13,
     "marker": {
      "name": "a wand of greater healing (4 charges)",
      "serial": "0x40717795",
@@ -311,7 +311,7 @@
   "items": 4,
   "label": "chest: magic wands (col 2, 3rd from top)",
   "loose": [],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FD0C7": {
   "bags": [
@@ -330,7 +330,7 @@
    },
    {
     "kind": "swords",
-    "known": 0,
+    "known": 4,
     "marker": {
      "name": "a broadsword of thunder (23 charges)",
      "serial": "0x406590E4",
@@ -358,13 +358,13 @@
   "items": 6,
   "label": "chest: swords (col 1, top)",
   "loose": [],
-  "recorded": "2026-11-16 22:35"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FD7CF": {
   "bags": [
    {
     "kind": "plate tunics",
-    "known": 0,
+    "known": 2,
     "marker": {
      "name": "a platemail tunic of invulnerability",
      "serial": "0x4073B9ED",
@@ -377,7 +377,7 @@
    },
    {
     "kind": "plate arms",
-    "known": 0,
+    "known": 6,
     "marker": {
      "name": "durable platemail arms of guarding",
      "serial": "0x406E5B90",
@@ -390,7 +390,7 @@
    },
    {
     "kind": "plate gloves",
-    "known": 0,
+    "known": 1,
     "marker": {
      "name": "platemail gloves of guarding",
      "serial": "0x407E710E",
@@ -403,7 +403,7 @@
    },
    {
     "kind": "plate legs",
-    "known": 0,
+    "known": 3,
     "marker": {
      "name": "durable platemail legs of guarding",
      "serial": "0x40624230",
@@ -416,7 +416,7 @@
    },
    {
     "kind": "plate gorgets",
-    "known": 0,
+    "known": 3,
     "marker": {
      "name": "a platemail gorget of guarding",
      "serial": "0x4073B9FC",
@@ -431,13 +431,13 @@
   "items": 10,
   "label": "chest: plate (col 3, top)",
   "loose": [],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FDB4F": {
   "bags": [
    {
     "kind": "crossbows",
-    "known": 0,
+    "known": 3,
     "marker": {
      "name": "a heavy crossbow of daemon's breath (41 charges)",
      "serial": "0x408D644D",
@@ -465,20 +465,20 @@
   "items": 4,
   "label": "chest: archery (col 2, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FE0E7": {
   "bags": [],
   "items": 0,
   "label": "chest: studded (col 3, bottom)",
   "loose": [],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FE3A0": {
   "bags": [
    {
     "kind": "gems",
-    "known": 0,
+    "known": 9,
     "marker": {
      "name": "tourmaline",
      "serial": "0x408D9F17",
@@ -493,13 +493,13 @@
   "items": 2,
   "label": "chest: gems (col 5, bottom)",
   "loose": [],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FF16B": {
   "bags": [
    {
     "kind": "chain tunics",
-    "known": 0,
+    "known": 1,
     "marker": {
      "name": "a chainmail tunic of guarding",
      "serial": "0x40889A70",
@@ -512,7 +512,7 @@
    },
    {
     "kind": "ringmail",
-    "known": 0,
+    "known": 6,
     "marker": {
      "name": "ringmail leggings of guarding",
      "serial": "0x409199EE",
@@ -525,7 +525,7 @@
    },
    {
     "kind": "chain leggings",
-    "known": 0,
+    "known": 1,
     "marker": {
      "name": "chainmail leggings of guarding",
      "serial": "0x40624234",
@@ -538,7 +538,7 @@
    },
    {
     "kind": "coifs",
-    "known": 0,
+    "known": 1,
     "marker": {
      "name": "a chainmail coif of guarding",
      "serial": "0x409A5345",
@@ -553,13 +553,13 @@
   "items": 8,
   "label": "chest: chain & ring + coifs (col 3, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FF313": {
   "bags": [
    {
     "kind": "axes",
-    "known": 0,
+    "known": 6,
     "marker": {
      "name": "a substantial large battle axe of ghoul's touch (18 charges)",
      "serial": "0x408ED885",
@@ -600,13 +600,13 @@
   "items": 6,
   "label": "chest: axes (col 1, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-16 22:35"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FF6C4": {
   "bags": [
    {
     "kind": "maces & staves",
-    "known": 0,
+    "known": 6,
     "marker": {
      "name": "a substantial mace of daemon's breath (21 charges)",
      "serial": "0x40921683",
@@ -621,7 +621,7 @@
   "items": 2,
   "label": "chest: maces & staves (col 1, 3rd from top)",
   "loose": [],
-  "recorded": "2026-11-16 22:35"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FF84A": {
   "bags": [
@@ -640,7 +640,7 @@
    },
    {
     "kind": "cooked food",
-    "known": 0,
+    "known": 1,
     "marker": {
      "name": "fish steak",
      "serial": "0x407DBCC0",
@@ -684,21 +684,21 @@
     "y": 105
    }
   ],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FF9AB": {
   "bags": [],
   "items": 0,
   "label": "chest: spare + invulnerability shields (col 4, 3rd from top)",
   "loose": [],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x408FFDD1": {
   "bags": [],
   "items": 0,
   "label": "chest: bone armour (col 2, bottom)",
   "loose": [],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x40900029": {
   "bags": [
@@ -719,13 +719,13 @@
   "items": 2,
   "label": "chest: polearms (col 1, bottom)",
   "loose": [],
-  "recorded": "2026-11-16 22:35"
+  "recorded": "2026-11-16 22:38"
  },
  "0x40901BDA": {
   "bags": [
    {
     "kind": "plate",
-    "known": 0,
+    "known": 14,
     "marker": {
      "name": "an orc helm of defense",
      "serial": "0x40889A6F",
@@ -738,7 +738,7 @@
    },
    {
     "kind": "chain & ring",
-    "known": 0,
+    "known": 12,
     "marker": {
      "name": "a chainmail coif of defense",
      "serial": "0x4087E8C7",
@@ -753,13 +753,13 @@
   "items": 4,
   "label": "chest: plain gear (col 6, bottom)",
   "loose": [],
-  "recorded": "2026-11-16 22:37"
+  "recorded": "2026-11-16 22:38"
  },
  "0x40901EDF": {
   "bags": [
    {
     "kind": "ID wands & staves (spares)",
-    "known": 0,
+    "known": 7,
     "marker": null,
     "serial": "0x4049D6B8",
     "x": 18,
@@ -861,20 +861,20 @@
     "y": 140
    }
   ],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x409020EB": {
   "bags": [],
   "items": 0,
   "label": "chest: needs your decision (col 6, 2nd from top)",
   "loose": [],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  },
  "0x40902338": {
   "bags": [
    {
     "kind": "GM set 1",
-    "known": 0,
+    "known": 6,
     "marker": null,
     "serial": "0x40687509",
     "x": 18,
@@ -882,7 +882,7 @@
    },
    {
     "kind": "GM set 2",
-    "known": 0,
+    "known": 6,
     "marker": null,
     "serial": "0x404005BF",
     "x": 68,
@@ -890,7 +890,7 @@
    },
    {
     "kind": "GM set 3",
-    "known": 0,
+    "known": 6,
     "marker": null,
     "serial": "0x403FBB5F",
     "x": 118,
@@ -900,6 +900,6 @@
   "items": 3,
   "label": "chest: GM armour sets (col 6, top)",
   "loose": [],
-  "recorded": "2026-11-16 22:36"
+  "recorded": "2026-11-16 22:38"
  }
 }

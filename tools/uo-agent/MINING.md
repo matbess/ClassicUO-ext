@@ -172,6 +172,9 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
 3. **Missing rune.** Either of Burgers' runes disappears from his backpack: someone stole it.
 4. **Attack.** Anyone attacks either character. Also a trade window opened by anyone but the partner.
 
+**Changed 2026-11-17 for people near Icepick: see "People: lumberjacking's way" below.** What follows still
+holds for hits, thefts, trades, Burgers' own alarms and someone back in sight after an incident.
+
 **What to do (the user, 2026-11-01): get away and hide, don't log out.** Logging out outside an inn leaves the
 character standing in the world (tested 19:38: the guard's logout worked, Clem's "hi" logged both out at once, but
 that's no protection). Instead:
@@ -451,6 +454,13 @@ files further: they apply at once, without a new build.
   `bank_shovels` stood); Icepick mounted but in sight at 1141,1850, just off the forge after the 03:59:02 handoff
   with 3 shovels and his 3 cure potions (hidden at once, first try). The handoffs from 04:02:44 on (270 ingots,
   231 iron) never happened: totals 80085 / 63238 corrected to 79815 / 63007, back to block 65.
+- **And 2026-11-17 04:15** (the nightly reboot): back at 04:19, rolled back to about 04:00. Burgers came back hidden
+  at his spot holding exactly the 54 ingots (50 iron) of the 03:58:39 handoff (so the 03:56 bank trip stood);
+  Icepick on foot and in sight at 1145,1706 with ore from the 03:59-04:00 digs, McGee next to him (the login's
+  double-click counted as a takeover until `uo resume`; `uo mount` didn't take, Hiding on the second try; the loop
+  mounted him). The handoffs from 04:01:14 on (324 ingots, 242 iron) and the 04:13 bank trip never happened: totals
+  96001 / 75966 corrected to 95677 / 75724, back to block 22, the 15 blocks emptied from 04:00 on dropped,
+  `bank_ingots` / `bank_shovels` back to the 03:56 count (4071 iron, 12599 in all; 27 shovels).
 - **A tile outside the area** (2026-11-05 09:38): on the long straight stretch to waypoint 31 (1101,1594 to
   1101,1649, along the area's west edge at x 1100) the client's path finder stepped Icepick to 1099,1649. The
   bridge stops every walk the moment it sees him outside the area, even one heading back in, so the replans and
@@ -571,6 +581,24 @@ How it works:
   `town_guards`, added to both rules' `npcs`): "Bert the beggar" sent Icepick on a lumberjacking run and hide at
   00:34 that day. A player's skill title has a capitalised rank ("the Adept Lumberjack") and never matches
   (`NPC_TITLE` in mine.py, shared with lumber.py).
+- **People: lumberjacking's way** (the user, 2026-11-17: "bring that way of handling people into mining"; it was
+  lumber.py's from 2026-11-14, LUMBERJACKING.md "People"). The code moved from lumber.py into mine.py's Miner, so
+  both loops share it (`watch_people`, `step_off`, `run_and_hide`, `known_npc`; `CLOSE`, `WATCH_FOR`, `WATCHED_FOR`,
+  `STEP_OFF`, `TALK_HIDE`). Instead of a 50-tile getaway from anyone who stands close or talks:
+  - Someone new in sight (not a known NPC, not watched in the last 30 minutes): Icepick hides where he is and
+    watches everyone in sight at once for up to 3 minutes for an NPC fidget (5 or 6; the bridge learns them for
+    good). Each new person is single-clicked once: "(invulnerable)" on the name label makes them an NPC at once
+    (kept in `town_guards`, added to the rules' `npcs`); a paperdoll title as before. As soon as everyone in sight
+    is known, or after 3 minutes, back to work. A watch is not a run and hide (`watches` in the stats).
+  - Someone unknown within 3 tiles while he's in sight: about 10 tiles off, hide, watch again.
+  - Someone within 3 tiles who speaks to him: ride far off (`FLEE`), hide 10 minutes, back to work: a run and hide
+    to review. Speech from further off is not to him.
+  - The old way (`get_away_alarm`) for the rest: hits, thefts, trades, "attacking you", Burgers' own alarms,
+    creatures.
+- **Clem is a partner of Icepick too** (the user, 2026-11-17: "Clem is my character and not to run from him"): he
+  set off Icepick's loiter alarm at Mining Start at 00:15 that night. `rules-Icepick.json` partners now list him.
+  (mining.py's rules reader drops only whole-line `//` comments: a comment at the end of a line there broke it and
+  stopped the loop at 00:23.)
 - Not used for mining: bridge 11 can also raise the alarm when a creature within `"creatures"` tiles turns grey, or
   for an `"avoid"` list of kinds. The user turned that down (an early getaway means it never hits him, so the guards
   never kill it and it keeps wandering about the route); both are left out of the rules.

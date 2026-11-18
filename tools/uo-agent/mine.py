@@ -61,6 +61,13 @@ TAME_GAP = 10               # seconds between tries (the server wants a pause be
 FLEE = 50                   # tiles to put between Icepick and a stranger before hiding (the user: 30, then 50 on 2026-11-02)
 GONE_AFTER = 30             # seconds unseen before a stranger counts as gone (the user, 2026-11-02 18:05; was 3 minutes)
 GIVE_UP_WAITING = 1800      # seconds: still not gone after this, stop and tell the user
+# people (lumberjacking's way, 2026-11-14; mining's too from 2026-11-17, the user: "bring that way of handling people
+# into mining"): watch for NPC fidgets instead of running from everyone (Miner.watch_people)
+STEP_OFF = (8, 12)          # tiles: someone unknown within CLOSE while he's in sight: he moves about 10 off and hides
+CLOSE = 3                   # tiles (the user, 2026-11-14)
+WATCH_FOR = 3 * 60          # at most this long hidden watching everyone in sight for NPC fidgets, then back to work
+WATCHED_FOR = 30 * 60       # someone watched counts as new again after this long
+TALK_HIDE = 10 * 60         # someone within CLOSE who speaks to him: he rides far off and hides this long
 CREATURE_NOTE = 14          # a creature this close to Icepick that has turned grey is logged (only noted: the user)
 # a creature hitting Icepick (the user, 2026-11-08): his bridge says "Guards!" at once and a guard kills it as soon as
 # it reaches it; he only steps away about 10 tiles, hides, and carries on once it's gone or after 30 seconds
@@ -354,7 +361,10 @@ class Miner:
         self.burgers_sent = None   # where this run's last Recall sent Burgers ('bank', 'start', or home)
         self.mcgee_far = None      # (tiles, since when) while McGee is more than 2 tiles off (keep_mcgee)
         self.stats = {'ore': 0, 'misses': 0, 'blocks': 0, 'empty': 0, 'forge visits': 0, 'ingots': 0,
-                      'bank trips': 0, 'gates': 0, 'incidents': 0, 'fights': 0}
+                      'bank trips': 0, 'gates': 0, 'incidents': 0, 'fights': 0, 'watches': 0}
+        self.watched = {}          # serial -> when Icepick last watched them (people, for NPC fidgets)
+        self.partners = None       # Icepick's rules' partners (names and serials), from his bridge
+        self.clicked = set()       # people single-clicked once for "(invulnerable)"
         self.state = self.load_state()
         self.fatigue_seen = self.ice.status()['lastMessageId']
         self.biggest_dig = BIGGEST_DIG
@@ -411,6 +421,17 @@ class Miner:
             for m in near:
                 if m['serial'] in self.watch and m.get('human'):  # (a creature back in sight is no stranger)
                     raise Alarm(f"Icepick: {m['name'] or m['serial']} is back in sight ({m['distance']} tiles)")
+        # people not known as NPCs (see "people" below)
+        unknown = self.unknown_people()
+        if not unknown:
+            return
+        if not self.ice.status()['hidden']:
+            close = [m for m in unknown if m['distance'] <= CLOSE]
+            if close:
+                raise Alarm(f"Icepick: {close[0]['name']} came within {close[0]['distance']} tiles")
+        new = [m for m in unknown if now - self.watched.get(m['serial'], 0) > WATCHED_FOR]
+        if new:
+            raise Alarm('Icepick: new in sight: ' + ', '.join(f"{m['name']} ({m['distance']} tiles)" for m in new))
 
     def safely(self, step, *a):
         """Run a step; on an alarm get away, wait it out and run the step again from where things stand."""
@@ -441,7 +462,212 @@ class Miner:
             'where': f"Icepick at {s['x']},{s['y']}"})
         self.save_state()
 
+    # ---- people (lumberjacking's way, the user 2026-11-14; mining's from 2026-11-17) ----
+    # Townspeople do an idle fidget now and then (animations 5 and 6; the wandering ones every minute or so) and the
+    # bridge then knows them as NPCs for good (Agent/npcs-learned.json); titled ones ("Gillian the farmer") are known
+    # by their paperdoll, vendors and the like by "(invulnerable)" on their name label. The user's own characters are
+    # partners in the rules (Clem: the user, 2026-11-17 "Clem is my character ... not to run from him").
+    # - Someone new in sight (not known as an NPC, not watched in the last WATCHED_FOR): Icepick hides where he is and
+    #   watches EVERYONE in sight at once for up to WATCH_FOR; as soon as all of them are known NPCs (or gone), or at
+    #   WATCH_FOR, back to work. These watches aren't run and hides (not on the review list).
+    # - Someone unknown within CLOSE tiles while he's in sight: he moves about 10 tiles off, hides and watches again.
+    # - Someone within CLOSE who speaks to him: he rides far off (FLEE), hides for TALK_HIDE, then goes back to work.
+    #   That one is a run and hide to review. Speech from further off is not to him: carry on.
+    # Hits, thefts, trades, the server's "attacking you", Burgers' own alarms and creatures go the old way
+    # (get_away_alarm).
+
+    def is_partner(self, m):
+        if self.partners is None:
+            self.partners = set(self.ice.call('GET', '/rules').get('partners') or []) | {'Icepick', 'Burgers'}
+        return m['name'] in self.partners or m['serial'] in self.partners
+
+    def people(self):
+        return [m for m in self.ice.call('GET', '/nearby', range=18)['mobiles']
+                if m.get('human') and not m.get('dead') and not self.is_partner(m)]
+
+    def known_npc(self, m):
+        """A learned NPC (it fidgeted), an invulnerable one (its name label on a single click says "(invulnerable)":
+        vendors and the like, the user showed it 2026-11-14 with Jewel, Slade and Garrett by the stables) or a titled
+        townsperson (by the paperdoll). Clicked and asked once per person."""
+        serial = m['serial']
+        if learned_npc(serial) or serial in (self.state.get('town_guards') or {}):
+            return True
+        if serial not in self.clicked:
+            self.clicked.add(serial)
+            try:
+                label = ' '.join((self.ice.call('POST', '/name', serial=serial) or [{}])[0].get('lines') or [])
+            except uo.BridgeError:
+                label = ''
+            if '(invulnerable)' in label:
+                guards = self.state.setdefault('town_guards', {})
+                guards[serial] = m['name']
+                self.state['town_guards'] = dict(list(guards.items())[-100:])
+                self.save_state()
+                b = self.bur.status()
+                burgers_rules(bank=cheb((b['x'], b['y']), OCLLO_BANK) <= 10)
+                icepick_rules()
+                log(f"{m['name']} is an NPC (\"{label}\"): not a stranger (both bridges leave them alone now)")
+                return True
+        if serial in self.not_guards:
+            return False
+        return self.town_guard({'serial': serial, 'name': m['name'], 'x': m['x'], 'y': m['y']})
+
+    def unknown_people(self):
+        return [m for m in self.people() if not (learned_npc(m['serial'])
+                                                  or m['serial'] in (self.state.get('town_guards') or {}))]
+
+    def person_alarm(self):
+        """('loiter' | 'talk', threat) for Icepick's own bridge alarm about a person, else (None, None)."""
+        alarm = (self.ice.status().get('guard') or {}).get('alarm') or {}
+        reason = alarm.get('reason') or ''
+        threat = alarm.get('threat') or {}
+        if (not reason or reason.split(' ', 1)[-1].startswith('partner') or GUILD_TAG.search(reason)
+                or threat.get('serial') in (None, '0x00000000') or self.creature(threat)):
+            return None, None
+        if 'stood within' in reason:
+            return 'loiter', threat
+        if ' said "' in reason and 'the server said' not in reason:
+            return 'talk', threat
+        return None, None
+
     def handle_alarm(self, why):
+        if 'Icepick: new in sight: ' in why or ' came within ' in why:
+            return self.watch_people(why)
+        kind, threat = self.person_alarm()
+        if kind is None:
+            return self.get_away_alarm(why)
+        name = threat.get('name') or threat['serial']
+        if learned_npc(threat['serial']) or self.town_guard(threat):
+            self.clear_alarms()
+            return
+        if kind == 'talk':
+            m = next((m for m in self.people() if m['serial'] == threat['serial']), None)
+            if m and m['distance'] <= CLOSE:
+                return self.run_and_hide(threat, why)
+            log(f"({name} spoke {m['distance'] if m else 'out of sight, so more than 18'} tiles away: not to him; "
+                'carrying on)')
+            self.clear_alarms()
+            return
+        if self.ice.status()['hidden']:
+            self.clear_alarms()  # (someone close while he's hidden only matters if they speak)
+            return
+        self.watch_people(f'ALARM {why}')
+
+    def clear_alarms(self, both=False):
+        """Icepick's alarm cleared (Burgers' own, if any, stays for the old way at the next check)."""
+        for c in ((self.ice, self.bur) if both else (self.ice,)):
+            c.call('POST', '/guard', on=1)
+
+    def watch_people(self, why):
+        log(f'{why}: Icepick hides and watches everyone in sight for NPC fidgets (up to {WATCH_FOR // 60} minutes)')
+        self.stats['watches'] += 1
+        self.clear_alarms()
+        start = time.time()
+        known = set()
+        while True:
+            st = self.ice.status()
+            check_taken_over(self.ice, st)
+            alarm = (st.get('guard') or {}).get('alarm') or {}
+            if alarm:
+                kind, threat = self.person_alarm()
+                if kind == 'talk':
+                    m = next((m for m in self.people() if m['serial'] == threat['serial']), None)
+                    if m and m['distance'] <= CLOSE:
+                        return self.run_and_hide(threat, f"Icepick: {alarm['reason']}")
+                elif kind is None and (alarm.get('reason') or '').split(' ', 1)[-1].startswith('partner'):
+                    pass  # Burgers' own alarm: left for the old way once the watch is over
+                elif kind is None and (not self.creature(alarm.get('threat'))
+                                       or 'hit points' in (alarm.get('reason') or '')):
+                    # a hit, a theft, a trade, "attacking you": the old way
+                    return self.get_away_alarm(f"Icepick: {alarm['reason']}")
+                if not (alarm.get('reason') or '').split(' ', 1)[-1].startswith('partner'):
+                    self.clear_alarms()
+            people = self.people()
+            unknown = []
+            for m in people:
+                if m['serial'] in known:
+                    continue
+                if self.known_npc(m):
+                    known.add(m['serial'])
+                    if learned_npc(m['serial']) and m['serial'] in self.watched:
+                        log(f"{m['name']} fidgeted: an NPC (learned for good)")
+                    continue
+                unknown.append(m)
+                self.watched[m['serial']] = time.time()
+            if not unknown:
+                log('everyone in sight is a known NPC; back to work')
+                return
+            if not st['hidden']:
+                close = [m for m in unknown if m['distance'] <= CLOSE]
+                if close:
+                    log(f"{close[0]['name']} is within {close[0]['distance']} tiles: Icepick moves about 10 tiles off")
+                    self.step_off(close[0])
+                    start = time.time()  # (and watches again from there)
+                    continue
+                self.hide(self.ice, tries=1)
+            if time.time() - start >= WATCH_FOR:
+                log(f"{', '.join(m['name'] for m in unknown)} did no fidget in {WATCH_FOR // 60} minutes; back to "
+                    'work (someone unknown within 3 tiles moves him off again)')
+                return
+            time.sleep(3)
+
+    def step_off(self, m):
+        """Ride about 10 tiles away from them, away first, and hide (the user: "move 10 tiles away and hide")."""
+        import math
+        s = self.ice.status()
+        if not s['mounted']:
+            self.mount()
+            s = self.ice.status()
+        here, there = (s['x'], s['y']), (m['x'], m['y'])
+        areas = mining.load_rules()['areas']
+        away = math.atan2(here[1] - there[1], here[0] - there[0]) if here != there else 0.0
+        lo, hi = STEP_OFF
+        for turn in (0, 30, -30, 60, -60, 90, -90, 120, -120, 150, -150, 180):
+            for dist in ((lo + hi) // 2, hi, lo):
+                a = away + math.radians(turn)
+                spot = (round(there[0] + math.cos(a) * dist), round(there[1] + math.sin(a) * dist))
+                if not mining.in_areas(areas, *spot) or not mining.walkable(*spot):
+                    continue
+                before = self.ice.call('GET', '/status')['lastMessageId']
+                try:
+                    r = self.ice.walk(spot[0], spot[1], 1)
+                except uo.BridgeError as e:
+                    if e.code == 409:
+                        continue
+                    raise
+                if any('left the protection' in x['text'].lower()
+                       for x in self.ice.call('GET', '/messages', after=before)['messages']):
+                    log(f"left the guards' protection near {r['x']},{r['y']}; going back")
+                    self.ice.walk(here[0], here[1], 1)
+                    continue
+                if cheb((r['x'], r['y']), there) >= lo - 1:
+                    self.hide(self.ice)
+                    return
+        log('nowhere about 10 tiles off; hiding where he is')
+        self.hide(self.ice)
+
+    def run_and_hide(self, threat, why):
+        """Someone within CLOSE spoke to him: ride far off and hide for TALK_HIDE, then back to work (a run and hide
+        to review)."""
+        name = threat.get('name') or threat['serial']
+        log(f'ALARM {why}')
+        self.incident({'what': why, 'icepick': {'reason': why, 'threat': threat}, 'burgers': None})
+        log(f'{name} spoke to Icepick from close by: he rides far off and hides for {TALK_HIDE // 60} minutes')
+        self.icepick_get_away(threat)
+        self.hide(self.bur)
+        end = time.time() + TALK_HIDE
+        while time.time() < end:
+            st = self.ice.status()
+            check_taken_over(self.ice, st)
+            if not st['hidden']:
+                self.hide(self.ice, tries=1)
+            time.sleep(10)
+        self.clear_alarms(both=True)
+        log(f'{TALK_HIDE // 60} minutes hidden; back to work')
+
+    def get_away_alarm(self, why):
+        """The old way, for everything but Icepick's own alarms about people (handle_alarm): hits, thefts, trades,
+        "attacking you", Burgers' own alarms, creatures and someone from an earlier incident back in sight."""
         si, sb = self.ice.status(), self.bur.status()
         ai, ab = (si.get('guard') or {}).get('alarm'), (sb.get('guard') or {}).get('alarm')
         reasons = [a['reason'] for a in (ai, ab) if a]
@@ -1203,15 +1429,45 @@ class Miner:
         mining.gate_opened(gate_tile, GATE_ENDS[end])
         # off the gate (it opens on his own tile), so Icepick can come through
         s = self.ice.status()
-        self.step_aside(self.bur, [(s['x'], s['y']), gate_tile])
-        self.ice.walk(gate_tile[0], gate_tile[1], 0)
-        # the jump through the gate lands a moment after the step onto it
-        for _ in range(8):
-            s = self.ice.status()
-            arrived = cheb((s['x'], s['y']), GATE_ENDS[end]) <= 3
-            if arrived:
+        start = (s['x'], s['y'])
+        self.step_aside(self.bur, [start, gate_tile])
+        # Up to three steps onto the gate (2026-11-17: about half the gates that day ended "did not go through; still
+        # at 1141,1850", Icepick never leaving his tile next to it, and the user saw him ride past the open gate
+        # afterwards). Each miss is logged with where both were, and Burgers steps off again if he's still on it.
+        arrived = False
+        for attempt in range(3):
+            # walk onto the moongate where Icepick's client sees it, not where Burgers stood (the user, 2026-11-17:
+            # "why can't you just detect where the gate is and walk into it")
+            gates = [(i['x'], i['y']) for i in self.ice.call('GET', '/nearby', range=5)['items']
+                     if 'moongate' in (i.get('type') or '') and i.get('x') is not None]
+            if gates:
+                seen = min(gates, key=lambda g: cheb(g, gate_tile))
+                if seen != gate_tile:
+                    log(f"gate to {end}: the moongate is at {seen[0]},{seen[1]}, not on Burgers' tile {gate_tile[0]},{gate_tile[1]}")
+                    gate_tile = seen
+            elif attempt == 0:
+                log(f"gate to {end}: Icepick's client shows no moongate within 5 tiles; stepping onto Burgers' tile")
+            try:
+                w = self.ice.walk(gate_tile[0], gate_tile[1], 0)
+            except uo.BridgeError as e:
+                if e.code not in (403, 409):
+                    raise
+                w = {'error': f'{e.code} {e}'}
+            # the jump through the gate lands a moment after the step onto it
+            for _ in range(8):
+                s = self.ice.status()
+                arrived = cheb((s['x'], s['y']), GATE_ENDS[end]) <= 3
+                if arrived:
+                    break
+                time.sleep(0.5)
+            if arrived or cheb((s['x'], s['y']), gate_tile) > 2:
                 break
-            time.sleep(0.5)
+            b = self.bur.status()
+            log(f"gate to {end}, step {attempt + 1}: Icepick at {s['x']},{s['y']} (the walk said "
+                f"{ {k: w.get(k) for k in ('arrived', 'walking', 'x', 'y', 'error') if k in w} }), "
+                f"Burgers at {b['x']},{b['y']}, the gate at {gate_tile[0]},{gate_tile[1]}")
+            if (b['x'], b['y']) == gate_tile:
+                self.step_aside(self.bur, [(s['x'], s['y']), gate_tile])
         log(f"gate to {end}: Icepick {'came out at' if arrived else 'did not go through; still at'} {s['x']},{s['y']}")
         self.hide(self.bur)
         if arrived:

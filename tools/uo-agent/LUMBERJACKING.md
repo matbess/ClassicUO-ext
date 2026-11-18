@@ -69,6 +69,8 @@ Lumberjacking reuses most of mining (MINING.md): read that first.
   - Someone within 3 tiles who speaks to him: he rides far off (FLEE), hides for 10 minutes, then back to work (a
     run and hide to review). Speech from further off is not to him.
   - Hits, thefts, trades, the server's "attacking you", Burgers' own alarms and creatures go mining's way.
+  - Since 2026-11-17 this code lives in mine.py's Miner and mining uses it too (MINING.md, "People: lumberjacking's
+    way"); lumber.py inherits it.
 - A park or stop leaves Burgers where he is unless this run's last Recall sent him away (2026-11-14 11:59: a one-off
   script's park recalled him from the bank while the user was using him there, on his last mandrake root).
 - Each block: a random tree and spot to chop from (lumbering.choose), ridden to mounted; chopped until "not enough
