@@ -39,7 +39,7 @@ namespace ClassicUO.Game.Managers
     {
         private const int FIRST_PORT = 7780;
         private const int LAST_PORT = 7789;
-        private const int VERSION = 13; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs); 7: fights (creatures' health, skills and spells aimed at creatures, running walks that don't wait, doors and keys; the user takes over by giving a command of their own); 8: /cast wait=0 answers at once and the bridge aims the spell's cursor itself when it comes, so the agent keeps moving and looking while the spell goes off, and reads the outcome from the messages (the user, 2026-11-06: "Cast .. then do all the other normal stuff and when a result from the spell shows up result=success/fail"); cursor=0 for a spell with no target (Magic Reflection); 9: /use wait=0 double-clicks and answers at once (a trapped pouch to break paralysis goes off without a word, and waiting for one stopped the bridge); 10: bandages: "useOnGround" kinds are double-clicked where they lie (the pile of bandages on the tower floor) and /use aims at a "patients" character (Isabel's ghost, to train Healing; the user, 2026-11-08); 11: the guard yells for the town guards ("callGuards") the moment the character loses hits (the guards only come for a creature once it has hit someone), and watches creatures: one close by that turns on someone (Criminal, Murderer, Enemy), or a kind to keep away from ("avoid"), sets off the alarm (the user, 2026-11-08, after a creature hit Icepick in town); 12: vendors: /shop says "<name> buy|sell" to a vendor whose title the rules allow and reads his window, /buy and /sell deal in the rules' goods only, /paperdoll reads people's titles (an NPC's "Cador the mapmaker"; a single click shows only the name here) (Clem's trips to the mapmaker, the user, 2026-11-08; AgentBridgeShop.cs); 13: the user taking over switches the guard off (it kept hiding Burgers under the user, 2026-11-16)
+        private const int VERSION = 14; // 3: /skill takes a target (Animal Taming on the character's own horse); 4: no staff alarm (the user, 2026-11-04: staff get the normal guard); 5: a walk that starts outside the area may go back in; 6: menus, gumps, target cursor, skills and the event log (AgentBridgeDialogs.cs); 7: fights (creatures' health, skills and spells aimed at creatures, running walks that don't wait, doors and keys; the user takes over by giving a command of their own); 8: /cast wait=0 answers at once and the bridge aims the spell's cursor itself when it comes, so the agent keeps moving and looking while the spell goes off, and reads the outcome from the messages (the user, 2026-11-06: "Cast .. then do all the other normal stuff and when a result from the spell shows up result=success/fail"); cursor=0 for a spell with no target (Magic Reflection); 9: /use wait=0 double-clicks and answers at once (a trapped pouch to break paralysis goes off without a word, and waiting for one stopped the bridge); 10: bandages: "useOnGround" kinds are double-clicked where they lie (the pile of bandages on the tower floor) and /use aims at a "patients" character (Isabel's ghost, to train Healing; the user, 2026-11-08); 11: the guard yells for the town guards ("callGuards") the moment the character loses hits (the guards only come for a creature once it has hit someone), and watches creatures: one close by that turns on someone (Criminal, Murderer, Enemy), or a kind to keep away from ("avoid"), sets off the alarm (the user, 2026-11-08, after a creature hit Icepick in town); 12: vendors: /shop says "<name> buy|sell" to a vendor whose title the rules allow and reads his window, /buy and /sell deal in the rules' goods only, /paperdoll reads people's titles (an NPC's "Cador the mapmaker"; a single click shows only the name here) (Clem's trips to the mapmaker, the user, 2026-11-08; AgentBridgeShop.cs); 13: the user taking over switches the guard off (it kept hiding Burgers under the user, 2026-11-16); 14: Recall on any recall rune within reach, not only carried ones (a box, a chest, the bank): the castle's courtyard rune stays in the secure box in its entrance room (the user, 2026-11-18: "You should be able to recall from any rune")
         private const int GUARD_INTERVAL = 250;  // milliseconds between the guard's checks
         private const int GUARDS_GAP = 2000;     // milliseconds: no yelling for the guards more often than this
         private const int ALARM_FILE_INTERVAL = 1000;
@@ -2281,9 +2281,20 @@ namespace ClassicUO.Game.Managers
                     CheckNobodyElse(rules);
                     Item aim = _world.Items.Get(target) ?? throw new BridgeException(404, "no such target nearby");
 
+                    // or Recall on any recall rune within reach, wherever it lies: in a box, a chest or the bank (the user,
+                    // 2026-11-18: the castle's courtyard rune stays in the secure box in its entrance room, "You should be
+                    // able to recall from any rune"); the server decides whether the character may use it
+                    Item root = GroundRoot(aim);
+                    bool reachableRune = spell == 32 && aim.Graphic >= 0x1F14 && aim.Graphic <= 0x1F17;
+
+                    if (!IsCarried(aim) && !reachableRune)
+                    {
+                        throw new BridgeException(403, "spells are only cast on things the character carries, or Recall on a recall rune within reach");
+                    }
+
                     if (!IsCarried(aim))
                     {
-                        throw new BridgeException(403, "spells are only cast on things the character carries");
+                        CheckInReach(root, REACH);
                     }
 
                     if (_world.TargetManager.IsTargeting)

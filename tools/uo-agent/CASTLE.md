@@ -87,8 +87,9 @@ The user's friend has no owner commands, so the tables are for the owner side. T
   automation, not just for moving."
 - Clem's rules (`rules/rules-Clem.json`) need the castle: its areas, the doors and keys above, and the two house
   phrases in "say".
-- Step 3 needs a decision. The bridge only casts on things the character carries, and the courtyard rune is in the
-  box. Either Clem carries a courtyard rune of his own, or the bridge learns to recall on a rune in that box (a
-  client rebuild).
+- Step 3: the courtyard rune **stays in the box; Clem never carries one** (the user, 2026-11-18: "That's a security
+  concern"). Bridge 14 (build cuo-agent33) casts Recall on **any recall rune within reach**, wherever it lies (a box,
+  a chest, the bank), not only carried ones ("You should be able to recall from any rune"). Built 2026-11-18, not
+  yet installed: it needs every client closed.
 - The layout of the east wall and the forge chests (which category goes where) is to be drafted on a map page for
   the user, then the move from the tower.
