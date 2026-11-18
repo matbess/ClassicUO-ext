@@ -89,7 +89,6 @@ The user's friend has no owner commands, so the tables are for the owner side. T
   phrases in "say".
 - Step 3: the courtyard rune **stays in the box; Clem never carries one** (the user, 2026-11-18: "That's a security
   concern"). Bridge 14 (build cuo-agent33) casts Recall on **any recall rune within reach**, wherever it lies (a box,
-  a chest, the bank), not only carried ones ("You should be able to recall from any rune"). Built 2026-11-18, not
-  yet installed: it needs every client closed.
+  a chest, the bank), not only carried ones ("You should be able to recall from any rune"). Installed 2026-11-18.
 - The layout of the east wall and the forge chests (which category goes where) is to be drafted on a map page for
   the user, then the move from the tower.
