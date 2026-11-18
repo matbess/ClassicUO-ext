@@ -49,7 +49,11 @@
     { "name": "castle north corridor and forge corner", "box": [921, 2321, 950, 2328], "z": [0, 25] },
     { "name": "castle west hall", "box": [921, 2325, 924, 2348], "z": [0, 25] },
     { "name": "castle east hall", "box": [946, 2325, 950, 2350], "z": [0, 25] },
-    { "name": "castle south-east rooms (the user's own chests, behind the table)", "box": [937, 2347, 946, 2350], "z": [0, 25] }
+    { "name": "castle south-east rooms (the user's own chests, behind the table)", "box": [937, 2347, 946, 2350], "z": [0, 25] },
+    // the walkway to the west intake chests (933,2349 and 933,2350), which are exempt from the friend's side (the user,
+    // 2026-11-18: "Clem should be able to go over there and sort those into the westside chests"); the friend's
+    // chests along it stay off limits
+    { "name": "castle south-west walkway (to the west intake chests)", "box": [925, 2348, 934, 2350], "z": [0, 25] }
   ],
   // vendors (bridge 12): only the mapmaker ("Cador the mapmaker": the user, 2026-11-08, several NPCs in the shop; say
   // his name and buy or sell), only maps (blank and drawn, 0x14EB), and never more than this much gold at once
@@ -93,11 +97,12 @@
   // cut cloth on the floor is decoration
   "neverTouch": ["0x1766", "0x1767"],
   // the user's friend's things in the castle (the user, 2026-11-18: "leave them alone"): the 24 south-west chests
-  // (y 2348, x 928-933) and the south-west table
+  // (y 2348, x 928-933). Not their table (0x40908E5D): Clem may move it to reach the west intake chests until the
+  // user removes it (2026-11-18: "yes, he can. But we're going to remove those tables")
   "offLimits": ["0x406D706B", "0x406D8317", "0x406DDDA7", "0x406DEDCE", "0x406DFE61", "0x406E05D1", "0x406E1054",
                 "0x406E178D", "0x406E477B", "0x406E6238", "0x406EB990", "0x40873984", "0x40874881", "0x40874EBA",
                 "0x40875299", "0x40875E86", "0x40876658", "0x40876C92", "0x40877048", "0x40877360", "0x408776D7",
-                "0x40877C35", "0x4087804E", "0x4087850E", "0x40908E5D"],
+                "0x40877C35", "0x4087804E", "0x4087850E"],
   // Cartography (2026-11-05): the skill shows a menu, "What do you want to make?", 4 = world map; Provocation and
   // Meditation for fights
   "skills": [12, 22, 46],

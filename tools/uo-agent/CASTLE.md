@@ -76,6 +76,9 @@ go in the trash.
 - The west dump chests are **exempt** from the friend's side: Clem goes over there to sort them ("Clem should be
   able to go over there and sort those into the westside chests"). Everything else on the friend's side stays off
   limits.
+- **The friend's table** (0x40908E5D, south-west) is going away: the user will remove it ("we're going to remove
+  those tables. They aren't going to be locked down anymore"). Until then Clem may release it, move it aside and lock
+  it down again to reach the west intake chests. The south-east table (the user's) stays.
 - **Trash barrel**: the barrel in the forge corner, 949,2322 ("yes that's the trash barrel").
 - **Smelting**: the 4 chests by the forge ("yes that's ok. If they ever get full then we'll figure out how to adjust
   it").
