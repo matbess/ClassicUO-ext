@@ -66,6 +66,21 @@ The 4 dump chests are next to the "window" by the main entrance.
 921,2329,6) holds the emptied loot bags, as the tower's backpacks crate does. Once it holds 125, further empty bags
 go in the trash.
 
+**The user's words** (2026-11-18):
+- **East storage** is the east wall, **west storage** the west wall. **"My vault"** is the user's personal chests
+  (south-east, behind their table); **"his vault"** is the friend's (south-west).
+- The 4 floor chests by the entrance are the **intake** or **dump chests**: 2 east (938,2349 and 938,2350), 2 west
+  (933,2349 and 933,2350).
+- **"Sort the east side"** sorts the east dump chests into east storage. **"Sort the west side"** sorts the west dump
+  chests into west storage. **"Sort all"** (or "all the dump chests") does both, each into its own side.
+- The west dump chests are **exempt** from the friend's side: Clem goes over there to sort them ("Clem should be
+  able to go over there and sort those into the westside chests"). Everything else on the friend's side stays off
+  limits.
+- **Trash barrel**: the barrel in the forge corner, 949,2322 ("yes that's the trash barrel").
+- **Smelting**: the 4 chests by the forge ("yes that's ok. If they ever get full then we'll figure out how to adjust
+  it").
+- **The banked ingots** (about 12,600 with Burgers) stay in the bank until someone puts them in an intake chest.
+
 **Secure chests** (the user, 2026-11-18): 28 more can be made ("I wish to secure this" on a locked-down chest).
 They hold at most about 400 stones each ("either 395 or 400"): plan for 395. 8 of them are the friend's: the two
 stacks at the west end of their row (x 928 and 929, y 2348), which Clem secures for them (the user: "yes, Clem can
@@ -104,8 +119,6 @@ The user's friend has no owner commands, so the tables are for the owner side. T
   south-west chests and their table in "offLimits".
 - The table is picked up and put down beside him, from 944,2349 (bridge 15, the user, 2026-11-18: "change the
   bridge so you can set down items anywhere near you"). Installed 2026-11-18 (cuo-agent34).
-- Open question: the west dump chests (933,2349 and 933,2350) are behind the friend's table, which Clem never
-  touches. How should loot dumped there be reached?
 - Step 3: the courtyard rune **stays in the box; Clem never carries one** (the user, 2026-11-18: "That's a security
   concern"). Bridge 14 (build cuo-agent33) casts Recall on **any recall rune within reach**, wherever it lies (a box,
   a chest, the bank), not only carried ones ("You should be able to recall from any rune"). Installed 2026-11-18.

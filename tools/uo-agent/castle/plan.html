@@ -124,10 +124,7 @@ footer { font-size: 12.5px; color: var(--muted); }
       <h2>Questions for you</h2>
       <ol>
         <li><b>Secure chests</b> hold at most about 400 stones each (you, 18 Nov: "either 395 or 400"); the plan keeps each under 395. Clem secures your friend's 8 too (you said yes).</li>
-        <li><b>The bank:</b> should the ingots and boards banked with Burgers (about 12,600 ingots) come to the castle, behind your table?</li>
-        <li><b>Trash:</b> is the barrel in the forge corner (949,2322) a trash barrel, or do we need one?</li>
-        <li><b>Smelting:</b> 4 chests by the forge instead of the tower's 6 crates, so Icepick smelts right there. OK?</li>
-        <li><b>The west dump chests</b> (933,2349 and 933,2350) are behind your friend's table. How should loot dumped there be reached?</li>
+        <li><b>Getting to the west dump chests:</b> they're behind your friend's table (927,2349). While it stands there, may Clem release it, move it aside and lock it down again, the same as yours? Or will it be gone by then?</li>
       </ol>
     </div>
   </div>
@@ -179,7 +176,7 @@ const EAST = [
   [2343, F(), F(), F(), F()],
 ];
 const FORGE = [
-  [2322, C('Smelting 1', 'craft', 'junk metal for Icepick'), C('Smelting 2', 'craft'), C('Smelting 3', 'craft'), C('Smelting 4', 'craft')],
+  [2322, C('Smelting 1', 'craft', 'junk metal for Icepick; the trash barrel is at 949,2322'), C('Smelting 2', 'craft'), C('Smelting 3', 'craft'), C('Smelting 4', 'craft')],
   [2326, C('Ingots', 'craft', 'working stock'), C('Boards & logs', 'craft', 'working stock'), C('Cloth & leather', 'craft', 'for tailoring and bandages'), C('Tools', 'craft', 'saws, scissors, tongs, shovels')],
   [2327, C('Cooking', 'craft', 'raw meat and fish steaks'), F(), F(), F()],
 ];
@@ -256,10 +253,10 @@ const TABS = [
       <p class="muted">Each side is shut off by a locked-down table across the walkway on y 2349. Clem releases and moves the south-east table to get in, and always puts it back and locks it down.</p></div>
     <h3>South-east: yours, managed by Clem (no secures needed: the table protects them)</h3>
     ${stacks(SE, 'x (y 2348)')}
-    <div class="notes"><span>Plus the two east dump chests on the floor at 938,2349 and 938,2350: drop loot there to be sorted.</span></div>
+    <div class="notes"><span>Plus the two east intake (dump) chests on the floor at 938,2349 and 938,2350: "sort the east side" sorts them into east storage.</span></div>
     <h3>South-west: your friend's</h3>
     ${stacks(SW, 'x (y 2348)')}
-    <div class="notes"><span>The 8 chests at the west end (x 928 and 929) become secure, since their table may go. Plus the two west dump chests at 933,2349 and 933,2350. Apart from securing those 8, Clem never touches your friend's chests or table.</span></div>` },
+    <div class="notes"><span>The 8 chests at the west end (x 928 and 929) become secure, since their table may go. Plus the two west intake (dump) chests at 933,2349 and 933,2350, which are exempt: "sort the west side" sorts them into west storage. Apart from those and securing the 8, Clem never touches your friend's things.</span></div>` },
 ];
 
 function showTab(id) {
