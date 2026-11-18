@@ -20,6 +20,10 @@ mining, lumberjacking, carpentry or smithing.
   they're all 0 and Int isn't 100 yet, tell the user. The bridge can't set skill locks, so the user sets Hiding down.
 - Give an estimate of how many steaks it will take while cooking: the user will add more if 5000 isn't enough.
 
+- **Dex** (2026-11-17 21:45): with Dex set down, every Int gain took a point of Dex, so Dex hit 25 at Int 46, not at
+  Int 100 as the user expected. The loop was stopped to ask; the user locked Dex at 24 ("Ok I locked it at 24,
+  Continue please"). A down stat that falls faster than planned is a stop-and-tell.
+
 ## How the server does it (tested 2026-11-17)
 
 - From 1756,1409 (a tile from the forge 0x408A3611 at 1755,1410; two from the chest). From two tiles: "That is too
