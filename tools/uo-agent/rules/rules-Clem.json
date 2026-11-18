@@ -97,8 +97,8 @@
   // cut cloth on the floor is decoration
   "neverTouch": ["0x1766", "0x1767"],
   // the user's friend's things in the castle (the user, 2026-11-18: "leave them alone"): the 24 south-west chests
-  // (y 2348, x 928-933). Not their table (0x40908E5D): Clem may move it to reach the west intake chests until the
-  // user removes it (2026-11-18: "yes, he can. But we're going to remove those tables")
+  // (y 2348, x 928-933). Their tables were removed by the user (2026-11-18), so the walkway to the west intake chests
+  // is open
   "offLimits": ["0x406D706B", "0x406D8317", "0x406DDDA7", "0x406DEDCE", "0x406DFE61", "0x406E05D1", "0x406E1054",
                 "0x406E178D", "0x406E477B", "0x406E6238", "0x406EB990", "0x40873984", "0x40874881", "0x40874EBA",
                 "0x40875299", "0x40875E86", "0x40876658", "0x40876C92", "0x40877048", "0x40877360", "0x408776D7",

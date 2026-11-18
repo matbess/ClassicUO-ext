@@ -76,9 +76,10 @@ go in the trash.
 - The west dump chests are **exempt** from the friend's side: Clem goes over there to sort them ("Clem should be
   able to go over there and sort those into the westside chests"). Everything else on the friend's side stays off
   limits.
-- **The friend's table** (0x40908E5D, south-west) is going away: the user will remove it ("we're going to remove
-  those tables. They aren't going to be locked down anymore"). Until then Clem may release it, move it aside and lock
-  it down again to reach the west intake chests. The south-east table (the user's) stays.
+- **The friend's tables are gone** (the user, 2026-11-18 01:46: "I removed the tables that were blocking his vault
+  so he (and you) can access his vault now"). Both south-west tables (0x40908E5D and 0x40909037) were taken up into
+  Clem's pack; the walkway along y 2349 is open from the west hall to the west intake chests. The south-east table
+  (the user's) stays.
 - **Trash barrel**: the barrel in the forge corner, 949,2322 ("yes that's the trash barrel").
 - **Smelting**: the 4 chests by the forge ("yes that's ok. If they ever get full then we'll figure out how to adjust
   it").
@@ -103,7 +104,7 @@ Each south room is shut off by a **locked-down table** across the walkway on y 2
 
 - **South-east table** `0x408793A4` at **943,2349,6**. **It stays.** It has to be released and moved to get in,
   then moved back and locked down again every time.
-- **South-west table** `0x40908E5D` at **927,2349,6**. This is the friend's side: it may go away. Never touch it.
+- **South-west table** `0x40908E5D`: removed by the user on 2026-11-18; the friend's side is open.
 
 The user's friend has no owner commands, so the tables are for the owner side. The user, 2026-11-18, "correct!":
 
