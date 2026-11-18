@@ -5,7 +5,8 @@
   // Agent/alarm.json and can't set off Icepick's or Burgers' guards.
   // The vault (the chest room behind the locked door at 1757,1412 on the second floor, x 1758-1763): not for his
   // maps (CARTO.md), but he goes in for one thing: the gem bag in the gems chest (col 5, bottom), which he takes to
-  // town to sell (the user, 2026-11-09; GEMS.md). The vault door always ends locked and closed.
+  // town to sell (the user, 2026-11-09; GEMS.md); and, when Johnny is offline, to sort loot as Johnny does (the user,
+  // 2026-11-14; the uo-sort skill). The vault door always ends locked and closed.
   "map": 0,
   "areas": [
     { "name": "ground floor hall", "box": [1750, 1410, 1763, 1413], "z": [0, 25] },
@@ -37,7 +38,18 @@
     { "name": "jeweler: Trinsic Gems", "box": [1868, 2778, 1918, 2828], "z": [-30, 80] },
     { "name": "jeweler: Vesper Gems", "box": [2851, 692, 2901, 742], "z": [-30, 80] },
     { "name": "jeweler: Magincia Gems", "box": [3633, 2162, 3683, 2212], "z": [-30, 80] },
-    { "name": "jeweler: Nujel'm Gems", "box": [3750, 1147, 3800, 1197], "z": [-30, 80] }
+    { "name": "jeweler: Nujel'm Gems", "box": [3750, 1147, 3800, 1197], "z": [-30, 80] },
+    // the Castle (the user's new house, 2026-11-18; CASTLE.md): where the loot moves to and Clem will live. Not the
+    // south-west rooms (x 925-934, y 2347-2350): the user's friend's, never touched (see offLimits)
+    { "name": "castle front (outside, where the Castle rune lands)", "box": [929, 2351, 941, 2362], "z": [-20, 30] },
+    { "name": "castle entrance room (the secure box with the courtyard rune)", "box": [935, 2348, 936, 2350], "z": [0, 25] },
+    { "name": "castle courtyard", "box": [930, 2341, 941, 2346], "z": [-10, 25] },
+    { "name": "castle great hall", "box": [924, 2324, 946, 2340], "z": [0, 25] },
+    { "name": "castle stairs to the west hall", "box": [921, 2321, 933, 2337], "z": [0, 40] },
+    { "name": "castle north corridor and forge corner", "box": [921, 2321, 950, 2328], "z": [0, 25] },
+    { "name": "castle west hall", "box": [921, 2325, 924, 2348], "z": [0, 25] },
+    { "name": "castle east hall", "box": [946, 2325, 950, 2350], "z": [0, 25] },
+    { "name": "castle south-east rooms (the user's own chests, behind the table)", "box": [937, 2347, 946, 2350], "z": [0, 25] }
   ],
   // vendors (bridge 12): only the mapmaker ("Cador the mapmaker": the user, 2026-11-08, several NPCs in the shop; say
   // his name and buy or sell), only maps (blank and drawn, 0x14EB), and never more than this much gold at once
@@ -58,22 +70,34 @@
   // the vault door (metal, 1757,1412, z 26: shut 0x0681, open 0x0682) and its key ring locked down in the bag room at
   // 1756,1410 (z 38), as Icepick uses them (SMITHING.md); for the gem bag only (GEMS.md)
   // and shop doors on the way to a jeweler: Marnie's room upstairs in Trinsic (1896,2806, z 20; GEMS.md)
-  "doors": ["0x408AEA54", "0x408AEA55", "0x408AEA59", "0x4000FCF3"],
-  "keys": ["0x4040A302", "0x404099E0"],
+  // the castle's front door and central door (both halves), and the key rings hanging by them: 0x4093D690 outside
+  // the front door, 0x408CB8EE on the courtyard side of the central door (CASTLE.md)
+  "doors": ["0x408AEA54", "0x408AEA55", "0x408AEA59", "0x4000FCF3", "0x40913567", "0x40913568", "0x40913571", "0x40913572"],
+  "keys": ["0x4040A302", "0x404099E0", "0x4093D690", "0x408CB8EE"],
   // a trapped pouch, used when he's paralysed; and the Gems runebook (0x0EFA, a spellbook's graphic), opened to
-  // press a rune's Recall button (GEMS.md)
-  "useFromBackpack": ["0x0E79", "0x0EFA"],
+  // press a rune's Recall button (GEMS.md); and for sorting (the user, 2026-11-14: "yes you can use Clem's
+  // scissors"): scissors (the spare pair he borrows from the supplies chest) and saws
+  "useFromBackpack": ["0x0E79", "0x0EFA", "0x0F9E", "0x0F9F", "0x1034", "0x1035", "0x1028", "0x1029"],
   // a tired horse (the user, 2026-11-06; MINING.md "Tired mount"): get away, dismount, say "all follow me", mount
   // again; "remove thyself" (the house command) puts a creature off the front steps. His horse: "a horse" 0x00043254 (read 2026-11-06 with him dismounted inside).
-  "say": ["all follow me", "remove thyself"],
+  // and the owner commands for the castle's south-east table (the user, 2026-11-18): released and moved to get at
+  // his own chests, put back and locked down again every time
+  "say": ["all follow me", "remove thyself", "i wish to release this", "i wish to lock this down"],
   "mounts": ["0x00043254"],
   // bags of maps are put down at his feet: backpack, bag, pouch
-  "dropOnGround": ["0x0E75", "0x0E76", "0x0E79"],
+  // and the castle's south-east table (0x0B34), moved through his pack (the bridge only puts things down at his feet)
+  "dropOnGround": ["0x0E75", "0x0E76", "0x0E79", "0x0B34"],
   // no pausing (the user, 2026-11-05: people walk around the tower; nothing should stop because of that)
   "pauseForPeople": false,
   "ignorePeople": [],
   // cut cloth on the floor is decoration
   "neverTouch": ["0x1766", "0x1767"],
+  // the user's friend's things in the castle (the user, 2026-11-18: "leave them alone"): the 24 south-west chests
+  // (y 2348, x 928-933) and the south-west table
+  "offLimits": ["0x406D706B", "0x406D8317", "0x406DDDA7", "0x406DEDCE", "0x406DFE61", "0x406E05D1", "0x406E1054",
+                "0x406E178D", "0x406E477B", "0x406E6238", "0x406EB990", "0x40873984", "0x40874881", "0x40874EBA",
+                "0x40875299", "0x40875E86", "0x40876658", "0x40876C92", "0x40877048", "0x40877360", "0x408776D7",
+                "0x40877C35", "0x4087804E", "0x4087850E", "0x40908E5D"],
   // Cartography (2026-11-05): the skill shows a menu, "What do you want to make?", 4 = world map; Provocation and
   // Meditation for fights
   "skills": [12, 22, 46],

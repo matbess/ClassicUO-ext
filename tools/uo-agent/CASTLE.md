@@ -82,11 +82,16 @@ The user's friend has no owner commands, so the tables are for the owner side. T
 
 ## Known so far, not yet done
 
-- No tool yet: `castle.py` (in, out, table open/close) is to come, so every script gets in the same way. The
-  user, 2026-11-18: "that should be a skill or something. We're going to need to do this a lot with the UO
-  automation, not just for moving."
-- Clem's rules (`rules/rules-Clem.json`) need the castle: its areas, the doors and keys above, and the two house
-  phrases in "say".
+- **`castle.py`** (2026-11-18, the user: "that should be a skill or something. We're going to need to do this a lot
+  with the UO automation, not just for moving"): `in`, `out`, `table open`, `table close` and `where`, so every job
+  gets in and out the same way. **Not yet tried in the game**: the first runs are watched by the user.
+- Clem's rules (`rules/rules-Clem.json`) have the castle (2026-11-18): its rooms as areas (not the south-west rooms),
+  both doors and their key rings, the two house phrases, the table in "dropOnGround", and the friend's 24
+  south-west chests and their table in "offLimits".
+- The table moves through his pack: the bridge only puts things down at the character's feet, so it goes into his
+  pack, he stands on the new spot, and it goes down there.
+- Open question: the west dump chests (933,2349 and 933,2350) are behind the friend's table, which Clem never
+  touches. How should loot dumped there be reached?
 - Step 3: the courtyard rune **stays in the box; Clem never carries one** (the user, 2026-11-18: "That's a security
   concern"). Bridge 14 (build cuo-agent33) casts Recall on **any recall rune within reach**, wherever it lies (a box,
   a chest, the bank), not only carried ones ("You should be able to recall from any rune"). Installed 2026-11-18.
