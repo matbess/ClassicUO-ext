@@ -47,6 +47,9 @@ CHEST = '0x4074A4C1'    # the bottom wooden chest at 1757,1407,6 (locked down) w
 FORGE = '0x408A3611'    # 1755,1410
 SPOT = (1756, 1409)     # a tile from the forge, two from the chest
 RAW = '0x097A'          # raw fish steak
+COOKED_STEAK = '0x097B'
+PILE = '0x407D3384'     # the cooked steaks on the forge (58290 on 2026-11-17; a pile holds at most 60000)
+UNLOAD_EVERY = 100      # cooks between trips to the pile (the user: "put them over there once in a while")
 DOWN = ['Herding', 'Swordsmanship', 'Tactics', 'Wrestling']   # set down, in the user's order; Hiding after them
 TARGET_INT = 100
 
@@ -217,6 +220,25 @@ def check_done(info, state):
     return sk
 
 
+def unload(info, pack):
+    """The cooked steaks in his pack onto the pile on the forge (the user, 2026-11-17). Returns how many."""
+    moved = 0
+    for i in uo.call(info, 'GET', '/contents', serial=pack)['items']:
+        if (i.get('graphic') or '').upper() != COOKED_STEAK.upper():
+            continue
+        n = i.get('amount') or 1
+        r = act(info, 'POST', '/move', serial=i['serial'], to=PILE)
+        if not r.get('moved'):
+            pile = uo.call(info, 'GET', '/item', serial=PILE).get('item', {})
+            raise Stop(f'the cooked pile on the forge did not take {n} steaks (it holds {pile.get("amount")}; a pile '
+                       f'holds at most 60000): {[m["text"] for m in r.get("messages", [])]}')
+        moved += n
+    if moved:
+        pile = uo.call(info, 'GET', '/item', serial=PILE).get('item', {})
+        say(f'{moved} cooked steaks onto the pile on the forge (now {pile.get("amount")})')
+    return moved
+
+
 def take_one(info, pack):
     """Exactly one raw steak in the pack, from the chest. Returns its serial."""
     mine = raw_items(info, pack)
@@ -302,9 +324,13 @@ def run(target):
         ', '.join(f'{n} {sk[n]["base"]} ({sk[n]["lock"]})' for n in DOWN) +
         f'; {sum(i.get("amount") or 1 for i in raw_items(info, CHEST))} raw steaks in the chest')
     last_cooking = sk['Cooking']['base']
+    unload(info, pack)
     while True:
         try:
             sk = check_done(info, state)
+            if st['weight'] > st['weightMax'] - 40 or (state['cooks'] and state['cooks'] % UNLOAD_EVERY == 0):
+                unload(info, pack)
+                st = uo.call(info, 'GET', '/status')
             if st['weight'] > st['weightMax'] - 15:
                 raise Stop(f'too heavy to carry more cooked steaks ({st["weight"]}/{st["weightMax"]})')
             result = cook_one(info, state, pack)

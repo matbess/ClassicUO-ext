@@ -14,8 +14,9 @@
   "pauseForPeople": false,
   // the two chests stacked on the steak chest aren't his
   "offLimits": ["0x4073C9D0", "0x40531814"],
-  // raw and cooked fish steaks are never picked up off the floor (the raw pile, the cooked pile on the forge)
-  "neverTouch": ["0x097A", "0x097B"],
+  // raw fish steaks are never picked up off the floor or dropped onto (the raw pile). Cooked ones aren't listed: the
+  // cooked steaks go onto the cooked pile on the forge (the user, 2026-11-17), and neverTouch blocks that too
+  "neverTouch": ["0x097A"],
   // raw fish steaks, double-clicked in his pack and aimed at the forge
   "useFromBackpack": ["0x097A"],
   "mounts": ["0x00042FCB"],

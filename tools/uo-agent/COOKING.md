@@ -64,5 +64,10 @@ python3 -I cook.py stop      # after the steak it's on
 
 It logs every stat change, and a line every 25 steaks or on each Cooking gain, with the steaks-per-Int estimate. It
 stops when Int reaches 100, Cooking reaches its cap, the down skills are all 0 at the skill cap, the chest runs out,
-something unexpected happens, he's too heavy, or the user takes him over. Cooked steaks stay in his pack for now
-(about 0.1 stone each).
+something unexpected happens, he's too heavy, or the user takes him over.
+
+Cooked steaks (about 0.1 stone each) go onto the cooked pile on the forge (0x407D3384, 1755,1410,9; the user,
+2026-11-17: "put the cooked steaks on the pile on the forge if your weight gets too much. Or just put them over there
+once in a while"): at the start, every 100 steaks, and whenever he's within 40 stones of his max. Cooked steaks aren't
+in the rules' `neverTouch`, since that also blocks dropping onto a pile. A pile holds at most 60000 and this one had
+58290, so it has room for about 1700: when it won't take more, the loop stops and says so.
