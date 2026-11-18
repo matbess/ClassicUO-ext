@@ -1,0 +1,274 @@
+<title>Castle Storage Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a castle floor plan up top (the real tile grid, x 919-952 by y 2320-2358), then each chest group as the
+   stack it really is: one row per tile, four chests from the top (z 18) down to the floor (z 6). */
+:root {
+  --bg: #f3f4f1;          /* pale limestone */
+  --panel: #ffffff;
+  --ink: #1d232b;
+  --muted: #5d6672;
+  --line: #d4d8d6;
+  --stone: #c9ccc6;       /* walls and halls on the plan */
+  --accent: #8a6a1f;      /* brass, like the castle's sign */
+  --weapons: #b85c4a;
+  --armour: #4f7a9a;
+  --magic: #7b5aa6;
+  --stock: #3f8a6b;       /* scrolls, reagents, gems, potions */
+  --utility: #8a7a52;
+  --craft: #a8742c;
+  --free: #9aa2a8;
+  --friend: #c7c9cc;
+  --chip-ink: #ffffff;
+  --route: #8a6a1f;
+  --font-head: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15191e; --panel: #1d2329; --ink: #e6e8e4; --muted: #9aa3ad; --line: #2f3740; --stone: #343c45;
+    --accent: #d2ad5a; --weapons: #c9705e; --armour: #6a97b8; --magic: #9b7cc6; --stock: #55a585; --utility: #a8996e;
+    --craft: #c58e45; --free: #5b646c; --friend: #3a4148; --chip-ink: #10141a; --route: #d2ad5a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15191e; --panel: #1d2329; --ink: #e6e8e4; --muted: #9aa3ad; --line: #2f3740; --stone: #343c45;
+  --accent: #d2ad5a; --weapons: #c9705e; --armour: #6a97b8; --magic: #9b7cc6; --stock: #55a585; --utility: #a8996e;
+  --craft: #c58e45; --free: #5b646c; --friend: #3a4148; --chip-ink: #10141a; --route: #d2ad5a; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1060px; margin: 0 auto; padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-head); text-wrap: balance; margin: 0; }
+h1 { font-size: 30px; letter-spacing: -0.01em; }
+h2 { font-size: 21px; }
+h3 { font-size: 16px; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.muted { color: var(--muted); }
+.mono { font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+header { display: grid; gap: 8px; }
+.draft { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  border: 1px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 1px 7px; }
+
+.top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 760px) { .top { grid-template-columns: 1fr; } }
+.plan { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.plan svg { width: 100%; height: auto; display: block; }
+.plan text { font-family: var(--font-body); fill: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 11px; height: 11px; border-radius: 2px; display: inline-block; }
+
+.questions { background: var(--panel); border: 1px solid var(--accent); border-radius: 10px; padding: 16px 18px;
+  display: grid; gap: 10px; }
+.questions ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.ideas { display: grid; gap: 8px; }
+.ideas ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tabs button { font: 500 14px var(--font-body); color: var(--ink); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.group { display: grid; gap: 12px; }
+.group-head { display: grid; gap: 4px; }
+.stack-table { overflow-x: auto; }
+.stacks { display: grid; gap: 6px; min-width: 520px; }
+.stack { display: grid; grid-template-columns: 88px repeat(4, minmax(0, 1fr)); gap: 6px; align-items: stretch; }
+.stack .where { font-family: var(--font-mono); font-size: 12px; color: var(--muted); align-self: center; }
+.colhead { font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.chest { border-radius: 6px; padding: 7px 9px; font-size: 13px; line-height: 1.3; color: var(--chip-ink);
+  font-weight: 500; min-height: 42px; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.chest small { font-weight: 400; opacity: 0.85; font-size: 11.5px; }
+.chest.free { background: transparent; color: var(--muted); border: 1px dashed var(--free); font-weight: 400; }
+.chest.friend { background: var(--friend); color: var(--muted); font-weight: 400; }
+.c-weapons { background: var(--weapons); } .c-armour { background: var(--armour); } .c-magic { background: var(--magic); }
+.c-stock { background: var(--stock); } .c-utility { background: var(--utility); } .c-craft { background: var(--craft); }
+.c-yours { background: var(--accent); }
+.mirror-note { font-size: 13.5px; color: var(--muted); }
+.notes { font-size: 13.5px; color: var(--muted); display: grid; gap: 4px; }
+footer { font-size: 12.5px; color: var(--muted); }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">The Castle · ground floor</span>
+    <h1>Where everything goes</h1>
+    <p class="muted">All 180 chests as Clem saw them on 18 Nov, with a first draft of what goes in each. <span class="draft">Draft</span> Nothing moves until you've changed and approved it.</p>
+  </header>
+
+  <div class="top">
+    <div class="plan">
+      <svg id="plan" viewBox="0 0 360 410" role="img" aria-label="Floor plan of the castle's ground floor with every chest"></svg>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="questions">
+      <h2>Questions for you</h2>
+      <ol>
+        <li><b>Your 20 south-east chests:</b> what should go in them? My guess is the things you'd hate to lose: the GM armour sets, the invulnerability pieces, the best weapons, maybe the gems. Right now the plan keeps those on the east wall.</li>
+        <li><b>Trash:</b> is the barrel in the forge corner (949,2322) a trash barrel, or do we need one? The tower's barrel stays behind.</li>
+        <li><b>Smelting:</b> the 6 smelting crates become 4 chests by the forge, so Icepick smelts right there. Is that how you want it?</li>
+        <li><b>The west dump chests</b> (933,2349 and 933,2350) are behind your friend's table, which Clem never touches. How should loot dumped there be reached?</li>
+        <li><b>Crafting corner:</b> is this split of the 12 forge chests right? Anything else for leveling (Icepick's cooking steaks, your carpentry boards)?</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="ideas">
+    <h2>How the draft is laid out</h2>
+    <ul>
+      <li>Every tile holds a stack of 4 chests, read from the top (z 18) down to the floor (z 6), like the tower's chest wall.</li>
+      <li>One chest per category, with the same bags and markers inside as in the tower. The tower squeezed 24 categories into 24 chests; the east wall has 60.</li>
+      <li>Gear sits at the north end, near the forge. Scrolls, reagents, gems and potions, which come in with almost every bag of loot, sit at the south end, nearest the dump chests.</li>
+      <li>Four whole stacks in the middle stay free, so weapons, armour and stock can all grow without moving anything.</li>
+      <li>The west wall is the same layout tile for tile, for overflow and for loot dumped on the west side.</li>
+    </ul>
+  </div>
+
+  <section class="group">
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div id="panel"></div>
+  </section>
+
+  <footer>Positions are the game's map coordinates (x, y; z is the height). Clem's walk through the castle on 18 Nov is the dotted line on the plan. Made from the recording in <span class="mono">uo-agent-work/castle</span>; the castle guide is <span class="mono">tools/uo-agent/CASTLE.md</span>.</footer>
+</div>
+
+<script>
+const ROWS = ['top (z 18)', '2nd (z 14)', '3rd (z 10)', 'floor (z 6)'];
+const C = (name, kind, note) => ({ name, kind, note });
+const F = () => C('free', 'free');
+
+// the draft for the east wall, north (y 2329) to south (y 2343); the west wall mirrors it tile for tile
+const EAST = [
+  [2329, C('Swords', 'weapons', 'swords, exceptional, knives'), C('Axes', 'weapons', 'axes, exceptional, pickaxes'), C('Maces & staves', 'weapons'), C('Polearms', 'weapons')],
+  [2330, C('Fencing', 'weapons'), C('Archery', 'weapons', 'bows, crossbows'), C('Attack wands', 'magic', 'fireball, lightning'), C('Healing wands', 'magic', 'greater healing')],
+  [2331, C('Plate', 'armour', 'arms, gloves, gorgets, legs, tunics'), C('Helms', 'armour'), C('Chain & ring + coifs', 'armour'), C('Leather + caps', 'armour')],
+  [2332, C('Studded', 'armour'), C('Shields', 'armour', 'spare + invulnerability'), C('GM armour sets', 'armour', '3 sets'), C('Plain gear', 'armour', '"of defense", 1–2 of each')],
+  [2333, C('Jewellery', 'magic', 'rings'), C('Magic clothing', 'magic', 'footwear, tunics & shirts'), F(), F()],
+  [2334, F(), F(), F(), F()],
+  [2335, F(), F(), F(), F()],
+  [2336, F(), F(), F(), F()],
+  [2337, F(), F(), F(), F()],
+  [2338, C('Heal potions', 'stock'), C('Cure potions', 'stock'), C('Refresh potions', 'stock'), C('Agility potions', 'stock')],
+  [2339, C('Strength potions', 'stock'), C('Poison potions', 'stock'), C('Explosion potions', 'stock'), F()],
+  [2340, C('Scrolls, circles 1–4', 'stock'), C('Scrolls, circles 5–8', 'stock'), C('Reagents', 'stock'), F()],
+  [2341, C('Gems', 'stock', 'the gem bag'), C('Miscellaneous', 'utility', 'key rings, crystal balls, treasure maps, cooked food'), F(), F()],
+  [2342, C('Supplies & ID wands', 'utility', 'lockpicks, arrows, cloth, leather, the spares pouch'), C('Empty bags', 'utility', 'the tower\'s backpacks crate'), C('Needs your decision', 'utility'), F()],
+  [2343, F(), F(), F(), F()],
+];
+const FORGE = [
+  [2322, C('Smelting 1', 'craft', 'junk metal for Icepick'), C('Smelting 2', 'craft'), C('Smelting 3', 'craft'), C('Smelting 4', 'craft')],
+  [2326, C('Ingots', 'craft'), C('Boards & logs', 'craft', 'carpentry stock'), C('Cloth & leather', 'craft', 'for tailoring and bandages'), C('Tools', 'craft', 'saws, scissors, tongs, shovels')],
+  [2327, C('Cooking', 'craft', 'raw meat and fish steaks'), F(), F(), F()],
+];
+const SE = [938, 939, 940, 941, 942].map(x => [x, ...[0, 1, 2, 3].map(() => C('yours', 'yours', 'to decide'))]);
+const SW = [928, 929, 930, 931, 932, 933].map(x => [x, ...[0, 1, 2, 3].map(() => C('your friend\'s', 'friend'))]);
+
+const KINDS = { weapons: 'Weapons', armour: 'Armour', magic: 'Magic items', stock: 'Scrolls, reagents, gems, potions',
+  utility: 'Supplies and odds', craft: 'Crafting', yours: 'Your own (south-east)', free: 'Free', friend: 'Your friend\'s (never touched)' };
+const COLOR = { weapons: '--weapons', armour: '--armour', magic: '--magic', stock: '--stock', utility: '--utility',
+  craft: '--craft', yours: '--accent', free: '--free', friend: '--friend' };
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function chest(c) {
+  if (c.kind === 'free') return '<div class="chest free">free</div>';
+  if (c.kind === 'friend') return '<div class="chest friend">friend\'s</div>';
+  return `<div class="chest c-${c.kind}">${esc(c.name)}${c.note ? `<small>${esc(c.note)}</small>` : ''}</div>`;
+}
+function stacks(list, label) {
+  return `<div class="stack-table"><div class="stacks">
+    <div class="stack"><span class="colhead">${label}</span>${ROWS.map(r => `<span class="colhead">${r}</span>`).join('')}</div>
+    ${list.map(([pos, ...cs]) => `<div class="stack"><span class="where">${pos}</span>${cs.map(chest).join('')}</div>`).join('')}
+  </div></div>`;
+}
+
+const TABS = [
+  { id: 'east', name: 'East wall · 60', html: () => `
+    <div class="group-head"><h2>East wall, the main vault</h2>
+      <p class="muted">x 947, from y 2329 at the north end to y 2343 at the south end. Most loot is dumped on the east side and sorted here.</p></div>
+    ${stacks(EAST, 'y (north → south)')}
+    <div class="notes"><span>${EAST.flat().filter(c => c && c.kind === 'free').length} of 60 chests are left free.</span></div>` },
+  { id: 'west', name: 'West wall · 60', html: () => `
+    <div class="group-head"><h2>West wall, the mirror</h2>
+      <p class="muted">x 921, y 2329–2343. Same category on the same tile as the east wall. Loot dumped on the west side is sorted here, and either wall takes the other's overflow.</p></div>
+    ${stacks(EAST, 'y (north → south)')}` },
+  { id: 'forge', name: 'Forge corner · 12', html: () => `
+    <div class="group-head"><h2>Forge corner, for crafting</h2>
+      <p class="muted">x 944, next to the forges (946–947, 2322) and the anvil (948, 2323). Crafting supplies and things for leveling skills.</p></div>
+    ${stacks(FORGE, 'y')}` },
+  { id: 'south', name: 'South rooms · 50', html: () => `
+    <div class="group-head"><h2>South rooms</h2>
+      <p class="muted">Each side is shut off by a locked-down table across the walkway on y 2349. Clem releases and moves the south-east table to get in, and always puts it back and locks it down.</p></div>
+    <h3>South-east: yours, managed by Clem</h3>
+    ${stacks(SE, 'x (y 2348)')}
+    <div class="notes"><span>Plus the two east dump chests on the floor at 938,2349 and 938,2350: drop loot there to be sorted.</span></div>
+    <h3>South-west: your friend's</h3>
+    ${stacks(SW, 'x (y 2348)')}
+    <div class="notes"><span>Plus the two west dump chests at 933,2349 and 933,2350. Clem never touches your friend's chests or table.</span></div>` },
+];
+
+function showTab(id) {
+  const t = TABS.find(t => t.id === id) || TABS[0];
+  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.id === t.id));
+  document.getElementById('panel').innerHTML = `<div class="group">${t.html()}</div>`;
+  try { localStorage.setItem('castle-tab', t.id); } catch (e) {}
+}
+document.getElementById('tabs').innerHTML = TABS.map(t => `<button role="tab" data-id="${t.id}" type="button">${t.name}</button>`).join('');
+document.getElementById('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showTab(b.dataset.id); });
+let start = 'east';
+try { start = localStorage.getItem('castle-tab') || 'east'; } catch (e) {}
+showTab(start);
+
+// ---- the floor plan: 10 units per tile, x 919..952, y 2320..2358 ----
+const X0 = 919, Y0 = 2320, S = 10;
+const px = x => (x - X0) * S + 12, py = y => (y - Y0) * S + 6;
+const css = v => `var(${v})`;
+let svg = '';
+const rect = (x1, y1, x2, y2, fill, extra = '') =>
+  `<rect x="${px(x1)}" y="${py(y1)}" width="${(x2 - x1 + 1) * S}" height="${(y2 - y1 + 1) * S}" fill="${fill}" ${extra}/>`;
+// halls and rooms, roughly where Clem could walk
+[[921, 2321, 950, 2324], [921, 2325, 924, 2348], [946, 2325, 950, 2349], [925, 2325, 945, 2340],
+ [928, 2347, 942, 2350], [930, 2341, 941, 2346]].forEach(r => { svg += rect(...r, css('--stone'), 'rx="2" opacity="0.55"'); });
+svg += rect(930, 2341, 941, 2346, 'none', `stroke="${css('--muted')}" stroke-dasharray="3 3" stroke-width="1"`);
+const label = (x, y, t, anchor = 'middle', size = 9) =>
+  `<text x="${px(x) + 5}" y="${py(y) + 7}" text-anchor="${anchor}" font-size="${size}">${t}</text>`;
+svg += label(935.5, 2333, 'great hall') + label(935.5, 2343.5, 'courtyard') + label(935.5, 2321.5, 'north corridor');
+svg += label(935.5, 2358, 'front: the Castle rune lands here');
+// chest stacks
+const chestAt = (x, y, kind) => { svg += rect(x, y, x, y, css(COLOR[kind]), `rx="1.5" stroke="${css('--panel')}" stroke-width="1"`); };
+EAST.forEach(([y, ...cs]) => chestAt(947, y, cs.find(c => c.kind !== 'free')?.kind || 'free'));
+EAST.forEach(([y, ...cs]) => chestAt(921, y, cs.find(c => c.kind !== 'free')?.kind || 'free'));
+FORGE.forEach(([y]) => chestAt(944, y, 'craft'));
+SE.forEach(([x]) => chestAt(x, 2348, 'yours'));
+SW.forEach(([x]) => chestAt(x, 2348, 'friend'));
+[[938, 2349], [938, 2350]].forEach(([x, y]) => chestAt(x, y, 'utility'));
+[[933, 2349], [933, 2350]].forEach(([x, y]) => chestAt(x, y, 'friend'));
+// doors, tables, forge, rune box
+const mark = (x, y, w, h, fill) => { svg += `<rect x="${px(x)}" y="${py(y) + 3}" width="${w * S}" height="${h}" fill="${fill}"/>`; };
+mark(935, 2351, 2, 4, css('--ink')); mark(935, 2341, 2, 4, css('--ink')); mark(935, 2347, 2, 4, css('--muted')); mark(934, 2325, 2, 4, css('--muted'));
+svg += rect(943, 2349, 943, 2349, 'none', `stroke="${css('--accent')}" stroke-width="2"`);
+svg += rect(927, 2349, 927, 2349, 'none', `stroke="${css('--muted')}" stroke-width="2"`);
+svg += rect(946, 2322, 947, 2322, css('--craft'), 'opacity="0.45"');
+svg += `<circle cx="${px(935) + 5}" cy="${py(2349) + 5}" r="3" fill="${css('--accent')}"/>`;
+// Clem's walk
+const WALK = [[935,2356],[935,2354],[935,2353],[935,2352],[935,2350],null,[935,2344],[935,2343],[935,2342],[935,2340],[935,2338],[933,2336],[933,2335],[933,2332],[932,2332],[928,2333],[928,2336],[925,2336],[923,2335],[921,2331],[923,2329],[923,2327],[924,2327],[924,2323],[921,2323],[921,2327],[922,2327],[923,2328],[923,2329],[923,2330],[923,2333],[923,2334],[923,2336],[923,2338],[923,2342],[923,2343],[923,2348],[925,2348],[926,2349],[929,2349],[931,2349],[925,2349],[921,2345],[922,2345],[922,2343],[922,2338],[922,2332],[923,2328],[924,2326],[925,2325],[927,2323],[929,2323],[932,2324],[936,2323],[941,2323],[945,2323],[945,2324],[947,2326],[948,2327],[949,2328],[948,2327],[946,2325],[947,2326],[949,2330],[949,2334],[949,2337],[949,2340],[949,2343],[949,2346],[947,2349],[946,2349],[944,2349],[943,2349],[941,2349],[940,2349]];
+let seg = [];
+const flush = () => { if (seg.length > 1) svg += `<polyline points="${seg.map(([x, y]) => `${px(x) + 5},${py(y) + 5}`).join(' ')}" fill="none" stroke="${css('--route')}" stroke-width="1.4" stroke-dasharray="2 2.5" opacity="0.9"/>`; seg = []; };
+WALK.forEach(p => { if (p) seg.push(p); else flush(); }); flush();
+svg += label(921, 2351, 'W', 'middle', 10) + label(949, 2351, 'E', 'middle', 10);
+document.getElementById('plan').innerHTML = svg;
+
+document.getElementById('legend').innerHTML = Object.entries(KINDS).map(([k, n]) =>
+  `<span><i class="sw" style="background:var(${COLOR[k]})"></i>${n}</span>`).join('') +
+  `<span><i class="sw" style="background:var(--ink)"></i>Doors (front and central)</span>` +
+  `<span><i class="sw" style="border:2px solid var(--accent);width:8px;height:8px"></i>South-east table</span>` +
+  `<span><i class="sw" style="background:var(--accent);border-radius:50%"></i>Box with the courtyard rune</span>`;
+</script>
