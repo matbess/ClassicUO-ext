@@ -1,5 +1,5 @@
 #!/bin/bash
-# Start a build in the throwaway test copy ($BUILDS/cuo-smoke) for 45 seconds and report errors.
+# Start a build in the throwaway test copy ($BUILDS/cuo-smoke) for 10 seconds (the user, 2026-11-18: "just open it for 10 seconds") and report errors.
 # Usage: smoke.sh NAME.  Refuses while any game client (or wineserver) is running: it ends with wineserver -k,
 # which would close the user's clients.
 set -e
@@ -13,7 +13,7 @@ rm -rf "$T/Logs" "$T/Agent"
 export WINEPREFIX="$PREFIX" WINEDEBUG=err+all,fixme-all
 cd "$T"
 ("$BUILDTOOLS/w10-wine" "Z:$(echo "$T/ClassicUO.exe" | tr / '\\')" > "$L" 2>&1 &)
-perl -e 'sleep 45'
+perl -e 'sleep 10'
 pgrep -fl "ClassicUO.exe" | cut -c1-60 || echo "the test client is not running (it may have crashed)"
 grep -a -i -E 'error|exception|fatal|crash|unhandled' "$L" | grep -a -v -E 'err:listview|fixme' | cut -c1-160 | head -5
 grep -a -E 'Done!' "$L" | head -1

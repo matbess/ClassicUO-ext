@@ -41,7 +41,7 @@ against the MSVC and Windows SDK libraries that `xwin` downloads.
 
 ```
 ./build.sh cuo-agent8            # safe while the game runs: writes only into $BUILDS/cuo-agent8
-./smoke.sh cuo-agent8            # 45 s in the test copy; refuses while any client or wineserver runs
+./smoke.sh cuo-agent8            # 10 s in the test copy; refuses while any client or wineserver runs
 ./install.sh cuo-agent8 agent7   # refuses while the game runs; backs up the installed DLL as …-agent7 first
 ```
 
