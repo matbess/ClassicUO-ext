@@ -66,6 +66,12 @@ The 4 dump chests are next to the "window" by the main entrance.
 921,2329,6) holds the emptied loot bags, as the tower's backpacks crate does. Once it holds 125, further empty bags
 go in the trash.
 
+**Secure chests** (the user, 2026-11-18): 28 more can be made ("I wish to secure this" on a locked-down chest).
+They hold at most about 400 stones each ("either 395 or 400"): plan for 395. 8 of them are the friend's: the two
+stacks at the west end of their row (x 928 and 929, y 2348), which Clem secures for them (the user: "yes, Clem can
+secure those 8 chests"; for that job only, his rules let him at them). Gold goes behind the user's table, never in a
+secure: too heavy.
+
 The draft of what goes where is the page "Castle Storage Plan"
 (https://claude.ai/artifact/FMom8XXRnpNF2zyWtoETVe, `castle/plan.html`). The keep rules stay as they are for now (the
 user, 2026-11-18: "Let's just keep what we have planned for now").
