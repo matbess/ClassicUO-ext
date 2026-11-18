@@ -168,12 +168,33 @@ def wait_for_bridge(why):
 
 
 def estimate(state):
-    """Steaks (cooks) per Int point so far, and the steaks still needed to reach the target."""
+    """Skill gains come slower as Cooking rises (very slow from about 90, 95, 99), so the steaks per Int point so
+    far isn't the estimate. Int comes with Cooking gains: Int points per Cooking point so far gives the Cooking level
+    where Int reaches the target; the steaks per Cooking point in the current band (10 points of Cooking) is the
+    cheapest the rest can be (higher bands only cost more). Returns (Int per Cooking point, Cooking needed, steaks per
+    Cooking point now, steaks still needed at least) or None."""
     gained = state['int'] - state['startInt']
-    if gained <= 0:
-        return None, None
-    per = state['cooks'] / gained
-    return per, round(per * max(0, state['target'] - state['int']))
+    cooking_gained = state.get('cooking', 0) - state.get('startCooking', 0)
+    if gained <= 0 or cooking_gained <= 0:
+        return None
+    per_point = gained / cooking_gained
+    need_cooking = state.get('cooking', 0) + max(0, state['target'] - state['int']) / per_point
+    band = state.get('bands', {}).get(str(int(state.get('cooking', 0) // 10)), {})
+    if not band.get('points'):
+        return per_point, need_cooking, None, None
+    steaks_per_point = band['steaks'] / band['points']
+    return per_point, need_cooking, steaks_per_point, round(steaks_per_point * (need_cooking - state['cooking']))
+
+
+def describe_estimate(state):
+    e = estimate(state)
+    if not e:
+        return ''
+    per_point, need_cooking, steaks_per_point, need = e
+    text = f'{per_point:.2f} Int per Cooking point, so Int {state["target"]} at about Cooking {need_cooking:.0f}'
+    if need is not None:
+        text += f'; {steaks_per_point:.1f} steaks per Cooking point now, so at least {need} more steaks'
+    return text
 
 
 def check_done(info, state):
@@ -240,6 +261,9 @@ def cook_one(info, state, pack):
         raise Stop(f'no cooking result in {RESULT_WAIT} s; the server said: {seen[-6:]}')
     state['cooks'] += 1
     state[result] += 1
+    band = state.setdefault('bands', {}).setdefault(str(int(state.get('cooking', 0) // 10)),
+                                                   {'steaks': 0, 'points': 0.0, 'int': 0})
+    band['steaks'] += 1
     for t in seen:
         m = STAT.search(t)
         if m:
@@ -248,6 +272,7 @@ def cook_one(info, state, pack):
             state[key] = now
             say(f'{stat} {by:+d} -> {now} (steak #{state["cooks"]})')
             if key == 'int':
+                band['int'] += by
                 state['intGains'].append([time.strftime('%Y-%m-%d %H:%M:%S'), state['cooks'], now])
     return result
 
@@ -268,8 +293,10 @@ def run(target):
         state = {'started': time.strftime('%Y-%m-%d %H:%M:%S'), 'startInt': st['manaMax'], 'int': st['manaMax'],
                  'dex': st['staminaMax'], 'str': None, 'cooks': 0, 'cooked': 0, 'burnt': 0, 'intGains': []}
     state['target'] = target
-    save_state(state)
     sk = skills(info)
+    state.setdefault('startCooking', sk['Cooking']['base'])
+    state['cooking'] = sk['Cooking']['base']
+    save_state(state)
     say(f'cooking one steak at a time until Int {target}: Int {state["int"]}, Dex {state["dex"]}, Cooking '
         f'{sk["Cooking"]["base"]} ({sk["Cooking"]["lock"]}), ' +
         ', '.join(f'{n} {sk[n]["base"]} ({sk[n]["lock"]})' for n in DOWN) +
@@ -283,13 +310,15 @@ def run(target):
             result = cook_one(info, state, pack)
             sk = skills(info)
             gain = round(sk['Cooking']['base'] - last_cooking, 1)
-            last_cooking = sk['Cooking']['base']
+            if gain > 0:
+                b = state['bands'][str(int(last_cooking // 10))]
+                b['points'] = round(b['points'] + gain, 1)
+            last_cooking = state['cooking'] = sk['Cooking']['base']
             save_state(state)
             if state['cooks'] % 25 == 0 or gain:
-                per, need = estimate(state)
                 say(f'#{state["cooks"]} {result}; Cooking {sk["Cooking"]["base"]}' + (f' (+{gain})' if gain else '') +
-                    f'; Int {state["int"]}, Dex {state["dex"]}; Herding {sk["Herding"]["base"]}' +
-                    (f'; {per:.1f} steaks per Int point, about {need} more to Int {target}' if per else ''))
+                    f'; Int {state["int"]}, Dex {state["dex"]}; Herding {sk["Herding"]["base"]}; ' +
+                    describe_estimate(state))
             st = uo.call(info, 'GET', '/status')
         except uo.BridgeError as e:
             if e.code != 0:
@@ -306,11 +335,14 @@ def report():
     if not s:
         print('nothing yet')
         return
-    per, need = estimate(s)
     print(f"since {s['started']}: {s['cooks']} steaks ({s['cooked']} cooked, {s['burnt']} burnt); "
-          f"Int {s['startInt']} -> {s['int']}, Dex {s['dex']}")
-    if per:
-        print(f'{per:.1f} steaks per Int point; about {need} more steaks to Int {s["target"]}')
+          f"Int {s['startInt']} -> {s['int']}, Dex {s['dex']}; Cooking {s.get('startCooking')} -> {s.get('cooking')}")
+    print(describe_estimate(s) or 'no estimate yet')
+    print('by Cooking band: steaks, Cooking points gained, Int gained, steaks per Cooking point, steaks per Int')
+    for k in sorted(s.get('bands', {}), key=int):
+        b = s['bands'][k]
+        print(f"  {int(k) * 10:3d}-{int(k) * 10 + 10:<3d} {b['steaks']:6d} {b['points']:6.1f} {b['int']:4d}"
+              f"  {b['steaks'] / b['points'] if b['points'] else 0:7.1f}  {b['steaks'] / b['int'] if b['int'] else 0:7.1f}")
     print('last Int gains (time, steak #, Int):', s['intGains'][-5:])
 
 

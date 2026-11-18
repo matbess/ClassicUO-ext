@@ -37,6 +37,23 @@ mining, lumberjacking, carpentry or smithing.
 - Start (2026-11-17 20:43): Int 23 (22 before the test's gain), Dex 45, Str 100; Cooking 0.2; skill total 634.9 of
   700, so Cooking can rise about 65 before Herding starts to drop.
 
+## Estimating the steaks (the user, 2026-11-17)
+
+"The curve is somewhat exponential when gaining skill. It usually slows down a lot at 90 and 95 and 99 etc." So the
+steaks per Int point so far (4 at the start) badly underestimates the rest. Int comes with Cooking gains (the user:
+"You can't gain int without gaining cooking skill"), so cook.py estimates in two steps:
+1. Int points per Cooking point so far gives the Cooking level where Int reaches 100;
+2. steaks per Cooking point in the current band of 10 points is the least the rest can cost (higher bands cost
+   more), so the estimate is a floor that rises as he goes. `cook.py report` prints the table by band.
+
+| Cooking band | Steaks | Cooking points | Int points | Steaks per Cooking point | Steaks per Int |
+|---|---|---|---|---|---|
+| 0-10 | 44 | 9.4 | 9 | 4.7 | 4.9 |
+
+(Fill in from `cook.py report` as each band finishes.) Dex dropped one for most Int gains from the start (Dex is set
+down), though his stat total (about 168) was under the cap: the server lowers a down stat on a gain by chance even
+below the cap.
+
 ## Running it
 
 ```
