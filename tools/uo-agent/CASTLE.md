@@ -62,6 +62,14 @@ They stand in stacks of 4 on one tile (z 6, 10, 14 and 18), which is 4 rows, lik
 
 The 4 dump chests are next to the "window" by the main entrance.
 
+**Spare backpacks** (the user, 2026-11-18): on each wall, the **floor chest at the north end** (947,2329,6 and
+921,2329,6) holds the emptied loot bags, as the tower's backpacks crate does. Once it holds 125, further empty bags
+go in the trash.
+
+The draft of what goes where is the page "Castle Storage Plan"
+(https://claude.ai/artifact/FMom8XXRnpNF2zyWtoETVe, `castle/plan.html`). The keep rules stay as they are for now (the
+user, 2026-11-18: "Let's just keep what we have planned for now").
+
 The forge corner also has the forges (946-947,2322), bellows (945 and 948,2322), the anvil (948,2323) and a barrel
 (949,2322).
 

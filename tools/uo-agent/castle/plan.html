@@ -129,6 +129,7 @@ footer { font-size: 12.5px; color: var(--muted); }
       <li>Gear sits at the north end, near the forge. Scrolls, reagents, gems and potions, which come in with almost every bag of loot, sit at the south end, nearest the dump chests.</li>
       <li>Four whole stacks in the middle stay free, so weapons, armour and stock can all grow without moving anything.</li>
       <li>The west wall is the same layout tile for tile, for overflow and for loot dumped on the west side.</li>
+      <li>On each wall, the floor chest at the north end holds the spare backpacks: the emptied loot bags. Once it holds 125, further empty bags go in the trash.</li>
     </ul>
   </div>
 
@@ -147,11 +148,11 @@ const F = () => C('free', 'free');
 
 // the draft for the east wall, north (y 2329) to south (y 2343); the west wall mirrors it tile for tile
 const EAST = [
-  [2329, C('Swords', 'weapons', 'swords, exceptional, knives'), C('Axes', 'weapons', 'axes, exceptional, pickaxes'), C('Maces & staves', 'weapons'), C('Polearms', 'weapons')],
-  [2330, C('Fencing', 'weapons'), C('Archery', 'weapons', 'bows, crossbows'), C('Attack wands', 'magic', 'fireball, lightning'), C('Healing wands', 'magic', 'greater healing')],
-  [2331, C('Plate', 'armour', 'arms, gloves, gorgets, legs, tunics'), C('Helms', 'armour'), C('Chain & ring + coifs', 'armour'), C('Leather + caps', 'armour')],
-  [2332, C('Studded', 'armour'), C('Shields', 'armour', 'spare + invulnerability'), C('GM armour sets', 'armour', '3 sets'), C('Plain gear', 'armour', '"of defense", 1–2 of each')],
-  [2333, C('Jewellery', 'magic', 'rings'), C('Magic clothing', 'magic', 'footwear, tunics & shirts'), F(), F()],
+  [2329, C('Swords', 'weapons', 'swords, exceptional, knives'), C('Axes', 'weapons', 'axes, exceptional, pickaxes'), C('Maces & staves', 'weapons'), C('Spare backpacks', 'utility', 'emptied loot bags; past 125, into the trash')],
+  [2330, C('Polearms', 'weapons'), C('Fencing', 'weapons'), C('Archery', 'weapons', 'bows, crossbows'), F()],
+  [2331, C('Attack wands', 'magic', 'fireball, lightning'), C('Healing wands', 'magic', 'greater healing'), C('Jewellery', 'magic', 'rings'), C('Magic clothing', 'magic', 'footwear, tunics & shirts')],
+  [2332, C('Plate', 'armour', 'arms, gloves, gorgets, legs, tunics'), C('Helms', 'armour'), C('Chain & ring + coifs', 'armour'), C('Leather + caps', 'armour')],
+  [2333, C('Studded', 'armour'), C('Shields', 'armour', 'spare + invulnerability'), C('GM armour sets', 'armour', '3 sets'), C('Plain gear', 'armour', '"of defense", 1–2 of each')],
   [2334, F(), F(), F(), F()],
   [2335, F(), F(), F(), F()],
   [2336, F(), F(), F(), F()],
@@ -160,7 +161,7 @@ const EAST = [
   [2339, C('Strength potions', 'stock'), C('Poison potions', 'stock'), C('Explosion potions', 'stock'), F()],
   [2340, C('Scrolls, circles 1–4', 'stock'), C('Scrolls, circles 5–8', 'stock'), C('Reagents', 'stock'), F()],
   [2341, C('Gems', 'stock', 'the gem bag'), C('Miscellaneous', 'utility', 'key rings, crystal balls, treasure maps, cooked food'), F(), F()],
-  [2342, C('Supplies & ID wands', 'utility', 'lockpicks, arrows, cloth, leather, the spares pouch'), C('Empty bags', 'utility', 'the tower\'s backpacks crate'), C('Needs your decision', 'utility'), F()],
+  [2342, C('Supplies & ID wands', 'utility', 'lockpicks, arrows, cloth, leather, the spares pouch'), C('Needs your decision', 'utility'), F(), F()],
   [2343, F(), F(), F(), F()],
 ];
 const FORGE = [
