@@ -43,7 +43,10 @@ symlink to `tools/uo-agent`). This skill lives at `tools/uo-agent/skills/uo/SKIL
      (newest first with `ls -lt`; pull the user's recent messages out with a short `python3 -I` script).
    - Running loops: `ps -axo pid,command | grep -E '[m]ine\.py|[l]umber\.py|[c]arp\.py|[h]eal\.py|[c]arto\.py|[f]ight\.py|[g]ems\.py|[t]rips\.py'`.
    - `git -C ~/claude/ClassicUO status --short`: uncommitted changes are another session's work in progress.
-     Don't edit those files or commit them unless the user's request is about them.
+     Don't edit those files. Get them committed so they aren't lost: ask that session, or commit them yourself in a
+     separate commit (the `uo-team` skill, "Commits").
+   - **Before changing the bridge or common code, building or installing, or asking for the clients to close, use
+     the `uo-team` skill:** find the other sessions and message them first (the user, 2026-11-18).
    - Never run two loops on the same character (mining, lumberjacking, carpentry, smithing and cooking all use Icepick;
      Burgers banks for mining and lumberjacking). If another session owns the character, ask the user, or message
      that session with `SendMessage`.

@@ -82,6 +82,11 @@ the server, and the user's keep rules. It's installed as the user-level skill `u
 commit. If the symlink is missing on a new Mac: `mkdir -p ~/.claude/skills/uo-sort && ln -sf
 ~/claude/ClassicUO/tools/uo-agent/skills/uo-sort/SKILL.md ~/.claude/skills/uo-sort/SKILL.md`.
 
+**Other sessions (the user, 2026-11-18):** several Claude sessions drive the characters at once. Before changing the
+bridge or common code, building or installing a client, or asking for the clients to close, follow the skill
+`skills/uo-team/SKILL.md` (linked from `~/.claude/skills/uo-team/SKILL.md`): find the other sessions and message them
+first, and get any uncommitted work committed in its own commit.
+
 **`/uo <task>` (the user, 2026-11-17)** is the way into everything else: the skill `skills/uo/SKILL.md` (linked
 from `~/.claude/skills/uo/SKILL.md` the same way) gets a new session oriented (docs, other sessions, running loops),
 lists the user's rules, and says how to automate something new or run an existing loop. Keep its project table up to
