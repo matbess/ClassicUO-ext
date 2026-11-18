@@ -86,7 +86,9 @@
   // again; "remove thyself" (the house command) puts a creature off the front steps. His horse: "a horse" 0x00043254 (read 2026-11-06 with him dismounted inside).
   // and the owner commands for the castle's south-east table (the user, 2026-11-18): released and moved to get at
   // his own chests, put back and locked down again every time
-  "say": ["all follow me", "remove thyself", "i wish to release this", "i wish to lock this down"],
+  // "i wish to secure this": the castle's 21 secure chests, at the friends level (the user, 2026-11-18: "make them
+  // all accessible to friends for now")
+  "say": ["all follow me", "remove thyself", "i wish to release this", "i wish to lock this down", "i wish to secure this"],
   "mounts": ["0x00043254"],
   // bags of maps are put down at his feet: backpack, bag, pouch
   // and the castle's south-east table (0x0B34), put down beside him (bridge 15)

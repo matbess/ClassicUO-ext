@@ -90,6 +90,10 @@ They hold at most about 400 stones each ("either 395 or 400"): plan for 395. 8 o
 stacks at the west end of their row (x 928 and 929, y 2348), which Clem secures for them (the user: "yes, Clem can
 secure those 8 chests"; for that job only, his rules let him at them). Gold goes behind the user's table, never in a
 secure: too heavy.
+**All 21 made secure on 2026-11-18** (`castle_plan.py secure`): the 13 on the east wall and the friend's 8, each
+answering "locked down & secure". No window asks for an access level: the house makes them friends-level (the user:
+"I'm pretty sure everything is locked down as friends. I've never seen a window come up to pick"), which is what the
+user wants for now: the friend is a co-owner, and every alt can open them. 7 secures are left for the west wall.
 
 The draft of what goes where is the page "Castle Storage Plan"
 (https://claude.ai/artifact/FMom8XXRnpNF2zyWtoETVe, `castle/plan.html`). The keep rules stay as they are for now (the

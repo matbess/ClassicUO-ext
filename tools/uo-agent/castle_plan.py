@@ -6,6 +6,7 @@
   python3 -I castle_plan.py show      every chest: where, what for, secure or not
   python3 -I castle_plan.py labels    write a "castle: ..." label for every chest into labels.json (nothing is sent)
   python3 -I castle_plan.py secures   the chests to make secure, in order
+  python3 -I castle_plan.py secure    Clem makes them secure (the east wall's first, then the friend's 8)
 
 The chests' serials and spots are in castle/chests.json (recorded 2026-11-18). Each tile holds a stack of 4 chests,
 z 18 (top), 14, 10 and 6 (the floor). East storage is the east wall (x 947), west storage the west wall (x 921), the
@@ -96,8 +97,66 @@ def label(e):
     return f"castle: {e['what']} ({e['place']}, {e['row']})" + (' [secure]' if e['secure'] else '')
 
 
+AGENT_RULES = os.path.join(uo.AGENT_DIR, 'rules-Clem.json')
+# where Clem stands to reach a stack: the east hall walkway, the west hall walkway, the walkway in front of the vaults
+STAND = {'east': lambda e: (948, e['y']), 'west': lambda e: (922, e['y']), 'friend': lambda e: (e['x'], 2349)}
+# the way between the halls (CASTLE.md): long walks stop short, so they go in stages
+EAST_TO_WEST = [(948, 2327), (945, 2323), (930, 2323), (923, 2326), (923, 2335), (923, 2346), (925, 2348)]
+
+
+def secure_all():
+    """Make every chest the plan marks secure, secure: walk to it, "I wish to secure this", aim the house's cursor at
+    it, and check it answers "locked down & secure". The house makes them friends-level (the user, 2026-11-18: "I'm
+    pretty sure everything is locked down as friends. I've never seen a window come up to pick"). The friend's 8 are
+    off limits in Clem's rules, so they come off the list in the client's copy for this job only and go back after."""
+    import time
+    info = uo.find_bridge('Clem')
+    todo = [(s, e) for s, e in sorted(plan().items(), key=lambda kv: (kv[1]['side'] != 'east', kv[1]['y'], kv[1]['x'],
+                                                                        -kv[1]['z'])) if e['secure']]
+    original = open(AGENT_RULES, encoding='utf-8').read()
+    friend = [s for s, e in todo if e['side'] == 'friend']
+    try:
+        if friend:
+            text = original
+            for s in friend:
+                text = text.replace(f'"{s}", ', '').replace(f', "{s}"', '')
+            with open(AGENT_RULES, 'w', encoding='utf-8') as fh:
+                fh.write(text)
+            time.sleep(2)  # the bridge rereads its rules within a second of a change
+        side = None
+        for s, e in todo:
+            if side == 'east' and e['side'] == 'friend':
+                for p in EAST_TO_WEST:
+                    uo.call(info, 'POST', '/walk', x=p[0], y=p[1], distance=0)
+            side = e['side']
+            stand = STAND[e['side']](e)
+            st = uo.call(info, 'GET', '/status')
+            if (st['x'], st['y']) != stand:
+                r = uo.call(info, 'POST', '/walk', x=stand[0], y=stand[1], distance=0)
+                if not r.get('arrived'):
+                    raise SystemExit(f'STOPPED: could not get to {stand} for {label(e)}: {r}')
+            first = ' '.join(a for r in uo.call(info, 'POST', '/name', serial=s) for a in r.get('lines', [])).lower()
+            if 'secure' in first:
+                print(f'{s} {label(e)}: secure already')
+                continue
+            uo.call(info, 'POST', '/say', text='i wish to secure this')
+            end = time.time() + 2
+            while time.time() < end and not uo.call(info, 'GET', '/status').get('targeting'):
+                time.sleep(0.1)
+            t = uo.call(info, 'POST', '/target', serial=s)
+            said = ' | '.join(m['text'] for m in t.get('messages', []))
+            if 'secure' not in said.lower():
+                raise SystemExit(f'STOPPED: {s} {label(e)}: {said or "no answer"}')
+            print(f'{s} {label(e)}: {said}', flush=True)
+    finally:
+        with open(AGENT_RULES, 'w', encoding='utf-8') as fh:
+            fh.write(original)  # the friend's chests back off limits
+
+
 def main():
     cmd = sys.argv[1] if len(sys.argv) > 1 else 'show'
+    if cmd == 'secure':
+        return secure_all()
     p = plan()
     order = sorted(p.items(), key=lambda kv: (kv[1]['side'], kv[1]['x'], kv[1]['y'], -kv[1]['z']))
     if cmd == 'show':
