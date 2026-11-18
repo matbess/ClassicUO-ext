@@ -1,0 +1,51 @@
+# Cooking for Intelligence (Icepick, from 2026-11-17)
+
+Icepick cooks raw fish steaks on the forge on the tower's ground floor to raise his **Intelligence** (Cooking gains
+bring Int gains). The loop is `cook.py`, the rules `rules/rules-Icepick-cook.json`. It uses Icepick, so never with
+mining, lumberjacking, carpentry or smithing.
+
+## The user's rules (2026-11-17)
+
+- "Cook them on the forge and watch his int go up. If his int gets to 100 then stop (his dex should be at 25 then)."
+- The 5000 raw fish steaks are in the **bottom wooden chest** by the forge (0x4074A4C1, 1757,1407,6). There's a much
+  bigger raw pile on the floor (0x408A39B9, 55,000 at 1758,1408): "I do NOT want you to accidentally cook that whole
+  pile, that's why it's separated". The rules' area stops at x 1757 and raw/cooked steaks are in `neverTouch`, so the
+  bridge can't reach or lift it.
+- **One steak at a time** ("wtf! don't cook the whole stack! ... You have to take 1 fish steak at a time and cook
+  it."): a double-click on a stack cooks the whole stack for one skill check. In the first test (20:37) 9 steaks went
+  for a single check. cook.py moves exactly 1 steak from the chest, and stops rather than double-click a raw stack
+  bigger than 1.
+- Skill locks (set by the user): Cooking **up**; Herding (47.6) **down** to make room, then Swordsmanship, Tactics and
+  Wrestling; Hiding stays locked until all of those are 0. "You can't gain int without gaining cooking skill." When
+  they're all 0 and Int isn't 100 yet, tell the user. The bridge can't set skill locks, so the user sets Hiding down.
+- Give an estimate of how many steaks it will take while cooking: the user will add more if 5000 isn't enough.
+
+## How the server does it (tested 2026-11-17)
+
+- From 1756,1409 (a tile from the forge 0x408A3611 at 1755,1410; two from the chest). From two tiles: "That is too
+  far away." Mounted is fine.
+- Double-click the raw steak in the pack (a target cursor), aim at the forge. Nothing is said at once. About 5 s later:
+  - "Looks delicious." (said by him) + "You put the cooked food into your backpack." (cooked steak, graphic 0x097B,
+    joins the pack's stack), or
+  - "You burn the food to a crisp! It's ruined."
+- A stat gain shows as the client's line "Your intelligence has changed by 1.  It is now 23" (and the same for
+  strength and dexterity). On this server his max mana is his Int and his max stamina his Dex.
+- `/use` with a target waits only 2 s for an answer and stopped the bridge, so cook.py double-clicks (`/use`, no
+  target: the cursor comes up) and then answers the cursor with `/target` on the forge, which waits up to 10 s.
+- A steak moved out of a stack keeps the stack's serial; what stays in the chest gets a new one, so cook.py reads the
+  chest each time.
+- Start (2026-11-17 20:43): Int 23 (22 before the test's gain), Dex 45, Str 100; Cooking 0.2; skill total 634.9 of
+  700, so Cooking can rise about 65 before Herding starts to drop.
+
+## Running it
+
+```
+python3 -I cook.py run       # in the background; log ~/claude/uo-agent-work/cook/cook.log
+python3 -I cook.py report    # steaks so far, Int, steaks per Int point, the estimate
+python3 -I cook.py stop      # after the steak it's on
+```
+
+It logs every stat change, and a line every 25 steaks or on each Cooking gain, with the steaks-per-Int estimate. It
+stops when Int reaches 100, Cooking reaches its cap, the down skills are all 0 at the skill cap, the chest runs out,
+something unexpected happens, he's too heavy, or the user takes him over. Cooked steaks stay in his pack for now
+(about 0.1 stone each).

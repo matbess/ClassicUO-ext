@@ -34,6 +34,7 @@ symlink to `tools/uo-agent`). This skill lives at `tools/uo-agent/skills/uo/SKIL
    | Selling gems to jewelers | Clem | `GEMS.md` | `gems.py` |
    | Fighting, the tower's front door | Clem | `COMBAT.md` | `fight.py`, `door.py`, `restock.py` |
    | Healing on a ghost | Burgers | `HEALING.md` | `heal.py` |
+   | Cooking fish steaks for Intelligence | Icepick | `COOKING.md` | `cook.py` |
 
    Each doc ends with how to run it, what the user's words mean, and what to tell them. `HISTORY.md` is old notes.
 3. **Check what else is going on.** Several Claude sessions work on the same characters.
@@ -42,7 +43,7 @@ symlink to `tools/uo-agent`). This skill lives at `tools/uo-agent/skills/uo/SKIL
    - Running loops: `ps -axo pid,command | grep -E '[m]ine\.py|[l]umber\.py|[c]arp\.py|[h]eal\.py|[c]arto\.py|[f]ight\.py|[g]ems\.py|[t]rips\.py'`.
    - `git -C ~/claude/ClassicUO status --short`: uncommitted changes are another session's work in progress.
      Don't edit those files or commit them unless the user's request is about them.
-   - Never run two loops on the same character (mining, lumberjacking, carpentry and smithing all use Icepick;
+   - Never run two loops on the same character (mining, lumberjacking, carpentry, smithing and cooking all use Icepick;
      Burgers banks for mining and lumberjacking). If another session owns the character, ask the user, or message
      that session with `SendMessage`.
 4. Look at the characters, read-only (nothing is sent to the server):
