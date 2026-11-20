@@ -576,6 +576,10 @@ def to_vault():
         raise Stop(f"he isn't in the tower ({st['x']},{st['y']})")
     if carto.floor_of(st['z']) == 1:
         try:
+            ginseng_to_tower()
+        except uo.BridgeError as e:
+            say(f'ginseng for the tower: {e}')
+        try:
             restock.ensure()  # topped up here, where the chest is: he leaves for the castle from the vault
         except restock.Stop as e:
             if min(restock.counts().values()) < 20:
@@ -583,6 +587,48 @@ def to_vault():
             say(f'reagents: {e}; going on, the castle reagents chest tops him up')
     if not gems.in_vault(status()):
         gems.into_vault()
+
+
+GINSENG = 0x0F85
+GINSENG_FOR_TOWER = 200  # the user, 2026-11-19: "The ginseng is a bit low so if you see ginseng in the chests grab some
+#                          and put it in the restock chest"
+
+
+def ginseng_from_castle():
+    """In the castle: some ginseng from its reagents chest into his pack, for the tower's restock chest. Once."""
+    flag = os.path.join(WORK, 'ginseng-done')
+    if os.path.exists(flag):
+        return
+    c = castle_site.targets('reagents', 'east')[0]
+    uo.walk_near(info, c)
+    call('POST', '/open', serial=c)
+    call('POST', '/close', serial=c)
+    piles = [i for i in call('GET', '/contents', serial=c)['items'] if int(i['graphic'], 16) == GINSENG]
+    if not piles:
+        say('no ginseng in the castle reagents chest for the tower')
+        return
+    pile = max(piles, key=lambda i: i.get('amount', 1))
+    take = min(GINSENG_FOR_TOWER, pile.get('amount', 1))
+    uo.move(info, pile['serial'], status()['backpack']['serial'], amount=take if take < pile.get('amount', 1) else None)
+    say(f'{take} ginseng from the castle reagents chest, for the tower restock chest')
+
+
+def ginseng_to_tower():
+    """In the tower (ground floor): any ginseng in his pack beyond his reagent bag's into the restock chest."""
+    flag = os.path.join(WORK, 'ginseng-done')
+    if os.path.exists(flag):
+        return
+    pack = status()['backpack']['serial']
+    loose = [i for i in call('GET', '/contents', serial=pack)['items'] if int(i['graphic'], 16) == GINSENG]
+    if not loose:
+        return
+    r = call('POST', '/walk', to=restock.CHEST, distance=1)
+    call('POST', '/open', serial=restock.CHEST)
+    for i in loose:
+        call('POST', '/move', serial=i['serial'], to=restock.CHEST)
+        say(f"{i.get('amount', 1)} ginseng into the tower restock chest")
+    call('POST', '/close', serial=restock.CHEST)
+    open(flag, 'w').write(time.strftime('%Y-%m-%d %H:%M'))
 
 
 def trip():
@@ -607,6 +653,10 @@ def trip():
     say(f'loaded {len(taken)} pieces; to the castle')
     castle.go_in()
     unload()
+    try:
+        ginseng_from_castle()
+    except uo.BridgeError as e:
+        say(f'ginseng from the castle: {e}')
     try:
         castle.reagents_ok()  # in the castle: topped up from its reagents chest if any is low
     except castle.Stop as e:
