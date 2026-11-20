@@ -276,6 +276,12 @@ class Mover:
         """uo.walk_near for the castle: along the route to where he stands for it, then the last steps. A castle chest
         out of his client's sight goes by its spot in the plan. Within 2 tiles is within reach (the bridge's REACH)."""
         reach = max(reach, 2)
+        if serial in PLAN:  # a castle chest: from its standing spot, where it's in sight (943,2324 was 2 tiles from
+            stand = stand_spot(PLAN[serial]['x'], PLAN[serial]['y'])  # the forge's 944,2326 and it wouldn't open)
+            st = self.status()
+            if cheb((st['x'], st['y']), stand) > 0:
+                self.go(stand, f'to {serial}')
+            return
         try:
             spot = self.uo.on_floor(info, serial)
         except self.uo.BridgeError as e:
