@@ -266,6 +266,12 @@ def reagents_ok():
             restock.CHEST = castle_site.targets('reagents', 'east')[0]
             try:
                 restock.ensure()
+            except restock.Stop as e:
+                # the castle chest is out of one too (22:44: black pearl 24, none in the chest): on to the tower if
+                # none is under 20, where its restock chest tops him up
+                if min(restock.counts().values()) < 20:
+                    raise
+                say(f'reagents: {e}; going on, the tower restock chest tops him up')
             finally:
                 restock.CHEST = tower_chest
             return

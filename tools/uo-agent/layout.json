@@ -54,7 +54,7 @@
     "known": 0,
     "marker": null,
     "serial": "0x4098E05C",
-    "x": 13,
+    "x": 18,
     "y": 119
    },
    {
@@ -71,7 +71,7 @@
     "marker": null,
     "serial": "0x4098E062",
     "x": 27,
-    "y": 153
+    "y": 146
    },
    {
     "kind": "?",
@@ -87,7 +87,7 @@
     "marker": null,
     "serial": "0x4098E069",
     "x": 118,
-    "y": 148
+    "y": 146
    },
    {
     "kind": "?",
@@ -95,7 +95,7 @@
     "marker": null,
     "serial": "0x4098F2BC",
     "x": 55,
-    "y": 147
+    "y": 146
    },
    {
     "kind": "?",
@@ -110,7 +110,7 @@
     "known": 0,
     "marker": null,
     "serial": "0x40832F87",
-    "x": 124,
+    "x": 118,
     "y": 141
    },
    {
@@ -118,8 +118,8 @@
     "known": 0,
     "marker": null,
     "serial": "0x40832F76",
-    "x": 129,
-    "y": 154
+    "x": 118,
+    "y": 146
    },
    {
     "kind": "?",
@@ -150,7 +150,7 @@
     "known": 0,
     "marker": null,
     "serial": "0x409397BB",
-    "x": 129,
+    "x": 118,
     "y": 146
    },
    {
@@ -159,14 +159,14 @@
     "marker": null,
     "serial": "0x407D0B9F",
     "x": 27,
-    "y": 147
+    "y": 146
    },
    {
     "kind": "?",
     "known": 0,
     "marker": null,
     "serial": "0x4098F2DB",
-    "x": 14,
+    "x": 18,
     "y": 136
    },
    {
@@ -176,12 +176,332 @@
     "serial": "0x4098F2E1",
     "x": 72,
     "y": 133
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E049",
+    "x": 33,
+    "y": 136
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E04D",
+    "x": 112,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E04F",
+    "x": 104,
+    "y": 128
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E055",
+    "x": 91,
+    "y": 128
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E057",
+    "x": 118,
+    "y": 137
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E05F",
+    "x": 45,
+    "y": 132
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E063",
+    "x": 25,
+    "y": 108
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E066",
+    "x": 60,
+    "y": 136
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2BB",
+    "x": 18,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F67",
+    "x": 23,
+    "y": 138
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F60",
+    "x": 89,
+    "y": 115
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F86",
+    "x": 80,
+    "y": 128
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F90",
+    "x": 118,
+    "y": 108
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F6D",
+    "x": 50,
+    "y": 116
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098CD08",
+    "x": 76,
+    "y": 139
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2D9",
+    "x": 59,
+    "y": 114
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2CA",
+    "x": 88,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F7E",
+    "x": 26,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2C6",
+    "x": 75,
+    "y": 135
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40836C02",
+    "x": 18,
+    "y": 131
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40836C0B",
+    "x": 39,
+    "y": 144
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x409167C1",
+    "x": 49,
+    "y": 111
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40836C0F",
+    "x": 103,
+    "y": 134
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x400F878C",
+    "x": 96,
+    "y": 130
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40875680",
+    "x": 23,
+    "y": 116
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2C1",
+    "x": 37,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x409167C0",
+    "x": 63,
+    "y": 112
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40836C0D",
+    "x": 45,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2E4",
+    "x": 18,
+    "y": 135
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F64",
+    "x": 118,
+    "y": 130
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x409397C6",
+    "x": 39,
+    "y": 122
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2CC",
+    "x": 59,
+    "y": 130
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4045BFF9",
+    "x": 18,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2C7",
+    "x": 56,
+    "y": 131
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E052",
+    "x": 19,
+    "y": 154
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2BE",
+    "x": 27,
+    "y": 135
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2D3",
+    "x": 79,
+    "y": 107
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40836C22",
+    "x": 24,
+    "y": 133
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40836C0A",
+    "x": 49,
+    "y": 143
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2C3",
+    "x": 66,
+    "y": 106
    }
   ],
-  "items": 22,
+  "items": 62,
   "label": "castle: spare backpacks (forge 2327, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:27"
+  "recorded": "2026-11-19 22:44"
  },
  "0x404ABD74": {
   "bags": [],
@@ -3816,5 +4136,426 @@
   "label": "chest: GM armour sets (col 6, top)",
   "loose": [],
   "recorded": "2026-11-16 22:38"
+ },
+ "0x40A519B7": {
+  "bags": [],
+  "items": 59,
+  "label": "castle: smelting 1 (forge 2322, top)",
+  "loose": [
+   {
+    "amount": 1,
+    "name": "a war mace of might",
+    "serial": "0x407035A3",
+    "x": 79,
+    "y": 120
+   },
+   {
+    "amount": 1,
+    "name": "a war mace of might",
+    "serial": "0x4072B956",
+    "x": 74,
+    "y": 122
+   },
+   {
+    "amount": 1,
+    "name": "a surpassingly accurate axe",
+    "serial": "0x408BC346",
+    "x": 36,
+    "y": 137
+   },
+   {
+    "amount": 1,
+    "name": "a durable maul",
+    "serial": "0x408FBBA1",
+    "x": 48,
+    "y": 117
+   },
+   {
+    "amount": 1,
+    "name": "a platemail gorget of defense",
+    "serial": "0x407D73FA",
+    "x": 18,
+    "y": 108
+   },
+   {
+    "amount": 1,
+    "name": "ringmail gloves of defense",
+    "serial": "0x409019CA",
+    "x": 118,
+    "y": 141
+   },
+   {
+    "amount": 1,
+    "name": "a short spear of clumsiness (30 charges)",
+    "serial": "0x409A2180",
+    "x": 110,
+    "y": 121
+   },
+   {
+    "amount": 1,
+    "name": "a durable, accurate viking sword",
+    "serial": "0x4048B4C8",
+    "x": 32,
+    "y": 139
+   },
+   {
+    "amount": 1,
+    "name": "a plate helm of guarding",
+    "serial": "0x405B6672",
+    "x": 71,
+    "y": 138
+   },
+   {
+    "amount": 1,
+    "name": "katana",
+    "serial": "0x40960C32",
+    "x": 18,
+    "y": 134
+   },
+   {
+    "amount": 1,
+    "name": "a durable, accurate bardiche",
+    "serial": "0x4074E13E",
+    "x": 67,
+    "y": 128
+   },
+   {
+    "amount": 1,
+    "name": "ringmail leggings of defense and night eyes (11 charges)",
+    "serial": "0x4078284E",
+    "x": 18,
+    "y": 121
+   },
+   {
+    "amount": 1,
+    "name": "a helmet of defense",
+    "serial": "0x4094257A",
+    "x": 18,
+    "y": 112
+   },
+   {
+    "amount": 1,
+    "name": "a buckler of guarding",
+    "serial": "0x4086FD50",
+    "x": 67,
+    "y": 111
+   },
+   {
+    "amount": 1,
+    "name": "katana",
+    "serial": "0x408B7BAF",
+    "x": 86,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "a substantial dagger",
+    "serial": "0x4088122D",
+    "x": 108,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "a massive war hammer of mage's bane and might (15 charges)",
+    "serial": "0x408B9C9C",
+    "x": 18,
+    "y": 145
+   },
+   {
+    "amount": 1,
+    "name": "durable ringmail leggings of defense",
+    "serial": "0x408BAB4B",
+    "x": 76,
+    "y": 123
+   },
+   {
+    "amount": 1,
+    "name": "a fortified, accurate mace",
+    "serial": "0x4080EAA7",
+    "x": 41,
+    "y": 107
+   },
+   {
+    "amount": 1,
+    "name": "a surpassingly accurate battle axe of feeblemindedness and might (40 charges)",
+    "serial": "0x408108BC",
+    "x": 22,
+    "y": 148
+   },
+   {
+    "amount": 1,
+    "name": "a war hammer",
+    "serial": "0x40985703",
+    "x": 100,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "a large battle axe",
+    "serial": "0x4074BE8A",
+    "x": 96,
+    "y": 125
+   },
+   {
+    "amount": 1,
+    "name": "a war hammer",
+    "serial": "0x407D352D",
+    "x": 18,
+    "y": 145
+   },
+   {
+    "amount": 1,
+    "name": "platemail legs of guarding",
+    "serial": "0x408739DF",
+    "x": 107,
+    "y": 135
+   },
+   {
+    "amount": 1,
+    "name": "a norse helm of guarding",
+    "serial": "0x40870E3C",
+    "x": 48,
+    "y": 130
+   },
+   {
+    "amount": 1,
+    "name": "a substantial close helmet of guarding",
+    "serial": "0x40888D63",
+    "x": 34,
+    "y": 125
+   },
+   {
+    "amount": 1,
+    "name": "a chainmail coif of defense",
+    "serial": "0x4088BDA0",
+    "x": 23,
+    "y": 127
+   },
+   {
+    "amount": 1,
+    "name": "a fortified, eminently accurate two handed axe",
+    "serial": "0x408D75BD",
+    "x": 40,
+    "y": 144
+   },
+   {
+    "amount": 1,
+    "name": "an accurate broadsword of might",
+    "serial": "0x408DCDF8",
+    "x": 20,
+    "y": 115
+   },
+   {
+    "amount": 1,
+    "name": "a massive, accurate war hammer of ruin",
+    "serial": "0x408D1655",
+    "x": 1,
+    "y": 144
+   },
+   {
+    "amount": 1,
+    "name": "a war hammer",
+    "serial": "0x40941CAC",
+    "x": 51,
+    "y": 138
+   },
+   {
+    "amount": 1,
+    "name": "a war hammer",
+    "serial": "0x4093FC53",
+    "x": 95,
+    "y": 104
+   },
+   {
+    "amount": 1,
+    "name": "a war hammer",
+    "serial": "0x40944B43",
+    "x": 36,
+    "y": 122
+   },
+   {
+    "amount": 1,
+    "name": "a war mace",
+    "serial": "0x409053EF",
+    "x": 52,
+    "y": 157
+   },
+   {
+    "amount": 1,
+    "name": "a war mace",
+    "serial": "0x4093CBE6",
+    "x": 16,
+    "y": 142
+   },
+   {
+    "amount": 1,
+    "name": "a war mace",
+    "serial": "0x4090D1BE",
+    "x": 86,
+    "y": 132
+   },
+   {
+    "amount": 1,
+    "name": "a war hammer",
+    "serial": "0x4014F669",
+    "x": 119,
+    "y": 116
+   },
+   {
+    "amount": 1,
+    "name": "a broadsword",
+    "serial": "0x409343A7",
+    "x": 2,
+    "y": 146
+   },
+   {
+    "amount": 1,
+    "name": "a broadsword",
+    "serial": "0x409383CC",
+    "x": 5,
+    "y": 154
+   },
+   {
+    "amount": 1,
+    "name": "a broadsword",
+    "serial": "0x4092B23F",
+    "x": 50,
+    "y": 135
+   },
+   {
+    "amount": 1,
+    "name": "a broadsword",
+    "serial": "0x4092C252",
+    "x": 38,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "a broadsword",
+    "serial": "0x4093597F",
+    "x": 85,
+    "y": 115
+   },
+   {
+    "amount": 1,
+    "name": "an indestructible metal kite shield",
+    "serial": "0x408F482B",
+    "x": 97,
+    "y": 109
+   },
+   {
+    "amount": 1,
+    "name": "a durable, accurate katana of might",
+    "serial": "0x408EFC42",
+    "x": 34,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "a broadsword",
+    "serial": "0x409313D6",
+    "x": 3,
+    "y": 110
+   },
+   {
+    "amount": 1,
+    "name": "a broadsword",
+    "serial": "0x4092F7A6",
+    "x": 86,
+    "y": 109
+   },
+   {
+    "amount": 1,
+    "name": "a durable mace of ruin",
+    "serial": "0x4093D799",
+    "x": 71,
+    "y": 145
+   },
+   {
+    "amount": 1,
+    "name": "a broadsword",
+    "serial": "0x409292C3",
+    "x": 28,
+    "y": 108
+   },
+   {
+    "amount": 1,
+    "name": "a war hammer",
+    "serial": "0x40812FB3",
+    "x": 26,
+    "y": 141
+   },
+   {
+    "amount": 1,
+    "name": "a supremely accurate longsword",
+    "serial": "0x4094F978",
+    "x": 65524,
+    "y": 139
+   },
+   {
+    "amount": 1,
+    "name": "a durable norse helm of defense",
+    "serial": "0x4093DC09",
+    "x": 80,
+    "y": 140
+   },
+   {
+    "amount": 1,
+    "name": "a female plate of defense",
+    "serial": "0x40932152",
+    "x": 104,
+    "y": 118
+   },
+   {
+    "amount": 1,
+    "name": "a massive double axe of might",
+    "serial": "0x40768A63",
+    "x": 26,
+    "y": 127
+   },
+   {
+    "amount": 1,
+    "name": "a silver war fork of feeblemindedness (27 charges)",
+    "serial": "0x4085BDAE",
+    "x": 25,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "an eminently accurate kryss",
+    "serial": "0x4087895E",
+    "x": 2,
+    "y": 116
+   },
+   {
+    "amount": 1,
+    "name": "chainmail leggings of guarding",
+    "serial": "0x40858F86",
+    "x": 78,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "a norse helm of defense",
+    "serial": "0x408696CA",
+    "x": 85,
+    "y": 107
+   },
+   {
+    "amount": 1,
+    "name": "a tear kite shield of guarding",
+    "serial": "0x408D5CF7",
+    "x": 88,
+    "y": 128
+   },
+   {
+    "amount": 1,
+    "name": "a substantial bardiche of weakness and ruin (31 charges)",
+    "serial": "0x408DD6E4",
+    "x": 65532,
+    "y": 113
+   }
+  ],
+  "recorded": "2026-11-19 22:44"
  }
 }
