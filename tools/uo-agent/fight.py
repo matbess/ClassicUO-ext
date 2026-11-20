@@ -1144,6 +1144,8 @@ class Fight:
         # reads send nothing, so a takeover only shows here (2026-11-19 19:56: the user walked him in, and the fight
         # spun on "not going in with a mongbat 5 tiles off" for half a minute, sending nothing, never told)
         if st.get('takenOver'):
+            if razor_click():  # Razor opening a corpse he just killed is not the user (19:58:38, a snake's corpse)
+                return False
             raise Stop(f"the user took over ({st['takenOver']})")
         if PLACE.inside(me):
             say(f'he is inside {PLACE.name} ({me[0]},{me[1]}): the fight is over')
