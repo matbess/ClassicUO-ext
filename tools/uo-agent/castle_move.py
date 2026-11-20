@@ -192,6 +192,10 @@ def load():
                     # as many as his room holds, at a stone a piece (lockpicks, ingots and the like are about that;
                     # lighter piles just leave room); halved again while even that's refused
                     room_now = status()['weightMax'] - status()['weight'] - WEIGHT_LEFT
+                    if room_now < 30:  # nearly full already: this pile waits for the next trip
+                        say(f"his pack is full ({status()['weight']} stones): this load is done")
+                        LEFT[0] = True
+                        return taken
                     part = max(1, min(amount - 1, room_now))
                     while part >= 1 and not r.get('moved'):
                         time.sleep(1)
@@ -201,12 +205,16 @@ def load():
                                  and i.get('hue') == p.get('hue') and i.get('amount', 1) == amount]
                         if again:
                             p['serial'] = again[0]['serial']
+                        w0 = status()['weight']
                         try:
                             r = uo.move(info, p['serial'], pack, amount=part)
                         except uo.BridgeError as e:
-                            if e.code != 404:
+                            if e.code == 423 and landed(w0):
+                                r = {'moved': True}
+                            elif e.code != 404:
                                 raise
-                            r = {}
+                            else:
+                                r = {}
                         part //= 2
                     if not r.get('moved'):
                         say(f"his pack takes no more ({status()['weight']} stones): this load is done")
@@ -263,6 +271,18 @@ def load():
                 f"{' + its marker' if len(pieces) > 1 else ''} from {text} -> for {what}")
     say('the tower vault is empty')
     return taken
+
+
+def landed(weight_before):
+    """The bridge stopped on a drop into his pack ("no answer after dropping"), but the pack got heavier: it landed
+    (2026-11-19 20:41 and 20:42, splitting piles in the vault). Resumed; only when he's not taken over, and he's
+    indoors when this runs."""
+    st = uo.call(info, 'GET', '/status')
+    if st.get('takenOver') or 'after dropping' not in (st.get('halted') or '') or st['weight'] <= weight_before:
+        return False
+    uo.call(info, 'POST', '/resume')
+    say(f"the bridge stopped on a drop that landed ({st['halted']}): resumed")
+    return True
 
 
 def trim(p, container, pack):
