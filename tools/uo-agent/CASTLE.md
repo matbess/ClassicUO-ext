@@ -129,6 +129,11 @@ The user's friend has no owner commands, so the tables are for the owner side. T
   chests closest to the forge". Every ingot, board and log goes to the forge chests, the big piles too (ingots and
   "ingots 2", "boards & logs" and "boards & logs 2", with smelting, cloth & leather, tools and cooking); the 8 chests
   in the user's vault that were for them (938 and 939) are free.
+- **Gems and house deeds in the user's vault**, next to the gold (942: house deeds 3rd, gems floor): "Gems can be down
+  by the intake in the southeast, like the gold is, so can house deeds (house deeds are separate from other types of
+  deeds, house deeds can be traded in for gold and act like gold kind of)". A house deed is named "deed to a ..."
+  (`plan.HOUSE_DEED`); other deeds stay in the east wall's deeds chests. The old gems chest (east 2337, top) is free,
+  and still secure.
 - **Spare backpacks:** one chest by the forge (944,2327, floor): "I want the chest with backpacks to be in the forge
   area so it's not behind the tables".
 - **The forge gate (an idea, not decided):** the user may move their tables up to the forge corner, locked down

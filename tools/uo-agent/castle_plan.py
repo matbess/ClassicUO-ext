@@ -47,7 +47,7 @@ WALL = {
     2334: [('best weapons', 1), ('best armour', 1), ('treasure maps', 1), (FREE, 0)],
     2335: [('deeds 1', 1), ('deeds 2', 1), ('deeds 3', 1), (FREE, 0)],
     2336: [('scrolls, circles 1-4', 0), ('scrolls, circles 5-8', 0), ('reagents', 1), (FREE, 0)],
-    2337: [('gems', 1), ('miscellaneous', 0), ('supplies & ID wands', 0), ('needs your decision', 0)],
+    2337: [(FREE, 1), ('miscellaneous', 0), ('supplies & ID wands', 0), ('needs your decision', 0)],  # gems: the vault
     2338: [(FREE, 0)] * 4,
     2339: [('heal potions 1', 0), ('heal potions 2', 0), ('cure potions 1', 0), ('cure potions 2', 0)],
     2340: [('refresh potions 1', 0), ('refresh potions 2', 0), ('agility potions 1', 0), ('agility potions 2', 0)],
@@ -70,7 +70,10 @@ VAULT = {
     939: [(FREE, 0)] * 4,
     940: [('reagents', 0), ('reagents', 0), ('scrolls', 0), (FREE, 0)],
     941: [('gold', 0)] * 4,
-    942: [('valuables overflow', 0), ('valuables overflow', 0), (FREE, 0), (FREE, 0)],
+    # gems and house deeds next to the gold (the user, 2026-11-19: "Gems can be down by the intake in the southeast,
+    # like the gold is, so can house deeds (house deeds are separate from other types of deeds, house deeds can be
+    # traded in for gold and act like gold kind of)")
+    942: [('valuables overflow', 0), ('valuables overflow', 0), ('house deeds', 0), ('gems', 0)],
 }
 # the friend's vault (south-west, y 2348): never touched. Clem secured the 8 at the west end (x 928 and 929) on
 # 2026-11-18 (castle/secured-friend-2026-11-18.json); on 2026-11-19 the user said to plan them non-secure ("yes plan

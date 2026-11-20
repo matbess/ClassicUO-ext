@@ -7,7 +7,7 @@ skills/uo-sort/SKILL.md, and write the spec for sortbatch.py.
 In the castle (BATCHDIR/site.json from look.py --side): the castle's chests for that side (castle_site.py), each
 group into the first chest with room that holds its bag, or a new bag in the first chest with room; and the castle's
 own homes: the best weapons and best armour secures, the deeds and treasure maps secures, raw food to the cooking
-chest by the forge, spare scissors to the tools chest.
+chest by the forge, spare scissors to the tools chest; house deeds to the user's vault with the gold.
 
 Reads BATCHDIR/inv.json and loot.json (from look.py) and the names idall.py recorded in names.json. To apply the
 "at most 2 of each piece type" limits it reads what the metal armour bags already hold; it opens those bags first
@@ -256,10 +256,17 @@ def bag_labels(labels, kind):
     return [s for s, t in labels.items() if t.startswith(f'bag: {kind} (')]
 
 
+# a house deed's name: "deed to a small stone tower", "deed to a two-story villa", "deed to a castle". Ship deeds are
+# "a small ship deed", and add-on deeds say "deed for" or name the thing, so neither matches
+HOUSE_DEED = re.compile(r'\bdeed to an? ')
+
+
 def castle_home(action, detail, item, name):
     """The castle's changes to where a keeper goes (the plan the user approved on 2026-11-18): (action, detail)."""
     n, t = name.lower(), base(item['type'])
     if action == 'decide' and 'deed' in t:
+        if HOUSE_DEED.search(n):  # with the gold, in the user's vault (the user, 2026-11-19: "house deeds are separate
+            return 'keep', ('house deeds',)  # from other types of deeds, house deeds can be traded in for gold")
         return 'keep', ('deeds',)  # "put all deeds into secures"
     if action != 'keep':
         return action, detail
@@ -388,7 +395,7 @@ def plan_batch(batch, opening, inv, loot, names, labels, info, side):
         report[action].append((str(detail), name or item['type']))
         if action == 'keep':
             what = detail[0]
-            if what in ('deeds', 'cooking', 'tools'):
+            if what in ('deeds', 'house deeds', 'cooking', 'tools'):
                 spec['place_in'].append([s, what])
             elif what == 'best weapon':
                 groups[(detail[1], 'best weapons')].append(s)

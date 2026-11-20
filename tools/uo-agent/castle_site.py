@@ -357,8 +357,10 @@ def test():
     assert sum(e['secure'] for e in PLAN.values() if e['side'] == 'east') == 13
     assert sum(e['secure'] for e in PLAN.values() if e['side'] == 'friend') == 0
     assert all(e['what'] == 'free' for e in PLAN.values() if e['side'] == 'west' and e['x'] == 921)
+    assert [PLAN[s]['place'] for s in targets('gems', 'east')] == ['my vault 942']
+    assert [PLAN[s]['place'] for s in targets('house deeds', 'east')] == ['my vault 942']
     for name in ('jewellery', 'magic clothing', 'attack wands', 'healing wands', 'GM armour sets', 'best weapons',
-                 'best armour', 'treasure maps', 'deeds', 'gems', 'reagents'):
+                 'best armour', 'treasure maps', 'deeds', 'reagents'):
         t = targets(name, 'east')
         assert PLAN[t[0]]['secure'] and PLAN[t[0]]['side'] == 'east', name
         assert PLAN[t[-1]]['side'] == 'vault', name
