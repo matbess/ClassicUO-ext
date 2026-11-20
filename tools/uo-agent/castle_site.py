@@ -272,9 +272,16 @@ class Mover:
                 return
             if attempt:
                 pts = start
+            before = (st['x'], st['y'])
             r = self.uo.call(self.info, 'POST', '/travel', path=';'.join(f'{x},{y}' for x, y in pts[:200]))
             if r.get('stopped'):
                 self.say(f"the way {what} stopped at {r.get('x')},{r.get('y')} ({r.get('stopped')}); on from there")
+                if (r.get('x'), r.get('y')) == before:
+                    # the ride never got going (23:01, from 947,2345 three times): the turn points by plain walks
+                    for q in pts:
+                        if q == before:
+                            continue
+                        self.uo.call(self.info, 'POST', '/walk', x=q[0], y=q[1], distance=0)
             st = self.status()
             if 0 < cheb((st['x'], st['y']), end) <= 2:  # the last tile or two: a plain step
                 self.uo.call(self.info, 'POST', '/walk', x=end[0], y=end[1], distance=0)
