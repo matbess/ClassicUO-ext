@@ -639,8 +639,8 @@ def trip():
         if castle.inside((st['x'], st['y'])):
             say('a load from an earlier trip is still in his pack: putting it away first')
             unload()
-        elif not gems.in_vault(st):
-            raise Stop('a load is written down but he is neither in the castle nor in the vault')
+        elif not (1745 <= st['x'] <= 1765 and 1400 <= st['y'] <= 1413):
+            raise Stop('a load is written down but he is neither in the castle nor in the tower')
         else:
             say('a load was started here: filling his pack the rest of the way')
     to_vault()
