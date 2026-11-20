@@ -215,6 +215,11 @@ def load():
                         raise
                     r = {'moved': True, 'messages': []}
                 said = ' '.join(m['text'] for m in r.get('messages', [])).lower()
+                if not r.get('moved') and 'cannot hold more items' in said:
+                    # his pack holds 125 things (potions don't stack; 21:58, the cure potions): this load is done
+                    say('his pack holds all the things it can (125): this load is done')
+                    LEFT[0] = True
+                    return taken
                 if not r.get('moved') and 'cannot hold more weight' in said:
                     # too heavy for his pack all at once (1954 lockpicks, 2026-11-19): the part that fits, the rest
                     # on a later trip. A pile split keeps its serial on the part moved; the rest gets a new one.
