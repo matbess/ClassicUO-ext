@@ -189,7 +189,10 @@ def load():
                     # too heavy for his pack all at once (1954 lockpicks, 2026-11-19): the part that fits, the rest
                     # on a later trip. A pile split keeps its serial on the part moved; the rest gets a new one.
                     amount = p.get('amount', 1)
-                    part = amount // 2
+                    # as many as his room holds, at a stone a piece (lockpicks, ingots and the like are about that;
+                    # lighter piles just leave room); halved again while even that's refused
+                    room_now = status()['weightMax'] - status()['weight'] - WEIGHT_LEFT
+                    part = max(1, min(amount - 1, room_now))
                     while part >= 1 and not r.get('moved'):
                         time.sleep(1)
                         # the refused drop bounced back as a new item (2026-11-19: 0x4088B57F came back as
