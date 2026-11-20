@@ -171,14 +171,17 @@ def cheb(a, b):
     return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
 
 
-def nearest_point(p):
-    return min(GRAPH, key=lambda q: (cheb(p, q), abs(p[0] - q[0]) + abs(p[1] - q[1])))
+def nearest_point(p, z=None):
+    """The lines' point nearest p; up on the stairs (z 20 and over) only the stairs' own points (the floor below is
+    near on the map but not to him: 2026-11-19 20:18, at 927,2324,26 the nearest was 925,2325 down in the corridor)."""
+    pool = STAIRS if z is not None and z >= 20 else GRAPH
+    return min(pool, key=lambda q: (cheb(p, q), abs(p[0] - q[0]) + abs(p[1] - q[1])))
 
 
-def route(start, goal):
-    """The points along the lines from the one nearest start to the one nearest goal (breadth first: fewest points;
-    the lines are short)."""
-    a, b = nearest_point(start), nearest_point(goal)
+def route(start, goal, z=None):
+    """The points along the lines from the one nearest start (at height z) to the one nearest goal (breadth first:
+    fewest points; the lines are short)."""
+    a, b = nearest_point(start, z), nearest_point(goal)
     seen, queue = {a: None}, [a]
     while queue:
         q = queue.pop(0)
@@ -194,6 +197,23 @@ def route(start, goal):
     while q is not None:
         out.insert(0, q)
         q = seen[q]
+    return out
+
+
+STAIRS = set(LINES['stairs'][1:-1])  # the points up on the stairs (not the two ends, on the floors)
+
+
+def stretches(pts):
+    """pts cut where he goes onto or off the stairs."""
+    out, cur = [], []
+    for p in pts:
+        if cur and (p in STAIRS) != (cur[-1] in STAIRS):
+            out.append(cur + [p])  # the joining point ends this stretch and starts the next
+            cur = [p]
+            continue
+        cur.append(p)
+    if cur and (not out or len(cur) > 1):
+        out.append(cur)
     return out
 
 
@@ -260,7 +280,7 @@ class Mover:
         here = (st['x'], st['y'])
         if here == tuple(goal):
             return
-        pts = route(here, goal)
+        pts = route(here, goal, st['z'])
         if tuple(goal) != pts[-1]:
             pts.append(tuple(goal))
         behind = lambda p: zone(*p) == 'south-east'  # noqa: E731 (behind the user's table)
@@ -270,7 +290,11 @@ class Mover:
                 self.travel(pts[:cut], f'to the user\'s table ({what})')
             self.open_table()
             pts = pts[cut:]
-        self.travel(pts, what or f'to {goal[0]},{goal[1]}')
+        # in stretches, one per line: the bridge checks every point of a ride against his areas at the height he's
+        # at when it starts, so the stairs (z 26) and the floors (z 6) can't share a ride (2026-11-19 20:18:
+        # "waypoint 936,2323 is outside the agent's area", sent from the top of the stairs)
+        for part in stretches(pts):
+            self.travel(part, what or f'to {goal[0]},{goal[1]}')
 
     def walk(self, x, y, what=''):
         self.go((x, y), what)
@@ -282,8 +306,15 @@ class Mover:
         self.go(start, f'to the {target}')
 
     def walk_near(self, info, serial, reach=1):
-        """uo.walk_near for the castle: along the lines to where he stands for it, then the last steps."""
-        spot = self.uo.on_floor(info, serial)
+        """uo.walk_near for the castle: along the lines to where he stands for it, then the last steps. A castle chest
+        out of his client's sight goes by its spot in the plan."""
+        try:
+            spot = self.uo.on_floor(info, serial)
+        except self.uo.BridgeError as e:
+            if e.code != 404 or serial not in PLAN:
+                raise
+            self.go(stand_spot(PLAN[serial]['x'], PLAN[serial]['y']), f'to {serial}')
+            spot = self.uo.on_floor(info, serial)
         if not spot or spot['distance'] <= reach:
             return
         self.go(stand_spot(spot['x'], spot['y']), f'to {serial}')
@@ -426,6 +457,8 @@ def test():
     assert stand_spot(940, 2348) == (940, 2349) and stand_spot(938, 2350) == (939, 2349)
     assert zone(948, 2338) == 'east' and zone(940, 2349) == 'south-east' and zone(944, 2349) == 'east'
     assert all(len(pts) <= 200 for pts in LINES.values())
+    parts = stretches(route((935, 2338), (948, 2335)))
+    assert len(parts) == 3 and parts[1][1] in STAIRS and parts[2][0] not in STAIRS or parts[2][0] == (923, 2328), parts
     print('castle_site: all checks pass')
 
 
