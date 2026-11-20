@@ -26,8 +26,8 @@ In the castle (site.json next to SPEC, from look.py --side): the castle's chests
 it's needed: the first of the kind's chests (castle_site.targets) with room for 125 items, and for a secure 395
 stones; everything is carried (look.py took it out of the intake chests). Its own homes: gold to the user's gold
 chests behind their table, cut leather and cloth to "cloth & leather" and boards and logs to "boards & logs" by the
-forge (logs stay logs when he has no saw), the scissors borrowed from the tools chest, emptied loot bags to the side's
-spare backpacks chest, or the trash once that holds 125 (the user, 2026-11-18). The user's table, if a walk opened
+forge (logs stay logs when he has no saw), the scissors borrowed from the tools chest, emptied loot bags to the spare
+backpacks chest by the forge, or the trash once that holds 125 (the user, 2026-11-18). The user's table, if a walk opened
 it, is closed and locked down at the end whatever happens.
 New bags get a label ("bag: KIND (CHEST chest)"), and every chest opened is recorded in layout.json at the end.
 Waits while someone is in the room and out world saves; stops at the first problem and says where.
@@ -710,9 +710,8 @@ def sort(plan):
         if left:
             say(f'{l} still holds: ' + ', '.join(i['type'] for i in left))
             continue
-        if SIDE:  # the side's spare backpacks chest; once that holds 125, the trash (the user, 2026-11-18)
-            c = ROOM.pick('new backpacks', SIDE)
-            c = c if c and plan_side(c) == SIDE else room_in('trash')
+        if SIDE:  # the spare backpacks chest by the forge; once that holds 125, the trash (the user, 2026-11-18)
+            c = ROOM.pick('new backpacks', SIDE) or room_in('trash')
             learn(c)
             move(l, c)
             went_in(c)

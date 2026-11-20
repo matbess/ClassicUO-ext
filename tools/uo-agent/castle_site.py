@@ -2,14 +2,13 @@
 """Sorting in the Castle: what the sorting tools (look.py, idall.py, plan.py, sortbatch.py, finish.py) need to know
 when the sorter (Clem) is in the user's castle rather than the tower vault (CASTLE.md, "Sorting").
 
-- **Which chest**: the plan's chests (castle_plan.py) for each of the sorter's chest names, east or west, with the
-  overflow order: the side's own chest(s), then the other wall's (the user, 2026-11-18: "If we run out of space on the
-  east side then we can add it to the west side (and vice versa)"). The secure kinds (wands, jewellery, magic
-  clothing, GM sets, best weapons and armour, treasure maps, deeds, reagents, gems) always go to the east wall's
-  secures, never to an ordinary chest: the west wall's secures aren't made yet. When those are full they go behind
-  the user's table, to "valuables overflow" (reagents to the user's reagents chests). Gold always goes behind the
-  table. A chest takes 125 items (counting everything inside) and a secure 395 stones; past that the next one is used,
-  and when none is left the run stops and says so.
+- **Which chest**: the plan's chests (castle_plan.py) for each of the sorter's chest names, with the overflow order:
+  the side's own chest(s), then the other wall's (the user, 2026-11-18: "If we run out of space on the east side then
+  we can add it to the west side (and vice versa)"), then the forge's and the user's vault's of the same kind. Since
+  version 2 of the plan (2026-11-19) the west wall is all free and unassigned, so both sides sort into east storage.
+  A kind with secure chests (none in version 2) goes only to those, then to "valuables overflow" behind the user's
+  table. Gold always goes behind the table. A chest takes 125 items (counting everything inside) and a secure 395
+  stones; past that the next one is used, and when none is left the run stops and says so.
 - **Getting around**: long walks stop short and some places are only reached by stairs, so every walk goes zone by
   zone along the user's own routes (route.jsonl, 2026-11-18). Opening the user's table on the way to the south-east
   rooms (the east intake chests and the user's vault are behind it), and closing it at the end (close_up), always.
@@ -349,21 +348,24 @@ def stones(item):
 
 
 def test():
-    """Offline checks of the tables above."""
+    """Offline checks of the tables above (version 2 of the plan: nothing on the walls secure, the west wall free)."""
     assert targets('swords', 'east')[0] == next(s for s, e in PLAN.items() if e['what'] == 'swords' and e['side'] == 'east')
-    assert PLAN[targets('swords', 'west')[0]]['side'] == 'west'
-    assert PLAN[targets('swords', 'west')[1]]['side'] == 'east'
+    assert targets('swords', 'west') == targets('swords', 'east')  # the west wall is unassigned: east storage
+    assert not SECURE_KINDS
+    assert not any(e['secure'] for e in PLAN.values() if e['side'] != 'friend')
+    assert all(e['secure'] for e in PLAN.values() if e['side'] == 'friend')
+    assert all(e['what'] == 'free' for e in PLAN.values() if e['side'] == 'west' and e['x'] == 921)
     for name in ('jewellery', 'magic clothing', 'attack wands', 'healing wands', 'GM armour sets', 'best weapons',
                  'best armour', 'treasure maps', 'deeds', 'gems', 'reagents'):
         t = targets(name, 'west')
-        assert PLAN[t[0]]['secure'] and PLAN[t[0]]['side'] == 'east', name
-        assert PLAN[t[-1]]['side'] == 'vault', name
+        assert PLAN[t[0]]['side'] == 'east', name
+    assert PLAN[targets('reagents', 'east')[-1]]['side'] == 'vault'
     assert [PLAN[s]['what'] for s in targets('heal potions', 'east')][:2] == ['heal potions 1', 'heal potions 2']
-    assert len(targets('poison potions', 'east')) == 6
+    assert len(targets('poison potions', 'east')) == 3
     assert [PLAN[s]['what'] for s in targets('smelting', 'east')] == [f'smelting {i}' for i in range(1, 5)]
     assert all(PLAN[s]['what'] == 'gold' for s in targets('gold', 'west'))
     assert PLAN[targets('ingots', 'east')[0]]['side'] == 'forge'
-    assert PLAN[targets('new backpacks', 'west')[0]]['what'] == 'spare backpacks'
+    assert [PLAN[s]['side'] for s in targets('new backpacks', 'west')] == ['forge']
     assert PLAN[targets('supplies', 'east')[0]]['what'] == 'supplies & ID wands'
     assert len(intake('east')) == 2 and len(intake('west')) == 2
     for name in ('swords', 'axes', 'maces & staves', 'polearms', 'fencing', 'archery', 'plate', 'helms', 'chain & ring',

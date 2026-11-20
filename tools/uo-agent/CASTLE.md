@@ -62,9 +62,8 @@ They stand in stacks of 4 on one tile (z 6, 10, 14 and 18), which is 4 rows, lik
 
 The 4 dump chests are next to the "window" by the main entrance.
 
-**Spare backpacks** (the user, 2026-11-18): on each wall, the **floor chest at the north end** (947,2329,6 and
-921,2329,6) holds the emptied loot bags, as the tower's backpacks crate does. Once it holds 125, further empty bags
-go in the trash.
+**Spare backpacks** (the user, 2026-11-18): the emptied loot bags, as the tower's backpacks crate. Once it holds 125,
+further empty bags go in the trash. Since version 2, one chest by the forge (944,2327, floor), not one on each wall.
 
 **The user's words** (2026-11-18):
 - **East storage** is the east wall, **west storage** the west wall. **"My vault"** is the user's personal chests
@@ -116,6 +115,25 @@ The user's friend has no owner commands, so the tables are for the owner side. T
    the table ("(no longer locked down)"). Pick it up and drop it one tile aside (the user put it at 945,2350).
 2. **Close:** put it back on 943,2349. Say **"I wish to lock this down"**, and target the table. Check that a single
    click says "locked down".
+
+## Version 2 of the plan (the user, 2026-11-19)
+
+- **The forge gate (planned, not done):** the user's tables move up to the forge corner and stand locked down across
+  the east hall walkway, cutting off the whole east side (the east wall, the user's vault and the east intake
+  chests) from the forge ("the tables will be moved so they separate the forge and the east wall (and the southeast
+  area)"). Proposed: 948,2328 and 949,2328, just north of the first wall chests (y 2329) and south of the forge
+  chests (2326/2327); a third on 947,2328 if that's open floor. Clem gets through by releasing one table, as with the
+  south-east table now. Once they stand, `castle.py table` and `castle_site.py` (the table's place, and the zone it
+  guards: east and south-east together) change to match; until then the south-east table works as before.
+- **No secures on the east side:** the tables keep everyone without owner commands out, so the east wall's 13
+  secures (`castle/secured-east-2026-11-18.json`) go back to plain locked-down chests (`castle_plan.py unsecure`, not
+  run yet) and the 395-stone limit doesn't apply there.
+- **Secures by the west intake:** all 24 of the friend's chests in the south-west row (`castle_plan.py secure`, the
+  16 not yet secure; not run yet). 24 of the house's 28.
+- **The west wall** is free, unassigned and not secure: "Don't mirror the east side ... leave everything empty for
+  now". The west intake chests sort into east storage meanwhile.
+- **Spare backpacks:** one chest by the forge, outside the tables (944,2327, floor): "I want the chest with backpacks
+  to be in the forge area so it's not behind the tables".
 
 ## Sorting (from 2026-11-19)
 

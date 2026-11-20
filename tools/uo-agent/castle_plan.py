@@ -6,7 +6,18 @@
   python3 -I castle_plan.py show      every chest: where, what for, secure or not
   python3 -I castle_plan.py labels    write a "castle: ..." label for every chest into labels.json (nothing is sent)
   python3 -I castle_plan.py secures   the chests to make secure, in order
-  python3 -I castle_plan.py secure    Clem makes them secure (the east wall's first, then the friend's 8)
+  python3 -I castle_plan.py secure    Clem makes them secure (skipping any that are already)
+  python3 -I castle_plan.py unsecure  Clem turns every secure chest the plan doesn't mark secure back into a plain
+                                      locked-down one (version 2: the east wall's 13), so their secures can go to the
+                                      friend's row
+
+Version 2 (the user, 2026-11-19): the user's tables are to move up to the forge corner and shut off the whole east
+side (the east wall and the south-east rooms) from the forge, so nothing on the east wall needs to be secure any more;
+the secures move to the south-west row by the west intake chests ("make all of the chests by the intake into secure
+chests"). The west wall doesn't mirror the east any more: every chest there is free, unassigned and not secure
+("Just leave them empty and unassigned for now so they can be figured out later"). The spare backpacks go to the
+forge corner, outside the tables ("I want the chest with backpacks to be in the forge area so it's not behind the
+tables").
 
 The chests' serials and spots are in castle/chests.json (recorded 2026-11-18). Each tile holds a stack of 4 chests,
 z 18 (top), 14, 10 and 6 (the floor). East storage is the east wall (x 947), west storage the west wall (x 921), the
@@ -26,17 +37,18 @@ ROWS = {18: 'top', 14: '2nd', 10: '3rd', 6: 'floor'}
 Z = [18, 14, 10, 6]
 FREE = 'free'
 
-# (what, secure) for each row of a tile, top to bottom; the walls run north (y 2329) to south (y 2343)
+# (what, secure) for each row of a tile, top to bottom; the east wall runs north (y 2329) to south (y 2343). None
+# secure: the tables at the forge keep everyone without owner commands out (version 2)
 WALL = {
-    2329: [('swords', 0), ('axes', 0), ('maces & staves', 0), ('spare backpacks', 0)],
+    2329: [('swords', 0), ('axes', 0), ('maces & staves', 0), (FREE, 0)],
     2330: [('polearms', 0), ('fencing', 0), ('archery', 0), (FREE, 0)],
-    2331: [('attack wands', 1), ('healing wands', 1), ('jewellery', 1), ('magic clothing', 1)],
+    2331: [('attack wands', 0), ('healing wands', 0), ('jewellery', 0), ('magic clothing', 0)],
     2332: [('plate', 0), ('helms', 0), ('chain & ring + coifs', 0), ('leather + caps', 0)],
-    2333: [('studded', 0), ('shields', 0), ('GM armour sets', 1), ('plain gear', 0)],
-    2334: [('best weapons', 1), ('best armour', 1), ('treasure maps', 1), (FREE, 0)],
-    2335: [('deeds 1', 1), ('deeds 2', 1), ('deeds 3', 1), (FREE, 0)],
-    2336: [('scrolls, circles 1-4', 0), ('scrolls, circles 5-8', 0), ('reagents', 1), (FREE, 0)],
-    2337: [('gems', 1), ('miscellaneous', 0), ('supplies & ID wands', 0), ('needs your decision', 0)],
+    2333: [('studded', 0), ('shields', 0), ('GM armour sets', 0), ('plain gear', 0)],
+    2334: [('best weapons', 0), ('best armour', 0), ('treasure maps', 0), (FREE, 0)],
+    2335: [('deeds 1', 0), ('deeds 2', 0), ('deeds 3', 0), (FREE, 0)],
+    2336: [('scrolls, circles 1-4', 0), ('scrolls, circles 5-8', 0), ('reagents', 0), (FREE, 0)],
+    2337: [('gems', 0), ('miscellaneous', 0), ('supplies & ID wands', 0), ('needs your decision', 0)],
     2338: [(FREE, 0)] * 4,
     2339: [('heal potions 1', 0), ('heal potions 2', 0), ('cure potions 1', 0), ('cure potions 2', 0)],
     2340: [('refresh potions 1', 0), ('refresh potions 2', 0), ('agility potions 1', 0), ('agility potions 2', 0)],
@@ -48,7 +60,7 @@ WALL = {
 FORGE = {
     2322: [('smelting 1', 0), ('smelting 2', 0), ('smelting 3', 0), ('smelting 4', 0)],
     2326: [('ingots', 0), ('boards & logs', 0), ('cloth & leather', 0), ('tools', 0)],
-    2327: [('cooking', 0), (FREE, 0), (FREE, 0), (FREE, 0)],
+    2327: [('cooking', 0), (FREE, 0), (FREE, 0), ('spare backpacks', 0)],  # outside the tables: anyone can drop bags
 }
 # the user's vault (south-east, behind their table, y 2348): no weight limit, no secures needed
 VAULT = {
@@ -58,9 +70,10 @@ VAULT = {
     941: [('gold', 0)] * 4,
     942: [('valuables overflow', 0), ('valuables overflow', 0), (FREE, 0), (FREE, 0)],
 }
-# the friend's vault (south-west, y 2348): never touched, except securing the 8 at the west end (x 928 and 929; the
-# user, 2026-11-18: "yes, Clem can secure those 8 chests")
-FRIEND_SECURE = (928, 929)
+# the friend's vault (south-west, y 2348): never touched, except making them secure: the 8 at the west end (x 928 and
+# 929; the user, 2026-11-18: "yes, Clem can secure those 8 chests"), and in version 2 all 24, as nothing else
+# protects them ("make all of the chests by the intake into secure chests")
+FRIEND_SECURE = (928, 929, 930, 931, 932, 933)
 
 
 def plan():
@@ -75,8 +88,8 @@ def plan():
         if x == 947 and y in WALL:
             e.update(side='east', place=f'east {y}', what=WALL[y][i][0], secure=bool(WALL[y][i][1]))
         elif x == 921 and y in WALL:
-            # the west wall: the same plan; its secures wait until the west wall takes overflow of those kinds
-            e.update(side='west', place=f'west {y}', what=WALL[y][i][0], secure=False)
+            # the west wall: free, unassigned and not secure for now (version 2)
+            e.update(side='west', place=f'west {y}', what=FREE, secure=False)
         elif x == 944 and y in FORGE:
             e.update(side='forge', place=f'forge {y}', what=FORGE[y][i][0], secure=False)
         elif y == 2348 and x in VAULT:
@@ -123,18 +136,8 @@ def secure_all():
             with open(AGENT_RULES, 'w', encoding='utf-8') as fh:
                 fh.write(text)
             time.sleep(2)  # the bridge rereads its rules within a second of a change
-        side = None
         for s, e in todo:
-            if side == 'east' and e['side'] == 'friend':
-                for p in EAST_TO_WEST:
-                    uo.call(info, 'POST', '/walk', x=p[0], y=p[1], distance=0)
-            side = e['side']
-            stand = STAND[e['side']](e)
-            st = uo.call(info, 'GET', '/status')
-            if (st['x'], st['y']) != stand:
-                r = uo.call(info, 'POST', '/walk', x=stand[0], y=stand[1], distance=0)
-                if not r.get('arrived'):
-                    raise SystemExit(f'STOPPED: could not get to {stand} for {label(e)}: {r}')
+            go_to(info, e)
             first = ' '.join(a for r in uo.call(info, 'POST', '/name', serial=s) for a in r.get('lines', [])).lower()
             if 'secure' in first:
                 print(f'{s} {label(e)}: secure already')
@@ -153,10 +156,63 @@ def secure_all():
             fh.write(original)  # the friend's chests back off limits
 
 
+def go_to(info, e):
+    """Clem in front of a chest: zone by zone (castle_site), then onto his spot."""
+    import castle_site
+    stand = STAND[e['side']](e)
+    mover = castle_site.Mover(uo, info)
+    mover.go_zone(castle_site.zone(*stand))
+    mover.walk(*stand, what=label(e))
+
+
+def house_command(info, words, serial, want):
+    """An owner command aimed at a chest: the words, the house's cursor, and the answer it must give."""
+    import time
+    uo.call(info, 'POST', '/say', text=words)
+    end = time.time() + 2
+    while time.time() < end and not uo.call(info, 'GET', '/status').get('targeting'):
+        time.sleep(0.1)
+    t = uo.call(info, 'POST', '/target', serial=serial)
+    said = ' | '.join(m['text'] for m in t.get('messages', []))
+    if not any(w in said.lower() for w in want):
+        raise SystemExit(f'STOPPED: "{words}" on {serial}: {said or "no answer"}')
+    return said
+
+
+def unsecure_all():
+    """Every chest that is secure in the game but not in the plan (version 2: the east wall's 13) back to a plain
+    locked-down chest: "I wish to release this" (which frees it altogether), then at once "I wish to lock this down",
+    and a single click must say locked down and not secure. They're empty (the move hasn't started). Never the
+    friend's."""
+    info = uo.find_bridge('Clem')
+    p = plan()
+    todo = sorted(((s, e) for s, e in p.items() if not e['secure'] and e['side'] in ('east', 'west', 'forge', 'vault')),
+                  key=lambda kv: (kv[1]['side'], kv[1]['y'], kv[1]['x'], -kv[1]['z']))
+    # the 13 made secure on 2026-11-18 under version 1 (their labels then, kept in castle/)
+    made = json.load(open(os.path.join(HERE, 'castle', 'secured-east-2026-11-18.json')))
+    marked = [(s, e) for s, e in todo if s in made]
+    for s, e in marked:
+        go_to(info, e)
+        first = ' '.join(a for r in uo.call(info, 'POST', '/name', serial=s) for a in r.get('lines', [])).lower()
+        if 'secure' not in first:
+            print(f'{s} {label(e)}: not secure already ({first})')
+            continue
+        said = house_command(info, 'i wish to release this', s, ('no longer', 'release'))
+        print(f'{s}: {said}', flush=True)
+        said = house_command(info, 'i wish to lock this down', s, ('locked down',))
+        print(f'{s}: {said}', flush=True)
+        now = ' '.join(a for r in uo.call(info, 'POST', '/name', serial=s) for a in r.get('lines', [])).lower()
+        if 'secure' in now or 'locked down' not in now:
+            raise SystemExit(f'STOPPED: {s} {label(e)} now says {now!r}')
+        print(f'{s} {label(e)}: locked down, not secure', flush=True)
+
+
 def main():
     cmd = sys.argv[1] if len(sys.argv) > 1 else 'show'
     if cmd == 'secure':
         return secure_all()
+    if cmd == 'unsecure':
+        return unsecure_all()
     p = plan()
     order = sorted(p.items(), key=lambda kv: (kv[1]['side'], kv[1]['x'], kv[1]['y'], -kv[1]['z']))
     if cmd == 'show':

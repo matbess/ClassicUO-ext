@@ -99,9 +99,9 @@ the other (each its own batch). The same five steps and tools; what changes:
   go into an empty bag from that side's spare backpacks chest first. It writes `BATCHDIR/site.json`, so the next
   steps know the side.
 - **Plan** picks the castle chests: the side's own first, then the other wall's (the user: "If we run out of space
-  on the east side then we can add it to the west side"). Secure kinds (wands, jewellery, magic clothing, GM sets,
-  best weapons and armour, treasure maps, deeds, reagents, gems) always go to the east wall's secures, then to "valuables
-  overflow" behind the user's table. Its report lists every chest it picked ("castle chests") and anything with
+  on the east side then we can add it to the west side"). Since version 2 of the plan (2026-11-19, CASTLE.md) the
+  west wall is free and unassigned, so both sides sort into east storage, and nothing on the east side is secure
+  (the user's tables are to shut it off at the forge). Its report lists every chest it picked ("castle chests") and anything with
   **NO ROOM**: tell the user. Changes from the tower (the plan approved 2026-11-18): weapons of force and up and
   vanquishing go to **best weapons**, armour of fortification and up (and any bone kept) to **best armour**, in bags
   by kind as before; deeds to the **deeds** secures; treasure maps to their own secure; raw food to the **cooking**
@@ -109,7 +109,7 @@ the other (each its own batch). The same five steps and tools; what changes:
 - **Sort:** gold goes behind the user's table (their gold chests); cut leather and cloth to **cloth & leather**,
   boards and logs to **boards & logs** (logs stay logs if he has no saw), ore and junk metal to the 4 **smelting**
   chests by the forge, trash to the barrel there (949,2322); potions to their kind's chests at the south end of the
-  wall; emptied loot bags to the side's **spare backpacks** chest (the north floor chest), or the trash once it
+  wall; emptied loot bags to the **spare backpacks** chest by the forge (944,2327, floor), or the trash once it
   holds 125. A chest takes 125 items, a secure 395 stones; it moves on to the next chest at either. Scroll bags are
   found by their labels in the side's scrolls chest (else the other wall's); a circle with no bag stays in the loot
   (it says so).
