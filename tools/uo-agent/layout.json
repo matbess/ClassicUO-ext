@@ -17,7 +17,7 @@
     "y": 105
    }
   ],
-  "items": 13,
+  "items": 14,
   "label": "castle: supplies & ID wands (east 2337, 3rd)",
   "loose": [
    {
@@ -103,9 +103,16 @@
     "serial": "0x4087D2B3",
     "x": 45,
     "y": 106
+   },
+   {
+    "amount": 286,
+    "name": "cut up leather",
+    "serial": "0x4088DBE9",
+    "x": 18,
+    "y": 139
    }
   ],
-  "recorded": "2026-11-19 20:40"
+  "recorded": "2026-11-19 20:43"
  },
  "0x4080C375": {
   "bags": [

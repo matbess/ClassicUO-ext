@@ -117,7 +117,24 @@ def towers():
     return out
 
 
-def target_of(container_label, bag_label=None):
+# loose things that have a castle home of their own, whatever tower chest they lay in (the castle plan: crafting by
+# the forge): cut leather and cloth, hides; saws, planes, scissors, tongs, shovels and other tools; boards and logs;
+# ingots
+LOOSE_HOME = {}
+for g in ('0x1067', '0x1068', '0x1081', '0x1082', '0x1766', '0x1767', '0x1078', '0x1079'):
+    LOOSE_HOME[g] = 'cloth & leather'
+for g in ('0x1034', '0x1035', '0x1028', '0x1029', '0x102C', '0x102D', '0x1030', '0x1031', '0x0F9E', '0x0F9F',
+          '0x0FBB', '0x0FBC', '0x0F39', '0x0F3A', '0x13E3', '0x13E4', '0x0FB4', '0x0FB5', '0x1022', '0x1023'):
+    LOOSE_HOME[g] = 'tools'
+for g in ('0x1BD7', '0x1BD8', '0x1BD9', '0x1BDA', '0x1BDD', '0x1BDE', '0x1BDF', '0x1BE0', '0x1BE1', '0x1BE2'):
+    LOOSE_HOME[g] = 'boards & logs'
+for g in ('0x1BEF', '0x1BF0', '0x1BF1', '0x1BF2', '0x1BF3', '0x1BF4'):
+    LOOSE_HOME[g] = 'ingots'
+
+
+def target_of(container_label, bag_label=None, graphic=None):
+    if graphic in LOOSE_HOME:
+        return LOOSE_HOME[graphic]
     if bag_label:
         k = label_kind(bag_label)
         if k in BAG_TARGET:
@@ -180,7 +197,7 @@ def load():
                 LEFT[0] = True
                 return taken
             bag_label = labels.get(pieces[0]['serial']) if pieces[0]['role'] == 'bag' else None
-            what = target_of(text, bag_label)
+            what = target_of(text, bag_label, pieces[0]['graphic'] if pieces[0]['role'] == 'loose' else None)
             before = st['weight']
             for p in pieces:
                 r = uo.move(info, p['serial'], pack)
