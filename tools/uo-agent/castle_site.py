@@ -241,7 +241,12 @@ class Mover:
             r = self.uo.call(self.info, 'POST', '/travel', path=';'.join(f'{x},{y}' for x, y in pts[:200]))
             if r.get('stopped'):
                 self.say(f"the way {what} stopped at {r.get('x')},{r.get('y')} ({r.get('stopped')}); on from there")
+            st = self.status()
+            if 0 < cheb((st['x'], st['y']), end) <= 2:  # the last tile or two: a plain step
+                self.uo.call(self.info, 'POST', '/walk', x=end[0], y=end[1], distance=0)
         st = self.status()
+        if cheb((st['x'], st['y']), end) <= 1:
+            return  # a tile off: close enough for anything within reach (2 tiles)
         raise self.uo.BridgeError(0, f"could not go {what}: he's at {st['x']},{st['y']},{st['z']}")
 
     def go(self, goal, what=''):
@@ -266,8 +271,9 @@ class Mover:
         self.go(start, f'to the {target}')
 
     def walk_near(self, info, serial, reach=1):
-        """uo.walk_near for the castle: along the lines to where he stands for it, then the last steps. A castle chest
-        out of his client's sight goes by its spot in the plan."""
+        """uo.walk_near for the castle: along the route to where he stands for it, then the last steps. A castle chest
+        out of his client's sight goes by its spot in the plan. Within 2 tiles is within reach (the bridge's REACH)."""
+        reach = max(reach, 2)
         try:
             spot = self.uo.on_floor(info, serial)
         except self.uo.BridgeError as e:
