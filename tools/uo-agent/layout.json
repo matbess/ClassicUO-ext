@@ -1,4 +1,188 @@
 {
+ "0x404804BD": {
+  "bags": [
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098CD25",
+    "x": 42,
+    "y": 138
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E04C",
+    "x": 47,
+    "y": 106
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E04E",
+    "x": 27,
+    "y": 107
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E051",
+    "x": 115,
+    "y": 110
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E054",
+    "x": 47,
+    "y": 114
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E056",
+    "x": 52,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E05C",
+    "x": 13,
+    "y": 119
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E060",
+    "x": 40,
+    "y": 115
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E062",
+    "x": 27,
+    "y": 153
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E064",
+    "x": 70,
+    "y": 117
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E069",
+    "x": 118,
+    "y": 148
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2BC",
+    "x": 55,
+    "y": 147
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F79",
+    "x": 67,
+    "y": 108
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F87",
+    "x": 124,
+    "y": 141
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F76",
+    "x": 129,
+    "y": 154
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F7A",
+    "x": 32,
+    "y": 128
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F7D",
+    "x": 72,
+    "y": 137
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4045C02F",
+    "x": 34,
+    "y": 139
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x409397BB",
+    "x": 129,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407D0B9F",
+    "x": 27,
+    "y": 147
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2DB",
+    "x": 14,
+    "y": 136
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2E1",
+    "x": 72,
+    "y": 133
+   }
+  ],
+  "items": 22,
+  "label": "castle: spare backpacks (forge 2327, floor)",
+  "loose": [],
+  "recorded": "2026-11-19 22:27"
+ },
  "0x404ABD74": {
   "bags": [],
   "items": 0,
@@ -81,6 +265,1024 @@
   ],
   "recorded": "2026-11-19 21:43"
  },
+ "0x406B630F": {
+  "bags": [],
+  "items": 33,
+  "label": "castle: agility potions 1 (east 2340, 3rd)",
+  "loose": [
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x408F1C27",
+    "x": 69,
+    "y": 157
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x408A5A6A",
+    "x": 90,
+    "y": 108
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x408C45D8",
+    "x": 132,
+    "y": 110
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x408FEF71",
+    "x": 81,
+    "y": 144
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x407E7110",
+    "x": 70,
+    "y": 123
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x407F84C2",
+    "x": 111,
+    "y": 133
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x407FBB89",
+    "x": 80,
+    "y": 144
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x4096BFDB",
+    "x": 36,
+    "y": 118
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x40851993",
+    "x": 131,
+    "y": 135
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x407DE78D",
+    "x": 93,
+    "y": 115
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x40888CBA",
+    "x": 15,
+    "y": 112
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x40885A04",
+    "x": 15,
+    "y": 155
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x404C94C4",
+    "x": 31,
+    "y": 106
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x407D42B0",
+    "x": 43,
+    "y": 110
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x40323018",
+    "x": 49,
+    "y": 125
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x4087C15A",
+    "x": 19,
+    "y": 159
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x4083A897",
+    "x": 121,
+    "y": 154
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x4069B1CF",
+    "x": 10,
+    "y": 114
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x404E2135",
+    "x": 121,
+    "y": 145
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x408C5EBC",
+    "x": 27,
+    "y": 107
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x408E6BB7",
+    "x": 80,
+    "y": 130
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x408FD811",
+    "x": 115,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x404074FC",
+    "x": 137,
+    "y": 111
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x404CA40E",
+    "x": 17,
+    "y": 110
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x4097D52C",
+    "x": 136,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x408E865F",
+    "x": 58,
+    "y": 155
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x4090EA7B",
+    "x": 34,
+    "y": 126
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x409680E1",
+    "x": 117,
+    "y": 117
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x4076EFD2",
+    "x": 60,
+    "y": 107
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x409019B8",
+    "x": 135,
+    "y": 127
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x4093E52D",
+    "x": 86,
+    "y": 113
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x40946FFA",
+    "x": 62,
+    "y": 129
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x4094B15F",
+    "x": 28,
+    "y": 121
+   }
+  ],
+  "recorded": "2026-11-19 22:16"
+ },
+ "0x406B68FC": {
+  "bags": [],
+  "items": 65,
+  "label": "castle: poison potions 1 (east 2341, 3rd)",
+  "loose": [
+   {
+    "amount": 1,
+    "name": "an unknown green potion",
+    "serial": "0x408AA8E1",
+    "x": 134,
+    "y": 128
+   },
+   {
+    "amount": 1,
+    "name": "an unknown green potion",
+    "serial": "0x4072B125",
+    "x": 80,
+    "y": 152
+   },
+   {
+    "amount": 1,
+    "name": "an unknown green potion",
+    "serial": "0x408FC94C",
+    "x": 6,
+    "y": 108
+   },
+   {
+    "amount": 1,
+    "name": "an unknown green potion",
+    "serial": "0x409262BE",
+    "x": 35,
+    "y": 135
+   },
+   {
+    "amount": 1,
+    "name": "an unknown green potion",
+    "serial": "0x408ECA12",
+    "x": 105,
+    "y": 111
+   },
+   {
+    "amount": 1,
+    "name": "an unknown green potion",
+    "serial": "0x407A9664",
+    "x": 116,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "an unknown green potion",
+    "serial": "0x4072BD2E",
+    "x": 128,
+    "y": 153
+   },
+   {
+    "amount": 1,
+    "name": "an unknown green potion",
+    "serial": "0x409095BA",
+    "x": 42,
+    "y": 136
+   },
+   {
+    "amount": 1,
+    "name": "an unknown green potion",
+    "serial": "0x407A4C4B",
+    "x": 115,
+    "y": 158
+   },
+   {
+    "amount": 1,
+    "name": "an unknown green potion",
+    "serial": "0x40922810",
+    "x": 37,
+    "y": 152
+   },
+   {
+    "amount": 1,
+    "name": "an unknown green potion",
+    "serial": "0x40986003",
+    "x": 100,
+    "y": 152
+   },
+   {
+    "amount": 1,
+    "name": "an unknown green potion",
+    "serial": "0x4041DB8C",
+    "x": 94,
+    "y": 144
+   },
+   {
+    "amount": 1,
+    "name": "an unknown green potion",
+    "serial": "0x4059353E",
+    "x": 127,
+    "y": 113
+   },
+   {
+    "amount": 1,
+    "name": "an unknown green potion",
+    "serial": "0x40409C71",
+    "x": 75,
+    "y": 156
+   },
+   {
+    "amount": 1,
+    "name": "an unknown green potion",
+    "serial": "0x40888CBC",
+    "x": 135,
+    "y": 109
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4027CE89",
+    "x": 120,
+    "y": 146
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4063C711",
+    "x": 130,
+    "y": 122
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x408E3280",
+    "x": 33,
+    "y": 104
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x408E9698",
+    "x": 105,
+    "y": 153
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x405DBF9B",
+    "x": 92,
+    "y": 142
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x403BB993",
+    "x": 82,
+    "y": 120
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x40454F52",
+    "x": 74,
+    "y": 136
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x40644F61",
+    "x": 120,
+    "y": 140
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x406714A5",
+    "x": 70,
+    "y": 113
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x404D943B",
+    "x": 77,
+    "y": 142
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x404CF836",
+    "x": 134,
+    "y": 142
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4043BBCC",
+    "x": 41,
+    "y": 156
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x405F33CF",
+    "x": 115,
+    "y": 146
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4055F756",
+    "x": 83,
+    "y": 145
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x401C56B9",
+    "x": 83,
+    "y": 158
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x405FBCFF",
+    "x": 19,
+    "y": 139
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x407F050E",
+    "x": 12,
+    "y": 119
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x40828DD7",
+    "x": 84,
+    "y": 112
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x404E1F2E",
+    "x": 132,
+    "y": 113
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x404E213A",
+    "x": 110,
+    "y": 112
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x408FE162",
+    "x": 50,
+    "y": 147
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x40917E1F",
+    "x": 96,
+    "y": 137
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4090418D",
+    "x": 75,
+    "y": 138
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4083E7AB",
+    "x": 124,
+    "y": 152
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x403DDD00",
+    "x": 93,
+    "y": 130
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4063032B",
+    "x": 13,
+    "y": 134
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x408F814A",
+    "x": 89,
+    "y": 130
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x408EF190",
+    "x": 135,
+    "y": 156
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x408BFAA2",
+    "x": 102,
+    "y": 108
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4065BE18",
+    "x": 7,
+    "y": 152
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x40831619",
+    "x": 37,
+    "y": 146
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x408005DF",
+    "x": 28,
+    "y": 143
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x408F78EB",
+    "x": 2,
+    "y": 152
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x403DA100",
+    "x": 69,
+    "y": 155
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x40834748",
+    "x": 45,
+    "y": 145
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x40673A99",
+    "x": 39,
+    "y": 109
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4022F6D8",
+    "x": 12,
+    "y": 132
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4034AF34",
+    "x": 131,
+    "y": 158
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4065EFB0",
+    "x": 54,
+    "y": 156
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4097D4B4",
+    "x": 60,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x40881ABC",
+    "x": 81,
+    "y": 126
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4090FCA1",
+    "x": 111,
+    "y": 124
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4094724E",
+    "x": 21,
+    "y": 132
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x408ACECE",
+    "x": 65,
+    "y": 112
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x408B4795",
+    "x": 40,
+    "y": 106
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x40907867",
+    "x": 125,
+    "y": 136
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4096809B",
+    "x": 131,
+    "y": 152
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x409680E0",
+    "x": 2,
+    "y": 110
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x408FA0DA",
+    "x": 16,
+    "y": 125
+   },
+   {
+    "amount": 1,
+    "name": "Green Potion",
+    "serial": "0x4093E010",
+    "x": 132,
+    "y": 145
+   }
+  ],
+  "recorded": "2026-11-19 22:27"
+ },
+ "0x406B75B0": {
+  "bags": [],
+  "items": 44,
+  "label": "castle: refresh potions 1 (east 2340, top)",
+  "loose": [
+   {
+    "amount": 1,
+    "name": "an unknown red potion",
+    "serial": "0x403A2347",
+    "x": 65532,
+    "y": 155
+   },
+   {
+    "amount": 1,
+    "name": "an unknown red potion",
+    "serial": "0x40917FBC",
+    "x": 101,
+    "y": 112
+   },
+   {
+    "amount": 1,
+    "name": "an unknown red potion",
+    "serial": "0x40883F84",
+    "x": 68,
+    "y": 123
+   },
+   {
+    "amount": 1,
+    "name": "an unknown red potion",
+    "serial": "0x40947002",
+    "x": 30,
+    "y": 109
+   },
+   {
+    "amount": 1,
+    "name": "an unknown red potion",
+    "serial": "0x40429ABD",
+    "x": 72,
+    "y": 133
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x407D42B6",
+    "x": 8,
+    "y": 130
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x4073FC64",
+    "x": 45,
+    "y": 137
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x4031229B",
+    "x": 109,
+    "y": 104
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x408E9E3E",
+    "x": 47,
+    "y": 159
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x408E3285",
+    "x": 103,
+    "y": 117
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x404C80A0",
+    "x": 66,
+    "y": 113
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x40440F1E",
+    "x": 13,
+    "y": 149
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x40890BC3",
+    "x": 98,
+    "y": 124
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x408F0271",
+    "x": 83,
+    "y": 149
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x403E1768",
+    "x": 3,
+    "y": 109
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x403E0948",
+    "x": 65528,
+    "y": 127
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x403DB7FE",
+    "x": 24,
+    "y": 118
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x408E6AF6",
+    "x": 58,
+    "y": 116
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x4086F1D8",
+    "x": 70,
+    "y": 125
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x408BFD2D",
+    "x": 65534,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x40916098",
+    "x": 51,
+    "y": 116
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x407FF561",
+    "x": 9,
+    "y": 141
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x408C6629",
+    "x": 61,
+    "y": 141
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x408C67C3",
+    "x": 19,
+    "y": 121
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x408D7693",
+    "x": 99,
+    "y": 138
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x40655010",
+    "x": 72,
+    "y": 136
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x4069B67A",
+    "x": 78,
+    "y": 117
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x406FF25C",
+    "x": 96,
+    "y": 127
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x40952C25",
+    "x": 0,
+    "y": 140
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x408376B2",
+    "x": 65533,
+    "y": 155
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x40881337",
+    "x": 80,
+    "y": 140
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x4090C5CC",
+    "x": 31,
+    "y": 144
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x408ACEC5",
+    "x": 26,
+    "y": 149
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x408A6484",
+    "x": 119,
+    "y": 151
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x408BC505",
+    "x": 71,
+    "y": 104
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x406225AF",
+    "x": 31,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x408C673A",
+    "x": 84,
+    "y": 104
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x40485DDC",
+    "x": 65530,
+    "y": 126
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x40823A77",
+    "x": 5,
+    "y": 139
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x4093A552",
+    "x": 0,
+    "y": 143
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x4093DC0A",
+    "x": 77,
+    "y": 127
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x409415CD",
+    "x": 83,
+    "y": 156
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x40947C79",
+    "x": 15,
+    "y": 130
+   },
+   {
+    "amount": 1,
+    "name": "Red Potion",
+    "serial": "0x40945E8E",
+    "x": 71,
+    "y": 155
+   }
+  ],
+  "recorded": "2026-11-19 22:16"
+ },
  "0x406BB2E2": {
   "bags": [
    {
@@ -131,21 +1333,587 @@
   "loose": [],
   "recorded": "2026-11-19 21:33"
  },
+ "0x406BC7BC": {
+  "bags": [],
+  "items": 47,
+  "label": "castle: heal potions 1 (east 2339, top)",
+  "loose": [
+   {
+    "amount": 1,
+    "name": "an unknown yellow potion",
+    "serial": "0x408C9A92",
+    "x": 70,
+    "y": 132
+   },
+   {
+    "amount": 1,
+    "name": "an unknown yellow potion",
+    "serial": "0x408A7292",
+    "x": 37,
+    "y": 151
+   },
+   {
+    "amount": 1,
+    "name": "an unknown yellow potion",
+    "serial": "0x40841E1E",
+    "x": 66,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "an unknown yellow potion",
+    "serial": "0x409018F6",
+    "x": 63,
+    "y": 150
+   },
+   {
+    "amount": 1,
+    "name": "an unknown yellow potion",
+    "serial": "0x4090529A",
+    "x": 17,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "an unknown yellow potion",
+    "serial": "0x4091AADD",
+    "x": 32,
+    "y": 146
+   },
+   {
+    "amount": 1,
+    "name": "an unknown yellow potion",
+    "serial": "0x40949BEE",
+    "x": 59,
+    "y": 115
+   },
+   {
+    "amount": 1,
+    "name": "an unknown yellow potion",
+    "serial": "0x40927AB3",
+    "x": 12,
+    "y": 133
+   },
+   {
+    "amount": 1,
+    "name": "an unknown yellow potion",
+    "serial": "0x409243AF",
+    "x": 77,
+    "y": 154
+   },
+   {
+    "amount": 1,
+    "name": "an unknown yellow potion",
+    "serial": "0x4092852A",
+    "x": 61,
+    "y": 131
+   },
+   {
+    "amount": 1,
+    "name": "an unknown yellow potion",
+    "serial": "0x4096BFDC",
+    "x": 76,
+    "y": 140
+   },
+   {
+    "amount": 1,
+    "name": "an unknown yellow potion",
+    "serial": "0x40819508",
+    "x": 8,
+    "y": 132
+   },
+   {
+    "amount": 1,
+    "name": "an unknown yellow potion",
+    "serial": "0x408421B9",
+    "x": 97,
+    "y": 150
+   },
+   {
+    "amount": 1,
+    "name": "an unknown yellow potion",
+    "serial": "0x408421C0",
+    "x": 128,
+    "y": 157
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x407D396A",
+    "x": 74,
+    "y": 141
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x40632AB9",
+    "x": 122,
+    "y": 130
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x4087C170",
+    "x": 36,
+    "y": 134
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x4056C230",
+    "x": 7,
+    "y": 158
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x408EE3FB",
+    "x": 2,
+    "y": 109
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x40857BC4",
+    "x": 33,
+    "y": 112
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x4088D122",
+    "x": 67,
+    "y": 137
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x408D96F7",
+    "x": 62,
+    "y": 112
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x405E5856",
+    "x": 67,
+    "y": 132
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x405EA8C0",
+    "x": 95,
+    "y": 145
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x408A1357",
+    "x": 115,
+    "y": 150
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x4089C82B",
+    "x": 65,
+    "y": 104
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x4086F2DD",
+    "x": 36,
+    "y": 157
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x409234F9",
+    "x": 65530,
+    "y": 123
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x40908FE2",
+    "x": 13,
+    "y": 137
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x409184E3",
+    "x": 9,
+    "y": 111
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x40832681",
+    "x": 72,
+    "y": 112
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x408C67C4",
+    "x": 98,
+    "y": 114
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x40904194",
+    "x": 69,
+    "y": 147
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x406FAF1D",
+    "x": 108,
+    "y": 108
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x4095A84F",
+    "x": 117,
+    "y": 104
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x4088B30D",
+    "x": 25,
+    "y": 114
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x409472DE",
+    "x": 80,
+    "y": 142
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x407FBBF6",
+    "x": 61,
+    "y": 127
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x40802B59",
+    "x": 65532,
+    "y": 156
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x4085FC41",
+    "x": 117,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x408D1336",
+    "x": 118,
+    "y": 124
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x408D0EA5",
+    "x": 90,
+    "y": 110
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x409A217F",
+    "x": 12,
+    "y": 107
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x4059B4F8",
+    "x": 107,
+    "y": 115
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x4093EA6D",
+    "x": 21,
+    "y": 132
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x4093E7DE",
+    "x": 29,
+    "y": 146
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x4013651C",
+    "x": 39,
+    "y": 148
+   }
+  ],
+  "recorded": "2026-11-19 22:06"
+ },
+ "0x406BD592": {
+  "bags": [],
+  "items": 29,
+  "label": "castle: strength potions 1 (east 2341, top)",
+  "loose": [
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x408FAC68",
+    "x": 74,
+    "y": 143
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x408FDFA5",
+    "x": 82,
+    "y": 106
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x4081950B",
+    "x": 68,
+    "y": 143
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x40735E21",
+    "x": 50,
+    "y": 117
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x407F859D",
+    "x": 105,
+    "y": 118
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x4093A9A9",
+    "x": 18,
+    "y": 107
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x408A248D",
+    "x": 40,
+    "y": 111
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x408743D4",
+    "x": 76,
+    "y": 138
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x40857D47",
+    "x": 115,
+    "y": 143
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x408F026F",
+    "x": 118,
+    "y": 114
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x4094BAA8",
+    "x": 21,
+    "y": 127
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x403E9F5C",
+    "x": 68,
+    "y": 136
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x4083E01A",
+    "x": 77,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x407FF2A1",
+    "x": 57,
+    "y": 137
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x40952C28",
+    "x": 35,
+    "y": 126
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x40891642",
+    "x": 131,
+    "y": 136
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x408ADBC9",
+    "x": 77,
+    "y": 108
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x408BE36C",
+    "x": 31,
+    "y": 110
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x408F7E34",
+    "x": 16,
+    "y": 127
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x4090FAA6",
+    "x": 70,
+    "y": 138
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x409179B7",
+    "x": 8,
+    "y": 116
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x408D1339",
+    "x": 108,
+    "y": 112
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x408ECBBA",
+    "x": 127,
+    "y": 153
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x4070A635",
+    "x": 74,
+    "y": 148
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x407FF72D",
+    "x": 31,
+    "y": 119
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x40822F8F",
+    "x": 79,
+    "y": 152
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x4093EC46",
+    "x": 65535,
+    "y": 151
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x4094B415",
+    "x": 29,
+    "y": 123
+   },
+   {
+    "amount": 1,
+    "name": "White Potion",
+    "serial": "0x4088B319",
+    "x": 14,
+    "y": 111
+   }
+  ],
+  "recorded": "2026-11-19 22:27"
+ },
  "0x406BDBD7": {
   "bags": [
    {
     "kind": "plate",
     "known": 0,
-    "marker": null,
+    "marker": {
+     "name": "an orc helm of defense",
+     "serial": "0x40889A6F",
+     "x": 20,
+     "y": 129
+    },
     "serial": "0x409397A4",
     "x": 26,
     "y": 106
+   },
+   {
+    "kind": "chain & ring",
+    "known": 0,
+    "marker": {
+     "name": "a chainmail coif of defense",
+     "serial": "0x4087E8C7",
+     "x": 41,
+     "y": 129
+    },
+    "serial": "0x409397BC",
+    "x": 47,
+    "y": 106
    }
   ],
-  "items": 1,
+  "items": 4,
   "label": "castle: plain gear (east 2333, floor)",
   "loose": [],
-  "recorded": "2026-11-19 21:53"
+  "recorded": "2026-11-19 22:16"
  },
  "0x406BE5CF": {
   "bags": [],
@@ -229,7 +1997,12 @@
    {
     "kind": "ringmail",
     "known": 0,
-    "marker": null,
+    "marker": {
+     "name": "ringmail leggings of guarding",
+     "serial": "0x409199EE",
+     "x": 50,
+     "y": 128
+    },
     "serial": "0x4098CCD4",
     "x": 60,
     "y": 105
@@ -237,7 +2010,12 @@
    {
     "kind": "chain leggings",
     "known": 0,
-    "marker": null,
+    "marker": {
+     "name": "chainmail leggings of guarding",
+     "serial": "0x40624234",
+     "x": 99,
+     "y": 128
+    },
     "serial": "0x4098CD06",
     "x": 97,
     "y": 105
@@ -245,16 +2023,21 @@
    {
     "kind": "coifs",
     "known": 0,
-    "marker": null,
+    "marker": {
+     "name": "a chainmail coif of guarding",
+     "serial": "0x409A5345",
+     "x": 117,
+     "y": 128
+    },
     "serial": "0x409397BE",
     "x": 118,
     "y": 105
    }
   ],
-  "items": 5,
+  "items": 8,
   "label": "castle: chain & ring + coifs (east 2332, 3rd)",
   "loose": [],
-  "recorded": "2026-11-19 21:53"
+  "recorded": "2026-11-19 22:06"
  },
  "0x406C2406": {
   "bags": [
@@ -325,16 +2108,337 @@
    {
     "kind": "helms",
     "known": 0,
-    "marker": null,
+    "marker": {
+     "name": "an orc helm of guarding",
+     "serial": "0x406FFBE2",
+     "x": 18,
+     "y": 128
+    },
     "serial": "0x409397CE",
     "x": 24,
     "y": 105
    }
   ],
-  "items": 1,
+  "items": 2,
   "label": "castle: helms (east 2332, 2nd)",
   "loose": [],
-  "recorded": "2026-11-19 21:53"
+  "recorded": "2026-11-19 22:06"
+ },
+ "0x406C4DA6": {
+  "bags": [],
+  "items": 44,
+  "label": "castle: cure potions 1 (east 2339, 3rd)",
+  "loose": [
+   {
+    "amount": 1,
+    "name": "an unknown orange potion",
+    "serial": "0x40904852",
+    "x": 102,
+    "y": 122
+   },
+   {
+    "amount": 1,
+    "name": "an unknown orange potion",
+    "serial": "0x408FE1DD",
+    "x": 73,
+    "y": 136
+   },
+   {
+    "amount": 1,
+    "name": "an unknown orange potion",
+    "serial": "0x4091071C",
+    "x": 19,
+    "y": 139
+   },
+   {
+    "amount": 1,
+    "name": "an unknown orange potion",
+    "serial": "0x40975F30",
+    "x": 78,
+    "y": 150
+   },
+   {
+    "amount": 1,
+    "name": "an unknown orange potion",
+    "serial": "0x408129C5",
+    "x": 60,
+    "y": 124
+   },
+   {
+    "amount": 1,
+    "name": "an unknown orange potion",
+    "serial": "0x408EEA57",
+    "x": 45,
+    "y": 136
+   },
+   {
+    "amount": 1,
+    "name": "an unknown orange potion",
+    "serial": "0x4097B808",
+    "x": 33,
+    "y": 146
+   },
+   {
+    "amount": 1,
+    "name": "an unknown orange potion",
+    "serial": "0x40921CF8",
+    "x": 108,
+    "y": 109
+   },
+   {
+    "amount": 1,
+    "name": "an unknown orange potion",
+    "serial": "0x40946F19",
+    "x": 73,
+    "y": 129
+   },
+   {
+    "amount": 1,
+    "name": "an unknown orange potion",
+    "serial": "0x408D2F4C",
+    "x": 35,
+    "y": 150
+   },
+   {
+    "amount": 1,
+    "name": "an unknown orange potion",
+    "serial": "0x404277D2",
+    "x": 78,
+    "y": 150
+   },
+   {
+    "amount": 1,
+    "name": "an unknown orange potion",
+    "serial": "0x40374CCD",
+    "x": 61,
+    "y": 110
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x409122D7",
+    "x": 18,
+    "y": 138
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x4084B71E",
+    "x": 94,
+    "y": 122
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x4087DAA9",
+    "x": 74,
+    "y": 150
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x40328526",
+    "x": 63,
+    "y": 115
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x4082B57F",
+    "x": 24,
+    "y": 122
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x408A8A74",
+    "x": 118,
+    "y": 129
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x4068FEFF",
+    "x": 100,
+    "y": 150
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x4063C9E2",
+    "x": 59,
+    "y": 119
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x407F06AA",
+    "x": 85,
+    "y": 142
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x408A31CC",
+    "x": 74,
+    "y": 134
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x40343810",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x408496BA",
+    "x": 118,
+    "y": 137
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x4019C914",
+    "x": 118,
+    "y": 146
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x408A1700",
+    "x": 118,
+    "y": 127
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x4089C80D",
+    "x": 95,
+    "y": 136
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x407F38F1",
+    "x": 107,
+    "y": 150
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x4086F2DA",
+    "x": 96,
+    "y": 145
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x4062FD5A",
+    "x": 24,
+    "y": 115
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x4063032A",
+    "x": 79,
+    "y": 118
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x407816B6",
+    "x": 86,
+    "y": 107
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x40952550",
+    "x": 18,
+    "y": 150
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x4096499C",
+    "x": 78,
+    "y": 140
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x40889963",
+    "x": 43,
+    "y": 137
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x40904A9E",
+    "x": 66,
+    "y": 130
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x408E489F",
+    "x": 88,
+    "y": 114
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x4069BE88",
+    "x": 61,
+    "y": 134
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x4093E0BD",
+    "x": 91,
+    "y": 158
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x4093E347",
+    "x": 116,
+    "y": 150
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x40942EA7",
+    "x": 1,
+    "y": 117
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x40942F62",
+    "x": 31,
+    "y": 117
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x40947E1F",
+    "x": 37,
+    "y": 110
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x404D127E",
+    "x": 65534,
+    "y": 119
+   }
+  ],
+  "recorded": "2026-11-19 22:16"
  },
  "0x406C57AE": {
   "bags": [],

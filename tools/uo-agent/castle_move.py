@@ -86,6 +86,8 @@ def call(method, endpoint, **params):
     try:
         return uo.call(info, method, endpoint, **params)
     except uo.BridgeError as e:
+        if e.code == 423 and 'double-click' in e.message and razor_opened(None):
+            return uo.call(info, method, endpoint, **params)  # Razor's click on a bag that had just landed
         if e.code == 423:
             raise Stop(f'the user took over or the bridge stopped: {e.message}')
         raise
@@ -144,7 +146,12 @@ def target_of(container_label, bag_label=None, graphic=None):
 
 
 def open_items(serial):
-    uo.walk_near(info, serial)
+    try:
+        uo.walk_near(info, serial)
+    except uo.BridgeError as e:
+        if not (e.code == 423 and 'double-click' in e.message and razor_opened(None)):
+            raise
+        uo.walk_near(info, serial)
     r = call('POST', '/open', serial=serial)
     call('POST', '/close', serial=serial)
     if not r.get('opened'):
