@@ -90,8 +90,9 @@ Batch working files go in `~/claude/uo-agent-work/batchN` (scratch, not needed l
 ## Sorting in the castle (from 2026-11-19; CASTLE.md, "Sorting")
 
 The loot is moving to the user's castle; Clem sorts there. **"Sort the east side"** sorts the 2 east intake chests
-into east storage, **"sort the west side"** the 2 west ones into west storage, **"sort all"** both, one side after
-the other (each its own batch). The same five steps and tools; what changes:
+into east storage. **For now only the east side** (the user, 2026-11-19: "For now we'll do just the east and
+southeast and forge"): the west intake chests, the west wall and the friend's row are worked out later, and look.py
+refuses `--side west` (`castle_site.SIDES`). The same five steps and tools; what changes:
 - Clem, inside the castle (`python3 -I castle.py in` if he isn't). The tools see he's in the castle and work there
   by themselves (`castle_site.py`): castle chests, walks zone by zone along the user's routes, the castle's barrel.
 - **Look:** `python3 look.py BATCHDIR --side east` (or `west`). It takes the loot bags out of the intake chests into
@@ -100,8 +101,9 @@ the other (each its own batch). The same five steps and tools; what changes:
   steps know the side.
 - **Plan** picks the castle chests: the side's own first, then the other wall's (the user: "If we run out of space
   on the east side then we can add it to the west side"). Since version 2 of the plan (2026-11-19, CASTLE.md) the
-  west wall is free and unassigned, so both sides sort into east storage, and nothing on the east side is secure
-  (the user's tables are to shut it off at the forge). Its report lists every chest it picked ("castle chests") and anything with
+  west wall is free and unassigned. The secure kinds (wands, jewellery, magic clothing, GM sets, best weapons and
+  armour, treasure maps, deeds, reagents, gems) go to the east wall's 13 secures, then to "valuables overflow" in the
+  user's vault. No chest is made secure or unsecured until the user decides. Its report lists every chest it picked ("castle chests") and anything with
   **NO ROOM**: tell the user. Changes from the tower (the plan approved 2026-11-18): weapons of force and up and
   vanquishing go to **best weapons**, armour of fortification and up (and any bone kept) to **best armour**, in bags
   by kind as before; deeds to the **deeds** secures; treasure maps to their own secure; raw food to the **cooking**

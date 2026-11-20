@@ -182,6 +182,9 @@ def main():
     if mover:
         if side not in ('east', 'west'):
             sys.exit('in the castle: look.py BATCHDIR --side east|west')
+        if side not in castle_site.SIDES:
+            sys.exit(f'the {side} side is not sorted for now (the user, 2026-11-19: "For now we\'ll do just the east '
+                     'and southeast and forge"); its intake chests stay as they are')
         try:
             carried = from_intake(info, side)
         finally:

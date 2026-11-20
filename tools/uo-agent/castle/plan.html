@@ -111,7 +111,7 @@ footer { font-size: 12.5px; color: var(--muted); }
   <header>
     <span class="eyebrow">The Castle · ground floor</span>
     <h1>Where everything goes</h1>
-    <p class="muted">All 180 chests as Clem saw them on 18 Nov. <span class="draft">Version 2 · 19 Nov</span> Your tables move up to the forge and shut off the whole east side, so the east wall needs no secures; the secures go to your friend's row by the west intake; the west wall is left free for later.</p>
+    <p class="muted">All 180 chests as Clem saw them on 18 Nov. <span class="draft">Version 2 · 19 Nov</span> For now: the east side, your vault and the forge. The west wall, your friend's row and the secures are worked out later; the 21 secures made on 18 Nov stay as they are. Your tables may move up to the forge to shut off the whole east side (drawn on the plan).</p>
   </header>
 
   <div class="top">
@@ -121,12 +121,11 @@ footer { font-size: 12.5px; color: var(--muted); }
     </div>
 
     <div class="questions">
-      <h2>Questions for you</h2>
+      <h2>For when the tables move</h2>
       <ol>
         <li><b>Where the tables go.</b> Drawn here across the east hall walkway at 948,2328 and 949,2328, just north of the first wall chests and south of the forge chests. Is the walkway two tiles wide there, or does a third table need to go on 947,2328?</li>
         <li><b>Which tables.</b> Your south-east table and one of the two in Clem's pack, both locked down at the forge. Once they're there, nothing south-east needs a table of its own.</li>
-        <li><b>The chests by the west intake</b> are your friend's row (24). They all become secure and stay his.</li>
-        <li><b>The west intake chests</b> sort into east storage for now, as the west wall has nothing assigned.</li>
+
       </ol>
     </div>
   </div>
@@ -140,9 +139,8 @@ footer { font-size: 12.5px; color: var(--muted); }
       <li>All the potions are together at the south end of each wall: 2 chests per kind (3 for poison), since potions don't stack.</li>
       <li>A free stack separates the stock from the potions, and free chests sit beside the gear, so things can grow without moving anything.</li>
       <li><b>The forge gate.</b> Your tables stand locked down across the east hall walkway at the forge. Behind them: the whole east wall, your vault and the east intake chests. In front: the forge chests, the smelting chests, the trash barrel and the spare backpacks, so anyone can use those. Clem releases one table to get through and always puts it back and locks it down, as with the south-east table now.</li>
-      <li><b>No secures on the east side.</b> The tables keep out everyone without owner commands, so nothing behind them needs to be secure, and the 395-stone limit no longer applies there. Clem turns the 13 east-wall secures back into plain locked-down chests.</li>
-      <li><b>Secures by the west intake.</b> All 24 of your friend's chests become secure (8 are already), since nothing else protects them: 24 of the 28 the house allows, 4 left over.</li>
-      <li><b>The west wall</b> is free, unassigned and not secure, to be worked out later.</li>
+      <li><b>Secures, later.</b> The 13 on the east wall and your friend's 8 stay as made on 18 Nov. Once the tables stand at the forge, the east wall wouldn't need them; where they go then is for later.</li>
+      <li><b>The west side, later.</b> The west wall is free, unassigned and not secure; the west intake chests and your friend's row wait too. Only the east side is sorted for now.</li>
       <li><b>Spare backpacks</b> go to one chest by the forge (944,2327, floor), outside the tables, so emptied loot bags can be dropped there by anyone. Once it holds 125, further empty bags go in the trash.</li>
     </ul>
   </div>
@@ -161,17 +159,17 @@ const C = (name, kind, note, secure) => ({ name, kind, note, secure });
 const SEC = (name, kind, note) => C(name, kind, note, true);   // a secure chest
 const F = () => C('free', 'free');
 
-// the east wall, north (y 2329) to south (y 2343): behind the tables at the forge, so nothing here is secure
+// the east wall, north (y 2329) to south (y 2343); the secures as made on 18 Nov
 const EAST = [
   [2329, C('Swords', 'weapons', 'swords, exceptional, knives'), C('Axes', 'weapons', 'axes, exceptional, pickaxes'), C('Maces & staves', 'weapons'), F()],
   [2330, C('Polearms', 'weapons'), C('Fencing', 'weapons'), C('Archery', 'weapons', 'bows, crossbows'), F()],
-  [2331, C('Attack wands', 'magic', 'fireball, lightning'), C('Healing wands', 'magic', 'greater healing'), C('Jewellery', 'magic', 'rings: teleporting and the like'), C('Magic clothing', 'magic', 'boots of invisibility, spell reflection')],
+  [2331, SEC('Attack wands', 'magic', 'fireball, lightning'), SEC('Healing wands', 'magic', 'greater healing'), SEC('Jewellery', 'magic', 'rings: teleporting and the like'), SEC('Magic clothing', 'magic', 'boots of invisibility, spell reflection')],
   [2332, C('Plate', 'armour', 'arms, gloves, gorgets, legs, tunics'), C('Helms', 'armour'), C('Chain & ring + coifs', 'armour'), C('Leather + caps', 'armour')],
-  [2333, C('Studded', 'armour'), C('Shields', 'armour', 'spare'), C('GM armour sets', 'armour', '3 sets'), C('Plain gear', 'armour', '"of defense", 1–2 of each')],
-  [2334, C('Best weapons', 'weapons', 'vanquishing, power, force; every kind'), C('Best armour', 'armour', 'invulnerability, fortification; shields too'), C('Treasure maps', 'utility'), F()],
-  [2335, C('Deeds', 'utility', 'all deeds'), C('Deeds', 'utility'), C('Deeds', 'utility'), F()],
-  [2336, C('Scrolls, circles 1–4', 'stock'), C('Scrolls, circles 5–8', 'stock'), C('Reagents', 'stock', 'working stock; the big piles in your vault'), F()],
-  [2337, C('Gems', 'stock', 'the gem bag'), C('Miscellaneous', 'utility', 'key rings, crystal balls, cooked food'), C('Supplies & ID wands', 'utility', 'lockpicks, arrows, the spares pouch'), C('Needs your decision', 'utility')],
+  [2333, C('Studded', 'armour'), C('Shields', 'armour', 'spare'), SEC('GM armour sets', 'armour', '3 sets'), C('Plain gear', 'armour', '"of defense", 1–2 of each')],
+  [2334, SEC('Best weapons', 'weapons', 'vanquishing, power, force; every kind'), SEC('Best armour', 'armour', 'invulnerability, fortification; shields too'), SEC('Treasure maps', 'utility'), F()],
+  [2335, SEC('Deeds', 'utility', 'all deeds'), SEC('Deeds', 'utility'), SEC('Deeds', 'utility'), F()],
+  [2336, C('Scrolls, circles 1–4', 'stock'), C('Scrolls, circles 5–8', 'stock'), SEC('Reagents', 'stock', 'working stock; the big piles in your vault'), F()],
+  [2337, SEC('Gems', 'stock', 'the gem bag'), C('Miscellaneous', 'utility', 'key rings, crystal balls, cooked food'), C('Supplies & ID wands', 'utility', 'lockpicks, arrows, the spares pouch'), C('Needs your decision', 'utility')],
   [2338, F(), F(), F(), F()],
   [2339, C('Heal potions', 'potions'), C('Heal potions', 'potions'), C('Cure potions', 'potions'), C('Cure potions', 'potions')],
   [2340, C('Refresh potions', 'potions'), C('Refresh potions', 'potions'), C('Agility potions', 'potions'), C('Agility potions', 'potions')],
@@ -194,7 +192,7 @@ const SE = [
   [941, C('Gold', 'yours', 'all of it'), C('Gold', 'yours'), C('Gold', 'yours'), C('Gold', 'yours')],
   [942, C('Valuables overflow', 'yours', 'when a wall chest fills'), C('Valuables overflow', 'yours'), F(), F()],
 ];
-const SW = [928, 929, 930, 931, 932, 933].map(x => [x, ...[0, 1, 2, 3].map(() => SEC('your friend\'s', 'friend', x <= 929 ? 'secure since 18 Nov' : 'to be made secure'))]);
+const SW = [928, 929, 930, 931, 932, 933].map(x => [x, ...[0, 1, 2, 3].map(() => x <= 929 ? SEC('your friend\'s', 'friend', 'secure since 18 Nov') : C('your friend\'s', 'friend'))]);
 
 const KINDS = { weapons: 'Weapons', armour: 'Armour', magic: 'Magic items', stock: 'Scrolls, reagents, gems', potions: 'Potions',
   utility: 'Supplies and odds', craft: 'Crafting', yours: 'Your own (south-east)', free: 'Free', friend: 'Your friend\'s (never touched)' };
@@ -220,22 +218,22 @@ const TABS = [
   { id: 'valuables', name: 'Valuables', html: () => `
     <div class="valuables">
       <div class="group-head"><h2>Where the valuable things go</h2>
-        <p class="muted">Everything of yours is behind the tables at the forge: the east wall and your vault. Nobody without owner commands gets past them, and there's no weight limit, so nothing there needs to be secure. Clem releases a table to get through and locks it down again every time. The house's secures go to your friend's row by the west intake, which has no table.</p></div>
-      <div class="tally"><span><b>24</b>your friend's row, all secure</span><span><b>0</b>east wall</span><span><b>4</b>left over</span><span><b>28</b>secure chests in all</span></div>
+        <p class="muted">Two safe places: <b>secure chests</b>, which take at most about 395 stones each, and <b>your vault behind the table</b>, which takes any weight but costs Clem a release and a lock-down each time. The secures stay as made on 18 Nov until you decide about them; if your tables move up to the forge, the whole east side is behind them.</p></div>
+      <div class="tally"><span><b>13</b>east wall</span><span><b>8</b>your friend's, west end of their row</span><span><b>7</b>not placed yet</span><span><b>28</b>secure chests in all</span></div>
       <table>
         <thead><tr><th>What</th><th>Where</th><th>Why there</th></tr></thead>
         <tbody>
-          <tr><td>Best weapons</td><td>East wall (947,2334, top)</td><td>Vanquishing, power and force, of every kind, in one chest. Lesser magic weapons stay in their kind's chest.</td></tr>
-          <tr><td>Best armour</td><td>East wall (947,2334, 2nd)</td><td>Invulnerability and fortification, invulnerability shields too.</td></tr>
-          <tr><td>GM armour sets</td><td>East wall</td><td>The 3 exceptional sets.</td></tr>
-          <tr><td>Jewellery</td><td>East wall</td><td>Rings, such as the ring of teleporting.</td></tr>
-          <tr><td>Magic clothing</td><td>East wall</td><td>Boots of invisibility, the tunic of spell reflection.</td></tr>
-          <tr><td>Attack and healing wands</td><td>East wall (2 chests)</td><td>Fireball, lightning, greater healing.</td></tr>
-          <tr><td>Gems</td><td>East wall</td><td>The gem bag: thousands of gold at a jeweler.</td></tr>
+          <tr><td>Best weapons</td><td>Secure, east wall (947,2334, top)</td><td>Vanquishing, power and force, of every kind, in one chest. Lesser magic weapons stay in their kind's chest.</td></tr>
+          <tr><td>Best armour</td><td>Secure, east wall (947,2334, 2nd)</td><td>Invulnerability and fortification, invulnerability shields too.</td></tr>
+          <tr><td>GM armour sets</td><td>Secure, east wall</td><td>The 3 exceptional sets.</td></tr>
+          <tr><td>Jewellery</td><td>Secure, east wall</td><td>Rings, such as the ring of teleporting.</td></tr>
+          <tr><td>Magic clothing</td><td>Secure, east wall</td><td>Boots of invisibility, the tunic of spell reflection.</td></tr>
+          <tr><td>Attack and healing wands</td><td>Secure, east wall (2 chests)</td><td>Fireball, lightning, greater healing.</td></tr>
+          <tr><td>Gems</td><td>Secure, east wall</td><td>The gem bag: thousands of gold at a jeweler.</td></tr>
           <tr><td>Gold</td><td>Your vault (4 chests)</td><td>All of it.</td></tr>
-          <tr><td>Deeds</td><td>East wall (3 chests)</td><td>Every deed.</td></tr>
-          <tr><td>Treasure maps</td><td>East wall</td><td>They leave the miscellaneous chest.</td></tr>
-          <tr><td>Reagents</td><td>East wall; the big piles in your vault</td><td>Thousands of ginseng alone. Light each, heavy in bulk.</td></tr>
+          <tr><td>Deeds</td><td>Secure, east wall (3 chests)</td><td>Every deed.</td></tr>
+          <tr><td>Treasure maps</td><td>Secure, east wall</td><td>They leave the miscellaneous chest.</td></tr>
+          <tr><td>Reagents</td><td>Secure, east wall; the big piles in your vault</td><td>Thousands of ginseng alone. Light each, heavy in bulk.</td></tr>
           <tr><td>Potions</td><td>South end of the east wall, together (15 chests, 5 free)</td><td>They don't stack, so each kind gets 2 chests, poison 3; about 120 potions each.</td></tr>
           <tr><td>Ingots, boards, logs</td><td>Your vault (7 chests)</td><td>The big piles. Working stock stays by the forge, outside the tables.</td></tr>
         </tbody>
@@ -248,7 +246,7 @@ const TABS = [
     <div class="notes"><span>${EAST.flat().filter(c => c && c.kind === 'free').length} of 60 chests are left free.</span></div>` },
   { id: 'west', name: 'West wall · 60', html: () => `
     <div class="group-head"><h2>West wall, free for later</h2>
-      <p class="muted">x 921, y 2329–2343. Every chest free, unassigned and not secure, to be worked out later (you, 19 Nov). Until then, loot dumped in the west intake chests is sorted into east storage.</p></div>
+      <p class="muted">x 921, y 2329–2343. Every chest free, unassigned and not secure, to be worked out later (you, 19 Nov). The west side isn't sorted for now.</p></div>
     ${stacks(WEST, 'y (north → south)')}` },
   { id: 'forge', name: 'Forge corner · 12', html: () => `
     <div class="group-head"><h2>Forge corner, for crafting</h2>
@@ -256,13 +254,13 @@ const TABS = [
     ${stacks(FORGE, 'y')}` },
   { id: 'south', name: 'South rooms · 50', html: () => `
     <div class="group-head"><h2>South rooms</h2>
-      <p class="muted">Your vault is behind the tables at the forge, with the rest of the east side. Your friend's row has no table, so all of its chests become secure.</p></div>
+      <p class="muted">Your vault is behind the south-east table today (behind the tables at the forge, if they move). Your friend's row waits until later.</p></div>
     <h3>South-east: yours, managed by Clem (no secures needed: the tables protect them)</h3>
     ${stacks(SE, 'x (y 2348)')}
     <div class="notes"><span>Plus the two east intake (dump) chests on the floor at 938,2349 and 938,2350: "sort the east side" sorts them into east storage.</span></div>
-    <h3>South-west: your friend's, all secure</h3>
+    <h3>South-west: your friend's, for later</h3>
     ${stacks(SW, 'x (y 2348)')}
-    <div class="notes"><span>The 8 at the west end (x 928 and 929) were made secure on 18 Nov; the other 16 follow. Plus the two west intake (dump) chests at 933,2349 and 933,2350, which are exempt: "sort the west side" sorts them into east storage for now. Apart from those and securing, Clem never touches your friend's things.</span></div>` },
+    <div class="notes"><span>The 8 at the west end (x 928 and 929) were made secure on 18 Nov. The two west intake (dump) chests at 933,2349 and 933,2350 aren't sorted for now. Clem never touches your friend's things.</span></div>` },
 ];
 
 function showTab(id) {

@@ -118,22 +118,22 @@ The user's friend has no owner commands, so the tables are for the owner side. T
 
 ## Version 2 of the plan (the user, 2026-11-19)
 
-- **The forge gate (planned, not done):** the user's tables move up to the forge corner and stand locked down across
-  the east hall walkway, cutting off the whole east side (the east wall, the user's vault and the east intake
-  chests) from the forge ("the tables will be moved so they separate the forge and the east wall (and the southeast
-  area)"). Proposed: 948,2328 and 949,2328, just north of the first wall chests (y 2329) and south of the forge
-  chests (2326/2327); a third on 947,2328 if that's open floor. Clem gets through by releasing one table, as with the
-  south-east table now. Once they stand, `castle.py table` and `castle_site.py` (the table's place, and the zone it
-  guards: east and south-east together) change to match; until then the south-east table works as before.
-- **No secures on the east side:** the tables keep everyone without owner commands out, so the east wall's 13
-  secures (`castle/secured-east-2026-11-18.json`) go back to plain locked-down chests (`castle_plan.py unsecure`, not
-  run yet) and the 395-stone limit doesn't apply there.
-- **Secures by the west intake:** all 24 of the friend's chests in the south-west row (`castle_plan.py secure`, the
-  16 not yet secure; not run yet). 24 of the house's 28.
+- **For now: the east side, the user's vault (south-east) and the forge only** ("just don't make any secure chests
+  yet. We'll figure out the west and southwest & secures later. For now we'll do just the east and southeast and
+  forge"). The west intake chests aren't sorted (`castle_site.SIDES`), and no chest is made secure or unsecured: the
+  21 made on 2026-11-18 (13 east, the friend's 8) stay as they are.
 - **The west wall** is free, unassigned and not secure: "Don't mirror the east side ... leave everything empty for
-  now". The west intake chests sort into east storage meanwhile.
-- **Spare backpacks:** one chest by the forge, outside the tables (944,2327, floor): "I want the chest with backpacks
-  to be in the forge area so it's not behind the tables".
+  now".
+- **Spare backpacks:** one chest by the forge (944,2327, floor): "I want the chest with backpacks to be in the forge
+  area so it's not behind the tables".
+- **The forge gate (an idea, not decided):** the user may move their tables up to the forge corner, locked down
+  across the east hall walkway, to cut off the whole east side (the east wall, the user's vault and the east intake
+  chests) from the forge ("the tables will be moved so they separate the forge and the east wall (and the southeast
+  area)"). Proposed: 948,2328 and 949,2328, just north of the first wall chests and south of the forge chests; a
+  third on 947,2328 if that's open floor. Clem would get through by releasing one table, as with the south-east table
+  now; `castle.py table` and `castle_site.py` (the table's place, and the zone it guards) change to match when they
+  stand. Then the east wall wouldn't need secures (`castle_plan.py unsecure`, with the 13 listed in
+  `castle/secured-east-2026-11-18.json`), but that's for the user to decide later.
 
 ## Sorting (from 2026-11-19)
 

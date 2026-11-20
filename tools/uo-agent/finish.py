@@ -66,7 +66,7 @@ def finish(info, mover):
     say(f"SMELTING: {sum(n for _, n in counts)} pieces waiting to be smelted ("
         + ', '.join(f'{name}: {n}' for name, n in counts) + ')')
     if mover:
-        sides = [sys.argv[sys.argv.index('--side') + 1]] if '--side' in sys.argv else ['east', 'west']
+        sides = [sys.argv[sys.argv.index('--side') + 1]] if '--side' in sys.argv else list(castle_site.SIDES)
         left = []
         for side in sides:
             for c in castle_site.intake(side):

@@ -8,16 +8,15 @@
   python3 -I castle_plan.py secures   the chests to make secure, in order
   python3 -I castle_plan.py secure    Clem makes them secure (skipping any that are already)
   python3 -I castle_plan.py unsecure  Clem turns every secure chest the plan doesn't mark secure back into a plain
-                                      locked-down one (version 2: the east wall's 13), so their secures can go to the
-                                      friend's row
+                                      locked-down one (none now; for when the user decides about secures)
 
-Version 2 (the user, 2026-11-19): the user's tables are to move up to the forge corner and shut off the whole east
-side (the east wall and the south-east rooms) from the forge, so nothing on the east wall needs to be secure any more;
-the secures move to the south-west row by the west intake chests ("make all of the chests by the intake into secure
-chests"). The west wall doesn't mirror the east any more: every chest there is free, unassigned and not secure
-("Just leave them empty and unassigned for now so they can be figured out later"). The spare backpacks go to the
-forge corner, outside the tables ("I want the chest with backpacks to be in the forge area so it's not behind the
-tables").
+Version 2 (the user, 2026-11-19): the west wall doesn't mirror the east any more: every chest there is free,
+unassigned and not secure ("Just leave them empty and unassigned for now so they can be figured out later"). The
+spare backpacks go to the forge corner ("I want the chest with backpacks to be in the forge area so it's not behind
+the tables"). Secures stay as they were made on 2026-11-18 (the 13 on the east wall, the friend's 8): "just don't
+make any secure chests yet. We'll figure out the west and southwest & secures later. For now we'll do just the east
+and southeast and forge". The user may move their tables up to the forge to shut off the whole east side (CASTLE.md,
+"Version 2"); then the east wall's secures could go back to plain chests (`unsecure`), once the user says so.
 
 The chests' serials and spots are in castle/chests.json (recorded 2026-11-18). Each tile holds a stack of 4 chests,
 z 18 (top), 14, 10 and 6 (the floor). East storage is the east wall (x 947), west storage the west wall (x 921), the
@@ -37,18 +36,18 @@ ROWS = {18: 'top', 14: '2nd', 10: '3rd', 6: 'floor'}
 Z = [18, 14, 10, 6]
 FREE = 'free'
 
-# (what, secure) for each row of a tile, top to bottom; the east wall runs north (y 2329) to south (y 2343). None
-# secure: the tables at the forge keep everyone without owner commands out (version 2)
+# (what, secure) for each row of a tile, top to bottom; the east wall runs north (y 2329) to south (y 2343). The 13
+# secures are the ones made on 2026-11-18, kept as they are for now (the user, 2026-11-19)
 WALL = {
     2329: [('swords', 0), ('axes', 0), ('maces & staves', 0), (FREE, 0)],
     2330: [('polearms', 0), ('fencing', 0), ('archery', 0), (FREE, 0)],
-    2331: [('attack wands', 0), ('healing wands', 0), ('jewellery', 0), ('magic clothing', 0)],
+    2331: [('attack wands', 1), ('healing wands', 1), ('jewellery', 1), ('magic clothing', 1)],
     2332: [('plate', 0), ('helms', 0), ('chain & ring + coifs', 0), ('leather + caps', 0)],
-    2333: [('studded', 0), ('shields', 0), ('GM armour sets', 0), ('plain gear', 0)],
-    2334: [('best weapons', 0), ('best armour', 0), ('treasure maps', 0), (FREE, 0)],
-    2335: [('deeds 1', 0), ('deeds 2', 0), ('deeds 3', 0), (FREE, 0)],
-    2336: [('scrolls, circles 1-4', 0), ('scrolls, circles 5-8', 0), ('reagents', 0), (FREE, 0)],
-    2337: [('gems', 0), ('miscellaneous', 0), ('supplies & ID wands', 0), ('needs your decision', 0)],
+    2333: [('studded', 0), ('shields', 0), ('GM armour sets', 1), ('plain gear', 0)],
+    2334: [('best weapons', 1), ('best armour', 1), ('treasure maps', 1), (FREE, 0)],
+    2335: [('deeds 1', 1), ('deeds 2', 1), ('deeds 3', 1), (FREE, 0)],
+    2336: [('scrolls, circles 1-4', 0), ('scrolls, circles 5-8', 0), ('reagents', 1), (FREE, 0)],
+    2337: [('gems', 1), ('miscellaneous', 0), ('supplies & ID wands', 0), ('needs your decision', 0)],
     2338: [(FREE, 0)] * 4,
     2339: [('heal potions 1', 0), ('heal potions 2', 0), ('cure potions 1', 0), ('cure potions 2', 0)],
     2340: [('refresh potions 1', 0), ('refresh potions 2', 0), ('agility potions 1', 0), ('agility potions 2', 0)],
@@ -70,10 +69,9 @@ VAULT = {
     941: [('gold', 0)] * 4,
     942: [('valuables overflow', 0), ('valuables overflow', 0), (FREE, 0), (FREE, 0)],
 }
-# the friend's vault (south-west, y 2348): never touched, except making them secure: the 8 at the west end (x 928 and
-# 929; the user, 2026-11-18: "yes, Clem can secure those 8 chests"), and in version 2 all 24, as nothing else
-# protects them ("make all of the chests by the intake into secure chests")
-FRIEND_SECURE = (928, 929, 930, 931, 932, 933)
+# the friend's vault (south-west, y 2348): never touched, except securing the 8 at the west end (x 928 and 929; the
+# user, 2026-11-18: "yes, Clem can secure those 8 chests"). The rest of the south-west waits (the user, 2026-11-19)
+FRIEND_SECURE = (928, 929)
 
 
 def plan():

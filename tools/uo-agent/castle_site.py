@@ -5,9 +5,9 @@ when the sorter (Clem) is in the user's castle rather than the tower vault (CAST
 - **Which chest**: the plan's chests (castle_plan.py) for each of the sorter's chest names, with the overflow order:
   the side's own chest(s), then the other wall's (the user, 2026-11-18: "If we run out of space on the east side then
   we can add it to the west side (and vice versa)"), then the forge's and the user's vault's of the same kind. Since
-  version 2 of the plan (2026-11-19) the west wall is all free and unassigned, so both sides sort into east storage.
-  A kind with secure chests (none in version 2) goes only to those, then to "valuables overflow" behind the user's
-  table. Gold always goes behind the table. A chest takes 125 items (counting everything inside) and a secure 395
+  version 2 of the plan (2026-11-19) the west wall is all free and unassigned, and only the east side is sorted
+  ("For now we'll do just the east and southeast and forge"; SIDES). A kind with secure chests (the east wall's 13,
+  kept as made on 2026-11-18) goes only to those, then to "valuables overflow" behind the user's table. Gold always goes behind the table. A chest takes 125 items (counting everything inside) and a secure 395
   stones; past that the next one is used, and when none is left the run stops and says so.
 - **Getting around**: long walks stop short and some places are only reached by stairs, so every walk goes zone by
   zone along the user's own routes (route.jsonl, 2026-11-18). Opening the user's table on the way to the south-east
@@ -31,6 +31,9 @@ LIMIT = 125            # items a chest holds, counting everything inside (the to
 SECURE_STONES = 395    # what a secure chest holds (the user, 2026-11-18: "either 395 or 400")
 BARREL = '0x407EECC7'  # the trash barrel in the forge corner, 949,2322 (the user, 2026-11-18: "yes that's the trash barrel")
 SITE_FILE = 'site.json'  # in a batch directory: {"site": "castle", "side": "east"}
+# the sides sorted for now: the west intake chests, the west wall and the south-west wait (the user, 2026-11-19: "We'll
+# figure out the west and southwest & secures later. For now we'll do just the east and southeast and forge")
+SIDES = ('east',)
 
 # the sorter's chest names (plan.py and sortbatch.py, from the tower's labels) -> the castle plan's
 NAMES = {
@@ -348,17 +351,17 @@ def stones(item):
 
 
 def test():
-    """Offline checks of the tables above (version 2 of the plan: nothing on the walls secure, the west wall free)."""
+    """Offline checks of the tables above (version 2 of the plan: the west wall free, the secures as made on 18 Nov)."""
     assert targets('swords', 'east')[0] == next(s for s, e in PLAN.items() if e['what'] == 'swords' and e['side'] == 'east')
-    assert targets('swords', 'west') == targets('swords', 'east')  # the west wall is unassigned: east storage
-    assert not SECURE_KINDS
-    assert not any(e['secure'] for e in PLAN.values() if e['side'] != 'friend')
-    assert all(e['secure'] for e in PLAN.values() if e['side'] == 'friend')
+    assert SIDES == ('east',)
+    assert sum(e['secure'] for e in PLAN.values() if e['side'] == 'east') == 13
+    assert sum(e['secure'] for e in PLAN.values() if e['side'] == 'friend') == 8
     assert all(e['what'] == 'free' for e in PLAN.values() if e['side'] == 'west' and e['x'] == 921)
     for name in ('jewellery', 'magic clothing', 'attack wands', 'healing wands', 'GM armour sets', 'best weapons',
                  'best armour', 'treasure maps', 'deeds', 'gems', 'reagents'):
-        t = targets(name, 'west')
-        assert PLAN[t[0]]['side'] == 'east', name
+        t = targets(name, 'east')
+        assert PLAN[t[0]]['secure'] and PLAN[t[0]]['side'] == 'east', name
+        assert PLAN[t[-1]]['side'] == 'vault', name
     assert PLAN[targets('reagents', 'east')[-1]]['side'] == 'vault'
     assert [PLAN[s]['what'] for s in targets('heal potions', 'east')][:2] == ['heal potions 1', 'heal potions 2']
     assert len(targets('poison potions', 'east')) == 3
