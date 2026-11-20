@@ -202,15 +202,11 @@ def load():
             for p in pieces:
                 try:
                     r = uo.move(info, p['serial'], pack)
-                except uo.TakenOver:
-                    # Razor's AutoSearch opens a bag the moment it lands in his pack (2026-11-19 20:47:03, the rings
-                    # bag): that double-click isn't the user (fight.razor_click checks, and resumes)
-                    import fight
-                    fight.info = info
-                    if not fight.razor_click(bag=p['serial']):
-                        time.sleep(0.6)  # the click may not be in the bridge's log yet (20:47:43)
-                        if not fight.razor_click(bag=p['serial']):
-                            raise
+                except uo.BridgeError as e:
+                    # Razor's AutoSearch opens a bag the moment it lands in his pack (2026-11-19 20:47:03, 20:47:43,
+                    # 20:48:36): that double-click isn't the user
+                    if e.code != 423 or not razor_opened(p['serial']):
+                        raise
                     r = {'moved': True, 'messages': []}
                 said = ' '.join(m['text'] for m in r.get('messages', [])).lower()
                 if not r.get('moved') and 'cannot hold more weight' in said:
@@ -299,6 +295,31 @@ def load():
                 f"{' + its marker' if len(pieces) > 1 else ''} from {text} -> for {what}")
     say('the tower vault is empty')
     return taken
+
+
+def razor_opened(serial):
+    """The takeover is a double-click on `serial` within a second of its drop into his pack, and nothing else of his
+    was sent after it: Razor's AutoSearch. Then it's handed back (resume) and True."""
+    for _ in range(3):
+        st = uo.call(info, 'GET', '/status')
+        took = st.get('takenOver') or ''
+        events = uo.call(info, 'GET', '/events', after=0)['events']
+        clicks = [e for e in events if e.get('kind') == 'sent double-click' and e.get('serial') == serial]
+        drops = [e for e in events if e.get('kind') == 'sent drop' and e.get('serial') == serial]
+        if took.startswith('a double-click at ') and clicks and drops:
+            c, d = clicks[-1], drops[-1]
+            secs = lambda t: sum(float(x) * m for x, m in zip(t.split(':'), (3600, 60, 1)))  # noqa: E731
+            others = [e for e in events if e['id'] > c['id'] and e.get('kind', '').startswith('sent ')
+                      and e['kind'] not in ('sent single-click', 'sent pick up', 'sent drop')]
+            if d['id'] < c['id'] and 0 <= secs(c['time']) - secs(d['time']) <= 1.0 and not others:
+                uo.call(info, 'POST', '/resume', handback=True)  # Razor's click, checked above
+                say(f'Razor opened {serial} as it landed in his pack ({took}): not the user; resumed')
+                return True
+            say(f"not Razor's click: {took}; click {c['time']}, drop {d['time']}, after it {len(others)}")
+            return False
+        time.sleep(0.5)
+    say(f"no Razor click found for {serial} ({took})")
+    return False
 
 
 def landed(weight_before):
