@@ -214,7 +214,8 @@ def bag_entries(items, labels, names, contents):
     return bags, entries(loose, names)
 
 
-CASTLE_ORDER = {'east': 0, 'forge': 1, 'vault': 2, 'west': 3}
+# the west wall waits until it's in use (the user, 2026-11-19: "For now we'll do just the east and southeast and forge")
+CASTLE_ORDER = {'east': 0, 'forge': 1, 'vault': 2}
 
 
 def castle_chests(info, labels, names, known, every):
