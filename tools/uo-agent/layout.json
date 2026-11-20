@@ -6,6 +6,37 @@
   "loose": [],
   "recorded": "2026-11-16 22:38"
  },
+ "0x406C6A1A": {
+  "bags": [
+   {
+    "kind": "ID wands & staves (spares)",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4049D6B8",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "items": 3,
+  "label": "castle: supplies & ID wands (east 2337, 3rd)",
+  "loose": [
+   {
+    "amount": 24,
+    "name": "empty bottles",
+    "serial": "0x408A846F",
+    "x": 63,
+    "y": 106
+   },
+   {
+    "amount": 5,
+    "name": "blank scrolls",
+    "serial": "0x408D19BF",
+    "x": 81,
+    "y": 106
+   }
+  ],
+  "recorded": "2026-11-19 20:20"
+ },
  "0x4080C375": {
   "bags": [
    {

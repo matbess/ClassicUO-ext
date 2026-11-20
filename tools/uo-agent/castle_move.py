@@ -185,7 +185,14 @@ def load():
                     amount = p.get('amount', 1)
                     part = amount // 2
                     while part >= 1 and not r.get('moved'):
-                        r = uo.move(info, p['serial'], pack, amount=part)
+                        time.sleep(1)
+                        open_items(serial)  # the refused drop bounced back: his client knows it again after a look
+                        try:
+                            r = uo.move(info, p['serial'], pack, amount=part)
+                        except uo.BridgeError as e:
+                            if e.code != 404:
+                                raise
+                            r = {}
                         part //= 2
                     if not r.get('moved'):
                         say(f"his pack takes no more ({status()['weight']} stones): this load is done")
