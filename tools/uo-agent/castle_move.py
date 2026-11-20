@@ -578,7 +578,9 @@ def to_vault():
         try:
             restock.ensure()  # topped up here, where the chest is: he leaves for the castle from the vault
         except restock.Stop as e:
-            raise Stop(f'reagents: {e}')
+            if min(restock.counts().values()) < 20:
+                raise Stop(f'reagents: {e}')
+            say(f'reagents: {e}; going on, the castle reagents chest tops him up')
     if not gems.in_vault(status()):
         gems.into_vault()
 
@@ -605,6 +607,10 @@ def trip():
     say(f'loaded {len(taken)} pieces; to the castle')
     castle.go_in()
     unload()
+    try:
+        castle.reagents_ok()  # in the castle: topped up from its reagents chest if any is low
+    except castle.Stop as e:
+        say(f'reagents: {e}')
     return True
 
 

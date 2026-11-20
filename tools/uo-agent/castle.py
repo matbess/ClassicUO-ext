@@ -250,7 +250,15 @@ def reagents_ok():
     x, y = where()
     try:
         if TOWER[0] <= x <= TOWER[2] and TOWER[1] <= y <= TOWER[3]:
-            restock.ensure()
+            try:
+                restock.ensure()
+            except restock.Stop as e:
+                # the tower's chest has run out of one (2026-11-19 21:34: no mandrake root left, he had 24): on to the
+                # castle all the same if none is under 20; its reagents chest tops him up as soon as he's inside
+                have = restock.counts()
+                if min(have.values()) < 20:
+                    raise
+                say(f'reagents: {e}; going on, the castle reagents chest tops him up')
             return
         if inside((x, y)):  # the castle: its reagents chest (2026-11-19, the tower's stock moved in) is his chest here
             import castle_site
