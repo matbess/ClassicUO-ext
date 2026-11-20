@@ -208,7 +208,9 @@ def load():
                     import fight
                     fight.info = info
                     if not fight.razor_click(bag=p['serial']):
-                        raise
+                        time.sleep(0.6)  # the click may not be in the bridge's log yet (20:47:43)
+                        if not fight.razor_click(bag=p['serial']):
+                            raise
                     r = {'moved': True, 'messages': []}
                 said = ' '.join(m['text'] for m in r.get('messages', [])).lower()
                 if not r.get('moved') and 'cannot hold more weight' in said:
