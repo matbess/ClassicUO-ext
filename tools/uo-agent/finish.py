@@ -37,6 +37,8 @@ def say(text):
 def main():
     info = uo.find_bridge(None)
     mover = castle_site.install(uo, info, say)
+    if mover:  # look.py loads its own uo: its walks go the castle's way too
+        look.uo.walk_near = mover.walk_near
     try:
         finish(info, mover)
     finally:

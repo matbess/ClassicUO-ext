@@ -359,6 +359,8 @@ def main():
     side = site.get('side')
     if side:
         mover = castle_site.install(uo, info, print)
+        if mover:  # look.py loads its own uo: its walks go the castle's way too
+            look.uo.walk_near = mover.walk_near
         if not mover:
             sys.exit('this batch is for the castle, and he is not inside it')
         try:

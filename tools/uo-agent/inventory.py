@@ -115,6 +115,8 @@ def main():
     except (OSError, ValueError):
         before = {}
     mover = castle_site.install(uo, info, say)
+    if mover:  # look.py loads its own uo: its walks go the castle's way too
+        look.uo.walk_near = mover.walk_near
     if mover:
         try:
             castle = castle_chests(info, labels, names, known, '--all' in sys.argv)
