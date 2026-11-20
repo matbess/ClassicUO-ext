@@ -1153,6 +1153,14 @@ class Fight:
             if razor_click():  # Razor opening a corpse he just killed is not the user (19:58:38, a snake's corpse)
                 return False
             raise Stop(f"the user took over ({st['takenOver']})")
+        if st.get('halted'):
+            # the bridge stopped itself (2026-11-19 20:35:59: "You must wait to perform another action." to the key
+            # at the tower door, taken for silence), and a look sends nothing, so nothing else would notice: he stood
+            # on the steps while the fight spun (the user: "you can't just stop outside and just stand around waiting
+            # to die like that"). Resumed here, as for a refused request; a stop that keeps coming ends the fight.
+            if not resume_halt_outside():
+                raise Stop(f"the bridge stopped and won't go on: {st['halted']}")
+            return False
         if PLACE.inside(me):
             say(f'he is inside {PLACE.name} ({me[0]},{me[1]}): the fight is over')
             return True
