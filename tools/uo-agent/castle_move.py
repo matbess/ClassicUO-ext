@@ -526,7 +526,11 @@ def unload():
                         uo.move(info, k, p['serial'])
                         say(f'{k} back into {p["serial"]}')
                     except uo.BridgeError as e:
-                        say(f'{k} could not go back into {p["serial"]}: {e}')
+                        if e.code == 423 and 'after dropping' in e.message:  # merged onto its pile in the bag
+                            uo.call(info, 'POST', '/resume')
+                            say(f'{k} back into {p["serial"]} (merged onto its pile)')
+                        else:
+                            say(f'{k} could not go back into {p["serial"]}: {e}')
                 write_pending(pend)
             elif p['role'] == 'loose':
                 chest_of_bag = None
