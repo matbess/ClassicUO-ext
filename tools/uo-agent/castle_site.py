@@ -102,6 +102,11 @@ def bag_in(items, kind, labels):
     return next((i['serial'] for i in items if labels.get(i['serial'], '').startswith(f'bag: {kind} (')), None)
 
 
+def is_secure_kind(name):
+    """Whether a kind's chests are secures (their weight is checked)."""
+    return NAMES.get(name, name) in SECURE_KINDS
+
+
 def is_secure(serial):
     return bool(PLAN.get(serial, {}).get('secure'))
 
