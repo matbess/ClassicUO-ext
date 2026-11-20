@@ -174,7 +174,7 @@ def cheb(a, b):
 def nearest_point(p, z=None):
     """The lines' point nearest p; up on the stairs (z 20 and over) only the stairs' own points (the floor below is
     near on the map but not to him: 2026-11-19 20:18, at 927,2324,26 the nearest was 925,2325 down in the corridor)."""
-    pool = STAIRS if z is not None and z >= 20 else GRAPH
+    pool = UPSTAIRS if z is not None and z >= 20 else GRAPH
     return min(pool, key=lambda q: (cheb(p, q), abs(p[0] - q[0]) + abs(p[1] - q[1])))
 
 
@@ -200,7 +200,10 @@ def route(start, goal, z=None):
     return out
 
 
-STAIRS = set(LINES['stairs'][1:-1])  # the points up on the stairs (not the two ends, on the floors)
+STAIRS = set(LINES['stairs'][1:-1])  # the stairs line's points (not the two ends, on the floors): its own stretch
+# the points up on the upper floor (z 20 and over in the user's walk): where he can be when he's upstairs
+UPSTAIRS = {(928, 2333), (928, 2336), (925, 2336), (923, 2335), (921, 2331), (923, 2329), (923, 2327), (924, 2327),
+            (924, 2323), (921, 2323)}
 
 
 def stretches(pts):
@@ -260,19 +263,24 @@ class Mover:
         return self.uo.call(self.info, 'GET', '/status')
 
     def travel(self, pts, what):
-        """One smooth ride along pts; again from where he got to if it stops short (twice)."""
-        for attempt in range(3):
+        """One smooth ride along pts; again from where he got to if it stops short. Done only when he stands on the
+        last point at its height: the foot of the stairs (923,2328) lies right under an upstairs tile, and the bridge
+        took 922,2329 upstairs for arrived (2026-11-19 20:27)."""
+        end = pts[-1]
+        for attempt in range(4):
             st = self.status()
-            here = (st['x'], st['y'])
-            rest = pts[min(range(len(pts)), key=lambda k: cheb(here, pts[k])):] if attempt else pts
-            if cheb(here, pts[-1]) == 0:
+            here, up = (st['x'], st['y']), st['z'] >= 20
+            if here == end and up == (end in UPSTAIRS):
                 return
+            rest = pts
+            if attempt:
+                pool = [k for k, p in enumerate(pts) if (p in UPSTAIRS) == up] or list(range(len(pts)))
+                rest = pts[min(pool, key=lambda k: cheb(here, pts[k])):]
             r = self.uo.call(self.info, 'POST', '/travel', path=';'.join(f'{x},{y}' for x, y in rest[:200]))
-            if r.get('arrived'):
-                return
-            self.say(f"the way {what} stopped at {r.get('x')},{r.get('y')} ({r.get('stopped')}); on from there")
+            if r.get('stopped'):
+                self.say(f"the way {what} stopped at {r.get('x')},{r.get('y')} ({r.get('stopped')}); on from there")
         st = self.status()
-        raise self.uo.BridgeError(0, f"could not go {what}: he's at {st['x']},{st['y']}")
+        raise self.uo.BridgeError(0, f"could not go {what}: he's at {st['x']},{st['y']},{st['z']}")
 
     def go(self, goal, what=''):
         """Along the lines to goal (the last tile included)."""
