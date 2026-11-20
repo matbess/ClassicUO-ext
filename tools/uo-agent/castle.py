@@ -57,12 +57,22 @@ TABLE_STAND = (944, 2349)        # outside it (the east side): where the user st
 
 CASTLE = (921, 2321, 950, 2350)  # the inside, ground floor (x1, y1, x2, y2)
 HOSTILE = ('Gray', 'Criminal', 'Enemy', 'Murderer')
+LANDING_CLEAR = 10  # a creature this close when he lands in front of the castle: he recalls home to the tower instead
+DOOR_CLEAR = 6      # no key or door work with a creature this close
 
 info = None
 
 
 class Stop(Exception):
     """The user took over, the bridge stopped, or something didn't do what it should: leave Clem as he is and tell."""
+
+
+class Creatures(Stop):
+    """Creatures too close to start on a door: nothing done to it yet."""
+
+
+class UserHas(Stop):
+    """423: the user took over (or the bridge stopped). Nothing more is sent to him."""
 
 
 def say(text):
@@ -78,7 +88,7 @@ def call(method, endpoint, **params):
         return uo.call(info, method, endpoint, **params)
     except uo.BridgeError as e:
         if e.code == 423:  # the user took over, or the bridge stopped
-            raise Stop(e.message)
+            raise UserHas(e.message)
         raise
 
 
@@ -148,9 +158,19 @@ def set_door(door, shut_at, shut):
         say(f'{door} {"closed" if shut else "open"} already')
         return
     a = call('POST', '/use', serial=door)
-    if (spot(door) == shut_at) != shut:
-        raise Stop(f'{door} should be {"shut" if shut else "open"} but stands at {spot(door)}: {texts(a)!r}')
-    say(f'{door} {"closed" if shut else "open"}')
+    # the door takes a moment to swing in his client: on 2026-11-19 19:45 it was looked at at once, still stood open,
+    # and that was taken for a failure. Wait up to 3 s, and try the double-click once more before giving up.
+    for attempt in range(2):
+        end = time.time() + 3
+        while time.time() < end:
+            if (spot(door) == shut_at) == shut:
+                say(f'{door} {"closed" if shut else "open"}')
+                return
+            time.sleep(0.2)
+        if attempt == 0:
+            say(f'{door} did not {"close" if shut else "open"} yet: again')
+            a = call('POST', '/use', serial=door)
+    raise Stop(f'{door} should be {"shut" if shut else "open"} but stands at {spot(door)}: {texts(a)!r}')
 
 
 def through(door, key, shut_at, outside, indoors, what):
@@ -158,9 +178,9 @@ def through(door, key, shut_at, outside, indoors, what):
     it's unlocked, it ends locked and closed."""
     if where() != outside:
         step(outside, f'get to the {what}')
-    close = creatures_near(outside, 3)
+    close = creatures_near(outside, DOOR_CLEAR)
     if close:
-        raise Stop(f'creatures at the {what}: ' + ', '.join(f"{m.get('name') or '?'} at {m['x']},{m['y']}" for m in close))
+        raise Creatures(f'creatures at the {what}: ' + ', '.join(f"{m.get('name') or '?'} at {m['x']},{m['y']}" for m in close))
     key_on(key, door, 'unlock')
     try:
         set_door(door, shut_at, False)
@@ -216,18 +236,51 @@ def recall(rune, why):
     raise Stop(f'Recall ({why}) failed three times')
 
 
+TOWER = (1745, 1400, 1765, 1414)  # the tower ("Outpost"), where the restock chest is
+
+
+def reagents_ok():
+    """Before he leaves anywhere (the user, 2026-11-06 and again 2026-11-19: always check the reagents before
+    leaving): in the tower, restock.ensure() tops up from the chest when any is below 25; anywhere else there's no
+    chest, so a low one stops him (he stays where he is, safe inside)."""
+    x, y = where()
+    try:
+        if TOWER[0] <= x <= TOWER[2] and TOWER[1] <= y <= TOWER[3]:
+            restock.ensure()
+            return
+        have = restock.counts()
+    except restock.Stop as e:
+        raise Stop(f'reagents: {e}')
+    low = [restock.TARGET[g][0] for g, n in have.items() if n < restock.MINIMUM]
+    if low:
+        raise Stop(f'reagents low ({", ".join(low)}) and no restock chest here: he stays inside')
+    say(f'reagents: {restock.show(have)}')
+
+
 def go_in():
     here = where()
     if inside(here):
         say(f'already inside the castle, at {here[0]},{here[1]}')
         return
+    if not (930 <= here[0] <= 941 and 2341 <= here[1] <= 2362):
+        reagents_ok()  # leaving wherever he is for the castle's front
     if not (930 <= here[0] <= 941 and 2341 <= here[1] <= 2362):  # not at the castle yet: the Castle rune
         st = recall(find_rune('Castle'), 'the Castle')
         if max(abs(st['x'] - LANDING[0]), abs(st['y'] - LANDING[1])) > 3:
             raise Stop(f'the Castle rune put him at {st["x"]},{st["y"]}, not in front of the castle ({LANDING})')
         here = (st['x'], st['y'])
-    if here[1] >= 2351:  # outside the front
-        through(FRONT_DOOR, FRONT_KEY, FRONT_SHUT, FRONT_OUT, FRONT_IN, 'front door')
+    if here[1] >= 2351:  # outside the front: no fighting here yet, so any trouble sends him home to the tower, where
+        # fight.py deals with the creatures at its front door (the user, 2026-11-19: outside, use the fight logic)
+        near = creatures_near(here, LANDING_CLEAR)
+        if near:
+            escape('creatures in front of the castle: ' + ', '.join(f"{m.get('name') or '?'} at {m['x']},{m['y']}"
+                                                                    for m in near))
+        # a problem with the door itself stops him where he is, to be put right: never a retreat that leaves the door
+        # behind (2026-11-19 19:45: a close looked at too soon was taken for trouble, and he recalled away from it)
+        try:
+            through(FRONT_DOOR, FRONT_KEY, FRONT_SHUT, FRONT_OUT, FRONT_IN, 'front door')
+        except Creatures as e:  # before the key: the door is as it was
+            escape(str(e))
         here = where()
     if 2347 <= here[1] <= 2350:  # the entrance room: the courtyard rune in the secure box
         call('POST', '/open', serial=RUNE_BOX)
@@ -246,10 +299,23 @@ def go_in():
     say(f'in the castle, in the great hall at {HALL[0]},{HALL[1]}; both doors locked and closed')
 
 
+def escape(why):
+    """Trouble in front of the castle: Recall to the tower and in at its front with fight.py, as every trip home
+    does (trips.home_and_in). Then stop: the castle is tried again later."""
+    say(f'TROUBLE OUTSIDE THE CASTLE ({why}): back to the tower')
+    import door, fight, trips, carto  # noqa: E401
+    trips.info = carto.info = door.info = restock.info = info
+    fight.setup(info)
+    trips.TOWER_RUNE = find_rune('Outpost')
+    trips.home_and_in()
+    raise Stop(f'went home to the tower instead: {why}')
+
+
 def go_out():
     """Recall to the tower from inside, then in at its front the way every trip home goes (trips.home_and_in)."""
     if not inside():
         raise Stop('out is done from inside the castle')
+    reagents_ok()  # he lands in front of the tower, among its creatures
     import door, fight, trips, carto  # noqa: E401 (only for the way home)
     trips.info = carto.info = door.info = restock.info = info
     fight.setup(info)
