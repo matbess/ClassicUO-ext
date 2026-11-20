@@ -171,15 +171,41 @@ def locate(p, z=6):
 
 
 def route(start, goal, z=6):
-    """The turn points from start to goal along the route, the tile where he leaves it, then the goal."""
+    """The turn points from start to goal along the route, the tile where he leaves it, then the goal: (x, y)."""
+    return [p[:2] for p in route3(start, goal, z)]
+
+
+def route3(start, goal, z=6):
+    """route() with each point's floor: (x, y, up), up True for upstairs. A point on a ramp's stretch takes the floor
+    of the stretch's end it's nearest."""
     i, s_tile = locate(start, z)
     j, g_tile = locate(goal)
-    if j > i or j == i and ROUTE.index(ROUTE[i]) == i and cheb(ROUTE[i], s_tile) <= cheb(ROUTE[i], g_tile):
-        mid = [r[:2] for r in ROUTE[i + 1:j + 1]]
+    if j > i or j == i and cheb(ROUTE[i], s_tile) <= cheb(ROUTE[i], g_tile):
+        mid = list(ROUTE[i + 1:j + 1])
     else:
-        mid = [r[:2] for r in reversed(ROUTE[j + 1:i + 1])]
-    pts = [s_tile] + mid + [g_tile, tuple(goal)]
-    return [p for k, p in enumerate(pts) if k == 0 or p != pts[k - 1]]
+        mid = list(reversed(ROUTE[j + 1:i + 1]))
+
+    def floor_on(k, t):
+        a, b = ROUTE[k], ROUTE[k + 1]
+        return (a if cheb(a, t) <= cheb(b, t) else b)[2] >= UP
+    pts = [(s_tile[0], s_tile[1], z >= UP)] + [(r[0], r[1], r[2] >= UP) for r in mid] + \
+        [(g_tile[0], g_tile[1], floor_on(j, g_tile)), (goal[0], goal[1], floor_on(j, g_tile))]
+    return [p for k, p in enumerate(pts) if k == 0 or p[:2] != pts[k - 1][:2]]
+
+
+def by_floor(pts):
+    """pts (x, y, up) cut where the floor changes: each stretch keeps to one floor but the first, which ends on the
+    ramp's far side (the joining point starts the next)."""
+    out, cur = [], []
+    for p in pts:
+        if cur and p[2] != cur[-1][2]:
+            out.append(cur + [p])
+            cur = [p]
+            continue
+        cur.append(p)
+    if len(cur) > 1 or not out:
+        out.append(cur)
+    return out
 
 
 def nearest_point(p, z=None):
@@ -230,16 +256,18 @@ class Mover:
     def status(self):
         return self.uo.call(self.info, 'GET', '/status')
 
-    def travel(self, pts, what):
-        """One smooth ride along pts (/travel; his rules allow every height in the castle's halls, so the ramps ride
-        with the rest). Done when he stands on the last point; else again from the route's tile nearest him."""
+    def travel(self, pts, what, up=None):
+        """One smooth ride along pts (/travel). Done when he stands on the last point, on its floor (up: True for
+        upstairs; 2026-11-19 20:50 he ended a walk at 943,2324 one floor up, above the forge's corridor); else again
+        along the stretch."""
         end = tuple(pts[-1])
+        start = list(pts)
         for attempt in range(4):
             st = self.status()
-            if (st['x'], st['y']) == end:
+            if (st['x'], st['y']) == end and (up is None or (st['z'] >= UP) == up):
                 return
             if attempt:
-                pts = route((st['x'], st['y']), end, st['z'])
+                pts = start
             r = self.uo.call(self.info, 'POST', '/travel', path=';'.join(f'{x},{y}' for x, y in pts[:200]))
             if r.get('stopped'):
                 self.say(f"the way {what} stopped at {r.get('x')},{r.get('y')} ({r.get('stopped')}); on from there")
@@ -247,7 +275,7 @@ class Mover:
             if 0 < cheb((st['x'], st['y']), end) <= 2:  # the last tile or two: a plain step
                 self.uo.call(self.info, 'POST', '/walk', x=end[0], y=end[1], distance=0)
         st = self.status()
-        if cheb((st['x'], st['y']), end) <= 1:
+        if cheb((st['x'], st['y']), end) <= 1 and (up is None or (st['z'] >= UP) == up):
             return  # a tile off: close enough for anything within reach (2 tiles)
         raise self.uo.BridgeError(0, f"could not go {what}: he's at {st['x']},{st['y']},{st['z']}")
 
@@ -257,11 +285,13 @@ class Mover:
         here = (st['x'], st['y'])
         if here == tuple(goal):
             return
-        pts = route(here, goal, st['z'])
+        pts3 = route3(here, goal, st['z'])
+        pts = [p[:2] for p in pts3]
         behind = lambda p: zone(*p) == 'south-east'  # noqa: E731 (behind the user's table)
         if not behind(here) and behind(tuple(goal)) and TABLE_SPOT not in pts and not any(p[1] == 2350 for p in pts):
             self.open_table()
-        self.travel(pts, what or f'to {goal[0]},{goal[1]}')
+        for part in by_floor(pts3):  # a stretch per floor, each checked to end on its floor
+            self.travel([p[:2] for p in part], what or f'to {goal[0]},{goal[1]}', up=part[-1][2])
 
     def walk(self, x, y, what=''):
         self.go((x, y), what)
@@ -427,6 +457,9 @@ def test():
     r = route((948, 2335), (934, 2338))
     assert r[-1] == (934, 2338) and r.index((921, 2327)) < r.index((921, 2322)), r
     assert route((923, 2330), (948, 2340), 26)[0] == (923, 2330)
+    parts = by_floor(route3((935, 2338), (948, 2335)))
+    assert [p[-1][2] for p in parts] == [True, False, False], parts
+    assert by_floor(route3((943, 2324), (945, 2325), 26))[-1][-1] == (945, 2325, False)
     assert locate((925, 2327), 26)[1] == (925, 2327) and ROUTE[locate((925, 2327), 26)[0]][2] >= UP
     assert stand_spot(947, 2335) == (948, 2335) and stand_spot(940, 2348) == (940, 2349)
     assert zone(948, 2338) == 'east' and zone(940, 2349) == 'south-east'
