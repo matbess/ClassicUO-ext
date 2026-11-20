@@ -114,6 +114,21 @@
   ],
   "recorded": "2026-11-19 20:43"
  },
+ "0x40790A06": {
+  "bags": [],
+  "items": 1,
+  "label": "castle: cloth & leather (forge 2326, 3rd)",
+  "loose": [
+   {
+    "amount": 286,
+    "name": "cut up leather",
+    "serial": "0x4088E61B",
+    "x": 18,
+    "y": 139
+   }
+  ],
+  "recorded": "2026-11-19 20:45"
+ },
  "0x4080C375": {
   "bags": [
    {

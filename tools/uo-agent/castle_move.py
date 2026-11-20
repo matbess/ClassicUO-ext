@@ -200,7 +200,16 @@ def load():
             what = target_of(text, bag_label, pieces[0]['graphic'] if pieces[0]['role'] == 'loose' else None)
             before = st['weight']
             for p in pieces:
-                r = uo.move(info, p['serial'], pack)
+                try:
+                    r = uo.move(info, p['serial'], pack)
+                except uo.TakenOver:
+                    # Razor's AutoSearch opens a bag the moment it lands in his pack (2026-11-19 20:47:03, the rings
+                    # bag): that double-click isn't the user (fight.razor_click checks, and resumes)
+                    import fight
+                    fight.info = info
+                    if not fight.razor_click(bag=p['serial']):
+                        raise
+                    r = {'moved': True, 'messages': []}
                 said = ' '.join(m['text'] for m in r.get('messages', [])).lower()
                 if not r.get('moved') and 'cannot hold more weight' in said:
                     # too heavy for his pack all at once (1954 lockpicks, 2026-11-19): the part that fits, the rest
