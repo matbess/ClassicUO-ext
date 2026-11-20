@@ -6,6 +6,27 @@
   "loose": [],
   "recorded": "2026-11-16 22:38"
  },
+ "0x406B3D52": {
+  "bags": [
+   {
+    "kind": "circle 3 scrolls",
+    "known": 0,
+    "marker": {
+     "name": "Unlock Scroll",
+     "serial": "0x40888CB7",
+     "x": 44,
+     "y": 128
+    },
+    "serial": "0x4092B7CC",
+    "x": 40,
+    "y": 105
+   }
+  ],
+  "items": 2,
+  "label": "castle: scrolls, circles 1-4 (east 2336, top)",
+  "loose": [],
+  "recorded": "2026-11-19 21:02"
+ },
  "0x406BE5CF": {
   "bags": [],
   "items": 8,
@@ -40,20 +61,6 @@
     "y": 107
    },
    {
-    "amount": 36,
-    "name": "15 Mandrake Root",
-    "serial": "0x4079B398",
-    "x": 18,
-    "y": 133
-   },
-   {
-    "amount": 33,
-    "name": "Black Pearls",
-    "serial": "0x4052CF51",
-    "x": 18,
-    "y": 107
-   },
-   {
     "amount": 113,
     "name": "59 Nightshade",
     "serial": "0x40703368",
@@ -61,21 +68,35 @@
     "y": 133
    },
    {
-    "amount": 9,
+    "amount": 19,
+    "name": "Mandrake Roots",
+    "serial": "0x408A41DB",
+    "x": 18,
+    "y": 133
+   },
+   {
+    "amount": 16,
+    "name": "Black Pearls",
+    "serial": "0x408A42CF",
+    "x": 18,
+    "y": 107
+   },
+   {
+    "amount": 27,
     "name": "Blood Moss",
-    "serial": "0x40863046",
+    "serial": "0x4089ED31",
     "x": 52,
     "y": 107
    }
   ],
-  "recorded": "2026-11-19 20:57"
+  "recorded": "2026-11-19 21:02"
  },
  "0x406C57AE": {
   "bags": [],
   "items": 0,
   "label": "castle: attack wands (east 2331, top) [secure]",
   "loose": [],
-  "recorded": "2026-11-19 20:57"
+  "recorded": "2026-11-19 21:02"
  },
  "0x406C6A1A": {
   "bags": [
@@ -240,16 +261,21 @@
    {
     "kind": "gems",
     "known": 0,
-    "marker": null,
+    "marker": {
+     "name": "tourmaline",
+     "serial": "0x408D9F17",
+     "x": 30,
+     "y": 127
+    },
     "serial": "0x4098CD0A",
     "x": 18,
     "y": 105
    }
   ],
-  "items": 1,
+  "items": 2,
   "label": "castle: gems (my vault 942, floor)",
   "loose": [],
-  "recorded": "2026-11-19 20:57"
+  "recorded": "2026-11-19 21:02"
  },
  "0x40790A06": {
   "bags": [],

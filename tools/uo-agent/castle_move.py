@@ -193,6 +193,12 @@ def load():
             room = st['weightMax'] - st['weight'] - WEIGHT_LEFT
             known = pieces[0]['role'] == 'bag'  # a bag says what it weighs; a loose thing is weighed by lifting it
             if known and stones > room:
+                if stones > st['weightMax'] - WEIGHT_LEFT - 100 and room > 100:
+                    # heavier than he can ever carry (the circle 4 scrolls pouch: 896 stones, 2026-11-19): its
+                    # contents go over a part at a time, the bag itself last
+                    taken = lighten(pieces[0], text, labels, pack, taken)
+                    LEFT[0] = True
+                    return taken
                 say(f'his pack is full ({st["weight"]}/{st["weightMax"]} stones): this load is done')
                 LEFT[0] = True
                 return taken
@@ -295,6 +301,51 @@ def load():
                 f"{' + its marker' if len(pieces) > 1 else ''} from {text} -> for {what}")
     say('the tower vault is empty')
     return taken
+
+
+PENDING = os.path.join(WORK, 'move-pending.json')  # bag serial -> serials of its contents waiting loose in the castle
+
+
+def lighten(bag, text, labels, pack, taken):
+    """A bag too heavy to carry: as much of what's in it as fits goes into his pack (big piles split), each written
+    down as the bag's content at its spot in the bag. In the castle they wait loose in the chest the bag goes to,
+    until the bag comes (unload puts them back in)."""
+    what = target_of(text, labels.get(bag['serial']))
+    name = labels.get(bag['serial'], bag['type'])
+    items = open_items(bag['serial'])
+    say(f'{name} is too heavy to carry whole: its contents go over in parts')
+    for i in items:
+        st = status()
+        room = st['weightMax'] - st['weight'] - WEIGHT_LEFT
+        if room < 10:
+            break
+        amount = i.get('amount', 1)
+        before = st['weight']
+        r = uo.move(info, i['serial'], pack, amount=min(amount, room) if amount > 1 else None)
+        if not r.get('moved'):
+            break
+        p = dict(i, role='loose', amount=min(amount, room) if amount > 1 else 1)
+        trim(p, bag['serial'], pack)
+        taken.append({'serial': p['serial'], 'type': i['type'], 'role': 'content', 'bag': bag['serial'],
+                      'from': text, 'x': i['x'], 'y': i['y'], 'what': what, 'count': 1,
+                      'stones': max(0, status()['weight'] - before), 'amount': p['amount'], 'graphic': i['graphic'],
+                      'hue': i.get('hue', 0), 'crate': False})
+        write_load(taken)
+        say(f"{i['type']} x{p['amount']} out of {name}")
+    return taken
+
+
+def read_pending():
+    try:
+        with open(PENDING, encoding='utf-8') as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return {}
+
+
+def write_pending(d):
+    with open(PENDING, 'w', encoding='utf-8') as fh:
+        json.dump(d, fh, indent=1)
 
 
 def razor_opened(serial):
@@ -410,6 +461,28 @@ def unload():
                 taken.remove(p)
                 write_load(taken)
                 continue
+            if p['role'] == 'content':
+                # into its bag if the bag is here already, else loose in the bag's chest until it comes
+                where_bag = None
+                try:
+                    where_bag = [i['serial'] for i in call('GET', '/item', serial=p['bag']).get('insideOf', [])]
+                except uo.BridgeError:
+                    pass
+                c = room.pick(p['what'], SIDE, 1, 0)
+                if where_bag and where_bag[0] in castle_site.PLAN:
+                    r = uo.move(info, p['serial'], p['bag'], p['x'], p['y'])
+                    say(f"{p['type']} -> back into its bag {p['bag']}")
+                else:
+                    r = uo.move(info, p['serial'], c)
+                    pend = read_pending()
+                    pend.setdefault(p['bag'], []).append(p['serial'])
+                    write_pending(pend)
+                    say(f"{p['type']} -> {castle_site.chest_title(c, uo.load_labels())}, loose until its bag comes")
+                if not r.get('moved'):
+                    raise Stop(f"{p['serial']} {p['type']} did not go in: {r}")
+                taken.remove(p)
+                write_load(taken)
+                continue
             if p['role'] == 'marker' and chest_of_bag:
                 c = chest_of_bag
             else:
@@ -426,6 +499,14 @@ def unload():
                 room.added(c, p['count'], p['stones'])
             if p['role'] == 'bag':
                 chest_of_bag = c
+                pend = read_pending()
+                for k in pend.pop(p['serial'], []):  # its contents that came ahead of it, back in
+                    try:
+                        uo.move(info, k, p['serial'])
+                        say(f'{k} back into {p["serial"]}')
+                    except uo.BridgeError as e:
+                        say(f'{k} could not go back into {p["serial"]}: {e}')
+                write_pending(pend)
             elif p['role'] == 'loose':
                 chest_of_bag = None
             if c not in touched:
