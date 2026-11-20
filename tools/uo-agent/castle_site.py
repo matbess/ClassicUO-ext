@@ -367,7 +367,8 @@ def test():
     assert len(targets('poison potions', 'east')) == 3
     assert [PLAN[s]['what'] for s in targets('smelting', 'east')] == [f'smelting {i}' for i in range(1, 5)]
     assert all(PLAN[s]['what'] == 'gold' for s in targets('gold', 'west'))
-    assert PLAN[targets('ingots', 'east')[0]]['side'] == 'forge'
+    assert [PLAN[s]['what'] for s in targets('ingots', 'east')] == ['ingots', 'ingots 2']
+    assert [PLAN[s]['what'] for s in targets('boards & logs', 'east')] == ['boards & logs', 'boards & logs 2']
     assert [PLAN[s]['side'] for s in targets('new backpacks', 'west')] == ['forge']
     assert PLAN[targets('supplies', 'east')[0]]['what'] == 'supplies & ID wands'
     assert len(intake('east')) == 2 and len(intake('west')) == 2

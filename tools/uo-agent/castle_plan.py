@@ -55,16 +55,19 @@ WALL = {
     2342: [('poison potions 3', 0), ('explosion potions 1', 0), ('explosion potions 2', 0), (FREE, 0)],
     2343: [(FREE, 0)] * 4,
 }
-# the forge corner (x 944): crafting and leveling
+# the forge corner (x 944): crafting and leveling. Every ingot, board and log goes here, the big piles too (the user,
+# 2026-11-19: "All the ingots, boards and logs and other things for crafting should be moved up to the chests closest
+# to the forge"): a pile counts as one item and a locked-down chest has no weight limit, so two chests each is plenty
 FORGE = {
     2322: [('smelting 1', 0), ('smelting 2', 0), ('smelting 3', 0), ('smelting 4', 0)],
     2326: [('ingots', 0), ('boards & logs', 0), ('cloth & leather', 0), ('tools', 0)],
-    2327: [('cooking', 0), (FREE, 0), (FREE, 0), ('spare backpacks', 0)],  # outside the tables: anyone can drop bags
-}
-# the user's vault (south-east, behind their table, y 2348): no weight limit, no secures needed
+    2327: [('cooking', 0), ('ingots 2', 0), ('boards & logs 2', 0), ('spare backpacks', 0)],  # backpacks: outside the
+}                                                                                             # tables, anyone drops bags
+# the user's vault (south-east, behind their table, y 2348): no weight limit, no secures needed. The ingots, boards and
+# logs moved up to the forge (2026-11-19), so 938 and 939 are free
 VAULT = {
-    938: [('ingots', 0)] * 4,
-    939: [('boards', 0), ('boards', 0), ('logs', 0), (FREE, 0)],
+    938: [(FREE, 0)] * 4,
+    939: [(FREE, 0)] * 4,
     940: [('reagents', 0), ('reagents', 0), ('scrolls', 0), (FREE, 0)],
     941: [('gold', 0)] * 4,
     942: [('valuables overflow', 0), ('valuables overflow', 0), (FREE, 0), (FREE, 0)],

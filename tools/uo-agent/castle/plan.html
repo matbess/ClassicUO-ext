@@ -179,15 +179,15 @@ const EAST = [
 ];
 const FORGE = [
   [2322, C('Smelting 1', 'craft', 'junk metal for Icepick; the trash barrel is at 949,2322'), C('Smelting 2', 'craft'), C('Smelting 3', 'craft'), C('Smelting 4', 'craft')],
-  [2326, C('Ingots', 'craft', 'working stock'), C('Boards & logs', 'craft', 'working stock'), C('Cloth & leather', 'craft', 'for tailoring and bandages'), C('Tools', 'craft', 'saws, scissors, tongs, shovels')],
-  [2327, C('Cooking', 'craft', 'raw meat and fish steaks'), F(), F(), C('Spare backpacks', 'utility', 'emptied loot bags, from either side; past 125, into the trash')],
+  [2326, C('Ingots', 'craft', 'every ingot, the big piles too'), C('Boards & logs', 'craft', 'every board and log'), C('Cloth & leather', 'craft', 'for tailoring and bandages'), C('Tools', 'craft', 'saws, scissors, tongs, shovels')],
+  [2327, C('Cooking', 'craft', 'raw meat and fish steaks'), C('Ingots 2', 'craft', 'when the first fills'), C('Boards & logs 2', 'craft', 'when the first fills'), C('Spare backpacks', 'utility', 'emptied loot bags, from either side; past 125, into the trash')],
 ];
 // the west wall: free and unassigned for now (19 Nov)
 const WEST = EAST.map(([y]) => [y, F(), F(), F(), F()]);
 // behind the tables: no weight limit, and nobody without owner commands can get in
 const SE = [
-  [938, C('Ingots', 'yours', 'the big piles'), C('Ingots', 'yours'), C('Ingots', 'yours'), C('Ingots', 'yours')],
-  [939, C('Boards', 'yours', 'the big piles'), C('Boards', 'yours'), C('Logs', 'yours'), F()],
+  [938, F(), F(), F(), F()],
+  [939, F(), F(), F(), F()],
   [940, C('Reagents', 'yours', 'the big piles'), C('Reagents', 'yours'), C('Scrolls', 'yours', 'big piles, circles 1–8'), F()],
   [941, C('Gold', 'yours', 'all of it'), C('Gold', 'yours'), C('Gold', 'yours'), C('Gold', 'yours')],
   [942, C('Valuables overflow', 'yours', 'when a wall chest fills'), C('Valuables overflow', 'yours'), F(), F()],
@@ -235,7 +235,7 @@ const TABS = [
           <tr><td>Treasure maps</td><td>Secure, east wall</td><td>They leave the miscellaneous chest.</td></tr>
           <tr><td>Reagents</td><td>Secure, east wall; the big piles in your vault</td><td>Thousands of ginseng alone. Light each, heavy in bulk.</td></tr>
           <tr><td>Potions</td><td>South end of the east wall, together (15 chests, 5 free)</td><td>They don't stack, so each kind gets 2 chests, poison 3; about 120 potions each.</td></tr>
-          <tr><td>Ingots, boards, logs</td><td>Your vault (7 chests)</td><td>The big piles. Working stock stays by the forge, outside the tables.</td></tr>
+          <tr><td>Ingots, boards, logs</td><td>By the forge (2 chests each)</td><td>All of them, the big piles too (you, 19 Nov). A pile counts as one item and a plain chest has no weight limit.</td></tr>
         </tbody>
       </table>
     </div>` },
@@ -250,7 +250,7 @@ const TABS = [
     ${stacks(WEST, 'y (north → south)')}` },
   { id: 'forge', name: 'Forge corner · 12', html: () => `
     <div class="group-head"><h2>Forge corner, for crafting</h2>
-      <p class="muted">x 944, next to the forges (946–947, 2322) and the anvil (948, 2323). Crafting supplies and things for leveling skills, plus the spare backpacks. All outside the tables, so anyone can use them.</p></div>
+      <p class="muted">x 944, next to the forges (946–947, 2322) and the anvil (948, 2323). Everything for crafting and leveling skills, the big piles of ingots, boards and logs too (you, 19 Nov: "moved up to the chests closest to the forge"), plus the spare backpacks.</p></div>
     ${stacks(FORGE, 'y')}` },
   { id: 'south', name: 'South rooms · 50', html: () => `
     <div class="group-head"><h2>South rooms</h2>

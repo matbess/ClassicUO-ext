@@ -125,6 +125,10 @@ The user's friend has no owner commands, so the tables are for the owner side. T
   `castle_plan.py unsecure`, listed in `castle/secured-friend-2026-11-18.json`).
 - **The west wall** is free, unassigned and not secure: "Don't mirror the east side ... leave everything empty for
   now".
+- **Crafting by the forge:** "All the ingots, boards and logs and other things for crafting should be moved up to the
+  chests closest to the forge". Every ingot, board and log goes to the forge chests, the big piles too (ingots and
+  "ingots 2", "boards & logs" and "boards & logs 2", with smelting, cloth & leather, tools and cooking); the 8 chests
+  in the user's vault that were for them (938 and 939) are free.
 - **Spare backpacks:** one chest by the forge (944,2327, floor): "I want the chest with backpacks to be in the forge
   area so it's not behind the tables".
 - **The forge gate (an idea, not decided):** the user may move their tables up to the forge corner, locked down
