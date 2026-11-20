@@ -159,6 +159,27 @@ The sorting tools work in the castle when Clem is inside it: the same steps as t
 `python3 -I castle_site.py test` checks the tables offline. **Not yet run in the game** (2026-11-19): the first
 castle sort is watched by the user.
 
+## The move (done 2026-11-19, 20:09-22:53)
+
+`castle_move.py run` carried everything in the tower vault to the castle in 30 trips: each trip into the vault
+(gems.py's door), as much as his pack takes, Recall to the castle (the castle-front fight, both doors), every piece
+into its castle chest at its tower spot, back by castle.py out. What was learned on the way, now in the code:
+- **Weight:** a pile is weighed by lifting it; one too heavy is split to what fits, and he's never left over his
+  most (overloaded he can't move). A bag heavier than he can ever carry (the scroll pouches, 600-900 stones) goes
+  over in parts: its contents wait loose in its castle chest (`move-pending.json`) and go back in when it comes.
+  His pack also holds only 125 things (potions don't stack).
+- **False stops:** Razor's AutoSearch opens every bag that lands in his pack, and the bridge takes that double-click
+  for the user (`razor_opened`, checked on every request); a pile dropped onto its kind merges and its serial is
+  gone, so the bridge stops waiting for it (taken as landed when it's gone from his pack); a split pile's rest gets
+  a new serial (found again by graphic and amount).
+- **Walking:** the user's own route (rec2, turn points only) ridden with /travel; the two ramps stepped tile by tile
+  on the recorded tiles; each stretch checked to end on its floor (two floors share x,y round the stairs); castle
+  chests worked from their standing spots, within reach.
+- **Reagents:** checked before every trip out; restocked in the tower, or from the castle's reagents chest; when a
+  chest is out of one, on with none under 20 (the tower's ran out of mandrake root and black pearl, 2026-11-19).
+- Loose crafting things went to the forge (cloth & leather, tools, boards & logs, ingots), not where they lay.
+- The **user's table** never had to move: the y 2350 row runs round it to the user's vault (the user was told).
+
 ## Known so far, not yet done
 
 - **`castle.py`** (2026-11-18, the user: "that should be a skill or something. We're going to need to do this a lot

@@ -455,7 +455,7 @@
     "marker": null,
     "serial": "0x4098E052",
     "x": 19,
-    "y": 154
+    "y": 146
    },
    {
     "kind": "?",
@@ -496,12 +496,44 @@
     "serial": "0x4098F2C3",
     "x": 66,
     "y": 106
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E061",
+    "x": 114,
+    "y": 130
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2DC",
+    "x": 62,
+    "y": 143
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40836C27",
+    "x": 116,
+    "y": 112
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x400F8748",
+    "x": 20,
+    "y": 150
    }
   ],
-  "items": 62,
+  "items": 66,
   "label": "castle: spare backpacks (forge 2327, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:44"
+  "recorded": "2026-11-19 22:53"
  },
  "0x404ABD74": {
   "bags": [],
@@ -4139,7 +4171,7 @@
  },
  "0x40A519B7": {
   "bags": [],
-  "items": 59,
+  "items": 60,
   "label": "castle: smelting 1 (forge 2322, top)",
   "loose": [
    {
@@ -4308,7 +4340,7 @@
     "name": "platemail legs of guarding",
     "serial": "0x408739DF",
     "x": 107,
-    "y": 135
+    "y": 134
    },
    {
     "amount": 1,
@@ -4336,7 +4368,7 @@
     "name": "a fortified, eminently accurate two handed axe",
     "serial": "0x408D75BD",
     "x": 40,
-    "y": 144
+    "y": 140
    },
    {
     "amount": 1,
@@ -4349,7 +4381,7 @@
     "amount": 1,
     "name": "a massive, accurate war hammer of ruin",
     "serial": "0x408D1655",
-    "x": 1,
+    "x": 18,
     "y": 144
    },
    {
@@ -4364,7 +4396,7 @@
     "name": "a war hammer",
     "serial": "0x4093FC53",
     "x": 95,
-    "y": 104
+    "y": 105
    },
    {
     "amount": 1,
@@ -4378,13 +4410,13 @@
     "name": "a war mace",
     "serial": "0x409053EF",
     "x": 52,
-    "y": 157
+    "y": 147
    },
    {
     "amount": 1,
     "name": "a war mace",
     "serial": "0x4093CBE6",
-    "x": 16,
+    "x": 18,
     "y": 142
    },
    {
@@ -4398,22 +4430,22 @@
     "amount": 1,
     "name": "a war hammer",
     "serial": "0x4014F669",
-    "x": 119,
+    "x": 118,
     "y": 116
    },
    {
     "amount": 1,
     "name": "a broadsword",
     "serial": "0x409343A7",
-    "x": 2,
+    "x": 18,
     "y": 146
    },
    {
     "amount": 1,
     "name": "a broadsword",
     "serial": "0x409383CC",
-    "x": 5,
-    "y": 154
+    "x": 18,
+    "y": 146
    },
    {
     "amount": 1,
@@ -4454,7 +4486,7 @@
     "amount": 1,
     "name": "a broadsword",
     "serial": "0x409313D6",
-    "x": 3,
+    "x": 18,
     "y": 110
    },
    {
@@ -4469,7 +4501,7 @@
     "name": "a durable mace of ruin",
     "serial": "0x4093D799",
     "x": 71,
-    "y": 145
+    "y": 140
    },
    {
     "amount": 1,
@@ -4489,8 +4521,8 @@
     "amount": 1,
     "name": "a supremely accurate longsword",
     "serial": "0x4094F978",
-    "x": 65524,
-    "y": 139
+    "x": 80,
+    "y": 132
    },
    {
     "amount": 1,
@@ -4524,7 +4556,7 @@
     "amount": 1,
     "name": "an eminently accurate kryss",
     "serial": "0x4087895E",
-    "x": 2,
+    "x": 18,
     "y": 116
    },
    {
@@ -4552,10 +4584,17 @@
     "amount": 1,
     "name": "a substantial bardiche of weakness and ruin (31 charges)",
     "serial": "0x408DD6E4",
-    "x": 65532,
+    "x": 80,
     "y": 113
+   },
+   {
+    "amount": 1,
+    "name": "a broadsword of might",
+    "serial": "0x408C8D04",
+    "x": 45,
+    "y": 123
    }
   ],
-  "recorded": "2026-11-19 22:44"
+  "recorded": "2026-11-19 22:51"
  }
 }
