@@ -223,8 +223,8 @@ def stand_spot(x, y):
         return (948, y)
     if x == 921 and 2329 <= y <= 2343:
         return (922, y)
-    if y == 2348 and 937 <= x <= 942:
-        return (x, 2349)
+    if y == 2348 and 937 <= x <= 942:  # in front, but not on the east intake chests (938,2349 and 938,2350)
+        return (939, 2349) if x <= 938 else (x, 2349)
     if x == 944 and y <= 2327:  # the forge chests: in front of them, where the user stood (945,2323 and 946,2325;
         return (945, 2323) if y <= 2323 else (945, 2325)  # 2026-11-19 20:50: from 943,2324 one wouldn't open)
     return nearest_point((x, y))
@@ -515,6 +515,7 @@ def test():
     assert (933, 2333) in pts and (928, 2332) in pts and (921, 2322) in pts and (921, 2327) in pts, pts
     assert locate((925, 2327), 26)[1] == (925, 2327) and ROUTE[locate((925, 2327), 26)[0]][2] >= UP
     assert stand_spot(947, 2335) == (948, 2335) and stand_spot(940, 2348) == (940, 2349)
+    assert stand_spot(938, 2348) == (939, 2349)
     assert zone(948, 2338) == 'east' and zone(940, 2349) == 'south-east'
     print('castle_site: all checks pass')
 
