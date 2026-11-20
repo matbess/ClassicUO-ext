@@ -1,10 +1,16 @@
 {
- "updated": "2026-11-16T22:38:10-0800",
- "wall": [
+ "updated": "2026-11-19T23:21:57-0800",
+ "wall": [],
+ "crates": [],
+ "gem_prices_from": "2026-11-14 22:51:40",
+ "castle": [
   {
+   "serial": "0x406D22C9",
    "name": "swords",
-   "col": 1,
+   "side": "east",
+   "place": "east 2329",
    "row": "top",
+   "secure": false,
    "bags": [
     {
      "name": "exceptional swords",
@@ -58,9 +64,12 @@
    "loose": []
   },
   {
+   "serial": "0x406D42BB",
    "name": "axes",
-   "col": 1,
-   "row": "2nd from top",
+   "side": "east",
+   "place": "east 2329",
+   "row": "2nd",
+   "secure": false,
    "bags": [
     {
      "name": "axes",
@@ -124,9 +133,12 @@
    "loose": []
   },
   {
+   "serial": "0x406CFDBC",
    "name": "maces & staves",
-   "col": 1,
-   "row": "3rd from top",
+   "side": "east",
+   "place": "east 2329",
+   "row": "3rd",
+   "secure": false,
    "bags": [
     {
      "name": "maces & staves",
@@ -172,9 +184,22 @@
    "loose": []
   },
   {
+   "serial": "0x406CA946",
+   "name": "free",
+   "side": "east",
+   "place": "east 2329",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406CB34A",
    "name": "polearms",
-   "col": 1,
-   "row": "bottom",
+   "side": "east",
+   "place": "east 2330",
+   "row": "top",
+   "secure": false,
    "bags": [
     {
      "name": "polearms",
@@ -189,9 +214,12 @@
    "loose": []
   },
   {
+   "serial": "0x406CBA5B",
    "name": "fencing",
-   "col": 2,
-   "row": "top",
+   "side": "east",
+   "place": "east 2330",
+   "row": "2nd",
+   "secure": false,
    "bags": [
     {
      "name": "fencing",
@@ -222,9 +250,12 @@
    "loose": []
   },
   {
+   "serial": "0x406CD208",
    "name": "archery",
-   "col": 2,
-   "row": "2nd from top",
+   "side": "east",
+   "place": "east 2330",
+   "row": "3rd",
+   "secure": false,
    "bags": [
     {
      "name": "bows",
@@ -264,167 +295,36 @@
    "loose": []
   },
   {
-   "name": "magic wands",
-   "col": 2,
-   "row": "3rd from top",
+   "serial": "0x406CF6F8",
+   "name": "free",
+   "side": "east",
+   "place": "east 2330",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406C57AE",
+   "name": "attack wands",
+   "side": "east",
+   "place": "east 2331",
+   "row": "top",
+   "secure": true,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406C9241",
+   "name": "healing wands",
+   "side": "east",
+   "place": "east 2331",
+   "row": "2nd",
+   "secure": true,
    "bags": [
     {
-     "name": "attack wands",
-     "marker": {
-      "name": "wand of lightning (9 charges)",
-      "amount": 1,
-      "graphic": "0x0DF2"
-     },
-     "items": [
-      {
-       "name": "wand of lightning (5 charges)",
-       "amount": 4,
-       "graphic": "0x0DF5"
-      },
-      {
-       "name": "gnarled staff of lightning (5 charges)",
-       "amount": 3,
-       "graphic": "0x13F8"
-      },
-      {
-       "name": "wand of fireball (6 charges)",
-       "amount": 3,
-       "graphic": "0x0DF3"
-      },
-      {
-       "name": "wand of fireball (8 charges)",
-       "amount": 3,
-       "graphic": "0x0DF4"
-      },
-      {
-       "name": "wand of lightning (7 charges)",
-       "amount": 3,
-       "graphic": "0x0DF5"
-      },
-      {
-       "name": "gnarled staff of fireball (5 charges)",
-       "amount": 2,
-       "graphic": "0x13F8"
-      },
-      {
-       "name": "wand of fireball (11 charges)",
-       "amount": 2,
-       "graphic": "0x0DF2"
-      },
-      {
-       "name": "wand of fireball (7 charges)",
-       "amount": 2,
-       "graphic": "0x0DF3"
-      },
-      {
-       "name": "wand of lightning (18 charges)",
-       "amount": 2,
-       "graphic": "0x0DF4"
-      },
-      {
-       "name": "gnarled staff of fireball (13 charges)",
-       "amount": 1,
-       "graphic": "0x13F8"
-      },
-      {
-       "name": "gnarled staff of fireball (15 charges)",
-       "amount": 1,
-       "graphic": "0x13F8"
-      },
-      {
-       "name": "gnarled staff of fireball (8 charges)",
-       "amount": 1,
-       "graphic": "0x13F8"
-      },
-      {
-       "name": "gnarled staff of fireball (9 charges)",
-       "amount": 1,
-       "graphic": "0x13F8"
-      },
-      {
-       "name": "gnarled staff of lightning (11 charges)",
-       "amount": 1,
-       "graphic": "0x13F8"
-      },
-      {
-       "name": "gnarled staff of lightning (13 charges)",
-       "amount": 1,
-       "graphic": "0x13F8"
-      },
-      {
-       "name": "gnarled staff of lightning (18 charges)",
-       "amount": 1,
-       "graphic": "0x13F8"
-      },
-      {
-       "name": "gnarled staff of lightning (4 charges)",
-       "amount": 1,
-       "graphic": "0x13F8"
-      },
-      {
-       "name": "wand of fireball (10 charges)",
-       "amount": 1,
-       "graphic": "0x0DF4"
-      },
-      {
-       "name": "wand of fireball (17 charges)",
-       "amount": 1,
-       "graphic": "0x0DF2"
-      },
-      {
-       "name": "wand of fireball (4 charges)",
-       "amount": 1,
-       "graphic": "0x0DF5"
-      },
-      {
-       "name": "wand of fireball (5 charges)",
-       "amount": 1,
-       "graphic": "0x0DF5"
-      },
-      {
-       "name": "wand of lightning (10 charges)",
-       "amount": 1,
-       "graphic": "0x0DF4"
-      },
-      {
-       "name": "wand of lightning (11 charges)",
-       "amount": 1,
-       "graphic": "0x0DF2"
-      },
-      {
-       "name": "wand of lightning (14 charges)",
-       "amount": 1,
-       "graphic": "0x0DF2"
-      },
-      {
-       "name": "wand of lightning (16 charges)",
-       "amount": 1,
-       "graphic": "0x0DF4"
-      },
-      {
-       "name": "wand of lightning (4 charges)",
-       "amount": 1,
-       "graphic": "0x0DF2"
-      },
-      {
-       "name": "wand of lightning (8 charges)",
-       "amount": 1,
-       "graphic": "0x0DF4"
-      },
-      {
-       "name": "wand of lightning (9 charges)",
-       "amount": 1,
-       "graphic": "0x0DF3"
-      }
-     ]
-    },
-    {
      "name": "healing wands",
-     "marker": {
-      "name": "wand of greater healing (4 charges)",
-      "amount": 1,
-      "graphic": "0x0DF4"
-     },
+     "marker": null,
      "items": [
       {
        "name": "wand of greater healing (5 charges)",
@@ -467,16 +367,57 @@
    "loose": []
   },
   {
-   "name": "bone armour",
-   "col": 2,
-   "row": "bottom",
-   "bags": [],
+   "serial": "0x406C71AF",
+   "name": "jewellery",
+   "side": "east",
+   "place": "east 2331",
+   "row": "3rd",
+   "secure": true,
+   "bags": [
+    {
+     "name": "rings",
+     "marker": {
+      "name": "ring of teleporting (4 charges)",
+      "amount": 1,
+      "graphic": "0x108A"
+     },
+     "items": []
+    }
+   ],
    "loose": []
   },
   {
+   "serial": "0x406C9B38",
+   "name": "magic clothing",
+   "side": "east",
+   "place": "east 2331",
+   "row": "floor",
+   "secure": true,
+   "bags": [
+    {
+     "name": "footwear",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "tunics & shirts",
+     "marker": {
+      "name": "tunic of spell reflection (34 charges)",
+      "amount": 1,
+      "graphic": "0x1FA1"
+     },
+     "items": []
+    }
+   ],
+   "loose": []
+  },
+  {
+   "serial": "0x406C80EE",
    "name": "plate",
-   "col": 3,
+   "side": "east",
+   "place": "east 2332",
    "row": "top",
+   "secure": false,
    "bags": [
     {
      "name": "plate arms",
@@ -592,9 +533,73 @@
    "loose": []
   },
   {
+   "serial": "0x406C374C",
+   "name": "helms",
+   "side": "east",
+   "place": "east 2332",
+   "row": "2nd",
+   "secure": false,
+   "bags": [
+    {
+     "name": "helms",
+     "marker": {
+      "name": "orc helm of guarding",
+      "amount": 1,
+      "graphic": "0x1F0B"
+     },
+     "items": [
+      {
+       "name": "helmet of fortification",
+       "amount": 2,
+       "graphic": "0x140A"
+      },
+      {
+       "name": "bascinet of guarding",
+       "amount": 1,
+       "graphic": "0x140C"
+      },
+      {
+       "name": "durable orc helm of hardening",
+       "amount": 1,
+       "graphic": "0x1F0B"
+      },
+      {
+       "name": "massive norse helm of guarding",
+       "amount": 1,
+       "graphic": "0x140E"
+      },
+      {
+       "name": "orc helm of fortification",
+       "amount": 1,
+       "graphic": "0x1F0B"
+      },
+      {
+       "name": "orc helm of guarding",
+       "amount": 1,
+       "graphic": "0x1F0B"
+      },
+      {
+       "name": "plate helm of hardening",
+       "amount": 1,
+       "graphic": "0x1412"
+      },
+      {
+       "name": "plate helm of invulnerability",
+       "amount": 1,
+       "graphic": "0x1412"
+      }
+     ]
+    }
+   ],
+   "loose": []
+  },
+  {
+   "serial": "0x406C01AD",
    "name": "chain & ring + coifs",
-   "col": 3,
-   "row": "2nd from top",
+   "side": "east",
+   "place": "east 2332",
+   "row": "3rd",
+   "secure": false,
    "bags": [
     {
      "name": "chain leggings",
@@ -680,121 +685,148 @@
    "loose": []
   },
   {
+   "serial": "0x406C5FE8",
    "name": "leather + caps",
-   "col": 3,
-   "row": "3rd from top",
+   "side": "east",
+   "place": "east 2332",
+   "row": "floor",
+   "secure": false,
    "bags": [],
    "loose": []
   },
   {
+   "serial": "0x406B8B00",
    "name": "studded",
-   "col": 3,
-   "row": "bottom",
-   "bags": [],
-   "loose": []
-  },
-  {
-   "name": "jewellery",
-   "col": 4,
+   "side": "east",
+   "place": "east 2333",
    "row": "top",
-   "bags": [
-    {
-     "name": "rings",
-     "marker": {
-      "name": "ring of teleporting (4 charges)",
-      "amount": 1,
-      "graphic": "0x108A"
-     },
-     "items": []
-    }
-   ],
-   "loose": []
-  },
-  {
-   "name": "magic clothing",
-   "col": 4,
-   "row": "2nd from top",
-   "bags": [
-    {
-     "name": "footwear",
-     "marker": {
-      "name": "boots of invisibility (36 charges)",
-      "amount": 1,
-      "graphic": "0x170B"
-     },
-     "items": []
-    },
-    {
-     "name": "tunics & shirts",
-     "marker": {
-      "name": "tunic of spell reflection (34 charges)",
-      "amount": 1,
-      "graphic": "0x1FA1"
-     },
-     "items": []
-    }
-   ],
-   "loose": []
-  },
-  {
-   "name": "spare + invulnerability shields",
-   "col": 4,
-   "row": "3rd from top",
+   "secure": false,
    "bags": [],
    "loose": []
   },
   {
-   "name": "helms",
-   "col": 4,
-   "row": "bottom",
+   "serial": "0x406B9124",
+   "name": "shields",
+   "side": "east",
+   "place": "east 2333",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406BA1AC",
+   "name": "GM armour sets",
+   "side": "east",
+   "place": "east 2333",
+   "row": "3rd",
+   "secure": true,
    "bags": [
     {
-     "name": "helms",
-     "marker": {
-      "name": "orc helm of guarding",
-      "amount": 1,
-      "graphic": "0x1F0B"
-     },
+     "name": "GM set 1",
+     "marker": null,
      "items": [
       {
-       "name": "helmet of fortification",
-       "amount": 2,
-       "graphic": "0x140A"
-      },
-      {
-       "name": "bascinet of guarding",
+       "name": "exceptional chainmail leggings crafted by Lord Bruche",
        "amount": 1,
-       "graphic": "0x140C"
+       "graphic": "0x13BE"
       },
       {
-       "name": "durable orc helm of hardening",
+       "name": "exceptional chainmail tunic crafted by Lord Bruche",
        "amount": 1,
-       "graphic": "0x1F0B"
+       "graphic": "0x13BF"
       },
       {
-       "name": "massive norse helm of guarding",
+       "name": "exceptional close helmet crafted by Lord Bruche",
+       "amount": 1,
+       "graphic": "0x1408"
+      },
+      {
+       "name": "exceptional platemail gorget crafted by Lord Bruche",
+       "amount": 1,
+       "graphic": "0x1413"
+      },
+      {
+       "name": "exceptional ringmail gloves crafted by Lord Bruche",
+       "amount": 1,
+       "graphic": "0x13EB"
+      },
+      {
+       "name": "exceptional ringmail sleeves crafted by Lord Bruche",
+       "amount": 1,
+       "graphic": "0x13EE"
+      }
+     ]
+    },
+    {
+     "name": "GM set 2",
+     "marker": null,
+     "items": [
+      {
+       "name": "exceptional chainmail leggings crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x13BE"
+      },
+      {
+       "name": "exceptional chainmail tunic crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x13BF"
+      },
+      {
+       "name": "exceptional norse helm crafted by Lady Brigid James",
        "amount": 1,
        "graphic": "0x140E"
       },
       {
-       "name": "orc helm of fortification",
+       "name": "exceptional ringmail gloves crafted by Lady Brigid James",
        "amount": 1,
-       "graphic": "0x1F0B"
+       "graphic": "0x13EB"
       },
       {
-       "name": "orc helm of guarding",
+       "name": "exceptional ringmail sleeves crafted by Lady Brigid James",
        "amount": 1,
-       "graphic": "0x1F0B"
+       "graphic": "0x13EE"
       },
       {
-       "name": "plate helm of hardening",
+       "name": "platemail gorget",
        "amount": 1,
-       "graphic": "0x1412"
+       "graphic": "0x1413"
+      }
+     ]
+    },
+    {
+     "name": "GM set 3",
+     "marker": null,
+     "items": [
+      {
+       "name": "exceptional chainmail leggings crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x13BE"
       },
       {
-       "name": "plate helm of invulnerability",
+       "name": "exceptional chainmail tunic crafted by Lady Brigid James",
        "amount": 1,
-       "graphic": "0x1412"
+       "graphic": "0x13BF"
+      },
+      {
+       "name": "exceptional norse helm crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x140E"
+      },
+      {
+       "name": "exceptional ringmail gloves crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x13EB"
+      },
+      {
+       "name": "exceptional ringmail sleeves crafted by Lady Brigid James",
+       "amount": 1,
+       "graphic": "0x13EE"
+      },
+      {
+       "name": "platemail gorget",
+       "amount": 1,
+       "graphic": "0x1413"
       }
      ]
     }
@@ -802,9 +834,234 @@
    "loose": []
   },
   {
-   "name": "scrolls",
-   "col": 5,
+   "serial": "0x406BDBD7",
+   "name": "plain gear",
+   "side": "east",
+   "place": "east 2333",
+   "row": "floor",
+   "secure": false,
+   "bags": [
+    {
+     "name": "chain & ring",
+     "marker": {
+      "name": "chainmail coif of defense",
+      "amount": 1,
+      "graphic": "0x13BB"
+     },
+     "items": [
+      {
+       "name": "ringmail leggings of defense",
+       "amount": 3,
+       "graphic": "0x13F0"
+      },
+      {
+       "name": "chainmail tunic of defense",
+       "amount": 2,
+       "graphic": "0x13BF"
+      },
+      {
+       "name": "ringmail gloves of defense",
+       "amount": 2,
+       "graphic": "0x13EB"
+      },
+      {
+       "name": "chainmail coif of defense",
+       "amount": 1,
+       "graphic": "0x13BB"
+      },
+      {
+       "name": "chainmail leggings of defense",
+       "amount": 1,
+       "graphic": "0x13BE"
+      },
+      {
+       "name": "durable chainmail leggings of defense",
+       "amount": 1,
+       "graphic": "0x13BE"
+      },
+      {
+       "name": "ringmail sleeves of defense",
+       "amount": 1,
+       "graphic": "0x13EE"
+      },
+      {
+       "name": "ringmail tunic of defense",
+       "amount": 1,
+       "graphic": "0x13EC"
+      }
+     ]
+    },
+    {
+     "name": "plate",
+     "marker": {
+      "name": "orc helm of defense",
+      "amount": 1,
+      "graphic": "0x1F0B"
+     },
+     "items": [
+      {
+       "name": "durable female plate of defense",
+       "amount": 2,
+       "graphic": "0x1C04"
+      },
+      {
+       "name": "durable helmet of defense",
+       "amount": 1,
+       "graphic": "0x140A"
+      },
+      {
+       "name": "durable plate helm of defense",
+       "amount": 1,
+       "graphic": "0x1412"
+      },
+      {
+       "name": "durable platemail gloves of defense",
+       "amount": 1,
+       "graphic": "0x1414"
+      },
+      {
+       "name": "durable platemail gorget of defense",
+       "amount": 1,
+       "graphic": "0x1413"
+      },
+      {
+       "name": "fortified norse helm of defense",
+       "amount": 1,
+       "graphic": "0x140E"
+      },
+      {
+       "name": "massive platemail arms of defense",
+       "amount": 1,
+       "graphic": "0x1410"
+      },
+      {
+       "name": "orc helm of defense",
+       "amount": 1,
+       "graphic": "0x1F0B"
+      },
+      {
+       "name": "platemail arms of defense",
+       "amount": 1,
+       "graphic": "0x1410"
+      },
+      {
+       "name": "platemail gloves of defense",
+       "amount": 1,
+       "graphic": "0x1414"
+      },
+      {
+       "name": "platemail legs of defense",
+       "amount": 1,
+       "graphic": "0x1411"
+      },
+      {
+       "name": "substantial platemail gorget of defense",
+       "amount": 1,
+       "graphic": "0x1413"
+      },
+      {
+       "name": "substantial platemail legs of defense",
+       "amount": 1,
+       "graphic": "0x1411"
+      }
+     ]
+    }
+   ],
+   "loose": []
+  },
+  {
+   "serial": "0x406B4D0D",
+   "name": "best weapons",
+   "side": "east",
+   "place": "east 2334",
    "row": "top",
+   "secure": true,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406B5A69",
+   "name": "best armour",
+   "side": "east",
+   "place": "east 2334",
+   "row": "2nd",
+   "secure": true,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406CEC4A",
+   "name": "treasure maps",
+   "side": "east",
+   "place": "east 2334",
+   "row": "3rd",
+   "secure": true,
+   "bags": [
+    {
+     "name": "treasure maps",
+     "marker": null,
+     "items": []
+    }
+   ],
+   "loose": []
+  },
+  {
+   "serial": "0x406C7AEA",
+   "name": "free",
+   "side": "east",
+   "place": "east 2334",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406C2CF8",
+   "name": "deeds 1",
+   "side": "east",
+   "place": "east 2335",
+   "row": "top",
+   "secure": true,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406C3CEA",
+   "name": "deeds 2",
+   "side": "east",
+   "place": "east 2335",
+   "row": "2nd",
+   "secure": true,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406B84A2",
+   "name": "deeds 3",
+   "side": "east",
+   "place": "east 2335",
+   "row": "3rd",
+   "secure": true,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406B35F4",
+   "name": "free",
+   "side": "east",
+   "place": "east 2335",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406B3D52",
+   "name": "scrolls, circles 1-4",
+   "side": "east",
+   "place": "east 2336",
+   "row": "top",
+   "secure": false,
    "bags": [
     {
      "name": "circle 1 scrolls",
@@ -1005,7 +1262,29 @@
        "graphic": "0x1F47"
       }
      ]
+    }
+   ],
+   "loose": [
+    {
+     "name": "Energy Field scroll",
+     "amount": 1,
+     "graphic": "0x1F5E"
     },
+    {
+     "name": "Energy Vortex scroll",
+     "amount": 1,
+     "graphic": "0x1F66"
+    }
+   ]
+  },
+  {
+   "serial": "0x406BB2E2",
+   "name": "scrolls, circles 5-8",
+   "side": "east",
+   "place": "east 2336",
+   "row": "2nd",
+   "secure": false,
+   "bags": [
     {
      "name": "circle 5 scrolls",
      "marker": {
@@ -1108,11 +1387,7 @@
     },
     {
      "name": "circle 7 scrolls",
-     "marker": {
-      "name": "Energy Field scroll",
-      "amount": 1,
-      "graphic": "0x1F5E"
-     },
+     "marker": null,
      "items": [
       {
        "name": "Gate Travel scroll",
@@ -1158,11 +1433,7 @@
     },
     {
      "name": "circle 8 scrolls",
-     "marker": {
-      "name": "Energy Vortex scroll",
-      "amount": 1,
-      "graphic": "0x1F66"
-     },
+     "marker": null,
      "items": [
       {
        "name": "Energy Vortex scroll",
@@ -1210,14 +1481,17 @@
    "loose": []
   },
   {
+   "serial": "0x406BE5CF",
    "name": "reagents",
-   "col": 5,
-   "row": "2nd from top",
+   "side": "east",
+   "place": "east 2336",
+   "row": "3rd",
+   "secure": true,
    "bags": [],
    "loose": [
     {
      "name": "Ginseng",
-     "amount": 1068,
+     "amount": 868,
      "graphic": "0x0F85"
     },
     {
@@ -1237,30 +1511,38 @@
     },
     {
      "name": "Nightshade",
-     "amount": 113,
+     "amount": 108,
      "graphic": "0x0F88"
-    },
-    {
-     "name": "Blood Moss",
-     "amount": 36,
-     "graphic": "0x0F7B"
-    },
-    {
-     "name": "Mandrake Roots",
-     "amount": 36,
-     "graphic": "0x0F86"
-    },
-    {
-     "name": "Black Pearls",
-     "amount": 33,
-     "graphic": "0x0F7A"
     }
    ]
   },
   {
+   "serial": "0x406C0FB3",
+   "name": "free",
+   "side": "east",
+   "place": "east 2336",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406B6F43",
+   "name": "free",
+   "side": "east",
+   "place": "east 2337",
+   "row": "top",
+   "secure": true,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406C2406",
    "name": "miscellaneous",
-   "col": 5,
-   "row": "3rd from top",
+   "side": "east",
+   "place": "east 2337",
+   "row": "2nd",
+   "secure": false,
    "bags": [
     {
      "name": "cooked food",
@@ -1276,15 +1558,6 @@
        "graphic": "0x097B"
       }
      ]
-    },
-    {
-     "name": "treasure maps",
-     "marker": {
-      "name": "tattered treasure map",
-      "amount": 1,
-      "graphic": "0x14EB"
-     },
-     "items": []
     }
    ],
    "loose": [
@@ -1297,13 +1570,1329 @@
      "name": "key ring",
      "amount": 3,
      "graphic": "0x1011"
+    },
+    {
+     "name": "tattered treasure map",
+     "amount": 1,
+     "graphic": "0x14EB"
     }
    ]
   },
   {
+   "serial": "0x406C6A1A",
+   "name": "supplies & ID wands",
+   "side": "east",
+   "place": "east 2337",
+   "row": "3rd",
+   "secure": false,
+   "bags": [
+    {
+     "name": "ID wands & staves (spares)",
+     "marker": null,
+     "items": [
+      {
+       "name": "gnarled staff of identification (93 charges)",
+       "amount": 1,
+       "graphic": "0x13F8"
+      },
+      {
+       "name": "wand of identification (103 charges)",
+       "amount": 1,
+       "graphic": "0x0DF5"
+      },
+      {
+       "name": "wand of identification (130 charges)",
+       "amount": 1,
+       "graphic": "0x0DF5"
+      },
+      {
+       "name": "wand of identification (156 charges)",
+       "amount": 1,
+       "graphic": "0x0DF5"
+      },
+      {
+       "name": "wand of identification (26 charges)",
+       "amount": 1,
+       "graphic": "0x0DF4"
+      },
+      {
+       "name": "wand of identification (49 charges)",
+       "amount": 1,
+       "graphic": "0x0DF4"
+      },
+      {
+       "name": "wand of identification (5 charges)",
+       "amount": 1,
+       "graphic": "0x0DF3"
+      }
+     ]
+    }
+   ],
+   "loose": [
+    {
+     "name": "lockpicks",
+     "amount": 1954,
+     "graphic": "0x14FC"
+    },
+    {
+     "name": "arrow",
+     "amount": 1250,
+     "graphic": "0x0F3F"
+    },
+    {
+     "name": "cut cloth",
+     "amount": 472,
+     "graphic": "0x1766"
+    },
+    {
+     "name": "cut up leather",
+     "amount": 286,
+     "graphic": "0x1081"
+    },
+    {
+     "name": "crossbow bolt",
+     "amount": 71,
+     "graphic": "0x1BFB"
+    },
+    {
+     "name": "feathers",
+     "amount": 36,
+     "graphic": "0x1BD1"
+    },
+    {
+     "name": "empty bottles",
+     "amount": 24,
+     "graphic": "0x0F0E"
+    },
+    {
+     "name": "blank scrolls",
+     "amount": 5,
+     "graphic": "0x0EF3"
+    },
+    {
+     "name": "dyeing tub",
+     "amount": 1,
+     "graphic": "0x0FAB"
+    },
+    {
+     "name": "dyes",
+     "amount": 1,
+     "graphic": "0x0FA9"
+    },
+    {
+     "name": "moulding planes",
+     "amount": 1,
+     "graphic": "0x102C"
+    },
+    {
+     "name": "saw",
+     "amount": 1,
+     "graphic": "0x1034"
+    }
+   ]
+  },
+  {
+   "serial": "0x406D313E",
+   "name": "needs your decision",
+   "side": "east",
+   "place": "east 2337",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406CA3C4",
+   "name": "free",
+   "side": "east",
+   "place": "east 2338",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406B996B",
+   "name": "free",
+   "side": "east",
+   "place": "east 2338",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406C08EB",
+   "name": "free",
+   "side": "east",
+   "place": "east 2338",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406CBEE6",
+   "name": "free",
+   "side": "east",
+   "place": "east 2338",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406BC7BC",
+   "name": "heal potions 1",
+   "side": "east",
+   "place": "east 2339",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": [
+    {
+     "name": "Yellow Potion",
+     "amount": 33,
+     "graphic": "0x0F0C"
+    },
+    {
+     "name": "unknown yellow potion",
+     "amount": 14,
+     "graphic": "0x0F0C"
+    }
+   ]
+  },
+  {
+   "serial": "0x406BF924",
+   "name": "heal potions 2",
+   "side": "east",
+   "place": "east 2339",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406C4DA6",
+   "name": "cure potions 1",
+   "side": "east",
+   "place": "east 2339",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": [
+    {
+     "name": "Orange Potion",
+     "amount": 32,
+     "graphic": "0x0F07"
+    },
+    {
+     "name": "unknown orange potion",
+     "amount": 12,
+     "graphic": "0x0F07"
+    }
+   ]
+  },
+  {
+   "serial": "0x406C8AC2",
+   "name": "cure potions 2",
+   "side": "east",
+   "place": "east 2339",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406B75B0",
+   "name": "refresh potions 1",
+   "side": "east",
+   "place": "east 2340",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": [
+    {
+     "name": "Red Potion",
+     "amount": 39,
+     "graphic": "0x0F0B"
+    },
+    {
+     "name": "unknown red potion",
+     "amount": 5,
+     "graphic": "0x0F0B"
+    }
+   ]
+  },
+  {
+   "serial": "0x406BC073",
+   "name": "refresh potions 2",
+   "side": "east",
+   "place": "east 2340",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406B630F",
+   "name": "agility potions 1",
+   "side": "east",
+   "place": "east 2340",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": [
+    {
+     "name": "Blue Potion",
+     "amount": 33,
+     "graphic": "0x0F08"
+    }
+   ]
+  },
+  {
+   "serial": "0x406C1A08",
+   "name": "agility potions 2",
+   "side": "east",
+   "place": "east 2340",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406BD592",
+   "name": "strength potions 1",
+   "side": "east",
+   "place": "east 2341",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": [
+    {
+     "name": "White Potion",
+     "amount": 29,
+     "graphic": "0x0F09"
+    }
+   ]
+  },
+  {
+   "serial": "0x406D3AC9",
+   "name": "strength potions 2",
+   "side": "east",
+   "place": "east 2341",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406B68FC",
+   "name": "poison potions 1",
+   "side": "east",
+   "place": "east 2341",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": [
+    {
+     "name": "Green Potion",
+     "amount": 50,
+     "graphic": "0x0F0A"
+    },
+    {
+     "name": "unknown green potion",
+     "amount": 15,
+     "graphic": "0x0F0A"
+    }
+   ]
+  },
+  {
+   "serial": "0x406D171A",
+   "name": "poison potions 2",
+   "side": "east",
+   "place": "east 2341",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406B4455",
+   "name": "poison potions 3",
+   "side": "east",
+   "place": "east 2342",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406BCE69",
+   "name": "explosion potions 1",
+   "side": "east",
+   "place": "east 2342",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406BEF1A",
+   "name": "explosion potions 2",
+   "side": "east",
+   "place": "east 2342",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406D570B",
+   "name": "free",
+   "side": "east",
+   "place": "east 2342",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406F02E2",
+   "name": "free",
+   "side": "east",
+   "place": "east 2343",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406EA395",
+   "name": "free",
+   "side": "east",
+   "place": "east 2343",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406F0BF5",
+   "name": "free",
+   "side": "east",
+   "place": "east 2343",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E9CD6",
+   "name": "free",
+   "side": "east",
+   "place": "east 2343",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E6A20",
+   "name": "intake (east)",
+   "side": "east",
+   "place": "intake 938,2349",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406F31E5",
+   "name": "intake (east)",
+   "side": "east",
+   "place": "intake 938,2350",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x40A519B7",
+   "name": "smelting 1",
+   "side": "forge",
+   "place": "forge 2322",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": [
+    {
+     "name": "broadsword",
+     "amount": 8,
+     "graphic": "0x0F5E"
+    },
+    {
+     "name": "war hammer",
+     "amount": 7,
+     "graphic": "0x1439"
+    },
+    {
+     "name": "war mace",
+     "amount": 3,
+     "graphic": "0x1407"
+    },
+    {
+     "name": "katana",
+     "amount": 2,
+     "graphic": "0x13FF"
+    },
+    {
+     "name": "war mace of might",
+     "amount": 2,
+     "graphic": "0x1407"
+    },
+    {
+     "name": "accurate broadsword of might",
+     "amount": 1,
+     "graphic": "0x0F5E"
+    },
+    {
+     "name": "broadsword of might",
+     "amount": 1,
+     "graphic": "0x0F5E"
+    },
+    {
+     "name": "buckler of guarding",
+     "amount": 1,
+     "graphic": "0x1B73"
+    },
+    {
+     "name": "chainmail coif of defense",
+     "amount": 1,
+     "graphic": "0x13BB"
+    },
+    {
+     "name": "chainmail leggings of guarding",
+     "amount": 1,
+     "graphic": "0x13BE"
+    },
+    {
+     "name": "durable mace of ruin",
+     "amount": 1,
+     "graphic": "0x0F5C"
+    },
+    {
+     "name": "durable maul",
+     "amount": 1,
+     "graphic": "0x143B"
+    },
+    {
+     "name": "durable norse helm of defense",
+     "amount": 1,
+     "graphic": "0x140E"
+    },
+    {
+     "name": "durable ringmail leggings of defense",
+     "amount": 1,
+     "graphic": "0x13F0"
+    },
+    {
+     "name": "durable, accurate bardiche",
+     "amount": 1,
+     "graphic": "0x0F4D"
+    },
+    {
+     "name": "durable, accurate katana of might",
+     "amount": 1,
+     "graphic": "0x13FF"
+    },
+    {
+     "name": "durable, accurate viking sword",
+     "amount": 1,
+     "graphic": "0x13B9"
+    },
+    {
+     "name": "eminently accurate kryss",
+     "amount": 1,
+     "graphic": "0x1401"
+    },
+    {
+     "name": "female plate of defense",
+     "amount": 1,
+     "graphic": "0x1C04"
+    },
+    {
+     "name": "fortified, accurate mace",
+     "amount": 1,
+     "graphic": "0x0F5C"
+    },
+    {
+     "name": "fortified, eminently accurate two handed axe",
+     "amount": 1,
+     "graphic": "0x1443"
+    },
+    {
+     "name": "helmet of defense",
+     "amount": 1,
+     "graphic": "0x140A"
+    },
+    {
+     "name": "indestructible metal kite shield",
+     "amount": 1,
+     "graphic": "0x1B74"
+    },
+    {
+     "name": "large battle axe",
+     "amount": 1,
+     "graphic": "0x13FB"
+    },
+    {
+     "name": "massive double axe of might",
+     "amount": 1,
+     "graphic": "0x0F4B"
+    },
+    {
+     "name": "massive war hammer of mage's bane and might (15 charges)",
+     "amount": 1,
+     "graphic": "0x1439"
+    },
+    {
+     "name": "massive, accurate war hammer of ruin",
+     "amount": 1,
+     "graphic": "0x1439"
+    },
+    {
+     "name": "norse helm of defense",
+     "amount": 1,
+     "graphic": "0x140E"
+    },
+    {
+     "name": "norse helm of guarding",
+     "amount": 1,
+     "graphic": "0x140E"
+    },
+    {
+     "name": "plate helm of guarding",
+     "amount": 1,
+     "graphic": "0x1412"
+    },
+    {
+     "name": "platemail gorget of defense",
+     "amount": 1,
+     "graphic": "0x1413"
+    },
+    {
+     "name": "platemail legs of guarding",
+     "amount": 1,
+     "graphic": "0x1411"
+    },
+    {
+     "name": "ringmail gloves of defense",
+     "amount": 1,
+     "graphic": "0x13EB"
+    },
+    {
+     "name": "ringmail leggings of defense and night eyes (11 charges)",
+     "amount": 1,
+     "graphic": "0x13F0"
+    },
+    {
+     "name": "short spear of clumsiness (30 charges)",
+     "amount": 1,
+     "graphic": "0x1403"
+    },
+    {
+     "name": "silver war fork of feeblemindedness (27 charges)",
+     "amount": 1,
+     "graphic": "0x1405"
+    },
+    {
+     "name": "substantial bardiche of weakness and ruin (31 charges)",
+     "amount": 1,
+     "graphic": "0x0F4D"
+    },
+    {
+     "name": "substantial close helmet of guarding",
+     "amount": 1,
+     "graphic": "0x1408"
+    },
+    {
+     "name": "substantial dagger",
+     "amount": 1,
+     "graphic": "0x0F52"
+    },
+    {
+     "name": "supremely accurate longsword",
+     "amount": 1,
+     "graphic": "0x0F61"
+    },
+    {
+     "name": "surpassingly accurate axe",
+     "amount": 1,
+     "graphic": "0x0F49"
+    },
+    {
+     "name": "surpassingly accurate battle axe of feeblemindedness and might (40 charges)",
+     "amount": 1,
+     "graphic": "0x0F47"
+    },
+    {
+     "name": "tear kite shield of guarding",
+     "amount": 1,
+     "graphic": "0x1B79"
+    }
+   ]
+  },
+  {
+   "serial": "0x40C9CAF9",
+   "name": "smelting 2",
+   "side": "forge",
+   "place": "forge 2322",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406195D4",
+   "name": "smelting 3",
+   "side": "forge",
+   "place": "forge 2322",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x40789150",
+   "name": "smelting 4",
+   "side": "forge",
+   "place": "forge 2322",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": [
+    {
+     "name": "deed",
+     "amount": 1,
+     "graphic": "0x14F0"
+    }
+   ]
+  },
+  {
+   "serial": "0x405F351C",
+   "name": "ingots",
+   "side": "forge",
+   "place": "forge 2326",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x4045267F",
+   "name": "boards & logs",
+   "side": "forge",
+   "place": "forge 2326",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x40790A06",
+   "name": "cloth & leather",
+   "side": "forge",
+   "place": "forge 2326",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": [
+    {
+     "name": "cut up leather",
+     "amount": 417,
+     "graphic": "0x1081"
+    }
+   ]
+  },
+  {
+   "serial": "0x404485F8",
+   "name": "tools",
+   "side": "forge",
+   "place": "forge 2326",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x40444EE4",
+   "name": "cooking",
+   "side": "forge",
+   "place": "forge 2327",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x405685FA",
+   "name": "ingots 2",
+   "side": "forge",
+   "place": "forge 2327",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x403A90F5",
+   "name": "boards & logs 2",
+   "side": "forge",
+   "place": "forge 2327",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x404804BD",
+   "name": "spare backpacks",
+   "side": "forge",
+   "place": "forge 2327",
+   "row": "floor",
+   "secure": false,
+   "bags": [
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    }
+   ],
+   "loose": []
+  },
+  {
+   "serial": "0x406E70A6",
+   "name": "free",
+   "side": "vault",
+   "place": "my vault 938",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406F2466",
+   "name": "free",
+   "side": "vault",
+   "place": "my vault 938",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406ED0AA",
+   "name": "free",
+   "side": "vault",
+   "place": "my vault 938",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E85EC",
+   "name": "free",
+   "side": "vault",
+   "place": "my vault 938",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E4F2F",
+   "name": "free",
+   "side": "vault",
+   "place": "my vault 939",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406EEA7B",
+   "name": "free",
+   "side": "vault",
+   "place": "my vault 939",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E2570",
+   "name": "free",
+   "side": "vault",
+   "place": "my vault 939",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E7AA0",
+   "name": "free",
+   "side": "vault",
+   "place": "my vault 939",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E3BFC",
+   "name": "reagents",
+   "side": "vault",
+   "place": "my vault 940",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E5DAB",
+   "name": "reagents",
+   "side": "vault",
+   "place": "my vault 940",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406EC384",
+   "name": "scrolls",
+   "side": "vault",
+   "place": "my vault 940",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406EDB9B",
+   "name": "free",
+   "side": "vault",
+   "place": "my vault 940",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E34E8",
+   "name": "gold",
+   "side": "vault",
+   "place": "my vault 941",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406DD7D0",
+   "name": "gold",
+   "side": "vault",
+   "place": "my vault 941",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E2D98",
+   "name": "gold",
+   "side": "vault",
+   "place": "my vault 941",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406EF58B",
+   "name": "gold",
+   "side": "vault",
+   "place": "my vault 941",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406ECA50",
+   "name": "valuables overflow",
+   "side": "vault",
+   "place": "my vault 942",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406EE45B",
+   "name": "valuables overflow",
+   "side": "vault",
+   "place": "my vault 942",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406DF442",
+   "name": "house deeds",
+   "side": "vault",
+   "place": "my vault 942",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406F29C0",
    "name": "gems",
-   "col": 5,
-   "row": "bottom",
+   "side": "vault",
+   "place": "my vault 942",
+   "row": "floor",
+   "secure": false,
    "bags": [
     {
      "name": "gems",
@@ -1372,469 +2961,7 @@
     }
    ],
    "loose": []
-  },
-  {
-   "name": "GM armour sets",
-   "col": 6,
-   "row": "top",
-   "bags": [
-    {
-     "name": "GM set 1",
-     "marker": null,
-     "items": [
-      {
-       "name": "exceptional chainmail leggings crafted by Lord Bruche",
-       "amount": 1,
-       "graphic": "0x13BE"
-      },
-      {
-       "name": "exceptional chainmail tunic crafted by Lord Bruche",
-       "amount": 1,
-       "graphic": "0x13BF"
-      },
-      {
-       "name": "exceptional close helmet crafted by Lord Bruche",
-       "amount": 1,
-       "graphic": "0x1408"
-      },
-      {
-       "name": "exceptional platemail gorget crafted by Lord Bruche",
-       "amount": 1,
-       "graphic": "0x1413"
-      },
-      {
-       "name": "exceptional ringmail gloves crafted by Lord Bruche",
-       "amount": 1,
-       "graphic": "0x13EB"
-      },
-      {
-       "name": "exceptional ringmail sleeves crafted by Lord Bruche",
-       "amount": 1,
-       "graphic": "0x13EE"
-      }
-     ]
-    },
-    {
-     "name": "GM set 2",
-     "marker": null,
-     "items": [
-      {
-       "name": "exceptional chainmail leggings crafted by Lady Brigid James",
-       "amount": 1,
-       "graphic": "0x13BE"
-      },
-      {
-       "name": "exceptional chainmail tunic crafted by Lady Brigid James",
-       "amount": 1,
-       "graphic": "0x13BF"
-      },
-      {
-       "name": "exceptional norse helm crafted by Lady Brigid James",
-       "amount": 1,
-       "graphic": "0x140E"
-      },
-      {
-       "name": "exceptional ringmail gloves crafted by Lady Brigid James",
-       "amount": 1,
-       "graphic": "0x13EB"
-      },
-      {
-       "name": "exceptional ringmail sleeves crafted by Lady Brigid James",
-       "amount": 1,
-       "graphic": "0x13EE"
-      },
-      {
-       "name": "platemail gorget",
-       "amount": 1,
-       "graphic": "0x1413"
-      }
-     ]
-    },
-    {
-     "name": "GM set 3",
-     "marker": null,
-     "items": [
-      {
-       "name": "exceptional chainmail leggings crafted by Lady Brigid James",
-       "amount": 1,
-       "graphic": "0x13BE"
-      },
-      {
-       "name": "exceptional chainmail tunic crafted by Lady Brigid James",
-       "amount": 1,
-       "graphic": "0x13BF"
-      },
-      {
-       "name": "exceptional norse helm crafted by Lady Brigid James",
-       "amount": 1,
-       "graphic": "0x140E"
-      },
-      {
-       "name": "exceptional ringmail gloves crafted by Lady Brigid James",
-       "amount": 1,
-       "graphic": "0x13EB"
-      },
-      {
-       "name": "exceptional ringmail sleeves crafted by Lady Brigid James",
-       "amount": 1,
-       "graphic": "0x13EE"
-      },
-      {
-       "name": "platemail gorget",
-       "amount": 1,
-       "graphic": "0x1413"
-      }
-     ]
-    }
-   ],
-   "loose": []
-  },
-  {
-   "name": "needs your decision",
-   "col": 6,
-   "row": "2nd from top",
-   "bags": [],
-   "loose": []
-  },
-  {
-   "name": "supplies & ID wands",
-   "col": 6,
-   "row": "3rd from top",
-   "bags": [
-    {
-     "name": "ID wands & staves (spares)",
-     "marker": null,
-     "items": [
-      {
-       "name": "gnarled staff of identification (93 charges)",
-       "amount": 1,
-       "graphic": "0x13F8"
-      },
-      {
-       "name": "wand of identification (103 charges)",
-       "amount": 1,
-       "graphic": "0x0DF5"
-      },
-      {
-       "name": "wand of identification (130 charges)",
-       "amount": 1,
-       "graphic": "0x0DF5"
-      },
-      {
-       "name": "wand of identification (156 charges)",
-       "amount": 1,
-       "graphic": "0x0DF5"
-      },
-      {
-       "name": "wand of identification (26 charges)",
-       "amount": 1,
-       "graphic": "0x0DF4"
-      },
-      {
-       "name": "wand of identification (49 charges)",
-       "amount": 1,
-       "graphic": "0x0DF4"
-      },
-      {
-       "name": "wand of identification (5 charges)",
-       "amount": 1,
-       "graphic": "0x0DF3"
-      }
-     ]
-    }
-   ],
-   "loose": [
-    {
-     "name": "lockpicks",
-     "amount": 1954,
-     "graphic": "0x14FC"
-    },
-    {
-     "name": "arrow",
-     "amount": 1250,
-     "graphic": "0x0F3F"
-    },
-    {
-     "name": "cut up leather",
-     "amount": 703,
-     "graphic": "0x1081"
-    },
-    {
-     "name": "cut cloth",
-     "amount": 472,
-     "graphic": "0x1766"
-    },
-    {
-     "name": "crossbow bolt",
-     "amount": 71,
-     "graphic": "0x1BFB"
-    },
-    {
-     "name": "feathers",
-     "amount": 36,
-     "graphic": "0x1BD1"
-    },
-    {
-     "name": "empty bottles",
-     "amount": 24,
-     "graphic": "0x0F0E"
-    },
-    {
-     "name": "blank scrolls",
-     "amount": 5,
-     "graphic": "0x0EF3"
-    },
-    {
-     "name": "dyeing tub",
-     "amount": 1,
-     "graphic": "0x0FAB"
-    },
-    {
-     "name": "dyes",
-     "amount": 1,
-     "graphic": "0x0FA9"
-    },
-    {
-     "name": "moulding planes",
-     "amount": 1,
-     "graphic": "0x102C"
-    },
-    {
-     "name": "saw",
-     "amount": 1,
-     "graphic": "0x1034"
-    }
-   ]
-  },
-  {
-   "name": "plain gear",
-   "col": 6,
-   "row": "bottom",
-   "bags": [
-    {
-     "name": "chain & ring",
-     "marker": {
-      "name": "chainmail coif of defense",
-      "amount": 1,
-      "graphic": "0x13BB"
-     },
-     "items": [
-      {
-       "name": "ringmail leggings of defense",
-       "amount": 3,
-       "graphic": "0x13F0"
-      },
-      {
-       "name": "chainmail tunic of defense",
-       "amount": 2,
-       "graphic": "0x13BF"
-      },
-      {
-       "name": "ringmail gloves of defense",
-       "amount": 2,
-       "graphic": "0x13EB"
-      },
-      {
-       "name": "chainmail coif of defense",
-       "amount": 1,
-       "graphic": "0x13BB"
-      },
-      {
-       "name": "chainmail leggings of defense",
-       "amount": 1,
-       "graphic": "0x13BE"
-      },
-      {
-       "name": "durable chainmail leggings of defense",
-       "amount": 1,
-       "graphic": "0x13BE"
-      },
-      {
-       "name": "ringmail sleeves of defense",
-       "amount": 1,
-       "graphic": "0x13EE"
-      },
-      {
-       "name": "ringmail tunic of defense",
-       "amount": 1,
-       "graphic": "0x13EC"
-      }
-     ]
-    },
-    {
-     "name": "plate",
-     "marker": {
-      "name": "orc helm of defense",
-      "amount": 1,
-      "graphic": "0x1F0B"
-     },
-     "items": [
-      {
-       "name": "durable female plate of defense",
-       "amount": 2,
-       "graphic": "0x1C04"
-      },
-      {
-       "name": "durable helmet of defense",
-       "amount": 1,
-       "graphic": "0x140A"
-      },
-      {
-       "name": "durable plate helm of defense",
-       "amount": 1,
-       "graphic": "0x1412"
-      },
-      {
-       "name": "durable platemail gloves of defense",
-       "amount": 1,
-       "graphic": "0x1414"
-      },
-      {
-       "name": "durable platemail gorget of defense",
-       "amount": 1,
-       "graphic": "0x1413"
-      },
-      {
-       "name": "fortified norse helm of defense",
-       "amount": 1,
-       "graphic": "0x140E"
-      },
-      {
-       "name": "massive platemail arms of defense",
-       "amount": 1,
-       "graphic": "0x1410"
-      },
-      {
-       "name": "orc helm of defense",
-       "amount": 1,
-       "graphic": "0x1F0B"
-      },
-      {
-       "name": "platemail arms of defense",
-       "amount": 1,
-       "graphic": "0x1410"
-      },
-      {
-       "name": "platemail gloves of defense",
-       "amount": 1,
-       "graphic": "0x1414"
-      },
-      {
-       "name": "platemail legs of defense",
-       "amount": 1,
-       "graphic": "0x1411"
-      },
-      {
-       "name": "substantial platemail gorget of defense",
-       "amount": 1,
-       "graphic": "0x1413"
-      },
-      {
-       "name": "substantial platemail legs of defense",
-       "amount": 1,
-       "graphic": "0x1411"
-      }
-     ]
-    }
-   ],
-   "loose": []
   }
  ],
- "crates": [
-  {
-   "name": "new backpacks",
-   "items": [
-    {
-     "name": "backpack",
-     "amount": 67,
-     "graphic": "0x0E75"
-    }
-   ]
-  },
-  {
-   "name": "potions: agility",
-   "items": [
-    {
-     "name": "Blue Potion",
-     "amount": 33,
-     "graphic": "0x0F08"
-    }
-   ]
-  },
-  {
-   "name": "potions: cure",
-   "items": [
-    {
-     "name": "Orange Potion",
-     "amount": 32,
-     "graphic": "0x0F07"
-    },
-    {
-     "name": "unknown orange potion",
-     "amount": 12,
-     "graphic": "0x0F07"
-    }
-   ]
-  },
-  {
-   "name": "potions: explosion",
-   "items": []
-  },
-  {
-   "name": "potions: heal",
-   "items": [
-    {
-     "name": "Yellow Potion",
-     "amount": 33,
-     "graphic": "0x0F0C"
-    },
-    {
-     "name": "unknown yellow potion",
-     "amount": 14,
-     "graphic": "0x0F0C"
-    }
-   ]
-  },
-  {
-   "name": "potions: poison",
-   "items": [
-    {
-     "name": "Green Potion",
-     "amount": 50,
-     "graphic": "0x0F0A"
-    },
-    {
-     "name": "unknown green potion",
-     "amount": 15,
-     "graphic": "0x0F0A"
-    }
-   ]
-  },
-  {
-   "name": "potions: refresh",
-   "items": [
-    {
-     "name": "Red Potion",
-     "amount": 39,
-     "graphic": "0x0F0B"
-    },
-    {
-     "name": "unknown red potion",
-     "amount": 5,
-     "graphic": "0x0F0B"
-    }
-   ]
-  },
-  {
-   "name": "potions: strength",
-   "items": [
-    {
-     "name": "White Potion",
-     "amount": 29,
-     "graphic": "0x0F09"
-    }
-   ]
-  }
- ],
- "gem_prices_from": "2026-11-14 22:51:40"
+ "castle_updated": "2026-11-19T23:21:46-0800"
 }
