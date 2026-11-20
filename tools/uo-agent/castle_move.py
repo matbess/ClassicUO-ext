@@ -393,9 +393,18 @@ def unload():
     try:
         chest_of_bag = None
         for p in list(taken):
-            here = call('GET', '/item', serial=p['serial'])
-            inside = [i['serial'] for i in here.get('insideOf', [])]
             pack = status()['backpack']['serial']
+            try:
+                here = call('GET', '/item', serial=p['serial'])
+                inside = [i['serial'] for i in here.get('insideOf', [])]
+            except uo.BridgeError as e:
+                if e.code != 404:
+                    raise
+                # his client lost it (a wand Razor opened as it landed, 20:56): a look in the pack brings it back
+                call('POST', '/open', serial=pack)
+                call('POST', '/close', serial=pack)
+                mine = {i['serial'] for i in call('GET', '/contents', serial=pack)['items']}
+                inside = [pack] if p['serial'] in mine else []
             if pack not in inside:
                 say(f"{p['serial']} {p['type']} isn't in his pack any more: skipped")
                 taken.remove(p)
