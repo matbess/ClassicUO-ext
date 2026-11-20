@@ -22,6 +22,13 @@ circle's bag at the spell's place; potions go into their crate; empty bottles an
 gold goes to needs your decision and iron ore to smelting (both left in loot bags by accident); hides are cut into
 leather.
 Existing piles are found by looking in the containers. Containers are opened first so the client knows them.
+In the castle (site.json next to SPEC, from look.py --side): the castle's chests for that side, each picked when
+it's needed: the first of the kind's chests (castle_site.targets) with room for 125 items, and for a secure 395
+stones; everything is carried (look.py took it out of the intake chests). Its own homes: gold to the user's gold
+chests behind their table, cut leather and cloth to "cloth & leather" and boards and logs to "boards & logs" by the
+forge (logs stay logs when he has no saw), the scissors borrowed from the tools chest, emptied loot bags to the side's
+spare backpacks chest, or the trash once that holds 125 (the user, 2026-11-18). The user's table, if a walk opened
+it, is closed and locked down at the end whatever happens.
 New bags get a label ("bag: KIND (CHEST chest)"), and every chest opened is recorded in layout.json at the end.
 Waits while someone is in the room and out world saves; stops at the first problem and says where.
 """
@@ -37,6 +44,8 @@ for module in ('uo', 'layout'):
     spec = importlib.util.spec_from_file_location(module, os.path.join(here, module + '.py'))
     globals()[module] = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(globals()[module])
+sys.path.insert(0, here)
+import castle_site  # noqa: E402
 
 SCISSORS_GRAPHICS = ('0x0F9E', '0x0F9F')  # any pair in the sorter's backpack, else the spare pair in supplies
 SPARES = '0x4049D6B8'
@@ -71,6 +80,9 @@ ME = uo.call(info, 'GET', '/status')  # Johnny, or Clem when Johnny is offline (
 BACKPACK, WHO = ME['backpack']['serial'], ME['character'].split()[-1]
 names = uo.load_names()
 labels = uo.load_labels
+SIDE = None    # the castle side this batch sorts into ('east', 'west'); None in the tower
+ROOM = None    # castle_site.Room: what's left in each castle chest
+LEATHER_CLOTH = {'0x1067', '0x1068', '0x1081', '0x1082', '0x1766', '0x1767'}  # to "cloth & leather" in the castle
 
 
 def call(method, path, **params):
@@ -126,8 +138,28 @@ def landed_in(serial, to):
     return False
 
 
-def chest(part):
-    return uo.resolve('chest: ' + part)
+def chest(part, item=None):
+    """The tower's chest by its label; in the castle, a serial as it is, or the first chest for that kind with room
+    for the item."""
+    if SIDE is None:
+        return uo.resolve('chest: ' + part)
+    if part.startswith('0x'):
+        return part
+    stones = castle_site.stones(item) if item else 0
+    c = ROOM.pick(part, SIDE, 1, stones)
+    if c is None:
+        raise uo.BridgeError(0, f'no room left in any castle chest for "{part}" (TELL THE USER)')
+    return c
+
+
+def went_in(container, item=None):
+    """Keep the castle's room count up to date after a move into a chest."""
+    if SIDE is None or container not in castle_site.PLAN:
+        return
+    if castle_site.is_secure(container):
+        ROOM.read(container)
+    else:
+        ROOM.added(container, 1, castle_site.stones(item) if item else 0)
 
 
 CONTENTS, AREA, OCCUPIED = {}, {}, {}
@@ -165,14 +197,15 @@ def learn(serial):
 def empty_bags(n):
     """n empty bags from the backpacks crate. A bag holding anything goes to needs your decision."""
     bags = []
-    for item in learn(uo.resolve('new backpacks')):
+    crates = castle_site.targets('new backpacks', SIDE) if SIDE else [uo.resolve('new backpacks')]
+    for item in [i for c in crates for i in learn(c)]:
         if len(bags) == n:
             break
         if item['type'] not in ('backpack', 'bag', 'pouch') or item['serial'] in TAKEN:
             continue
         if learn(item['serial']):
             say(f"{item['serial']} in the backpacks crate isn't empty; moving it to needs your decision")
-            move(item['serial'], chest('needs your decision'))
+            move(item['serial'], chest('needs your decision', item))
             TAKEN.add(item['serial'])
             continue
         bags.append(item)
@@ -186,11 +219,11 @@ def room_in(name):
     """Where trash or smelting goes: trash into the trash barrel, smelting into the first of the numbered smelting
     crates by the door with room (the user's rules, 2026-11-01: no smelting chest, all smelting in one place)."""
     if name == 'trash':
-        barrel = uo.resolve('trash barrel')
+        barrel = castle_site.BARREL if SIDE else uo.resolve('trash barrel')
         learn(barrel)
         return barrel
     crates = sorted((text, serial) for serial, text in labels().items() if re.match(rf'{name} \d', text))
-    for c in [serial for _, serial in crates]:
+    for c in castle_site.targets(name, SIDE) if SIDE else [serial for _, serial in crates]:
         if c not in FULL and len(learn(c)) < LIMIT:
             return c
     sys.exit(f'every {name} container is full')
@@ -242,13 +275,13 @@ def cut_up(serials, inv):
             'left in their loot bags: ' + ', '.join(names.get(s, inv[s]['type']) for s in pending))
         return
     if scissors is None:
-        c = chest('supplies')
+        c = chest('tools' if SIDE else 'supplies')
         CONTENTS.pop(c, None)
         spare = next((i for i in learn(c) if i['graphic'] in SCISSORS_GRAPHICS), None)
         if spare:
             move(spare['serial'], BACKPACK)
-            scissors, borrowed = spare['serial'], (spare['x'], spare['y'])
-            say(f'borrowed the spare scissors from the supplies chest')
+            scissors, borrowed = spare['serial'], (c, spare['x'], spare['y'])
+            say(f"borrowed the spare scissors from {labels().get(c, c)}")
     if scissors is None:  # 2026-11-08: the user had taken them; the cutting is left in the loot bags for later
         say(f'NO SCISSORS in {WHO}\'s backpack or the supplies chest: {len(pending)} items to cut are left in their '
             'loot bags: ' + ', '.join(names.get(s, inv[s]['type']) for s in pending))
@@ -260,14 +293,14 @@ def cut_up(serials, inv):
             call('POST', '/use', serial=scissors, target=serial)
             say(f"cut {names.get(serial, inv[serial]['type'])}")
         pending = pending[15:]
-        c = chest('supplies')
-        learn(c)
         for item in call('GET', '/contents', serial=BACKPACK)['items']:
             if item['serial'] not in before and item['serial'] != scissors:
-                say(f"{item['type']} x{item.get('amount', 1)} -> supplies ({stack(item, c)})")
+                c = chest('cloth & leather' if SIDE else 'supplies', item)
+                learn(c)
+                say(f"{item['type']} x{item.get('amount', 1)} -> {labels().get(c, c)} ({stack(item, c)})")
     if borrowed:
-        move(scissors, chest('supplies'), *borrowed)
-        say('the spare scissors back in the supplies chest')
+        move(scissors, *borrowed)
+        say('the spare scissors back where they came from')
 
 
 def menu_answer(answer, title):
@@ -298,6 +331,12 @@ def make_boards(serials, inv):
         return
     CONTENTS.pop(BACKPACK, None)
     saw = next((i['serial'] for i in learn(BACKPACK) if i['graphic'] in SAWS), None)
+    if saw is None and SIDE:
+        for serial in serials:  # the castle has a chest for both: the logs go as they are
+            c = chest('boards & logs', inv[serial])
+            learn(c)
+            say(f"logs x{inv[serial].get('amount', 1)} -> {labels().get(c, c)} ({stack(inv[serial], c)})")
+        return
     if saw is None:
         say(f"NO SAW in {WHO}'s backpack: {len(serials)} piles of logs are left in their loot bags")
         return
@@ -318,11 +357,11 @@ def make_boards(serials, inv):
         else:
             raise uo.BridgeError(0, f'logs {serial} are still in the backpack after 5 tries')
         say(f'{amount} logs -> boards')
-    c = chest('supplies')
-    learn(c)
     for item in call('GET', '/contents', serial=BACKPACK)['items']:
         if item['graphic'] in BOARDS:
-            say(f"boards x{item.get('amount', 1)} -> supplies ({stack(item, c)})")
+            c = chest('boards & logs' if SIDE else 'supplies', item)
+            learn(c)
+            say(f"boards x{item.get('amount', 1)} -> {labels().get(c, c)} ({stack(item, c)})")
 
 
 GEM_BAG = {}
@@ -367,6 +406,23 @@ def gem_marker():
     say(f"{pile['type']}: one under the gem bag as its marker" if result['moved'] else 'the gem marker did not move')
 
 
+def plan_side(serial):
+    return castle_site.PLAN.get(serial, {}).get('side')
+
+
+def scroll_bag(circle):
+    """The bag for a circle's scrolls: the tower's, or in the castle the one in the side's scrolls chest (circles 1-4
+    and 5-8 have a chest each), else the other wall's. None if neither has one."""
+    if not SIDE:
+        learn(chest('scrolls'))
+        return SCROLL_BAGS[circle]
+    for c in castle_site.targets('scrolls, circles 1-4' if circle <= 4 else 'scrolls, circles 5-8', SIDE):
+        bag = castle_site.bag_in(learn(c), f'circle {circle} scrolls', labels())
+        if bag:
+            return bag
+    return None
+
+
 def set_piece(item):
     return SET_PIECES.get(' '.join(item['type'].split()))
 
@@ -407,6 +463,7 @@ def merge_onto(container, item):
 def put(item, container, x=None, y=None):
     move(item['serial'], container, x, y)
     CONTENTS[container].append(dict(item, x=x if x is not None else 0, y=y if y is not None else 0))
+    went_in(container, item)
 
 
 def stack(item, container, slot=None):
@@ -414,6 +471,8 @@ def stack(item, container, slot=None):
     target = pile_in(container, item)
     if target:
         move(item['serial'], target)
+        if SIDE and castle_site.is_secure(container):
+            ROOM.read(container)
         return 'merged'
     if slot:
         vx, vy = item['art']['visible'][:2]
@@ -427,7 +486,21 @@ def stack(item, container, slot=None):
 
 
 def main():
-    plan = json.load(open(sys.argv[1]))
+    global SIDE, ROOM
+    SIDE = castle_site.site_of(os.path.dirname(os.path.abspath(sys.argv[1]))).get('side')
+    if SIDE is None:
+        return sort(json.load(open(sys.argv[1])))
+    mover = castle_site.install(uo, info, say)
+    if not mover:
+        sys.exit('this batch is for the castle, and he is not inside it')
+    ROOM = castle_site.Room(uo, info)
+    try:
+        sort(json.load(open(sys.argv[1])))
+    finally:
+        mover.close_up()
+
+
+def sort(plan):
     loot = plan['loot']
     for part in plan.get('learn_first', []):  # chests whose bags get things put into them
         learn(chest(part))
@@ -458,7 +531,8 @@ def main():
             if mx is None:
                 mx, my = free_spot(c, m['art'], ys=range(AREA[c][1], AREA[c][1] + 4), xs=range(bx + bvx + bvw + 3 - mvx, AREA[c][2]))
             put(m, c, mx, my)
-            uo.save_label(bag['serial'], f"bag: {kind} ({labels()[c][7:].split(' (')[0]} chest)")
+            uo.save_label(bag['serial'], castle_site.new_bag_label(kind, c, labels()) if SIDE else
+                          f"bag: {kind} ({labels()[c][7:].split(' (')[0]} chest)")
             say(f"new bag '{kind}' in {labels().get(c)}; marker {names.get(marker, m['type'])}")
 
     # ---- gear into existing bags and chests ----
@@ -474,7 +548,7 @@ def main():
         put(inv[serial], bag, x, y)
         say(f"{names.get(serial, inv[serial]['type'])} -> {labels().get(bag, bag)}")
     for serial, part in plan.get('place_in', []):
-        c = chest(part)
+        c = chest(part, inv[serial])
         learn(c)
         target = merge_onto(c, inv[serial])
         if target:
@@ -511,7 +585,8 @@ def main():
             bx, by = free_spot(c, bag['art'])
             put(bag, c, bx, by)
             CONTENTS[bag['serial']], AREA[bag['serial']], OCCUPIED[bag['serial']] = [], [44, 65, 186, 159], []
-            uo.save_label(bag['serial'], f'bag: GM set {len(sets) + 1} (GM armour sets chest)')
+            uo.save_label(bag['serial'], f'bag: GM set {len(sets) + 1} (GM armour sets chest)' if not SIDE else
+                          castle_site.new_bag_label(f'GM set {len(sets) + 1}', c, labels()))
             say(f'new set bag {len(sets) + 1} in the GM chest')
             sets.append([bag, set()])
         replaced = []
@@ -531,7 +606,10 @@ def main():
             deliver(replaced, 'smelting', inv)
 
     if plan.get('spares'):
-        learn(chest('supplies'))
+        for c in castle_site.targets('supplies', SIDE) if SIDE else [chest('supplies')]:
+            learn(c)
+            if any(i['serial'] == SPARES for i in CONTENTS[c]):
+                break
         for serial in plan['spares']:
             move(serial, SPARES)
             say(f'{names.get(serial)} -> ID spares pouch')
@@ -560,15 +638,18 @@ def main():
         g, t = item['graphic'], item['type'].lower()
         if 0x1F2D <= int(g, 16) <= 0x1F6C:
             circle = (int(g, 16) - 0x1F2D) // 8 + 1
-            bag = SCROLL_BAGS[circle]
-            learn(chest('scrolls'))
+            bag = scroll_bag(circle)
+            if bag is None:
+                say(f"NO BAG for circle {circle} scrolls in the castle: {item['type']} x{item.get('amount', 1)} stays "
+                    'in the loot (TELL THE USER)')
+                continue
             learn(bag)
             index = (int(g, 16) - 0x1F2D) % 8
             x1, y1 = AREA[bag][:2]
             how = stack(item, bag, slot=(x1 + 4 + (index % 4) * 28, y1 + 4 + (index // 4) * 24))
             say(f"{item['type']} x{item.get('amount', 1)} -> circle {circle} ({how})")
         elif g in REAGENTS:
-            c = chest('reagents')
+            c = chest('reagents', item)
             learn(c)
             i = REAGENTS.index(g)
             how = stack(item, c, slot=(30 + (i % 4) * 30, 108 + (i // 4) * 26))
@@ -579,32 +660,36 @@ def main():
             x1, y1 = AREA[bag][:2]
             how = stack(item, bag, slot=(x1 + 6 + (i % 5) * 26, y1 + 6 + (i // 5) * 30))
             say(f"{item['type']} x{item.get('amount', 1)} -> gem bag ({how})")
-        elif g in GOLD:  # gold left in the loot by accident: the user wants to see it (2026-11-01)
-            c = chest('needs your decision')
+        elif g in GOLD:  # gold left in the loot by accident: the user wants to see it (2026-11-01); in the castle, all
+            c = chest('gold' if SIDE else 'needs your decision', item)  # of it behind the user's table
             learn(c)
-            say(f"gold x{item.get('amount', 1)} -> needs your decision ({stack(item, c)})")
+            say(f"gold x{item.get('amount', 1)} -> {labels().get(c, c)} ({stack(item, c)})")
         elif g in HIDES:
             hides.append(serial)
         elif g in LOGS:
             logs.append(serial)
         elif g in BOARDS:
-            c = chest('supplies')
+            c = chest('boards & logs' if SIDE else 'supplies', item)
             learn(c)
-            say(f"boards x{item.get('amount', 1)} -> supplies ({stack(item, c)})")
+            say(f"boards x{item.get('amount', 1)} -> {labels().get(c, c)} ({stack(item, c)})")
         elif g in ORE:
             c = room_in('smelting')
             say(f"iron ore x{item.get('amount', 1)} -> {labels().get(c)} ({stack(item, c)})")
         elif g in SUPPLIES:
-            c = chest('supplies')
+            c = chest('cloth & leather' if SIDE and g in LEATHER_CLOTH else 'supplies', item)
             learn(c)
-            say(f"{item['type']} x{item.get('amount', 1)} -> supplies ({stack(item, c)})")
+            say(f"{item['type']} x{item.get('amount', 1)} -> {labels().get(c, c)} ({stack(item, c)})")
         elif t.endswith('potion') and t.split(' potion')[0].split()[-1] in POTIONS:
             kind = POTIONS[t.split(' potion')[0].split()[-1]]
-            target = uo.resolve(f'potions: {kind}') if kind else room_in('trash')  # Night Sight: the barrel
+            if kind and SIDE:
+                target = chest(f'{kind} potions', item)
+            else:
+                target = uo.resolve(f'potions: {kind}') if kind else room_in('trash')  # Night Sight: the barrel
             if kind:
                 learn(target)
                 x1, y1, x2, y2 = AREA[target]
                 move(serial, target, min(x1 + 36, x2 - item['art']['w']), min(y1 + 10, y2 - item['art']['h']))
+                went_in(target, item)
             else:
                 move(serial, target)
             say(f"{item['type']} -> {kind or 'trash'}")
@@ -625,12 +710,20 @@ def main():
         if left:
             say(f'{l} still holds: ' + ', '.join(i['type'] for i in left))
             continue
+        if SIDE:  # the side's spare backpacks chest; once that holds 125, the trash (the user, 2026-11-18)
+            c = ROOM.pick('new backpacks', SIDE)
+            c = c if c and plan_side(c) == SIDE else room_in('trash')
+            learn(c)
+            move(l, c)
+            went_in(c)
+            say(f'{l} empty -> {labels().get(c, c)}')
+            continue
         move(l, uo.resolve('new backpacks'))
         say(f'{l} empty -> backpacks crate')
 
     # ---- what the chests hold now, for layout.json (read from the client; nothing is sent) ----
     for c in CONTENTS:
-        if labels().get(c, '').startswith('chest: '):
+        if labels().get(c, '').startswith(('chest: ', 'castle: ')):
             layout.record(c, uo.call(info, 'GET', '/contents', serial=c)['items'])
     say('BATCH DONE')
 

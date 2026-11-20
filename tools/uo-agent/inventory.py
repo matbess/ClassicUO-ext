@@ -4,7 +4,12 @@ marker under each), what lies loose in it and what's in the bags, plus the potio
 Not the smelting crates or the trash barrel (the user). Opens every container, as the client's copy can be stale or
 empty after a restart; --known reads only what the client already knows and sends nothing.
 
-  inventory.py [--known] [--out PATH]
+  inventory.py [--known] [--all] [--out PATH]
+
+In the castle (he's inside it), the castle's chests instead (castle_site.py: east and west storage, the forge, the
+user's vault behind their table and the intake chests; never the friend's): every one with something in it at the
+last count (layout.json), and every one never counted; --all opens every one. The tower's part of the page stays as
+it was last counted, and the other way round.
 
 Writes PATH (default vault/inventory.json here) and, by default, the same data into the page "The Vault"
 (vault/index.html), which is then published on its own (skill uo-sort, step 6). Also refreshes layout.json for every
@@ -22,6 +27,8 @@ for module in ('uo', 'look', 'layout', 'survey'):
     spec = importlib.util.spec_from_file_location(module, os.path.join(here, module + '.py'))
     globals()[module] = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(globals()[module])
+sys.path.insert(0, here)
+import castle_site  # noqa: E402
 
 OUT = os.path.join(here, 'vault', 'inventory.json')  # the data, kept in git
 PAGE = os.path.join(here, 'vault', 'index.html')  # the page; the data is written into it (window.VAULT)
@@ -103,6 +110,23 @@ def main():
     out = sys.argv[sys.argv.index('--out') + 1] if '--out' in sys.argv else OUT
     info = uo.find_bridge(None)
     labels, names = uo.load_labels(), uo.load_names()
+    try:
+        before = json.load(open(out, encoding='utf-8'))
+    except (OSError, ValueError):
+        before = {}
+    mover = castle_site.install(uo, info, say)
+    if mover:
+        try:
+            castle = castle_chests(info, labels, names, known, '--all' in sys.argv)
+        finally:
+            mover.close_up()
+        data = dict(before, castle=castle, castle_updated=time.strftime('%Y-%m-%dT%H:%M:%S%z'),
+                    gem_prices_from=max(PRICED.values(), default=''))
+        data.setdefault('wall', [])
+        data.setdefault('crates', [])
+        data.setdefault('updated', '')
+        save(out, data)
+        return
 
     def contents(serial):
         if known:
@@ -151,13 +175,75 @@ def main():
             crates.append({'name': text, 'items': entries(items, names)})
             say(f'{text}: {len(items)}')
 
-    data = {'updated': time.strftime('%Y-%m-%dT%H:%M:%S%z'), 'wall': wall, 'crates': crates,
-            'gem_prices_from': max(PRICED.values(), default='')}
+    data = dict(before, updated=time.strftime('%Y-%m-%dT%H:%M:%S%z'), wall=wall, crates=crates,
+                gem_prices_from=max(PRICED.values(), default=''))
+    save(out, data)
+
+
+def save(out, data):
     os.makedirs(os.path.dirname(out), exist_ok=True)
     write(out, json.dumps(data, indent=1))
     if out == OUT:
         embed(data)
     say(f'INVENTORY DONE: {out}' + (f' and {PAGE}' if out == OUT else ''))
+
+
+def bag_entries(items, labels, names, contents):
+    """A chest's bags (each with its marker and what's in it) and what lies loose, as the page shows them."""
+    def inside(bag, depth=0):
+        found = contents(bag)
+        out = []
+        for i in found:
+            if layout.is_bag(i) and depth < 2:
+                out.append({'name': labels.get(i['serial'], display(i, names)), 'amount': 1, 'graphic': i['graphic'],
+                            'items': entries(inside(i['serial'], depth + 1), names)})
+        return out + entries([i for i in found if not layout.is_bag(i)], names)
+
+    pairs, loose = layout.pair(items, unmarked={s for s, t in labels.items() if not t.startswith('bag: ')})
+    bags = []
+    for bag, marker in pairs:
+        text = labels.get(bag['serial'], '')
+        bags.append({
+            'name': text[5:].split(' (')[0] if text.startswith('bag: ') else (text or display(bag, names)),
+            'marker': entries([marker], names)[0] if marker else None,
+            'items': inside(bag['serial']),
+        })
+    bags.sort(key=lambda b: [int(t) if t.isdigit() else t for t in re.split(r'(\d+)', b['name'].lower())])
+    return bags, entries(loose, names)
+
+
+CASTLE_ORDER = {'east': 0, 'forge': 1, 'vault': 2, 'west': 3}
+
+
+def castle_chests(info, labels, names, known, every):
+    """Every castle chest on the user's side, counted: opened when it held something last time (layout.json), was
+    never counted, or --all; an empty one is taken as still empty."""
+    recorded = layout.load()
+
+    def contents(serial):
+        if known:
+            return uo.call(info, 'GET', '/contents', serial=serial)['items']
+        return look.open_once(info, serial)
+
+    out = []
+    plan = castle_site.PLAN
+    # by wall, then along it, so the walks go one way
+    order = sorted((s for s, e in plan.items() if e['side'] in CASTLE_ORDER),
+                   key=lambda s: (CASTLE_ORDER[plan[s]['side']], plan[s]['y'], plan[s]['x'], -plan[s]['z']))
+    for serial in order:
+        e = plan[serial]
+        last = recorded.get(serial)
+        if every or known or last is None or last.get('items'):
+            items = contents(serial)
+            layout.record(serial, items)
+            bags, loose = bag_entries(items, labels, names, contents)
+        else:
+            bags, loose = [], []
+        out.append({'serial': serial, 'name': e['what'], 'side': e['side'], 'place': e['place'], 'row': e['row'],
+                    'secure': e['secure'], 'bags': bags, 'loose': loose})
+        if bags or loose:
+            say(f"{castle_site.chest_title(serial, labels)} ({e['row']}): {len(bags)} bags, {len(loose)} loose")
+    return out
 
 
 def write(path, text):

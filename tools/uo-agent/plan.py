@@ -4,6 +4,11 @@ skills/uo-sort/SKILL.md, and write the spec for sortbatch.py.
 
   plan.py BATCHDIR [--no-open]
 
+In the castle (BATCHDIR/site.json from look.py --side): the castle's chests for that side (castle_site.py), each
+group into the first chest with room that holds its bag, or a new bag in the first chest with room; and the castle's
+own homes: the best weapons and best armour secures, the deeds and treasure maps secures, raw food to the cooking
+chest by the forge, spare scissors to the tools chest.
+
 Reads BATCHDIR/inv.json and loot.json (from look.py) and the names idall.py recorded in names.json. To apply the
 "at most 2 of each piece type" limits it reads what the metal armour bags already hold; it opens those bags first
 (about a dozen paced actions) unless --no-open is given, in which case it uses only what the client already knows.
@@ -24,6 +29,8 @@ for module in ('uo', 'look'):
     spec = importlib.util.spec_from_file_location(module, os.path.join(here, module + '.py'))
     globals()[module] = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(globals()[module])
+sys.path.insert(0, here)
+import castle_site  # noqa: E402
 
 DAMAGE = ['ruin', 'might', 'force', 'power', 'vanquishing']
 PROTECTION = ['defense', 'guarding', 'hardening', 'fortification', 'invulnerability']
@@ -240,8 +247,32 @@ def armour_bag(t, keeper_or_guarding):
 
 
 def bag_label(labels, kind):
-    found = [s for s, t in labels.items() if t.startswith(f'bag: {kind} (')]
+    found = bag_labels(labels, kind)
     return found[0] if found else None
+
+
+def bag_labels(labels, kind):
+    """Every bag of this kind: the tower's, and the castle's on either wall."""
+    return [s for s, t in labels.items() if t.startswith(f'bag: {kind} (')]
+
+
+def castle_home(action, detail, item, name):
+    """The castle's changes to where a keeper goes (the plan the user approved on 2026-11-18): (action, detail)."""
+    n, t = name.lower(), base(item['type'])
+    if action == 'decide' and 'deed' in t:
+        return 'keep', ('deeds',)  # "put all deeds into secures"
+    if action != 'keep':
+        return action, detail
+    what = detail[0]
+    if what == 'misc' and re.search(r'\braw\b', t):
+        return 'keep', ('cooking',)  # the cooking chest by the forge: "raw meat and fish steaks"
+    if what == 'supplies':
+        return 'keep', ('tools',)  # spare scissors: the tools chest by the forge
+    if what == 'weapon' and ('vanquishing' in n or level(n, DAMAGE) >= DAMAGE.index('force')):
+        return 'keep', ('best weapon',) + tuple(detail[1:])
+    if what == 'armour' and (level(n, PROTECTION) >= PROTECTION.index('fortification') or material(t) == 'bone'):
+        return 'keep', ('best armour',)
+    return action, detail
 
 
 def existing_counts(info, labels, names, opening):
@@ -251,17 +282,16 @@ def existing_counts(info, labels, names, opening):
     kinds = {k for k, _ in list(TYPE_BAG.values()) + list(PLAIN_BAG.values())} | {'ringmail', 'chain armour',
                                                                                   'plate armour'}
     counts = collections.Counter()
-    for kind in sorted(kinds):
-        bag = bag_label(labels, kind)
-        if not bag:
-            continue
+    for kind, bag in sorted((k, b) for k in kinds for b in bag_labels(labels, k)):
         try:
             items = uo.call(info, 'GET', '/contents', serial=bag)['items']
             known = uo.call(info, 'GET', '/item', serial=bag)['item'].get('knownItems', 0)
         except uo.BridgeError:
             items, known = [], 0
         if opening and not known:
-            chest = next(c for c, e in layout.items() if any(b['serial'] == bag for b in e['bags']))
+            chest = next((c for c, e in layout.items() if any(b['serial'] == bag for b in e['bags'])), None)
+            if chest is None:
+                continue  # not in the chest map: nowhere to open it from
             look.open_once(info, chest)
             items = look.open_once(info, bag)
         plain = '(defense)' in labels[bag]
@@ -283,6 +313,34 @@ def existing_counts(info, labels, names, opening):
     return counts
 
 
+def castle_group(spec, kind, chest, serials, side, inv, names, labels, info, room, report):
+    """A group of keepers in the castle: the first of the kind's chests (castle_site.targets: the side's own first)
+    with room for them (and a bag; a secure for their weight too), into its bag of this kind, or a new bag there
+    with the least valuable piece as its marker."""
+    weight = sum(castle_site.stones(inv[s]) for s in serials)
+    choice = None
+    for c in castle_site.targets(chest, side):  # the side's own chest first; only opened until one has room
+        if not room.fits(c, len(serials) + 1, weight):
+            continue
+        choice = (c, castle_site.bag_in(look.open_once(info, c), kind, labels))
+        break
+    if choice is None:
+        spec.setdefault('no_room', []).extend(serials)
+        report['NO ROOM'].append((f'{kind} ({chest})', f'{len(serials)} items'))
+        return
+    c, bag = choice
+    room.added(c, len(serials) + (0 if bag else 1), weight)
+    if c not in spec['learn_first']:
+        spec['learn_first'].append(c)
+    count = len(serials)
+    if bag is None:
+        spec['new_slots'].append([c, serials.pop(), kind])
+        bag = castle_site.new_bag_label(kind, c, labels)
+    spec['into'] += [[s, bag] for s in serials]
+    report['castle chests'].append((castle_site.chest_title(c, labels),
+                                    f"{kind}: {count}" + (' (a new bag)' if bag.startswith('bag: ') else '')))
+
+
 def main():
     batch = sys.argv[1]
     opening = '--no-open' not in sys.argv
@@ -290,6 +348,21 @@ def main():
     loot = json.load(open(os.path.join(batch, 'loot.json')))
     names, labels = uo.load_names(), uo.load_labels()
     info = uo.find_bridge(None)
+    site = castle_site.site_of(batch)
+    side = site.get('side')
+    if side:
+        mover = castle_site.install(uo, info, print)
+        if not mover:
+            sys.exit('this batch is for the castle, and he is not inside it')
+        try:
+            plan_batch(batch, opening, inv, loot, names, labels, info, side)
+        finally:
+            mover.close_up()
+    else:
+        plan_batch(batch, opening, inv, loot, names, labels, info, None)
+
+
+def plan_batch(batch, opening, inv, loot, names, labels, info, side):
     spec = {'loot': loot, 'learn_first': [], 'new_slots': [], 'into': [], 'place_in': [], 'spares': [], 'trash': [],
             'smelt': [], 'cut': [], 'sets': []}
     groups = collections.defaultdict(list)  # (bag kind, chest) -> serials
@@ -309,20 +382,28 @@ def main():
             continue
         name = names.get(s, '').split(' / ')[0]
         action, detail = decide(item, name)
+        if side:
+            action, detail = castle_home(action, detail, item, name)
         t = base(item['type'])
         report[action].append((str(detail), name or item['type']))
         if action == 'keep':
             what = detail[0]
-            if what == 'misc':
+            if what in ('deeds', 'cooking', 'tools'):
+                spec['place_in'].append([s, what])
+            elif what == 'best weapon':
+                groups[(detail[1], 'best weapons')].append(s)
+            elif what == 'best armour':
+                groups[(armour_bag(t, True)[0], 'best armour')].append(s)
+            elif what == 'misc':
                 spec['place_in'].append([s, 'miscellaneous'])
             elif what == 'supplies':
                 spec['place_in'].append([s, 'supplies'])
             elif what == 'maps':
-                groups[('treasure maps', 'miscellaneous')].append(s)
+                groups[('treasure maps', 'treasure maps' if side else 'miscellaneous')].append(s)
             elif what == 'cooked':
                 groups[('cooked food', 'miscellaneous')].append(s)
             elif what == 'wand':
-                groups[(detail[1], 'magic wands')].append(s)
+                groups[(detail[1], detail[1] if side else 'magic wands')].append(s)
             elif what == 'jewellery':
                 groups[(detail[1], 'jewellery')].append(s)
             elif what == 'clothing':
@@ -357,8 +438,12 @@ def main():
                     spec[scrap(t)].append(s)
                     report['over the limit'].append((str(key), names.get(s, '')))
     # existing bags get items best first; a new bag gets the least valuable piece as its marker
+    room = castle_site.Room(uo, info) if side else None
     for (kind, chest), serials in groups.items():
         serials.sort(key=lambda s: value(names.get(s, '')), reverse=True)
+        if side:
+            castle_group(spec, kind, chest, serials, side, inv, names, labels, info, room, report)
+            continue
         bag = bag_label(labels, kind)
         if bag is None:
             spec['new_slots'].append([chest, serials.pop(), kind])
@@ -368,6 +453,9 @@ def main():
             spec['learn_first'].append(chest)
         spec['into'] += [[s, bag] for s in serials]
     json.dump(spec, open(os.path.join(batch, 'spec.json'), 'w'), indent=1)
+    if spec.get('no_room'):
+        print('TELL THE USER: no chest has room for these (they stay in his pack):',
+              '; '.join(names.get(s, inv[s]['type']) for s in spec['no_room']))
     for action in sorted(report):
         print(f'== {action}: {len(report[action])}')
         if action not in ('trash', 'smelt', 'cut'):

@@ -87,6 +87,42 @@ Batch working files go in `~/claude/uo-agent-work/batchN` (scratch, not needed l
 - **Weights:** a bag's single-click label shows "(N items, M stones)".
 - **Cut cloth looks like the floor decoration.** Cutting makes "cut cloth" of the same kind (0x1766) as the green floor squares. `neverTouch` only applies to items lying on the floor, so cloth in containers can be moved while the floor squares stay protected.
 
+## Sorting in the castle (from 2026-11-19; CASTLE.md, "Sorting")
+
+The loot is moving to the user's castle; Clem sorts there. **"Sort the east side"** sorts the 2 east intake chests
+into east storage, **"sort the west side"** the 2 west ones into west storage, **"sort all"** both, one side after
+the other (each its own batch). The same five steps and tools; what changes:
+- Clem, inside the castle (`python3 -I castle.py in` if he isn't). The tools see he's in the castle and work there
+  by themselves (`castle_site.py`): castle chests, walks zone by zone along the user's routes, the castle's barrel.
+- **Look:** `python3 look.py BATCHDIR --side east` (or `west`). It takes the loot bags out of the intake chests into
+  his pack, as many as he can carry; the rest wait for the next batch (it says so). Loose things in an intake chest
+  go into an empty bag from that side's spare backpacks chest first. It writes `BATCHDIR/site.json`, so the next
+  steps know the side.
+- **Plan** picks the castle chests: the side's own first, then the other wall's (the user: "If we run out of space
+  on the east side then we can add it to the west side"). Secure kinds (wands, jewellery, magic clothing, GM sets,
+  best weapons and armour, treasure maps, deeds, reagents, gems) always go to the east wall's secures, then to "valuables
+  overflow" behind the user's table. Its report lists every chest it picked ("castle chests") and anything with
+  **NO ROOM**: tell the user. Changes from the tower (the plan approved 2026-11-18): weapons of force and up and
+  vanquishing go to **best weapons**, armour of fortification and up (and any bone kept) to **best armour**, in bags
+  by kind as before; deeds to the **deeds** secures; treasure maps to their own secure; raw food to the **cooking**
+  chest by the forge; spare scissors to **tools**.
+- **Sort:** gold goes behind the user's table (their gold chests); cut leather and cloth to **cloth & leather**,
+  boards and logs to **boards & logs** (logs stay logs if he has no saw), ore and junk metal to the 4 **smelting**
+  chests by the forge, trash to the barrel there (949,2322); potions to their kind's chests at the south end of the
+  wall; emptied loot bags to the side's **spare backpacks** chest (the north floor chest), or the trash once it
+  holds 125. A chest takes 125 items, a secure 395 stones; it moves on to the next chest at either. Scroll bags are
+  found by their labels in the side's scrolls chest (else the other wall's); a circle with no bag stays in the loot
+  (it says so).
+- **The user's table:** the east intake chests and the user's vault are behind it. Any tool whose walk goes there
+  releases and moves it, and every tool closes and locks it down again at the end, even when it stops on a problem.
+  If a tool stops before that (the user took over), check with `python3 -I castle.py where` and close it with
+  `python3 -I castle.py table close` once the user hands him back.
+- **Finish:** `python3 finish.py --side east` counts the castle's smelting chests, says what's still in that side's
+  intake chests, closes the table and parks him on the east hall walkway (948,2336).
+- **The page:** `python3 inventory.py` inside the castle counts the castle (every chest that had something last
+  time or was never counted; `--all` for every one) and keeps the tower's part as last counted. The page shows the
+  castle first, by area: east storage, by the forge, the user's vault, west storage.
+
 ## Order of work (Claude decides the order; ask the user about policy only)
 
 1. **Look:** `python3 look.py ~/claude/uo-agent-work/batchN`, with N the next unused number (`ls ~/claude/uo-agent-work`). Anything on the room floor except the chests, crates, barrel, labelled containers and cut cloth is the queue. **The 17 crates stacked along the west wall (1758,1405-1407)** are spare storage the user added for when the chests run out of room (2026-11-14): never loot; ask before starting to use them. Loose items not in a bag are listed; sort those by hand. Only loot bags go on this floor, so a labelled bag lying there has been reused as a loot bag: look.py drops its label, treats it as loot, and it goes to the backpacks crate at the end. The forge in the room is labelled and stays. **Boards and logs lying loose on the floor are the user's carpentry stock** (2026-11-14): never sorted, moved or reported as loot (look.py's `CARPENTRY`). Key rings are never opened, as using one asks "What do you want to unlock?" instead of showing its keys (2026-11-11). look.py treats them as items, and they're kept in the miscellaneous chest (below).

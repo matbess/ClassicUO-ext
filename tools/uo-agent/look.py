@@ -2,7 +2,13 @@
 """Step 1 of a sorting batch: find the loot on the room floor, open every container in it (nested ones too) and
 write down what's there.
 
-  look.py BATCHDIR
+  look.py BATCHDIR                 the tower: the loot on the chest room's floor
+  look.py BATCHDIR --side east     the castle (CASTLE.md, "Sorting"): the loot in the east (or west) intake chests
+
+In the castle the loot bags are taken out of the intake chests into the sorter's backpack, as many as he can carry
+(the rest wait for the next batch), and anything lying loose in an intake chest goes into an empty bag from that
+side's spare backpacks chest, carried the same way; so everything after this works from his pack. Writes
+BATCHDIR/site.json too, which tells the later steps which castle side they sort into.
 
 Writes BATCHDIR/inv.json (every item, with the container it's in as "bag"), BATCHDIR/loot.json (the containers to
 empty, innermost first) and BATCHDIR/targets.txt (the gear for idall.py: everything that isn't a stackable, potion,
@@ -13,6 +19,7 @@ import collections
 import importlib.util
 import json
 import os
+import re
 import sys
 import time
 
@@ -21,6 +28,8 @@ for module in ('uo', 'layout'):
     spec = importlib.util.spec_from_file_location(module, os.path.join(here, module + '.py'))
     globals()[module] = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(globals()[module])
+sys.path.insert(0, here)
+import castle_site  # noqa: E402
 
 NOT_LOOT = ('wooden chest', 'crate', 'cut cloth', 'barrel')
 # the chest room on the second floor: Johnny's whole rules area, one of Clem's (he sorts too when Johnny is offline,
@@ -106,12 +115,87 @@ def loot_on_floor(info):
     return [i for i in on_floor(info) if not labels.get(i['serial']) or reused(i, labels)]
 
 
+def stones_of(info, serial):
+    """A container's weight from its single-click label "(N items, M stones)"; None if it doesn't say."""
+    lines = ' '.join(a for r in uo.call(info, 'POST', '/name', serial=serial) for a in r.get('lines', []))
+    m = re.search(r'\((\d+) items?, (\d+) stones?\)', lines)
+    return int(m.group(2)) if m else None
+
+
+def from_intake(info, side):
+    """The castle: open the side's intake chests, and carry what's in them (as much as he can) in his backpack.
+    Returns the containers now carried, for main() to open; loose things go into an empty bag first."""
+    pack = uo.call(info, 'GET', '/status')['backpack']['serial']
+    taken, loose, left = [], [], []
+    for chest in castle_site.intake(side):
+        for i in open_once(info, chest):
+            (taken if kind(i) == 'container' else loose).append(dict(i, chest=chest))
+    if not taken and not loose:
+        return []
+    st = uo.call(info, 'GET', '/status')
+    room = st['weightMax'] - st['weight'] - 30  # some left over for what the cutting and the boards make
+    carried = []
+    for bag in taken:
+        w = stones_of(info, bag['serial'])
+        if w is None or w > room:
+            left.append(bag)
+            continue
+        result = uo.move(info, bag['serial'], pack)
+        if not result.get('moved'):
+            raise uo.BridgeError(0, f"{bag['serial']} did not come out of the intake chest: {result}")
+        room -= w
+        carried.append(bag['serial'])
+        say(f"{bag['serial']} {bag['type']} ({w} stones) from the intake chest into his pack")
+    if loose:
+        spares = castle_site.targets('new backpacks', side)
+        empty = None
+        for c in spares:
+            for i in open_once(info, c):
+                if i['type'] in ('backpack', 'bag', 'pouch') and not open_once(info, i['serial']):
+                    empty = i['serial']
+                    break
+            if empty:
+                break
+        if empty is None:
+            say('NO EMPTY BAG in the spare backpacks chests: the loose things stay in the intake chest: '
+                + ', '.join(i['type'] for i in loose))
+        else:
+            uo.move(info, empty, pack)
+            for i in loose:
+                result = uo.move(info, i['serial'], empty)
+                if not result.get('moved'):
+                    raise uo.BridgeError(0, f"{i['serial']} {i['type']} did not go into the carry bag: {result}")
+            carried.append(empty)
+            say(f'{len(loose)} loose things from the intake chests into an empty bag ({empty}) in his pack')
+    if left:
+        say(f'LEFT IN THE INTAKE CHESTS for the next batch ({len(left)} bags, too heavy to carry all at once): '
+            + ', '.join(i['serial'] for i in left))
+    return carried
+
+
 def main():
     out = sys.argv[1]
+    side = sys.argv[sys.argv.index('--side') + 1] if '--side' in sys.argv else None
     os.makedirs(out, exist_ok=True)
     info = uo.find_bridge(None)
+    mover = castle_site.install(uo, info, say)
+    if mover:
+        if side not in ('east', 'west'):
+            sys.exit('in the castle: look.py BATCHDIR --side east|west')
+        try:
+            carried = from_intake(info, side)
+        finally:
+            mover.close_up()
+        castle_site.write_site(out, side)
+        pack = uo.call(info, 'GET', '/status')['backpack']['serial']
+        here = [dict(i) for i in uo.call(info, 'GET', '/contents', serial=pack)['items'] if i['serial'] in carried]
+        if not here:
+            say(f'nothing in the {side} intake chests')
+    else:
+        if side:
+            sys.exit(f'--side is for the castle, and he is not inside it')
+        here = on_floor(info)
     labels = uo.load_labels()
-    here = on_floor(info)
     # A labelled bag on this floor is a reused loot bag (reused()). Its label goes; sortbatch starts a new gem bag
     # when one is needed, and plan.py a new bag of any other kind.
     bags = [i for i in here if reused(i, labels)]

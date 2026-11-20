@@ -117,6 +117,20 @@ The user's friend has no owner commands, so the tables are for the owner side. T
 2. **Close:** put it back on 943,2349. Say **"I wish to lock this down"**, and target the table. Check that a single
    click says "locked down".
 
+## Sorting (from 2026-11-19)
+
+The sorting tools work in the castle when Clem is inside it: the same steps as the tower (the uo-sort skill,
+"Sorting in the castle"), with `--side east|west` on look.py. **`castle_site.py`** holds what's castle-only:
+- which chest takes each kind on each side, with the overflow order (own wall, then the other; secures always the
+  east wall's, then "valuables overflow" behind the user's table; gold always behind the table);
+- the walks: zones (east hall, forge corner, north corridor, west hall, south-west walkway, south-east rooms behind
+  the table, great hall) joined by the user's own routes from 2026-11-18, walked waypoint by waypoint, since long
+  walks stop short and the great hall reaches the west hall only over the stairs;
+- the user's table, opened on the way behind it and closed at the end of every tool (`Mover.close_up`);
+- room left in a chest: a single click says "(N items, M stones)"; 125 items, and 395 stones for a secure.
+`python3 -I castle_site.py test` checks the tables offline. **Not yet run in the game** (2026-11-19): the first
+castle sort is watched by the user.
+
 ## Known so far, not yet done
 
 - **`castle.py`** (2026-11-18, the user: "that should be a skill or something. We're going to need to do this a lot

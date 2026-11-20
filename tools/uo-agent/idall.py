@@ -19,11 +19,14 @@ import time
 spec = importlib.util.spec_from_file_location('uo', os.path.join(os.path.dirname(os.path.realpath(__file__)), 'uo.py'))
 uo = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(uo)
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+import castle_site  # noqa: E402
 
 TRASH = '0x4068E2BB'   # the trash barrel by the door; empty ID wands and staves go here
 SPARES = '0x4049D6B8'  # pouch of spare ID wands and staves, in the supplies chest
 WANDS = {'0x0DF2', '0x0DF3', '0x0DF4', '0x0DF5',             # wands
          '0x0DF0', '0x0DF1', '0x13F8', '0x13F9', '0x0E89', '0x0E8A'}  # black, gnarled and quarter staves
+MOVER = None  # set in the castle (castle_site): walks go by the castle's routes, the barrel is the castle's
 FOUND = {}  # ID wands and staves found in this batch: serial -> charges
 UNIDENTIFIED = re.compile(r'^(an? )?magic ', re.I)  # how the server names magic items nobody has identified yet
 
@@ -68,12 +71,19 @@ def spares(info):
     except uo.BridgeError as e:
         if e.code != 404:
             raise
-        # the client doesn't know the pouch yet: open the chest it's in
-        chest = uo.resolve('supplies')
-        uo.walk_near(info, chest)
-        uo.call(info, 'POST', '/open', serial=chest)
-        uo.call(info, 'POST', '/close', serial=chest)
-        contents = uo.call(info, 'GET', '/contents', serial=SPARES)
+        # the client doesn't know the pouch yet: open the chest it's in (in the castle, each supplies chest in turn)
+        for chest in castle_site.targets('supplies', 'east') if MOVER else [uo.resolve('supplies')]:
+            uo.walk_near(info, chest)
+            uo.call(info, 'POST', '/open', serial=chest)
+            uo.call(info, 'POST', '/close', serial=chest)
+            try:
+                contents = uo.call(info, 'GET', '/contents', serial=SPARES)
+                break
+            except uo.BridgeError as e2:
+                if e2.code != 404:
+                    raise
+        else:
+            raise uo.BridgeError(0, f'the spares pouch {SPARES} is in none of the supplies chests')
     if contents['container'].get('knownItems', 0) == 0:
         uo.walk_near(info, SPARES)
         contents = uo.call(info, 'POST', '/open', serial=SPARES)['contents']
@@ -86,7 +96,7 @@ def swap(info, wand):
     if wand:
         wait_until_clear(info)
         try:
-            result = uo.move(info, wand, TRASH)
+            result = uo.move(info, wand, castle_site.BARREL if MOVER else TRASH)
         except uo.BridgeError as e:
             if not uo.resume_after_barrel_emptied(info, e):
                 raise
@@ -141,7 +151,17 @@ def needing_id(info, targets):
 
 
 def main():
+    global MOVER
     info = uo.find_bridge(None)
+    MOVER = castle_site.install(uo, info, say)
+    try:
+        identify(info)
+    finally:
+        if MOVER:
+            MOVER.close_up()
+
+
+def identify(info):
     targets = needing_id(info, [uo.resolve(t) for t in sys.argv[1:]])
     targets.sort(key=lambda t: uo.call(info, 'GET', '/item', serial=t)['item']['graphic'] not in WANDS)
     wand, left = wand_in_hand(info)

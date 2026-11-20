@@ -130,6 +130,7 @@ user's ClassicUO (Wine)                       this Mac
 | `sortbatch.py BATCHDIR/spec.json` | 4 | do it: new bags and markers, gear into bags, GM sets, trash to the barrel, smelting crates, cutting, scrolls, reagents, gems, potions, supplies; empty loot bags back to the crate; records the chest map |
 | `finish.py` | 5 | ID wand back to the spares pouch, Johnny to the middle of the room |
 | `inventory.py`, `vault/` | 6 | the vault's full inventory (`vault/inventory.json`) for the shared page "The Vault" (`vault/index.html`, published at https://claude.ai/artifact/5nsmouJoGEEEMFdaffrXLP), updated after every sort |
+| `castle_site.py`, `castle.py`, `castle_plan.py` | | the castle (CASTLE.md): the sorting steps above work there too, with `look.py --side east|west`; chests, walks, the user's table and the intake chests for them; getting in and out; the storage plan |
 | `survey.py`, `layout.py` | | open every chest and record the map in `layout.json` (`--known` sends nothing and checks labels against positions); print the map |
 | `tidy.py` | | re-lay a crowded chest's bags in one row with markers under them |
 | `moves.py`, `potions.py` | | a list of moves at the bridge's pace; potions by strength (the server hides strengths) |

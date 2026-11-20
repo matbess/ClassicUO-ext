@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Leave the sorter (Johnny, or Clem when Johnny is offline) ready for the user to play once sorting is done.
 
-  finish.py
+  finish.py [--side east|west]
+
+In the castle (he's inside it): the castle's 4 smelting chests by the forge are counted, he waits on the east hall
+walkway (948,2336) and it says what's still in the intake chests (that side's, or both); the user's table, if a walk opened
+it, is closed and locked down.
 
 Puts an ID wand or staff from his hands back in the spares pouch (after a single-click, so names.json has its real
 charges), counts the pieces waiting in the smelting crates (opening each), then walks him to the middle of the room in
@@ -19,6 +23,9 @@ for module in ('uo', 'look'):
     spec = importlib.util.spec_from_file_location(module, os.path.join(here, module + '.py'))
     globals()[module] = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(globals()[module])
+sys.path.insert(0, here)
+import castle_site  # noqa: E402
+PARK = (948, 2336)  # in the castle: the middle of the east hall walkway, in front of east storage
 
 SPARES = '0x4049D6B8'  # pouch of spare ID wands and staves, in the supplies chest
 
@@ -29,6 +36,15 @@ def say(text):
 
 def main():
     info = uo.find_bridge(None)
+    mover = castle_site.install(uo, info, say)
+    try:
+        finish(info, mover)
+    finally:
+        if mover:
+            mover.close_up()
+
+
+def finish(info, mover):
     for item in uo.call(info, 'GET', '/status')['hands']:
         name = uo.call(info, 'POST', '/name', serial=item['serial'])[0]['lines']
         # any wand or staff: the sorter only ever holds the ID tool idall.py took from the pouch. Its name won't do:
@@ -41,11 +57,27 @@ def main():
     # what's waiting to be smelted: the user wants the number every run (2026-11-08; Icepick smelts, and he's on the
     # same account as Johnny, so never during sorting). Every crate is opened, as the client's copy can be stale.
     counts = []
-    for text, crate in sorted((t, s) for s, t in uo.load_labels().items() if re.match(r'smelting \d', t)):
+    crates = sorted((t, s) for s, t in uo.load_labels().items() if re.match(r'smelting \d', t))
+    if mover:
+        crates = [(castle_site.PLAN[c]['what'], c) for c in castle_site.targets('smelting', 'east')]
+    for text, crate in crates:
         pieces = [i for i in look.open_once(info, crate) if 'key' not in i['type'].lower()]
         counts.append((text.split(' (')[0], len(pieces)))
     say(f"SMELTING: {sum(n for _, n in counts)} pieces waiting to be smelted ("
         + ', '.join(f'{name}: {n}' for name, n in counts) + ')')
+    if mover:
+        sides = [sys.argv[sys.argv.index('--side') + 1]] if '--side' in sys.argv else ['east', 'west']
+        left = []
+        for side in sides:
+            for c in castle_site.intake(side):
+                left += [f"{i['serial']} {i['type']} ({side})" for i in look.open_once(info, c)]
+        say(('STILL IN THE INTAKE CHESTS (sort as another batch): ' + ', '.join(left)) if left
+            else f"the {' and '.join(sides)} intake chests are empty")
+        mover.close_up()
+        mover.go_zone('east')
+        mover.walk(*PARK)
+        say(f'{uo.call(info, "GET", "/status")["character"].split()[-1]} is on the east hall walkway at {PARK[0]},{PARK[1]}')
+        return
     x1, y1, x2, y2 = look.VAULT['box']
     walked = uo.call(info, 'POST', '/walk', x=(x1 + x2) // 2, y=(y1 + y2) // 2, distance=0)
     who = uo.call(info, 'GET', '/status')['character'].split()[-1]
