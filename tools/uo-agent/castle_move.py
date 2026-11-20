@@ -178,6 +178,20 @@ def load():
             before = st['weight']
             for p in pieces:
                 r = uo.move(info, p['serial'], pack)
+                said = ' '.join(m['text'] for m in r.get('messages', [])).lower()
+                if not r.get('moved') and 'cannot hold more weight' in said:
+                    # too heavy for his pack all at once (1954 lockpicks, 2026-11-19): the part that fits, the rest
+                    # on a later trip. A pile split keeps its serial on the part moved; the rest gets a new one.
+                    amount = p.get('amount', 1)
+                    part = amount // 2
+                    while part >= 1 and not r.get('moved'):
+                        r = uo.move(info, p['serial'], pack, amount=part)
+                        part //= 2
+                    if not r.get('moved'):
+                        say(f"his pack takes no more ({status()['weight']} stones): this load is done")
+                        return taken
+                    p['amount'] = part * 2
+                    say(f"{p['type']}: {p['amount']} of {amount} this trip, the rest next time")
                 if not r.get('moved'):
                     raise Stop(f"{p['serial']} {p['type']} did not come out of {text}: {r}")
             after = status()
@@ -311,11 +325,15 @@ def to_vault():
 def trip():
     if read_load():
         st = status()
+        import gems
+        gems.info = info
         if castle.inside((st['x'], st['y'])):
             say('a load from an earlier trip is still in his pack: putting it away first')
             unload()
+        elif not gems.in_vault(st):
+            raise Stop('a load is written down but he is neither in the castle nor in the vault')
         else:
-            raise Stop('a load is written down but he is not in the castle: castle_move.py unload once he is')
+            say('a load was started here: filling his pack the rest of the way')
     to_vault()
     taken = load()
     if not taken:
