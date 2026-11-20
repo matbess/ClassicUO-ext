@@ -213,6 +213,7 @@ def load():
                         LEFT[0] = True
                         return taken
                     p['amount'] = part * 2
+                    trim(p, serial, pack)
                     say(f"{p['type']}: {p['amount']} of {amount} this trip, the rest next time")
                 if not r.get('moved'):
                     raise Stop(f"{p['serial']} {p['type']} did not come out of {text}: {r}")
@@ -234,6 +235,9 @@ def load():
                             p0['serial'] = again[0]['serial']
                         r = uo.move(info, p0['serial'], pack, amount=fits)
                         if r.get('moved'):
+                            p0['amount'] = fits
+                            trim(p0, serial, pack)
+                            fits = p0['amount']
                             say(f"{p0['type']}: {fits} of {p0['amount']} this trip (about {each:.1f} stones each), the "
                                 'rest next time')
                             p0['amount'] = fits
@@ -259,6 +263,29 @@ def load():
                 f"{' + its marker' if len(pieces) > 1 else ''} from {text} -> for {what}")
     say('the tower vault is empty')
     return taken
+
+
+def trim(p, container, pack):
+    """Never over his most (2026-11-19 20:41: 329 cut leather took him to 408/390, and overloaded he can't move):
+    while he's over, the excess of the pile p goes back to where it came from, at the stones a piece it weighs."""
+    for _ in range(4):
+        st = status()
+        over = st['weight'] - (st['weightMax'] - WEIGHT_LEFT)
+        if over <= 0:
+            return
+        mine = [i for i in call('GET', '/contents', serial=pack)['items'] if i['graphic'] == p['graphic']]
+        if not mine:
+            return
+        pile = mine[0]
+        back = min(pile.get('amount', 1) - 1, over + 5)
+        if back < 1:
+            return
+        call('POST', '/move', serial=pile['serial'], to=container, amount=back)  # the part moved keeps the serial
+        time.sleep(1)
+        rest = [i for i in call('GET', '/contents', serial=pack)['items'] if i['graphic'] == p['graphic']]
+        if rest:
+            p['serial'], p['amount'] = rest[0]['serial'], rest[0].get('amount', 1)
+        say(f"{p['type']}: {back} back, he was {over} stones over")
 
 
 def read_load():

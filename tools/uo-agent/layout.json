@@ -17,7 +17,7 @@
     "y": 105
    }
   ],
-  "items": 12,
+  "items": 13,
   "label": "castle: supplies & ID wands (east 2337, 3rd)",
   "loose": [
    {
@@ -96,9 +96,16 @@
     "serial": "0x4072215B",
     "x": 118,
     "y": 140
+   },
+   {
+    "amount": 1954,
+    "name": "lockpicks",
+    "serial": "0x4087D2B3",
+    "x": 45,
+    "y": 106
    }
   ],
-  "recorded": "2026-11-19 20:35"
+  "recorded": "2026-11-19 20:40"
  },
  "0x4080C375": {
   "bags": [
