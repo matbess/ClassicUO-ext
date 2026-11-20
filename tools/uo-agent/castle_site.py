@@ -195,6 +195,8 @@ def stand_spot(x, y):
         return (922, y)
     if y == 2348 and 937 <= x <= 942:
         return (x, 2349)
+    if x == 944 and y <= 2327:  # the forge chests: in front of them, where the user stood (945,2323 and 946,2325;
+        return (945, 2323) if y <= 2323 else (945, 2325)  # 2026-11-19 20:50: from 943,2324 one wouldn't open)
     return nearest_point((x, y))
 
 
