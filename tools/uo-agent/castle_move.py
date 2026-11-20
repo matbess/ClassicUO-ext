@@ -169,15 +169,26 @@ def load():
         for pieces, stones in groups:
             st = status()
             room = st['weightMax'] - st['weight'] - WEIGHT_LEFT
-            if stones > room:
+            known = pieces[0]['role'] == 'bag'  # a bag says what it weighs; a loose thing is weighed by lifting it
+            if known and stones > room:
                 say(f'his pack is full ({st["weight"]}/{st["weightMax"]} stones): this load is done')
                 return taken
             bag_label = labels.get(pieces[0]['serial']) if pieces[0]['role'] == 'bag' else None
             what = target_of(text, bag_label)
+            before = st['weight']
             for p in pieces:
                 r = uo.move(info, p['serial'], pack)
                 if not r.get('moved'):
                     raise Stop(f"{p['serial']} {p['type']} did not come out of {text}: {r}")
+            after = status()
+            if after['weight'] > after['weightMax'] - WEIGHT_LEFT:  # too much after all: back where it lay
+                for p in pieces:
+                    uo.move(info, p['serial'], serial, p['x'], p['y'])
+                say(f'his pack is full ({before}/{after["weightMax"]} stones; {pieces[0]["type"]} would make it '
+                    f'{after["weight"]}): this load is done')
+                return taken
+            stones = after['weight'] - before
+            for p in pieces:
                 taken.append({'serial': p['serial'], 'type': p['type'], 'role': p['role'], 'from': text,
                               'x': p['x'], 'y': p['y'], 'what': what, 'count': p['count'],
                               'stones': stones if p is pieces[0] else 0, 'amount': p.get('amount', 1),
