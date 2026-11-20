@@ -252,6 +252,15 @@ def reagents_ok():
         if TOWER[0] <= x <= TOWER[2] and TOWER[1] <= y <= TOWER[3]:
             restock.ensure()
             return
+        if inside((x, y)):  # the castle: its reagents chest (2026-11-19, the tower's stock moved in) is his chest here
+            import castle_site
+            tower_chest = restock.CHEST
+            restock.CHEST = castle_site.targets('reagents', 'east')[0]
+            try:
+                restock.ensure()
+            finally:
+                restock.CHEST = tower_chest
+            return
         have = restock.counts()
     except restock.Stop as e:
         raise Stop(f'reagents: {e}')

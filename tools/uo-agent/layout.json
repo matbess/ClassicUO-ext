@@ -6,6 +6,77 @@
   "loose": [],
   "recorded": "2026-11-16 22:38"
  },
+ "0x406BE5CF": {
+  "bags": [],
+  "items": 8,
+  "label": "castle: reagents (east 2336, 3rd) [secure]",
+  "loose": [
+   {
+    "amount": 288,
+    "name": "Spider's Silk",
+    "serial": "0x406FF9B6",
+    "x": 72,
+    "y": 133
+   },
+   {
+    "amount": 303,
+    "name": "Sulfurous Ash",
+    "serial": "0x406FF9C6",
+    "x": 95,
+    "y": 133
+   },
+   {
+    "amount": 1068,
+    "name": "Ginseng",
+    "serial": "0x40925301",
+    "x": 97,
+    "y": 107
+   },
+   {
+    "amount": 251,
+    "name": "Garlic",
+    "serial": "0x40840DA7",
+    "x": 79,
+    "y": 107
+   },
+   {
+    "amount": 36,
+    "name": "15 Mandrake Root",
+    "serial": "0x4079B398",
+    "x": 18,
+    "y": 133
+   },
+   {
+    "amount": 33,
+    "name": "Black Pearls",
+    "serial": "0x4052CF51",
+    "x": 18,
+    "y": 107
+   },
+   {
+    "amount": 113,
+    "name": "59 Nightshade",
+    "serial": "0x40703368",
+    "x": 42,
+    "y": 133
+   },
+   {
+    "amount": 9,
+    "name": "Blood Moss",
+    "serial": "0x40863046",
+    "x": 52,
+    "y": 107
+   }
+  ],
+  "recorded": "2026-11-19 20:57"
+ },
+ "0x406C57AE": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: attack wands (east 2331, top) [secure]",
+  "loose": [],
+  "recorded": "2026-11-19 20:57"
+ },
  "0x406C6A1A": {
   "bags": [
    {
@@ -163,6 +234,22 @@
   "label": "castle: magic clothing (east 2331, floor) [secure]",
   "loose": [],
   "recorded": "2026-11-19 20:52"
+ },
+ "0x406F29C0": {
+  "bags": [
+   {
+    "kind": "gems",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098CD0A",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "items": 1,
+  "label": "castle: gems (my vault 942, floor)",
+  "loose": [],
+  "recorded": "2026-11-19 20:57"
  },
  "0x40790A06": {
   "bags": [],
