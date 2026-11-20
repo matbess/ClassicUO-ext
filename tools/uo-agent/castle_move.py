@@ -219,6 +219,30 @@ def load():
             after = status()
             if after['weight'] > after['weightMax'] - WEIGHT_LEFT:  # too much after all: back where it lay
                 LEFT[0] = True
+                p0 = pieces[0]
+                if len(pieces) == 1 and p0.get('amount', 1) > 1:
+                    # a pile: only the part that fits comes along (the user, 2026-11-19: "you have to break up large
+                    # piles into smaller piles"); the moved part keeps the serial, the rest stays as a new pile
+                    each = (after['weight'] - before) / p0['amount']
+                    fits = int((after['weightMax'] - WEIGHT_LEFT - before) / each) if each > 0 else 0
+                    uo.move(info, p0['serial'], serial, p0['x'], p0['y'])
+                    if fits >= 1:
+                        time.sleep(1)
+                        again = [i for i in open_items(serial) if i['graphic'] == p0['graphic']
+                                 and i.get('hue') == p0.get('hue') and i.get('amount', 1) == p0['amount']]
+                        if again:
+                            p0['serial'] = again[0]['serial']
+                        r = uo.move(info, p0['serial'], pack, amount=fits)
+                        if r.get('moved'):
+                            say(f"{p0['type']}: {fits} of {p0['amount']} this trip (about {each:.1f} stones each), the "
+                                'rest next time')
+                            p0['amount'] = fits
+                            taken.append({'serial': p0['serial'], 'type': p0['type'], 'role': p0['role'],
+                                          'from': text, 'x': p0['x'], 'y': p0['y'], 'what': what, 'count': 1,
+                                          'stones': int(fits * each), 'amount': fits, 'graphic': p0['graphic'],
+                                          'crate': not text.startswith('chest: ')})
+                            write_load(taken)
+                    return taken
                 for p in pieces:
                     uo.move(info, p['serial'], serial, p['x'], p['y'])
                 say(f'his pack is full ({before}/{after["weightMax"]} stones; {pieces[0]["type"]} would make it '
