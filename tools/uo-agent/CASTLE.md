@@ -120,8 +120,9 @@ The user's friend has no owner commands, so the tables are for the owner side. T
 
 - **For now: the east side, the user's vault (south-east) and the forge only** ("just don't make any secure chests
   yet. We'll figure out the west and southwest & secures later. For now we'll do just the east and southeast and
-  forge"). The west intake chests aren't sorted (`castle_site.SIDES`), and no chest is made secure or unsecured: the
-  21 made on 2026-11-18 (13 east, the friend's 8) stay as they are.
+  forge"). The west intake chests aren't sorted (`castle_site.SIDES`), and no new chest is made secure. The east
+  wall's 13 secures stay. The friend's 8 go back to plain locked-down chests ("yes plan for them to be non-secure";
+  `castle_plan.py unsecure`, listed in `castle/secured-friend-2026-11-18.json`).
 - **The west wall** is free, unassigned and not secure: "Don't mirror the east side ... leave everything empty for
   now".
 - **Spare backpacks:** one chest by the forge (944,2327, floor): "I want the chest with backpacks to be in the forge

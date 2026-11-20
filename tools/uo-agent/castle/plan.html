@@ -111,7 +111,7 @@ footer { font-size: 12.5px; color: var(--muted); }
   <header>
     <span class="eyebrow">The Castle · ground floor</span>
     <h1>Where everything goes</h1>
-    <p class="muted">All 180 chests as Clem saw them on 18 Nov. <span class="draft">Version 2 · 19 Nov</span> For now: the east side, your vault and the forge. The west wall, your friend's row and the secures are worked out later; the 21 secures made on 18 Nov stay as they are. Your tables may move up to the forge to shut off the whole east side (drawn on the plan).</p>
+    <p class="muted">All 180 chests as Clem saw them on 18 Nov. <span class="draft">Version 2 · 19 Nov</span> For now: the east side, your vault and the forge. The west wall and your friend's row are worked out later. The 13 secures on the east wall stay; your friend's 8 go back to plain chests. Your tables may move up to the forge to shut off the whole east side (drawn on the plan).</p>
   </header>
 
   <div class="top">
@@ -139,7 +139,7 @@ footer { font-size: 12.5px; color: var(--muted); }
       <li>All the potions are together at the south end of each wall: 2 chests per kind (3 for poison), since potions don't stack.</li>
       <li>A free stack separates the stock from the potions, and free chests sit beside the gear, so things can grow without moving anything.</li>
       <li><b>The forge gate.</b> Your tables stand locked down across the east hall walkway at the forge. Behind them: the whole east wall, your vault and the east intake chests. In front: the forge chests, the smelting chests, the trash barrel and the spare backpacks, so anyone can use those. Clem releases one table to get through and always puts it back and locks it down, as with the south-east table now.</li>
-      <li><b>Secures, later.</b> The 13 on the east wall and your friend's 8 stay as made on 18 Nov. Once the tables stand at the forge, the east wall wouldn't need them; where they go then is for later.</li>
+      <li><b>Secures.</b> The 13 on the east wall stay as made on 18 Nov; your friend's 8 go back to plain locked-down chests (you, 19 Nov). Once the tables stand at the forge, the east wall wouldn't need its secures either; that's for later.</li>
       <li><b>The west side, later.</b> The west wall is free, unassigned and not secure; the west intake chests and your friend's row wait too. Only the east side is sorted for now.</li>
       <li><b>Spare backpacks</b> go to one chest by the forge (944,2327, floor), outside the tables, so emptied loot bags can be dropped there by anyone. Once it holds 125, further empty bags go in the trash.</li>
     </ul>
@@ -192,7 +192,7 @@ const SE = [
   [941, C('Gold', 'yours', 'all of it'), C('Gold', 'yours'), C('Gold', 'yours'), C('Gold', 'yours')],
   [942, C('Valuables overflow', 'yours', 'when a wall chest fills'), C('Valuables overflow', 'yours'), F(), F()],
 ];
-const SW = [928, 929, 930, 931, 932, 933].map(x => [x, ...[0, 1, 2, 3].map(() => x <= 929 ? SEC('your friend\'s', 'friend', 'secure since 18 Nov') : C('your friend\'s', 'friend'))]);
+const SW = [928, 929, 930, 931, 932, 933].map(x => [x, ...[0, 1, 2, 3].map(() => C('your friend\'s', 'friend'))]);
 
 const KINDS = { weapons: 'Weapons', armour: 'Armour', magic: 'Magic items', stock: 'Scrolls, reagents, gems', potions: 'Potions',
   utility: 'Supplies and odds', craft: 'Crafting', yours: 'Your own (south-east)', free: 'Free', friend: 'Your friend\'s (never touched)' };
@@ -218,8 +218,8 @@ const TABS = [
   { id: 'valuables', name: 'Valuables', html: () => `
     <div class="valuables">
       <div class="group-head"><h2>Where the valuable things go</h2>
-        <p class="muted">Two safe places: <b>secure chests</b>, which take at most about 395 stones each, and <b>your vault behind the table</b>, which takes any weight but costs Clem a release and a lock-down each time. The secures stay as made on 18 Nov until you decide about them; if your tables move up to the forge, the whole east side is behind them.</p></div>
-      <div class="tally"><span><b>13</b>east wall</span><span><b>8</b>your friend's, west end of their row</span><span><b>7</b>not placed yet</span><span><b>28</b>secure chests in all</span></div>
+        <p class="muted">Two safe places: <b>secure chests</b>, which take at most about 395 stones each, and <b>your vault behind the table</b>, which takes any weight but costs Clem a release and a lock-down each time. The east wall's secures stay as made on 18 Nov; your friend's 8 go back to plain chests. If your tables move up to the forge, the whole east side is behind them.</p></div>
+      <div class="tally"><span><b>13</b>east wall</span><span><b>0</b>your friend's row</span><span><b>15</b>not placed</span><span><b>28</b>secure chests in all</span></div>
       <table>
         <thead><tr><th>What</th><th>Where</th><th>Why there</th></tr></thead>
         <tbody>
@@ -260,7 +260,7 @@ const TABS = [
     <div class="notes"><span>Plus the two east intake (dump) chests on the floor at 938,2349 and 938,2350: "sort the east side" sorts them into east storage.</span></div>
     <h3>South-west: your friend's, for later</h3>
     ${stacks(SW, 'x (y 2348)')}
-    <div class="notes"><span>The 8 at the west end (x 928 and 929) were made secure on 18 Nov. The two west intake (dump) chests at 933,2349 and 933,2350 aren't sorted for now. Clem never touches your friend's things.</span></div>` },
+    <div class="notes"><span>None secure: the 8 at the west end (x 928 and 929), made secure on 18 Nov, go back to plain locked-down chests. The two west intake (dump) chests at 933,2349 and 933,2350 aren't sorted for now. Clem never touches your friend's things.</span></div>` },
 ];
 
 function showTab(id) {

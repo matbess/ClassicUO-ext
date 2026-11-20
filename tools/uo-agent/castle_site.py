@@ -355,7 +355,7 @@ def test():
     assert targets('swords', 'east')[0] == next(s for s, e in PLAN.items() if e['what'] == 'swords' and e['side'] == 'east')
     assert SIDES == ('east',)
     assert sum(e['secure'] for e in PLAN.values() if e['side'] == 'east') == 13
-    assert sum(e['secure'] for e in PLAN.values() if e['side'] == 'friend') == 8
+    assert sum(e['secure'] for e in PLAN.values() if e['side'] == 'friend') == 0
     assert all(e['what'] == 'free' for e in PLAN.values() if e['side'] == 'west' and e['x'] == 921)
     for name in ('jewellery', 'magic clothing', 'attack wands', 'healing wands', 'GM armour sets', 'best weapons',
                  'best armour', 'treasure maps', 'deeds', 'gems', 'reagents'):

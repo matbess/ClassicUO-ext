@@ -7,8 +7,8 @@
   python3 -I castle_plan.py labels    write a "castle: ..." label for every chest into labels.json (nothing is sent)
   python3 -I castle_plan.py secures   the chests to make secure, in order
   python3 -I castle_plan.py secure    Clem makes them secure (skipping any that are already)
-  python3 -I castle_plan.py unsecure  Clem turns every secure chest the plan doesn't mark secure back into a plain
-                                      locked-down one (none now; for when the user decides about secures)
+  python3 -I castle_plan.py unsecure  Clem turns every chest he made secure that the plan doesn't mark secure back
+                                      into a plain locked-down one (now: the friend's 8)
 
 Version 2 (the user, 2026-11-19): the west wall doesn't mirror the east any more: every chest there is free,
 unassigned and not secure ("Just leave them empty and unassigned for now so they can be figured out later"). The
@@ -69,9 +69,10 @@ VAULT = {
     941: [('gold', 0)] * 4,
     942: [('valuables overflow', 0), ('valuables overflow', 0), (FREE, 0), (FREE, 0)],
 }
-# the friend's vault (south-west, y 2348): never touched, except securing the 8 at the west end (x 928 and 929; the
-# user, 2026-11-18: "yes, Clem can secure those 8 chests"). The rest of the south-west waits (the user, 2026-11-19)
-FRIEND_SECURE = (928, 929)
+# the friend's vault (south-west, y 2348): never touched. Clem secured the 8 at the west end (x 928 and 929) on
+# 2026-11-18 (castle/secured-friend-2026-11-18.json); on 2026-11-19 the user said to plan them non-secure ("yes plan
+# for them to be non-secure"), so `unsecure` turns them back into plain locked-down chests
+FRIEND_SECURE = ()
 
 
 def plan():
@@ -163,46 +164,70 @@ def go_to(info, e):
     mover.walk(*stand, what=label(e))
 
 
-def house_command(info, words, serial, want):
-    """An owner command aimed at a chest: the words, the house's cursor, and the answer it must give."""
+def house_command(info, words, serial):
+    """An owner command aimed at a chest: the words, then the house's cursor on it. Returns what the house said."""
     import time
     uo.call(info, 'POST', '/say', text=words)
     end = time.time() + 2
     while time.time() < end and not uo.call(info, 'GET', '/status').get('targeting'):
         time.sleep(0.1)
+    if not uo.call(info, 'GET', '/status').get('targeting'):
+        raise SystemExit(f'STOPPED: "{words}" gave no cursor')
     t = uo.call(info, 'POST', '/target', serial=serial)
-    said = ' | '.join(m['text'] for m in t.get('messages', []))
-    if not any(w in said.lower() for w in want):
-        raise SystemExit(f'STOPPED: "{words}" on {serial}: {said or "no answer"}')
-    return said
+    return ' | '.join(m['text'] for m in t.get('messages', []))
+
+
+def name_of(info, serial):
+    return ' '.join(a for r in uo.call(info, 'POST', '/name', serial=serial) for a in r.get('lines', [])).lower()
 
 
 def unsecure_all():
-    """Every chest that is secure in the game but not in the plan (version 2: the east wall's 13) back to a plain
+    """Every chest Clem made secure (the lists in castle/) that the plan no longer marks secure, back to a plain
     locked-down chest: "I wish to release this" (which frees it altogether), then at once "I wish to lock this down",
-    and a single click must say locked down and not secure. They're empty (the move hasn't started). Never the
-    friend's."""
+    checked by a single click (locked down, not secure). Whatever the release answers, a chest that's no longer
+    secure is locked down again before anything else. The friend's chests are off limits in Clem's rules, so they
+    come off the list in the client's copy for this job only and go back after, as for `secure`. They're empty."""
+    import time
     info = uo.find_bridge('Clem')
     p = plan()
-    todo = sorted(((s, e) for s, e in p.items() if not e['secure'] and e['side'] in ('east', 'west', 'forge', 'vault')),
+    made = {}
+    for f in ('secured-east-2026-11-18.json', 'secured-friend-2026-11-18.json'):
+        made.update(json.load(open(os.path.join(HERE, 'castle', f))))
+    todo = sorted(((s, p[s]) for s in made if not p[s]['secure']),
                   key=lambda kv: (kv[1]['side'], kv[1]['y'], kv[1]['x'], -kv[1]['z']))
-    # the 13 made secure on 2026-11-18 under version 1 (their labels then, kept in castle/)
-    made = json.load(open(os.path.join(HERE, 'castle', 'secured-east-2026-11-18.json')))
-    marked = [(s, e) for s, e in todo if s in made]
-    for s, e in marked:
-        go_to(info, e)
-        first = ' '.join(a for r in uo.call(info, 'POST', '/name', serial=s) for a in r.get('lines', [])).lower()
-        if 'secure' not in first:
-            print(f'{s} {label(e)}: not secure already ({first})')
-            continue
-        said = house_command(info, 'i wish to release this', s, ('no longer', 'release'))
-        print(f'{s}: {said}', flush=True)
-        said = house_command(info, 'i wish to lock this down', s, ('locked down',))
-        print(f'{s}: {said}', flush=True)
-        now = ' '.join(a for r in uo.call(info, 'POST', '/name', serial=s) for a in r.get('lines', [])).lower()
-        if 'secure' in now or 'locked down' not in now:
-            raise SystemExit(f'STOPPED: {s} {label(e)} now says {now!r}')
-        print(f'{s} {label(e)}: locked down, not secure', flush=True)
+    if not todo:
+        print('nothing to do: every chest Clem made secure is still secure in the plan')
+        return
+    original = open(AGENT_RULES, encoding='utf-8').read()
+    friend = [s for s, e in todo if e['side'] == 'friend']
+    try:
+        if friend:
+            text = original
+            for s in friend:
+                text = text.replace(f'"{s}", ', '').replace(f', "{s}"', '')
+            with open(AGENT_RULES, 'w', encoding='utf-8') as fh:
+                fh.write(text)
+            time.sleep(2)  # the bridge rereads its rules within a second of a change
+        for s, e in todo:
+            go_to(info, e)
+            first = name_of(info, s)
+            if 'secure' not in first:
+                print(f'{s} {label(e)}: not secure already ({first})')
+                continue
+            said = house_command(info, 'i wish to release this', s)
+            print(f'{s} "i wish to release this": {said or "no answer"}', flush=True)
+            now = name_of(info, s)
+            if 'secure' in now:
+                raise SystemExit(f'STOPPED: {s} {label(e)} is still secure after the release: {now!r}')
+            said = house_command(info, 'i wish to lock this down', s)
+            print(f'{s} "i wish to lock this down": {said or "no answer"}', flush=True)
+            now = name_of(info, s)
+            if 'secure' in now or 'locked down' not in now:
+                raise SystemExit(f'STOPPED: {s} {label(e)} now says {now!r}')
+            print(f'{s} {label(e)}: locked down, not secure ({now})', flush=True)
+    finally:
+        with open(AGENT_RULES, 'w', encoding='utf-8') as fh:
+            fh.write(original)  # the friend's chests back off limits
 
 
 def main():
