@@ -273,11 +273,19 @@ def to_vault():
     import carto
     import door
     st = status()
+    gems.info = trips.info = carto.info = door.info = restock.info = info
     if castle.inside((st['x'], st['y'])):
         castle.go_out()  # reagents checked, Recall, the tower-front fight, in and parked
-    gems.info = trips.info = carto.info = door.info = restock.info = info
     fight.setup(info)
     st = status()
+    if 1714 <= st['x'] <= 1830 and 1414 <= st['y'] <= 1485 and st['y'] > 1413:
+        # outside the tower (a trip restarted mid-fight): the tower-front fight, then in
+        fight.use_place(fight.TOWER_FRONT)
+        try:
+            fight.Fight(10, front=True).run()
+        except fight.Stop as e:
+            raise Stop(f'at the tower front: {e}')
+        st = status()
     if not (1745 <= st['x'] <= 1765 and 1400 <= st['y'] <= 1414):
         raise Stop(f"he isn't in the tower ({st['x']},{st['y']})")
     if carto.floor_of(st['z']) == 1:

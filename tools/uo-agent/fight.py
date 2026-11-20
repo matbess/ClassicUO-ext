@@ -82,8 +82,13 @@ class Place:
     outside areas), how far out counts as "in front", lookout routes for a patrol, and how he gets in through the
     door. places.py has the tower and the castle; use_place() switches."""
 
-    def __init__(self, name, home, areas, go_in, inside, front_range=FRONT_RANGE, routes=None):
+    def __init__(self, name, home, areas, go_in, inside, front_range=FRONT_RANGE, routes=None, steps=()):
         self.name, self.home, self.areas, self.front_range = name, tuple(home), [tuple(a) for a in areas], front_range
+        # the front steps: they count as inside the building, so a creature standing on them can be told "remove
+        # thyself", and only by him standing on them (or inside) (the user, 2026-11-19: "A monster that's standing on
+        # the steps gets told remove thyself ... YOU have to be on the steps or inside the building to be allowed to
+        # use that command"). None known: never said there.
+        self.steps = set(steps)
         self.routes = routes or {}
         self.go_in = go_in      # go_in(guard): through the door, locked and closed behind him; raises door.Stop if the
         #                         guard (called before any key or door work) says no, or the door didn't behave
@@ -96,7 +101,8 @@ def tower_go_in(guard):
     door.go_in()
 
 
-TOWER_FRONT = Place('the tower', door.OUTSIDE, AREAS, tower_go_in, lambda p: p[1] <= 1413, FRONT_RANGE, ROUTES)
+TOWER_FRONT = Place('the tower', door.OUTSIDE, AREAS, tower_go_in, lambda p: p[1] <= 1413, FRONT_RANGE, ROUTES,
+                    steps=door.STEPS)
 PLACE = TOWER_FRONT
 
 
@@ -1859,11 +1865,12 @@ class Fight:
             raise door.Stop(f'hurt at the door ({self.door_hits} -> {st["hits"]})')
 
     def step_home(self, me, threats):
-        """Short hops to the front door, then in (door.go_in). True once he's inside. A creature within 3 of the door
-        (not after him: that's dealt with first) is put off the front steps with the house command "remove thyself" (the
-        user, 2026-11-06); he only goes for the door with none there."""
-        at_door = [t for t in threats if dist(xy(t), HOME) <= 3]
-        if at_door and dist(me, HOME) <= 8:
+        """Short hops to the front door, then in (PLACE.go_in). True once he's inside. A creature standing on the front
+        steps (not after him: that's dealt with first) is put off them with the house command "remove thyself", said
+        from the steps themselves (they count as inside; the user, 2026-11-06 and 2026-11-19); he only goes for the
+        door with none there. Anything near the door but not on the steps is the fight's, through the door guard."""
+        at_door = [t for t in threats if xy(t) in PLACE.steps]
+        if at_door and tuple(me) in PLACE.steps:
             t = min(at_door, key=lambda t: dist(xy(t), HOME))
             if time.time() - self.removed_at.get(t['serial'], 0) > 6:
                 self.removed_at[t['serial']] = time.time()
