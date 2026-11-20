@@ -148,8 +148,13 @@ def guess_stones(item):
 
 # ---- loading in the tower vault ----
 
+LEFT = [False]  # set when a load ends with things still in the tower
+
+
 def load():
-    """Fill his pack from the tower's containers, in ORDER. Returns the pieces taken (also written to LOAD)."""
+    """Fill his pack from the tower's containers, in ORDER. Returns the pieces taken (also written to LOAD); LEFT[0]
+    says whether anything was left behind."""
+    LEFT[0] = False
     labels = uo.load_labels()
     pack = status()['backpack']['serial']
     taken = read_load()
@@ -172,6 +177,7 @@ def load():
             known = pieces[0]['role'] == 'bag'  # a bag says what it weighs; a loose thing is weighed by lifting it
             if known and stones > room:
                 say(f'his pack is full ({st["weight"]}/{st["weightMax"]} stones): this load is done')
+                LEFT[0] = True
                 return taken
             bag_label = labels.get(pieces[0]['serial']) if pieces[0]['role'] == 'bag' else None
             what = target_of(text, bag_label)
@@ -186,7 +192,12 @@ def load():
                     part = amount // 2
                     while part >= 1 and not r.get('moved'):
                         time.sleep(1)
-                        open_items(serial)  # the refused drop bounced back: his client knows it again after a look
+                        # the refused drop bounced back as a new item (2026-11-19: 0x4088B57F came back as
+                        # 0x4087D2B3): find the pile again by what it is
+                        again = [i for i in open_items(serial) if i['graphic'] == p['graphic']
+                                 and i.get('hue') == p.get('hue') and i.get('amount', 1) == amount]
+                        if again:
+                            p['serial'] = again[0]['serial']
                         try:
                             r = uo.move(info, p['serial'], pack, amount=part)
                         except uo.BridgeError as e:
@@ -196,6 +207,7 @@ def load():
                         part //= 2
                     if not r.get('moved'):
                         say(f"his pack takes no more ({status()['weight']} stones): this load is done")
+                        LEFT[0] = True
                         return taken
                     p['amount'] = part * 2
                     say(f"{p['type']}: {p['amount']} of {amount} this trip, the rest next time")
@@ -203,6 +215,7 @@ def load():
                     raise Stop(f"{p['serial']} {p['type']} did not come out of {text}: {r}")
             after = status()
             if after['weight'] > after['weightMax'] - WEIGHT_LEFT:  # too much after all: back where it lay
+                LEFT[0] = True
                 for p in pieces:
                     uo.move(info, p['serial'], serial, p['x'], p['y'])
                 say(f'his pack is full ({before}/{after["weightMax"]} stones; {pieces[0]["type"]} would make it '
@@ -344,6 +357,8 @@ def trip():
     to_vault()
     taken = load()
     if not taken:
+        if LEFT[0]:
+            raise Stop('things are left in the tower but none of them would go into his pack: TELL THE USER')
         say('nothing left to carry')
         return False
     say(f'loaded {len(taken)} pieces; to the castle')
