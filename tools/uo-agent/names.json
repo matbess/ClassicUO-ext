@@ -3788,7 +3788,7 @@
  "0x4047F636": "world map",
  "0x4047FC54": "world map",
  "0x40480081": "world map",
- "0x404804BD": "locked down / wooden chest / (0 items, 0 stones)",
+ "0x404804BD": "locked down / wooden chest / (22 items, 66 stones)",
  "0x404807F2": "world map",
  "0x40480E2E": "world map",
  "0x404814E0": "world map",
@@ -8931,7 +8931,7 @@
  "0x40913567": "You unlock it.",
  "0x40913569": "This house is like new. / Burger Barn",
  "0x4091356F": "You unlock it.",
- "0x40913571": "You unlock it.",
+ "0x40913571": "metal door",
  "0x409135F8": "world map",
  "0x4091375A": "world map",
  "0x40913774": "world map",
@@ -11590,7 +11590,7 @@
  "0x409ED413": "world map",
  "0x409ED558": "world map",
  "0x40A183EF": "locked down / Shipwrights & Mapmakers / runebook",
- "0x40A519B7": "wooden chest recovered from a shipwreck / (0 items, 0 stones)",
+ "0x40A519B7": "locked down / wooden chest recovered from a shipwreck / (0 items, 0 stones)",
  "0x40C067A4": "locked down / Stables / runebook",
  "0x40C9CAF9": "wooden chest recovered from a shipwreck / (0 items, 0 stones)"
 }

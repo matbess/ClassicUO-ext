@@ -347,7 +347,13 @@ class Mover:
             st = self.status()
             if cheb((st['x'], st['y']), stand) > 0:
                 self.go(stand, f'to {serial}')
-            return
+            chest = (PLAN[serial]['x'], PLAN[serial]['y'])
+            for _ in range(3):  # and really within reach (22:37: 945,2325 is 3 from the smelting chest at 944,2322)
+                st = self.status()
+                if cheb((st['x'], st['y']), chest) <= 2:
+                    return
+                self.uo.call(info, 'POST', '/walk', x=stand[0], y=stand[1], distance=0)
+            raise self.uo.BridgeError(0, f"can't get within reach of {serial} at {chest}: he's at {st['x']},{st['y']}")
         try:
             spot = self.uo.on_floor(info, serial)
         except self.uo.BridgeError as e:
