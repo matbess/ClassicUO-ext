@@ -144,6 +144,22 @@ fight. Nothing goes to town until fighting works.
   cursor isn't an action: it can go as fast as the prompt appears (the bridge's /target, /menu and /gump don't wait
   the gap).
 
+## Places: the same fight anywhere (2026-11-19)
+
+The user, 2026-11-19: "fighting needs to be usable by every agent ... It needs to be portable", and the place only
+defines "the square-area where the fighting is limited to". fight.py's fighting (who to deal with, provoking,
+spells, fleeing, looting gold) is the same everywhere; **`places.py`** says where: a `fight.Place` with the ground
+he may fight on (his rules' outside areas there), the spot in front of the door, how far out counts as in front, any
+patrol routes, and the door routine that takes him in (it calls the fight's guard before any key work).
+- `fight.py --at tower-front` (the default) and `--at castle-front`; by default he deals with what's in front and
+  goes in (what `--front` was); `--patrol` hunts along the place's routes first (the tower only).
+- `castle.py in` runs it at the castle front the moment the Castle rune lands him; trips.py's way home uses the
+  tower's.
+- The fight ends the moment he's inside, and stops on a takeover even while it's only looking (19:56: it spun for
+  half a minute after the user had walked him in).
+- **Bears are left alone** (the user, 2026-11-19: "DONT FIGHT A BEAR ... it's not hostile!! it's grey"), like the
+  panthers and timber wolves: in PASSIVE, still partners.
+
 ## Creatures
 
 **A creature coming at him turns Criminal** (the user, 2026-11-06: "I can see the creature turn completely grey
@@ -504,7 +520,7 @@ door (each kept until reached), then `door.go_in`. Time up (10 min), interrupted
 `fight_scenes.py` checks single decisions; `fight_sim.py` runs them over time in a made-up world (Clem riding to his
 spot, creatures coming once they've turned) and counts his walks and reversals: run both after changing fight.py.
 
-## Home from town (2026-11-08, trips.py; fight.py --front)
+## Home from town (2026-11-08, trips.py; fight.py --at tower-front)
 
 The user: "When you recall back you will immediately have to be running code that looks for enemies and provokes them
 onto each other. You should handle all of the enemies until there are no more in front of the tower before you
@@ -541,7 +557,7 @@ process, the moment the bridge says he has moved, runs `fight.Fight(10, front=Tr
   - a bridge stop while he's outside never ends the fight: it is resumed (up to 5 a minute); only the user taking
     over stops it;
   - below DYING (35%) with a creature within 5: ride far away (15+) before anything else.
-`python3 -I fight.py --front` does the same from outside by hand. fight_scenes.py has the front scenes.
+`python3 -I fight.py --at tower-front` (or `--at castle-front`) does the same from outside by hand. fight_scenes.py has the front scenes.
 
 ## Open items
 

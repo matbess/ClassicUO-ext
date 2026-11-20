@@ -515,6 +515,7 @@ def home_and_in():
         except uo.BridgeError as e:
             say(f'Magic Reflection: {e}')
     recall(TOWER_RUNE, 'home')
+    fight.use_place(fight.TOWER_FRONT)  # the tower's front, whatever place fought last in this run (places.py)
     old = signal.signal(signal.SIGTERM, fight.on_term)  # a stop now means: finish going in
     try:
         fight.Fight(10, front=True).run()

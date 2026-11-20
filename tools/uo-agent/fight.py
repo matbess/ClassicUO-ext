@@ -12,11 +12,15 @@ creatures. The user's rules (2026-11-06):
   Lightning when it's low, Fireball when it's very low; one at a time, waiting for each to land.
 - Meditate when mana is short and everything is busy fighting; heal once clear; a trapped pouch when paralysed.
 
-  python3 -I fight.py [--minutes N] [--front] [--resume]
+  python3 -I fight.py [--at tower-front|castle-front] [--patrol [--minutes N] [--route R]] [--resume]
 
---front (and trips.py, coming home from town, the user 2026-11-08): only the creatures within FRONT_RANGE of the front
-door are drawn and dealt with, none further out looked for, no meditating outside after the fight (he does that
-inside); then in. With his pack full of maps, looting takes only what stacks onto what he carries.
+The fighting is the same everywhere (the user, 2026-11-19: "fighting needs to be usable by every agent ... It needs
+to be portable"); --at only says where (places.py: Place): the ground he may fight on, the spot in front of the
+door, how far out counts as in front, and how he gets in through the door. By default (what --front was; trips.py
+coming home from town, the user 2026-11-08) only the creatures within the place's front range of the door, or near
+him, are drawn and dealt with, none further out looked for, no meditating outside after the fight (he does that
+inside); then in. --patrol goes looking along the place's routes for N minutes first (the tower only). With his pack
+full of maps, looting takes only what stacks onto what he carries.
 
 Starts where he is outside (door.py out takes him there). He only leaves the fight by going home: when nothing is
 left or coming, when nothing is found, after N minutes (10), or when this is interrupted, he makes his way back to
@@ -69,6 +73,42 @@ LOOK_AROUND = 3                   # seconds at each lookout point
 # home from town (trips.py, the user, 2026-11-08): Recall lands him at 1757,1419; every enemy in front of the tower is
 # dealt with before he goes in, and none further out is looked for: this far from the front door counts as in front
 FRONT_RANGE = 15
+
+
+class Place:
+    """Where a fight happens and how he gets in from it (the user, 2026-11-19: "fighting needs to be usable by every
+    agent ... It needs to be portable"). The fight itself (who to deal with, provoking, spells, fleeing) is the same
+    everywhere; a place only says where home is: the spot in front of its door, the ground he may fight on (his rules'
+    outside areas), how far out counts as "in front", lookout routes for a patrol, and how he gets in through the
+    door. places.py has the tower and the castle; use_place() switches."""
+
+    def __init__(self, name, home, areas, go_in, inside, front_range=FRONT_RANGE, routes=None):
+        self.name, self.home, self.areas, self.front_range = name, tuple(home), [tuple(a) for a in areas], front_range
+        self.routes = routes or {}
+        self.go_in = go_in      # go_in(guard): through the door, locked and closed behind him; raises door.Stop if the
+        #                         guard (called before any key or door work) says no, or the door didn't behave
+        self.inside = inside    # inside((x, y)): through the door
+
+
+def tower_go_in(guard):
+    door.info = info
+    door.guard = guard
+    door.go_in()
+
+
+TOWER_FRONT = Place('the tower', door.OUTSIDE, AREAS, tower_go_in, lambda p: p[1] <= 1413, FRONT_RANGE, ROUTES)
+PLACE = TOWER_FRONT
+
+
+def use_place(place):
+    """Fight at this place from now on (module-wide: HOME, AREAS, AREA, FRONT_RANGE, ROUTES follow it)."""
+    global PLACE, HOME, AREAS, AREA, FRONT_RANGE, ROUTES
+    PLACE, HOME, AREAS, AREA, FRONT_RANGE, ROUTES = place, place.home, place.areas, place.areas[0], place.front_range, \
+        place.routes
+
+
+def outside(p):
+    return not PLACE.inside(p)
 # ...and anything this close to him wherever he is: 2026-11-08 21:37 he led an orc (Kog) off, it was then more than
 # FRONT_RANGE from the door, so the front counted as clear and he rode home with it on his heels and stood working
 # the key while it hit him from 100 to 34. The user: "lead him away and provoke him onto another creature ... and
@@ -184,7 +224,9 @@ CASTERS = {'water elemental', 'air elemental', 'lich', 'orc mage', 'ratman mage'
 PASSIVE = {'llama', 'sheep', 'horse', 'cow', 'bull', 'pig', 'boar', 'chicken', 'deer', 'hind', 'great hart', 'rabbit',
            'jack rabbit', 'cat', 'dog', 'bird', 'eagle', 'goat', 'mountain goat', 'rat', 'squirrel', 'ferret',
            'pack horse', 'pack llama', 'walrus', 'dolphin', 'crane', 'raven', 'magpie', 'finch', 'tern', 'swallow',
-           'panther', 'timber wolf'}
+           'panther', 'timber wolf', 'black bear', 'brown bear', 'grizzly bear', 'polar bear'}
+# the user, 2026-11-19: "DONT FIGHT A BEAR ... it's not hostile!! it's grey" (fight.py had circled a grey black bear in
+# front of the tower). Like the panthers and timber wolves: left alone unless one turns on him; still a partner.
 # the user, 2026-11-06: leave panthers alone unless they attack him (they don't seem to); timber wolves don't attack,
 # dire wolves do (deal with those). It's per creature, and the bridge's notoriety doesn't tell (all show Gray). A
 # creature from this list that turns on him (war mode, not provoked) counts as a threat after all.
@@ -309,7 +351,7 @@ def resume_halt_outside():
         st = uo.call(info, 'GET', '/status')
     except uo.BridgeError:
         return False
-    if st.get('takenOver') or not st.get('halted') or st['y'] < AREA[1]:
+    if st.get('takenOver') or not st.get('halted') or not outside((st['x'], st['y'])):
         return False
     now = time.time()
     _halts[:] = [t for t in _halts if now - t < 60] + [now]
@@ -621,8 +663,8 @@ class Fight:
         self.fought = False
         self.quiet_since = None
         self.homeward = False    # going home: the fight is done, or time's up, or interrupted
-        self.route = route or random.choice(sorted(ROUTES))
-        self.patrol = list(ROUTES[self.route])
+        self.route = route or (random.choice(sorted(ROUTES)) if ROUTES else None)
+        self.patrol = list(ROUTES.get(self.route, []))  # a place with no routes (the castle): front fights only
         self.goal = None
         self.goal_sent = 0.0
         self.arrived_at = None
@@ -1072,7 +1114,7 @@ class Fight:
 
     def run(self):
         """Until he's inside (returns) or the user takes over (Stop)."""
-        say('fight: home from town, dealing with everything in front of the tower' if self.front
+        say(f'fight: home from town, dealing with everything in front of {PLACE.name}' if self.front
             else f'fight: watching for creatures (route: {self.route})')
         while True:
             if not self.homeward and time.time() > self.deadline:
@@ -1099,6 +1141,13 @@ class Fight:
     def tick(self):
         st, mobs = look()
         me = (st['x'], st['y'])
+        # reads send nothing, so a takeover only shows here (2026-11-19 19:56: the user walked him in, and the fight
+        # spun on "not going in with a mongbat 5 tiles off" for half a minute, sending nothing, never told)
+        if st.get('takenOver'):
+            raise Stop(f"the user took over ({st['takenOver']})")
+        if PLACE.inside(me):
+            say(f'he is inside {PLACE.name} ({me[0]},{me[1]}): the fight is over')
+            return True
         hp = st['hits'] / max(st['hitsMax'], 1)
         self.remember(me, mobs)
         self.note_damage(mobs)
@@ -1829,17 +1878,15 @@ class Fight:
             time.sleep(0.3)
             return False
         if dist(me, HOME) <= 1:
-            door.info = info
-            door.guard = self.door_guard
             self.door_hits = call('GET', '/status')['hits']
             try:
-                door.go_in()
+                PLACE.go_in(self.door_guard)
                 return True
             except door.Stop as e:
                 st = call('GET', '/status')
                 if st.get('takenOver'):
                     raise Stop(f'{st.get("takenOver")} (on the way in: {e})')
-                if st['y'] <= 1413:
+                if PLACE.inside((st['x'], st['y'])):
                     say(f'inside, but: {e}')
                     return True
                 # danger at the door: straight back to fighting (no going in until it's dealt with)
@@ -1865,7 +1912,7 @@ class Fight:
             # can just loot the gold")
             if self.loot(me, call('GET', '/status'), front_door=True):
                 return False
-            self.go_home('nothing left in front of the tower')
+            self.go_home(f'nothing left in front of {PLACE.name}')
             return False
         if self.goal is None:
             if not self.patrol:
@@ -1924,10 +1971,14 @@ def setup(bridge_info, partner=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--minutes', type=float, default=10, help='then home')
-    parser.add_argument('--route', choices=sorted(ROUTES), help='where to look (default: one at random)')
+    parser.add_argument('--at', default='tower-front', help='where: tower-front or castle-front (places.py). It sets the '
+                        'ground he may fight on, the spot in front of the door and how he gets in')
+    parser.add_argument('--patrol', action='store_true',
+                        help="go looking for creatures along the place's routes for --minutes, then in (the tower "
+                             'only); without it he deals with what is in front of the door, then goes in')
+    parser.add_argument('--route', choices=sorted(ROUTES), help='with --patrol: which route (default: one at random)')
     parser.add_argument('--partner', help='set creatures on this kind first (e.g. panther), as the user says')
-    parser.add_argument('--front', action='store_true',
-                        help='only the creatures in front of the tower, then in (as coming home from town)')
+    parser.add_argument('--front', action='store_true', help=argparse.SUPPRESS)  # the old name; now the default
     parser.add_argument('--resume', action='store_true',
                         help='clear a takeover; only when the user has said they hand him back')
     args = parser.parse_args()
@@ -1936,16 +1987,20 @@ def main():
         st = setup(uo.find_bridge('Clem'), args.partner)
     except SystemExit as e:
         sys.exit(str(e))
+    import places
+    use_place(places.get(args.at))
+    if args.patrol and not PLACE.routes:
+        sys.exit(f'{args.at} has no routes to patrol')
     stopped = st.get('takenOver') or st.get('halted')
     if stopped and not args.resume:
         sys.exit(f'the user has him ({stopped}); --resume only once they hand him back')
-    if st['y'] < AREA[1]:  # the doorway (y 1414), where door.py out leaves him, counts
-        sys.exit('he is not outside (door.py out first)')
+    if not outside((st['x'], st['y'])):  # the tower's doorway (y 1414), where door.py out leaves him, counts
+        sys.exit('he is not outside')
     if stopped:
         call('POST', '/resume', handback=True)  # --resume: the user handed him back
         say(f'resumed, as the user said (was: {stopped})')
     try:
-        Fight(args.minutes, args.route, front=args.front).run()
+        Fight(args.minutes, args.route, front=not args.patrol).run()
         say('parked inside; the door is locked and closed')
     except Stop as e:
         say(f'STOPPED: {e}')
