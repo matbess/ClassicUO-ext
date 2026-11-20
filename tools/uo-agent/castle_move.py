@@ -304,8 +304,11 @@ def razor_opened(serial):
         st = uo.call(info, 'GET', '/status')
         took = st.get('takenOver') or ''
         events = uo.call(info, 'GET', '/events', after=0)['events']
-        clicks = [e for e in events if e.get('kind') == 'sent double-click' and e.get('serial') == serial]
-        drops = [e for e in events if e.get('kind') == 'sent drop' and e.get('serial') == serial]
+        # the click the takeover is about (it may be on the bag before this piece: the stop shows on the next request,
+        # 20:53:26 the attack wands bag's click stopped the move of its marker), and that item's drop
+        when = took[len('a double-click at '):]
+        clicks = [e for e in events if e.get('kind') == 'sent double-click' and e['time'].startswith(when)]
+        drops = [e for e in events if e.get('kind') == 'sent drop' and clicks and e.get('serial') == clicks[-1].get('serial')]
         if took.startswith('a double-click at ') and clicks and drops:
             c, d = clicks[-1], drops[-1]
             secs = lambda t: sum(float(x) * m for x, m in zip(t.split(':'), (3600, 60, 1)))  # noqa: E731

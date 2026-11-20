@@ -114,6 +114,56 @@
   ],
   "recorded": "2026-11-19 20:43"
  },
+ "0x406C71AF": {
+  "bags": [
+   {
+    "kind": "rings",
+    "known": 0,
+    "marker": {
+     "name": "ring of teleporting (4 charges)",
+     "serial": "0x40869192",
+     "x": 18,
+     "y": 128
+    },
+    "serial": "0x4098CD0F",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "items": 2,
+  "label": "castle: jewellery (east 2331, 3rd) [secure]",
+  "loose": [],
+  "recorded": "2026-11-19 20:52"
+ },
+ "0x406C9B38": {
+  "bags": [
+   {
+    "kind": "tunics & shirts",
+    "known": 0,
+    "marker": {
+     "name": "tunic of spell reflection (34 charges)",
+     "serial": "0x4073BA09",
+     "x": 29,
+     "y": 105
+    },
+    "serial": "0x409397C4",
+    "x": 18,
+    "y": 105
+   },
+   {
+    "kind": "footwear",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098CD10",
+    "x": 72,
+    "y": 105
+   }
+  ],
+  "items": 3,
+  "label": "castle: magic clothing (east 2331, floor) [secure]",
+  "loose": [],
+  "recorded": "2026-11-19 20:52"
+ },
  "0x40790A06": {
   "bags": [],
   "items": 1,
