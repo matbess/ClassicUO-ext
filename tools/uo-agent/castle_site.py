@@ -133,96 +133,62 @@ def write_site(batch, side):
 # points. A trip is the shortest way along the lines, sent to the bridge as one path (/travel: one smooth ride, the
 # next stretch started before the last ends), the way mining rides its recorded routes (the user, 2026-11-19: "You need
 # to map out these walking paths so the coordinates are coded. You shouldn't need to walk so jerky and slow").
-LINES = {
-    # the great hall, up the stairs (z 26) and down into the west hall
-    'stairs': [(935, 2338), (933, 2336), (933, 2335), (933, 2332), (932, 2332), (928, 2333), (928, 2336), (925, 2336),
-               (923, 2335), (921, 2331), (923, 2329), (923, 2327), (924, 2327), (924, 2323), (921, 2323), (921, 2327),
-               (922, 2327), (923, 2328)],
-    # the west hall walkway, north to south
-    'west hall': [(923, 2328), (923, 2329), (923, 2330), (923, 2333), (923, 2334), (923, 2336), (923, 2338),
-                  (923, 2342), (923, 2343), (923, 2348)],
-    # along the friend's row to the west intake chests
-    'south-west': [(923, 2348), (925, 2348), (926, 2349), (929, 2349), (931, 2349), (932, 2349)],
-    # the north corridor to the forge corner and the top of the east hall
-    'north': [(923, 2328), (924, 2326), (925, 2325), (927, 2323), (929, 2323), (932, 2324), (936, 2323), (941, 2323),
-              (945, 2323), (945, 2324), (947, 2326), (948, 2327)],
-    # the east hall walkway, north to south, to the user's table
-    'east hall': [(948, 2327), (949, 2328), (949, 2330), (949, 2334), (949, 2337), (949, 2340), (949, 2343),
-                  (949, 2346), (947, 2349), (946, 2349), (944, 2349)],
-    # past the user's table (943,2349: released and moved first) to their vault and the east intake chests
-    'south-east': [(944, 2349), (943, 2349), (941, 2349), (940, 2349), (939, 2349)],
-}
+# the user's own walk from the great hall to the south-east (recorded 2026-11-19 20:32-20:33, rec2/walk.jsonl), kept as
+# its turn points only: where the direction changes or a ramp starts or ends (the user: "you just record which points
+# the vector (walk direction) changes"). (x, y, z): the stairs put two of them on the same x,y at two heights.
+ROUTE = [(934, 2338, 6), (933, 2338, 6), (933, 2333, 6), (932, 2332, 8), (928, 2332, 26), (928, 2336, 26),
+         (923, 2336, 26), (923, 2327, 26), (925, 2327, 26), (925, 2322, 26), (921, 2322, 26), (921, 2327, 6),
+         (925, 2327, 6), (926, 2326, 6), (926, 2323, 6), (947, 2323, 6), (947, 2326, 6), (948, 2326, 6),
+         (948, 2350, 6), (939, 2350, 6)]
+UP = 20  # z this high and over: upstairs
 TABLE_SPOT = (943, 2349)
-
-
-def _graph():
-    links = {}
-    for pts in LINES.values():
-        for a, b in zip(pts, pts[1:]):
-            links.setdefault(a, set()).add(b)
-            links.setdefault(b, set()).add(a)
-    return links
-
-
-GRAPH = _graph()
 
 
 def cheb(a, b):
     return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
 
 
-def nearest_point(p, z=None):
-    """The lines' point nearest p; up on the stairs (z 20 and over) only the stairs' own points (the floor below is
-    near on the map but not to him: 2026-11-19 20:18, at 927,2324,26 the nearest was 925,2325 down in the corridor)."""
-    pool = UPSTAIRS if z is not None and z >= 20 else GRAPH
-    return min(pool, key=lambda q: (cheb(p, q), abs(p[0] - q[0]) + abs(p[1] - q[1])))
+def _tiles(a, b):
+    """The tiles of a straight (or diagonal) stretch from a to b, a included."""
+    n = cheb(a, b)
+    return [(round(a[0] + (b[0] - a[0]) * k / n), round(a[1] + (b[1] - a[1]) * k / n)) for k in range(n + 1)] if n \
+        else [(a[0], a[1])]
 
 
-def route(start, goal, z=None):
-    """The points along the lines from the one nearest start (at height z) to the one nearest goal (breadth first:
-    fewest points; the lines are short)."""
-    a, b = nearest_point(start, z), nearest_point(goal)
-    seen, queue = {a: None}, [a]
-    while queue:
-        q = queue.pop(0)
-        if q == b:
-            break
-        for n in sorted(GRAPH[q]):
-            if n not in seen:
-                seen[n] = q
-                queue.append(n)
-    if b not in seen:
-        raise KeyError(f'no way along the lines from {start} to {goal}')
-    out, q = [], b
-    while q is not None:
-        out.insert(0, q)
-        q = seen[q]
-    return out
-
-
-STAIRS = set(LINES['stairs'][1:-1])  # the stairs line's points (not the two ends, on the floors): its own stretch
-# the points up on the upper floor (z 20 and over in the user's walk): where he can be when he's upstairs
-UPSTAIRS = {(928, 2333), (928, 2336), (925, 2336), (923, 2335), (921, 2331), (923, 2329), (923, 2327), (924, 2327),
-            (924, 2323), (921, 2323)}
-
-
-def stretches(pts):
-    """pts cut where he goes onto or off the stairs."""
-    out, cur = [], []
-    for p in pts:
-        if cur and (p in STAIRS) != (cur[-1] in STAIRS):
-            out.append(cur + [p])  # the joining point ends this stretch and starts the next
-            cur = [p]
+def locate(p, z=6):
+    """Where p meets the route: (stretch index i, between ROUTE[i] and ROUTE[i+1], the tile on it nearest p). Only
+    stretches at his height (upstairs or not) count, so the two floors at one x,y aren't mixed up."""
+    up = z >= UP
+    best = None
+    for i, (a, b) in enumerate(zip(ROUTE, ROUTE[1:])):
+        if up and not (a[2] >= UP or b[2] >= UP) or not up and not (a[2] < UP or b[2] < UP):
             continue
-        cur.append(p)
-    if cur and (not out or len(cur) > 1):
-        out.append(cur)
-    return out
+        for t in _tiles(a, b):
+            d = (cheb(p, t), abs(p[0] - t[0]) + abs(p[1] - t[1]))
+            if best is None or d < best[0]:
+                best = (d, i, t)
+    return best[1], best[2]
+
+
+def route(start, goal, z=6):
+    """The turn points from start to goal along the route, the tile where he leaves it, then the goal."""
+    i, s_tile = locate(start, z)
+    j, g_tile = locate(goal)
+    if j > i or j == i and ROUTE.index(ROUTE[i]) == i and cheb(ROUTE[i], s_tile) <= cheb(ROUTE[i], g_tile):
+        mid = [r[:2] for r in ROUTE[i + 1:j + 1]]
+    else:
+        mid = [r[:2] for r in reversed(ROUTE[j + 1:i + 1])]
+    pts = [s_tile] + mid + [g_tile, tuple(goal)]
+    return [p for k, p in enumerate(pts) if k == 0 or p != pts[k - 1]]
+
+
+def nearest_point(p, z=None):
+    return locate(p, z if z is not None else 6)[1]
 
 
 def stand_spot(x, y):
-    """Where he stands to reach a chest or container at x,y: the walkway in front of a wall's chests, else the
-    nearest point of the lines (and the last steps by the bridge's own walk)."""
+    """Where he stands to reach a chest or container at x,y: the walkway in front of a wall's chests, the row in front
+    of the user's vault, else the route's tile nearest it (and the last steps by the bridge's own walk)."""
     if x == 947 and 2329 <= y <= 2343:
         return (948, y)
     if x == 921 and 2329 <= y <= 2343:
@@ -252,7 +218,7 @@ def zone(x, y):
 
 
 class Mover:
-    """Walks one character around the castle along LINES, opening the user's table when the way goes behind it and
+    """Walks one character around the castle along the user's ROUTE, opening the user's table when the way goes behind it and
     closing it in close_up(). `uo` is the caller's own uo module (each tool loads its own copy)."""
 
     def __init__(self, uo, info, say=print):
@@ -263,54 +229,40 @@ class Mover:
         return self.uo.call(self.info, 'GET', '/status')
 
     def travel(self, pts, what):
-        """One smooth ride along pts; again from where he got to if it stops short. Done only when he stands on the
-        last point at its height: the foot of the stairs (923,2328) lies right under an upstairs tile, and the bridge
-        took 922,2329 upstairs for arrived (2026-11-19 20:27)."""
-        end = pts[-1]
+        """One smooth ride along pts (/travel; his rules allow every height in the castle's halls, so the ramps ride
+        with the rest). Done when he stands on the last point; else again from the route's tile nearest him."""
+        end = tuple(pts[-1])
         for attempt in range(4):
             st = self.status()
-            here, up = (st['x'], st['y']), st['z'] >= 20
-            if here == end and up == (end in UPSTAIRS):
+            if (st['x'], st['y']) == end:
                 return
-            rest = pts
             if attempt:
-                pool = [k for k, p in enumerate(pts) if (p in UPSTAIRS) == up] or list(range(len(pts)))
-                rest = pts[min(pool, key=lambda k: cheb(here, pts[k])):]
-            r = self.uo.call(self.info, 'POST', '/travel', path=';'.join(f'{x},{y}' for x, y in rest[:200]))
+                pts = route((st['x'], st['y']), end, st['z'])
+            r = self.uo.call(self.info, 'POST', '/travel', path=';'.join(f'{x},{y}' for x, y in pts[:200]))
             if r.get('stopped'):
                 self.say(f"the way {what} stopped at {r.get('x')},{r.get('y')} ({r.get('stopped')}); on from there")
         st = self.status()
         raise self.uo.BridgeError(0, f"could not go {what}: he's at {st['x']},{st['y']},{st['z']}")
 
     def go(self, goal, what=''):
-        """Along the lines to goal (the last tile included)."""
+        """Along the user's route to goal (the last tile included), in one ride."""
         st = self.status()
         here = (st['x'], st['y'])
         if here == tuple(goal):
             return
         pts = route(here, goal, st['z'])
-        if tuple(goal) != pts[-1]:
-            pts.append(tuple(goal))
         behind = lambda p: zone(*p) == 'south-east'  # noqa: E731 (behind the user's table)
-        if not behind(here) and any(behind(p) for p in pts):  # going in: the table first
-            cut = next(i for i, p in enumerate(pts) if p == TABLE_SPOT or behind(p))
-            if cut:
-                self.travel(pts[:cut], f'to the user\'s table ({what})')
+        if not behind(here) and behind(tuple(goal)) and TABLE_SPOT not in pts and not any(p[1] == 2350 for p in pts):
             self.open_table()
-            pts = pts[cut:]
-        # in stretches, one per line: the bridge checks every point of a ride against his areas at the height he's
-        # at when it starts, so the stairs (z 26) and the floors (z 6) can't share a ride (2026-11-19 20:18:
-        # "waypoint 936,2323 is outside the agent's area", sent from the top of the stairs)
-        for part in stretches(pts):
-            self.travel(part, what or f'to {goal[0]},{goal[1]}')
+        self.travel(pts, what or f'to {goal[0]},{goal[1]}')
 
     def walk(self, x, y, what=''):
         self.go((x, y), what)
 
     def go_zone(self, target):
-        """Kept for callers that name a zone: onto the lines' point that zone's walks start from."""
-        start = {'east': (948, 2338), 'south-east': (940, 2349), 'south-west': (929, 2349), 'forge': (945, 2324),
-                 'north': (936, 2323), 'west': (923, 2338), 'hall': (935, 2338)}[target]
+        """Kept for callers that name a zone: onto the route where that zone's walks start."""
+        start = {'east': (948, 2338), 'south-east': (940, 2350), 'forge': (945, 2323), 'north': (936, 2323),
+                 'hall': (934, 2338)}[target]
         self.go(start, f'to the {target}')
 
     def walk_near(self, info, serial, reach=1):
@@ -341,7 +293,7 @@ class Mover:
         castle.info = self.info
         st = self.status()
         if (st['x'], st['y']) != castle.TABLE_STAND:
-            self.travel(route((st['x'], st['y']), castle.TABLE_STAND), "to the user's table")
+            self.go(castle.TABLE_STAND, "to the user's table")
         castle.table('open')
         self.table_opened = True
 
@@ -352,7 +304,7 @@ class Mover:
         castle.info = self.info
         st = self.status()
         if (st['x'], st['y']) != castle.TABLE_STAND:
-            self.travel(route((st['x'], st['y']), castle.TABLE_STAND), "back out past the user's table")
+            self.go(castle.TABLE_STAND, "back out past the user's table")
         castle.table('close')
         self.table_opened = False
 
@@ -455,18 +407,15 @@ def test():
                  'miscellaneous', 'needs your decision', 'cooking', 'cloth & leather', 'tools', 'boards & logs',
                  'scrolls, circles 1-4', 'scrolls, circles 5-8'):
         assert targets(name, 'east'), name
-    # the coded walk
-    assert route((935, 2338), (922, 2335))[:3] == [(935, 2338), (933, 2336), (933, 2335)]
-    r = route((948, 2338), (932, 2349))
-    assert (923, 2328) in r and (945, 2323) in r and r[-1] == (932, 2349), r
-    r = route((929, 2349), (940, 2349))
-    assert TABLE_SPOT in r and r[-1] == (940, 2349)
-    assert stand_spot(947, 2335) == (948, 2335) and stand_spot(921, 2335) == (922, 2335)
-    assert stand_spot(940, 2348) == (940, 2349) and stand_spot(938, 2350) == (939, 2349)
-    assert zone(948, 2338) == 'east' and zone(940, 2349) == 'south-east' and zone(944, 2349) == 'east'
-    assert all(len(pts) <= 200 for pts in LINES.values())
-    parts = stretches(route((935, 2338), (948, 2335)))
-    assert len(parts) == 3 and parts[1][1] in STAIRS and parts[2][0] not in STAIRS or parts[2][0] == (923, 2328), parts
+    # the user's route
+    r = route((935, 2338), (948, 2335))
+    assert r[0] == (934, 2338) and (928, 2332) in r and (921, 2327) in r and r[-1] == (948, 2335), r
+    r = route((948, 2335), (934, 2338))
+    assert r[-1] == (934, 2338) and r.index((921, 2327)) < r.index((921, 2322)), r
+    assert route((923, 2330), (948, 2340), 26)[0] == (923, 2330)
+    assert locate((925, 2327), 26)[1] == (925, 2327) and ROUTE[locate((925, 2327), 26)[0]][2] >= UP
+    assert stand_spot(947, 2335) == (948, 2335) and stand_spot(940, 2348) == (940, 2349)
+    assert zone(948, 2338) == 'east' and zone(940, 2349) == 'south-east'
     print('castle_site: all checks pass')
 
 
