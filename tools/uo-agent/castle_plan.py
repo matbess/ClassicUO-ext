@@ -117,7 +117,10 @@ def label(e):
 
 AGENT_RULES = os.path.join(uo.AGENT_DIR, 'rules-Clem.json')
 # where Clem stands to reach a stack: the east hall walkway, the west hall walkway, the walkway in front of the vaults
-STAND = {'east': lambda e: (948, e['y']), 'west': lambda e: (922, e['y']), 'friend': lambda e: (e['x'], 2349)}
+# the friend's row: from 928,2349 for both west stacks (928 and 929): 2026-11-19 piles of gold coins stand stacked on the
+# walkway at 929-931,2349 and he can't step there; the 929 stack is a tile away
+STAND = {'east': lambda e: (948, e['y']), 'west': lambda e: (922, e['y']),
+         'friend': lambda e: (928, 2349) if e['x'] <= 929 else (e['x'], 2349)}
 # the way between the halls (CASTLE.md): long walks stop short, so they go in stages
 EAST_TO_WEST = [(948, 2327), (945, 2323), (930, 2323), (923, 2326), (923, 2335), (923, 2346), (925, 2348)]
 
@@ -165,9 +168,7 @@ def go_to(info, e):
     """Clem in front of a chest: zone by zone (castle_site), then onto his spot."""
     import castle_site
     stand = STAND[e['side']](e)
-    mover = castle_site.Mover(uo, info)
-    mover.go_zone(castle_site.zone(*stand))
-    mover.walk(*stand, what=label(e))
+    castle_site.Mover(uo, info).go(stand, label(e))  # along the user's recorded walk, one smooth ride
 
 
 def house_command(info, words, serial):
