@@ -469,11 +469,20 @@ def unload():
                 except uo.BridgeError:
                     pass
                 c = room.pick(p['what'], SIDE, 1, 0)
-                if where_bag and where_bag[0] in castle_site.PLAN:
-                    r = uo.move(info, p['serial'], p['bag'], p['x'], p['y'])
+                dest = p['bag'] if where_bag and where_bag[0] in castle_site.PLAN else c
+                try:
+                    r = uo.move(info, p['serial'], dest, *((p['x'], p['y']) if dest == p['bag'] else (None, None)))
+                except uo.BridgeError as e:
+                    mine = {i['serial'] for i in call('GET', '/contents',
+                                                      serial=status()['backpack']['serial'])['items']}
+                    if e.code != 423 or 'after dropping' not in e.message or p['serial'] in mine:
+                        raise
+                    uo.call(info, 'POST', '/resume')
+                    say(f"{p['type']} merged onto its pile: resumed")
+                    r = {'moved': True}
+                if dest == p['bag']:
                     say(f"{p['type']} -> back into its bag {p['bag']}")
                 else:
-                    r = uo.move(info, p['serial'], c)
                     pend = read_pending()
                     pend.setdefault(p['bag'], []).append(p['serial'])
                     write_pending(pend)
@@ -490,7 +499,19 @@ def unload():
                 if c is None:
                     raise Stop(f"no castle chest has room for {p['type']} ({p['what']}): TELL THE USER")
             x, y = (None, None) if p['crate'] else (p['x'], p['y'])
-            r = uo.move(info, p['serial'], c, x, y)
+            try:
+                r = uo.move(info, p['serial'], c, x, y)
+            except uo.BridgeError as e:
+                # a pile dropped onto one of its kind merges and its serial is gone, so the bridge never sees it land
+                # and stops (21:10:50, a Recall pile): gone from his pack means it went in
+                if e.code != 423 or 'after dropping' not in e.message:
+                    raise
+                mine = {i['serial'] for i in call('GET', '/contents', serial=status()['backpack']['serial'])['items']}
+                if p['serial'] in mine:
+                    raise
+                uo.call(info, 'POST', '/resume')
+                say(f"{p['type']} merged onto its pile in {c}: resumed")
+                r = {'moved': True}
             if not r.get('moved'):
                 raise Stop(f"{p['serial']} {p['type']} did not go into {c}: {r}")
             if castle_site.is_secure(c):

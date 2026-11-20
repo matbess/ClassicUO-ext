@@ -141,6 +141,10 @@ ROUTE = [(934, 2338, 6), (933, 2338, 6), (933, 2333, 6), (932, 2332, 8), (928, 2
          (925, 2327, 6), (926, 2326, 6), (926, 2323, 6), (947, 2323, 6), (947, 2326, 6), (948, 2326, 6),
          (948, 2350, 6), (939, 2350, 6)]
 UP = 20  # z this high and over: upstairs
+# the ramps, every tile as the user walked them (rec2/walk.jsonl 20:32): his path-finder stalls on them ("no
+# progress" at 924,2326 and 921,2325, 2026-11-19), so these are stepped tile by tile, never left to it
+RAMPS = [[(933, 2333), (932, 2332), (931, 2332), (930, 2332), (929, 2332), (928, 2332)],
+         [(921, 2322), (921, 2323), (921, 2324), (921, 2325), (921, 2326), (921, 2327)]]
 TABLE_SPOT = (943, 2349)
 
 
@@ -290,8 +294,40 @@ class Mover:
         behind = lambda p: zone(*p) == 'south-east'  # noqa: E731 (behind the user's table)
         if not behind(here) and behind(tuple(goal)) and TABLE_SPOT not in pts and not any(p[1] == 2350 for p in pts):
             self.open_table()
-        for part in by_floor(pts3):  # a stretch per floor, each checked to end on its floor
-            self.travel([p[:2] for p in part], what or f'to {goal[0]},{goal[1]}', up=part[-1][2])
+        # the ride cut at the ramps: a smooth ride to a ramp's end, the ramp stepped tile by tile, on from its other end
+        segs, cur = [], [pts3[0]]
+        for prev, nxt in zip(pts3, pts3[1:]):
+            ramp = next((r for r in RAMPS if prev[:2] in (r[0], r[-1]) and nxt[:2] in (r[0], r[-1])
+                         and prev[:2] != nxt[:2]), None)
+            if ramp:
+                if len(cur) > 1:
+                    segs.append(('ride', cur))
+                segs.append(('ramp', (ramp, prev[:2], nxt[:2])))
+                cur = [nxt]
+            else:
+                cur.append(nxt)
+        if len(cur) > 1:
+            segs.append(('ride', cur))
+        for kind, seg in segs:
+            if kind == 'ramp':
+                self.step_ramp(*seg)
+            else:
+                self.travel([p[:2] for p in seg], what or f'to {goal[0]},{goal[1]}', up=seg[-1][2])
+
+    def step_ramp(self, ramp, a, b):
+        """Up or down a ramp one tile at a time, along the user's own tiles."""
+        tiles = ramp if ramp.index(a) <= ramp.index(b) else list(reversed(ramp))
+        st = self.status()
+        here = (st['x'], st['y'])
+        start = tiles.index(here) + 1 if here in tiles else 0
+        for t in tiles[start:]:
+            for _ in range(3):
+                r = self.uo.call(self.info, 'POST', '/walk', x=t[0], y=t[1], distance=0)
+                st = self.status()
+                if (st['x'], st['y']) == t:
+                    break
+            else:
+                raise self.uo.BridgeError(0, f"stuck on the ramp at {st['x']},{st['y']},{st['z']} (next {t})")
 
     def walk(self, x, y, what=''):
         self.go((x, y), what)
@@ -460,6 +496,8 @@ def test():
     parts = by_floor(route3((935, 2338), (948, 2335)))
     assert [p[-1][2] for p in parts] == [True, False, False], parts
     assert by_floor(route3((943, 2324), (945, 2325), 26))[-1][-1] == (945, 2325, False)
+    pts = [p[:2] for p in route3((935, 2338), (948, 2335))]
+    assert (933, 2333) in pts and (928, 2332) in pts and (921, 2322) in pts and (921, 2327) in pts, pts
     assert locate((925, 2327), 26)[1] == (925, 2327) and ROUTE[locate((925, 2327), 26)[0]][2] >= UP
     assert stand_spot(947, 2335) == (948, 2335) and stand_spot(940, 2348) == (940, 2349)
     assert zone(948, 2338) == 'east' and zone(940, 2349) == 'south-east'
