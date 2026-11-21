@@ -2018,7 +2018,7 @@
    "loose": []
   },
   {
-   "serial": "0x40A519B7",
+   "serial": "0x40590715",
    "name": "smelting 1",
    "side": "forge",
    "place": "forge 2322",
@@ -2244,7 +2244,7 @@
    ]
   },
   {
-   "serial": "0x40C9CAF9",
+   "serial": "0x4058D51C",
    "name": "smelting 2",
    "side": "forge",
    "place": "forge 2322",
@@ -2254,7 +2254,7 @@
    "loose": []
   },
   {
-   "serial": "0x406195D4",
+   "serial": "0x4058E2D7",
    "name": "smelting 3",
    "side": "forge",
    "place": "forge 2322",
@@ -2264,7 +2264,7 @@
    "loose": []
   },
   {
-   "serial": "0x40789150",
+   "serial": "0x4058EDBE",
    "name": "smelting 4",
    "side": "forge",
    "place": "forge 2322",
@@ -2280,7 +2280,7 @@
    ]
   },
   {
-   "serial": "0x405F351C",
+   "serial": "0x4058C67C",
    "name": "ingots",
    "side": "forge",
    "place": "forge 2326",
@@ -2301,7 +2301,7 @@
    ]
   },
   {
-   "serial": "0x4045267F",
+   "serial": "0x4058B001",
    "name": "ingots 2",
    "side": "forge",
    "place": "forge 2326",
@@ -2311,7 +2311,7 @@
    "loose": []
   },
   {
-   "serial": "0x40790A06",
+   "serial": "0x4058CCBA",
    "name": "boards & logs",
    "side": "forge",
    "place": "forge 2326",
@@ -2321,7 +2321,7 @@
    "loose": []
   },
   {
-   "serial": "0x404485F8",
+   "serial": "0x40589C3C",
    "name": "boards & logs 2",
    "side": "forge",
    "place": "forge 2326",
@@ -2331,7 +2331,7 @@
    "loose": []
   },
   {
-   "serial": "0x40444EE4",
+   "serial": "0x4058DAD8",
    "name": "cooking",
    "side": "forge",
    "place": "forge 2327",
@@ -2341,7 +2341,7 @@
    "loose": []
   },
   {
-   "serial": "0x405685FA",
+   "serial": "0x4059020A",
    "name": "cloth & leather",
    "side": "forge",
    "place": "forge 2327",
@@ -2357,7 +2357,7 @@
    ]
   },
   {
-   "serial": "0x403A90F5",
+   "serial": "0x4058A89F",
    "name": "tools",
    "side": "forge",
    "place": "forge 2327",
@@ -2367,7 +2367,7 @@
    "loose": []
   },
   {
-   "serial": "0x404804BD",
+   "serial": "0x4058E8DE",
    "name": "free",
    "side": "forge",
    "place": "forge 2327",

@@ -1,33 +1,33 @@
 {
- "0x403A90F5": {
+ "0x4058A89F": {
   "bags": [],
   "items": 0,
   "label": "castle: boards & logs 2 (forge 2327, 3rd)",
   "loose": [],
   "recorded": "2026-11-20 18:43"
  },
- "0x40444EE4": {
+ "0x4058DAD8": {
   "bags": [],
   "items": 0,
   "label": "castle: cooking (forge 2327, top)",
   "loose": [],
   "recorded": "2026-11-20 18:43"
  },
- "0x404485F8": {
+ "0x40589C3C": {
   "bags": [],
   "items": 0,
   "label": "castle: tools (forge 2326, floor)",
   "loose": [],
   "recorded": "2026-11-20 18:43"
  },
- "0x4045267F": {
+ "0x4058B001": {
   "bags": [],
   "items": 0,
   "label": "castle: boards & logs (forge 2326, 2nd)",
   "loose": [],
   "recorded": "2026-11-20 18:43"
  },
- "0x404804BD": {
+ "0x4058E8DE": {
   "bags": [
    {
     "kind": "?",
@@ -570,7 +570,7 @@
   "loose": [],
   "recorded": "2026-11-16 22:38"
  },
- "0x405685FA": {
+ "0x4059020A": {
   "bags": [],
   "items": 2,
   "label": "castle: cloth & leather (forge 2327, 2nd)",
@@ -592,7 +592,7 @@
   ],
   "recorded": "2026-11-20 19:30"
  },
- "0x405F351C": {
+ "0x4058C67C": {
   "bags": [],
   "items": 2,
   "label": "castle: ingots (forge 2326, top)",
@@ -614,7 +614,7 @@
   ],
   "recorded": "2026-11-20 19:30"
  },
- "0x406195D4": {
+ "0x4058E2D7": {
   "bags": [],
   "items": 0,
   "label": "castle: smelting 3 (forge 2322, 3rd)",
@@ -4214,7 +4214,7 @@
   "loose": [],
   "recorded": "2026-11-20 18:43"
  },
- "0x40789150": {
+ "0x4058EDBE": {
   "bags": [],
   "items": 1,
   "label": "castle: smelting 4 (forge 2322, floor)",
@@ -4229,7 +4229,7 @@
   ],
   "recorded": "2026-11-20 18:52"
  },
- "0x40790A06": {
+ "0x4058CCBA": {
   "bags": [],
   "items": 0,
   "label": "castle: boards & logs (forge 2326, 3rd)",
@@ -5132,7 +5132,7 @@
   "loose": [],
   "recorded": "2026-11-16 22:38"
  },
- "0x40A519B7": {
+ "0x40590715": {
   "bags": [],
   "items": 60,
   "label": "castle: smelting 1 (forge 2322, top)",
@@ -5560,7 +5560,7 @@
   ],
   "recorded": "2026-11-20 18:52"
  },
- "0x40C9CAF9": {
+ "0x4058D51C": {
   "bags": [],
   "items": 0,
   "label": "castle: smelting 2 (forge 2322, 2nd)",

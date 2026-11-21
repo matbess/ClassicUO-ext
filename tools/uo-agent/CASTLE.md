@@ -101,6 +101,11 @@ user, 2026-11-18: "Let's just keep what we have planned for now").
 The forge corner also has the forges (946-947,2322), bellows (945 and 948,2322), the anvil (948,2323) and a barrel
 (949,2322).
 
+**Undyed forge chests (2026-11-21):** the 12 grey-dyed chests by the forge were swapped for plain wooden chests
+(`forge_swap.py`; the user turned and placed most of them, since a chest's facing can't be changed by Clem). Same
+places, same kinds; the serials in the data files were renamed (`forge_swap.py remap`). The grey chests go to the great
+hall (the user).
+
 ### The secure south rooms
 
 Each south room is shut off by a **locked-down table** across the walkway on y 2349:
