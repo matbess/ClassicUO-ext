@@ -4,7 +4,10 @@ marker under each), what lies loose in it and what's in the bags, plus the potio
 Not the smelting crates or the trash barrel (the user). Opens every container, as the client's copy can be stale or
 empty after a restart; --known reads only what the client already knows and sends nothing.
 
-  inventory.py [--known] [--all] [--out PATH]
+  inventory.py --asked [--known] [--all] [--only SERIAL,SERIAL] [--out PATH]
+
+Only when the user asks for it (the user, 2026-11-20: "Change the scripts so that you don't do a full recount and
+update the vault page unless I explicitly ask"): it refuses to run without --asked, and nothing runs it on its own.
 
 In the castle (he's inside it), the castle's chests instead (castle_site.py: east and west storage, the forge, the
 user's vault behind their table and the intake chests; never the friend's): every one with something in it at the
@@ -83,9 +86,13 @@ def display(item, names):
     g = int(item['graphic'], 16)
     if 0x1F2D <= g <= 0x1F6C:
         return f'{SPELLS[g - 0x1F2D]} scroll'
+    if 'book' in item.get('type', '') and names.get(item.get('serial', '')):
+        # a runebook or spellbook by its name ("Tailors / runebook" -> "Tailors runebook")
+        parts = [p.strip() for p in names[item['serial']].split(' / ')]
+        return ' '.join(parts[:2]) if len(parts) > 1 and parts[0] not in ('runebook', 'spellbook') else parts[-1]
     if item.get('amount', 1) > 1 or layout.is_bag(item):
         return ' '.join(item.get('type', '?').split())
-    name = (names.get(item['serial']) or '').split(' / ')[0].strip()
+    name = (names.get(item.get('serial', '')) or '').split(' / ')[0].strip()
     name = re.sub(r'^(an?|the) ', '', name, flags=re.I)
     return name or ' '.join(item.get('type', '?').split())
 
@@ -106,6 +113,9 @@ PRICES, PRICED = gem_prices()
 
 
 def main():
+    if '--asked' not in sys.argv and '--known' not in sys.argv:
+        sys.exit('inventory.py counts and rewrites The Vault page only when the user asks for it: '
+                 'run it with --asked then (--known, which sends nothing, needs no asking)')
     known = '--known' in sys.argv
     out = sys.argv[sys.argv.index('--out') + 1] if '--out' in sys.argv else OUT
     info = uo.find_bridge(None)
@@ -195,11 +205,14 @@ def bag_entries(items, labels, names, contents):
     def inside(bag, depth=0):
         found = contents(bag)
         out = []
+        # books (runebooks, spellbooks) open a gump, not a container: listed as they are (2026-11-20, the user's own
+        # chests from the tower hold runebooks)
+        found = [i for i in found if i.get('serial')]
         for i in found:
-            if layout.is_bag(i) and depth < 2:
+            if layout.is_bag(i) and depth < 2 and 'book' not in i.get('type', ''):
                 out.append({'name': labels.get(i['serial'], display(i, names)), 'amount': 1, 'graphic': i['graphic'],
                             'items': entries(inside(i['serial'], depth + 1), names)})
-        return out + entries([i for i in found if not layout.is_bag(i)], names)
+        return out + entries([i for i in found if not layout.is_bag(i) or 'book' in i.get('type', '')], names)
 
     pairs, loose = layout.pair(items, unmarked={s for s, t in labels.items() if not t.startswith('bag: ')})
     bags = []
@@ -226,17 +239,37 @@ def castle_chests(info, labels, names, known, every):
     def contents(serial):
         if known:
             return uo.call(info, 'GET', '/contents', serial=serial)['items']
-        return look.open_once(info, serial)
+        try:
+            if serial not in plan:  # a bag: opened straight, so a bag that never answers isn't waited on as a save
+                uo.walk_near(info, serial)
+                items = uo.call(info, 'POST', '/open', serial=serial)['contents']['items']
+                uo.call(info, 'POST', '/close', serial=serial)
+                return items
+            return look.open_once(info, serial)
+        except uo.BridgeError as e:
+            # some bags inside bags in the user's own chests never answer an open (2026-11-20): counted as unopened
+            if e.code == 423 and 'no answer when opening' in e.message and serial not in plan:
+                uo.call(info, 'POST', '/resume')
+                say(f'{serial} never opened; counted as unopened')
+                return []
+            raise
 
     out = []
     plan = castle_site.PLAN
+    force = set(sys.argv[sys.argv.index('--open') + 1].split(',')) if '--open' in sys.argv else set()
     # by wall, then along it, so the walks go one way
+    only = set(sys.argv[sys.argv.index('--only') + 1].split(',')) if '--only' in sys.argv else None
+    kept = {c['serial']: c for c in json.load(open(OUT, encoding='utf-8')).get('castle', [])} if only else {}
     order = sorted((s for s, e in plan.items() if e['side'] in CASTLE_ORDER),
                    key=lambda s: (CASTLE_ORDER[plan[s]['side']], plan[s]['y'], plan[s]['x'], -plan[s]['z']))
     for serial in order:
         e = plan[serial]
+        if only is not None and serial not in only and serial in kept:
+            # --only: the other chests as at the last count, with today's plan names
+            out.append(dict(kept[serial], name=e['what'], place=e['place'], row=e['row'], secure=e['secure']))
+            continue
         last = recorded.get(serial)
-        if every or known or last is None or last.get('items'):
+        if every or known or last is None or last.get('items') or serial in force or only:
             items = contents(serial)
             layout.record(serial, items)
             bags, loose = bag_entries(items, labels, names, contents)

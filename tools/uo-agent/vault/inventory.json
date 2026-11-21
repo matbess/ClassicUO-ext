@@ -2738,7 +2738,7 @@
   },
   {
    "serial": "0x406E4F2F",
-   "name": "free",
+   "name": "valuables overflow",
    "side": "vault",
    "place": "my vault 939",
    "row": "top",
@@ -2758,7 +2758,7 @@
   },
   {
    "serial": "0x406E2570",
-   "name": "free",
+   "name": "house deeds",
    "side": "vault",
    "place": "my vault 939",
    "row": "3rd",
@@ -2768,12 +2768,78 @@
   },
   {
    "serial": "0x406E7AA0",
-   "name": "free",
+   "name": "gems",
    "side": "vault",
    "place": "my vault 939",
    "row": "floor",
    "secure": false,
-   "bags": [],
+   "bags": [
+    {
+     "name": "gems",
+     "marker": {
+      "name": "tourmaline",
+      "amount": 1,
+      "graphic": "0x0F2D",
+      "each": 45
+     },
+     "items": [
+      {
+       "name": "pieces of amber",
+       "amount": 10,
+       "graphic": "0x0F25",
+       "each": 30
+      },
+      {
+       "name": "amethysts",
+       "amount": 8,
+       "graphic": "0x0F16",
+       "each": 60
+      },
+      {
+       "name": "citrines",
+       "amount": 8,
+       "graphic": "0x0F15",
+       "each": 30
+      },
+      {
+       "name": "diamonds",
+       "amount": 8,
+       "graphic": "0x0F26",
+       "each": 120
+      },
+      {
+       "name": "rubies",
+       "amount": 8,
+       "graphic": "0x0F13",
+       "each": 45
+      },
+      {
+       "name": "tourmalines",
+       "amount": 7,
+       "graphic": "0x0F2D",
+       "each": 45
+      },
+      {
+       "name": "star sapphires",
+       "amount": 6,
+       "graphic": "0x0F21",
+       "each": 75
+      },
+      {
+       "name": "sapphires",
+       "amount": 5,
+       "graphic": "0x0F19",
+       "each": 60
+      },
+      {
+       "name": "emeralds",
+       "amount": 3,
+       "graphic": "0x0F10",
+       "each": 60
+      }
+     ]
+    }
+   ],
    "loose": []
   },
   {
@@ -2868,100 +2934,486 @@
   },
   {
    "serial": "0x406EE45B",
-   "name": "valuables overflow",
+   "name": "yours: runes and bags",
    "side": "vault",
    "place": "my vault 942",
    "row": "2nd",
    "secure": false,
-   "bags": [],
-   "loose": []
+   "bags": [
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": [
+      {
+       "name": "bag",
+       "amount": 1,
+       "graphic": "0x0E76",
+       "items": [
+        {
+         "name": "?",
+         "amount": 199,
+         "graphic": "0x0E21"
+        },
+        {
+         "name": "Recall scroll",
+         "amount": 1,
+         "graphic": "0x1F4C"
+        }
+       ]
+      },
+      {
+       "name": "pouch",
+       "amount": 1,
+       "graphic": "0x0E79",
+       "items": []
+      },
+      {
+       "name": "pouch",
+       "amount": 1,
+       "graphic": "0x0E79",
+       "items": []
+      },
+      {
+       "name": "pouch",
+       "amount": 1,
+       "graphic": "0x0E79",
+       "items": []
+      },
+      {
+       "name": "broadsword",
+       "amount": 3,
+       "graphic": "0x0F5E"
+      },
+      {
+       "name": "cutlass",
+       "amount": 2,
+       "graphic": "0x1441"
+      },
+      {
+       "name": "jester hat",
+       "amount": 1,
+       "graphic": "0x171C"
+      },
+      {
+       "name": "magic viking sword",
+       "amount": 1,
+       "graphic": "0x13B9"
+      },
+      {
+       "name": "short pants",
+       "amount": 1,
+       "graphic": "0x152E"
+      },
+      {
+       "name": "tunic",
+       "amount": 1,
+       "graphic": "0x1FA1"
+      },
+      {
+       "name": "viking sword",
+       "amount": 1,
+       "graphic": "0x13B9"
+      }
+     ]
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": [
+      {
+       "name": "pouch",
+       "amount": 1,
+       "graphic": "0x0E79",
+       "items": []
+      },
+      {
+       "name": "pouch",
+       "amount": 1,
+       "graphic": "0x0E79",
+       "items": []
+      }
+     ]
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": [
+      {
+       "name": "pouch",
+       "amount": 1,
+       "graphic": "0x0E79",
+       "items": [
+        {
+         "name": "?",
+         "amount": 20,
+         "graphic": "0x1EBC"
+        }
+       ]
+      },
+      {
+       "name": "pouch",
+       "amount": 1,
+       "graphic": "0x0E79",
+       "items": [
+        {
+         "name": "?",
+         "amount": 13,
+         "graphic": "0x0F9D"
+        }
+       ]
+      },
+      {
+       "name": "bear mask",
+       "amount": 1,
+       "graphic": "0x1545"
+      },
+      {
+       "name": "shepherd's crook",
+       "amount": 1,
+       "graphic": "0x0E81"
+      },
+      {
+       "name": "smith's hammer",
+       "amount": 1,
+       "graphic": "0x13E3"
+      },
+      {
+       "name": "tribal mask",
+       "amount": 1,
+       "graphic": "0x154B"
+      }
+     ]
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": [
+      {
+       "name": "shoes",
+       "amount": 1,
+       "graphic": "0x170F"
+      }
+     ]
+    },
+    {
+     "name": "bag",
+     "marker": null,
+     "items": [
+      {
+       "name": "shovel",
+       "amount": 2,
+       "graphic": "0x0F39"
+      },
+      {
+       "name": "axe",
+       "amount": 1,
+       "graphic": "0x0F49"
+      }
+     ]
+    },
+    {
+     "name": "bag",
+     "marker": null,
+     "items": [
+      {
+       "name": "bow",
+       "amount": 1,
+       "graphic": "0x13B2"
+      },
+      {
+       "name": "durable chainmail leggings of fortification",
+       "amount": 1,
+       "graphic": "0x13BE"
+      },
+      {
+       "name": "surpassingly accurate bow of vanquishing",
+       "amount": 1,
+       "graphic": "0x13B2"
+      }
+     ]
+    },
+    {
+     "name": "bag",
+     "marker": null,
+     "items": [
+      {
+       "name": "double axe",
+       "amount": 2,
+       "graphic": "0x0F4B"
+      },
+      {
+       "name": "large battle axe",
+       "amount": 2,
+       "graphic": "0x13FB"
+      },
+      {
+       "name": "battle axe",
+       "amount": 1,
+       "graphic": "0x0F47"
+      },
+      {
+       "name": "saw",
+       "amount": 1,
+       "graphic": "0x1034"
+      }
+     ]
+    },
+    {
+     "name": "pouch",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "runebook",
+     "marker": {
+      "name": "recall rune for Mining Start",
+      "amount": 1,
+      "graphic": "0x1F14"
+     },
+     "items": []
+    }
+   ],
+   "loose": [
+    {
+     "name": "recall rune for Mining House",
+     "amount": 2,
+     "graphic": "0x1F14"
+    },
+    {
+     "name": "Mark scroll",
+     "amount": 1,
+     "graphic": "0x1F59"
+    },
+    {
+     "name": "recall rune for Air Elementals",
+     "amount": 1,
+     "graphic": "0x1F14"
+    },
+    {
+     "name": "recall rune for Delucia",
+     "amount": 1,
+     "graphic": "0x1F14"
+    },
+    {
+     "name": "recall rune for Fire Dungeon Exit",
+     "amount": 1,
+     "graphic": "0x1F14"
+    },
+    {
+     "name": "recall rune for Mining Forge",
+     "amount": 1,
+     "graphic": "0x1F14"
+    },
+    {
+     "name": "recall rune for Mining gate location",
+     "amount": 1,
+     "graphic": "0x1F14"
+    },
+    {
+     "name": "recall rune for Outpost",
+     "amount": 1,
+     "graphic": "0x1F14"
+    }
+   ]
   },
   {
    "serial": "0x406DF442",
-   "name": "house deeds",
+   "name": "yours: reagents and supplies",
    "side": "vault",
    "place": "my vault 942",
    "row": "3rd",
    "secure": false,
    "bags": [],
-   "loose": []
+   "loose": [
+    {
+     "name": "Ginseng",
+     "amount": 264,
+     "graphic": "0x0F85"
+    },
+    {
+     "name": "Blood Moss",
+     "amount": 239,
+     "graphic": "0x0F7B"
+    },
+    {
+     "name": "Spider's Silk",
+     "amount": 234,
+     "graphic": "0x0F8D"
+    },
+    {
+     "name": "clean bandages",
+     "amount": 227,
+     "graphic": "0x0E21"
+    },
+    {
+     "name": "Mandrake Roots",
+     "amount": 214,
+     "graphic": "0x0F86"
+    },
+    {
+     "name": "Sulfurous Ash",
+     "amount": 173,
+     "graphic": "0x0F8C"
+    },
+    {
+     "name": "Black Pearls",
+     "amount": 160,
+     "graphic": "0x0F7A"
+    },
+    {
+     "name": "Nightshade",
+     "amount": 129,
+     "graphic": "0x0F88"
+    },
+    {
+     "name": "Garlic",
+     "amount": 22,
+     "graphic": "0x0F84"
+    },
+    {
+     "name": "Recall scroll",
+     "amount": 11,
+     "graphic": "0x1F4C"
+    },
+    {
+     "name": "lockpicks",
+     "amount": 5,
+     "graphic": "0x14FC"
+    },
+    {
+     "name": "Gate Travel scroll",
+     "amount": 1,
+     "graphic": "0x1F60"
+    }
+   ]
   },
   {
    "serial": "0x406F29C0",
-   "name": "gems",
+   "name": "yours: runebooks and maps",
    "side": "vault",
    "place": "my vault 942",
    "row": "floor",
    "secure": false,
    "bags": [
     {
-     "name": "gems",
+     "name": "Blacksmiths runebook",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "Gems runebook",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "Map Makers and Ships runebook",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "pouch",
      "marker": {
-      "name": "tourmaline",
+      "name": "map",
       "amount": 1,
-      "graphic": "0x0F2D",
-      "each": 45
+      "graphic": "0x0F9D"
      },
      "items": [
       {
-       "name": "pieces of amber",
-       "amount": 10,
-       "graphic": "0x0F25",
-       "each": 30
-      },
-      {
-       "name": "amethysts",
-       "amount": 8,
-       "graphic": "0x0F16",
-       "each": 60
-      },
-      {
-       "name": "citrines",
-       "amount": 8,
-       "graphic": "0x0F15",
-       "each": 30
-      },
-      {
-       "name": "diamonds",
-       "amount": 8,
-       "graphic": "0x0F26",
-       "each": 120
-      },
-      {
-       "name": "rubies",
-       "amount": 8,
-       "graphic": "0x0F13",
-       "each": 45
-      },
-      {
-       "name": "tourmalines",
-       "amount": 7,
-       "graphic": "0x0F2D",
-       "each": 45
-      },
-      {
-       "name": "star sapphires",
-       "amount": 6,
-       "graphic": "0x0F21",
-       "each": 75
-      },
-      {
-       "name": "sapphires",
+       "name": "dagger",
        "amount": 5,
-       "graphic": "0x0F19",
-       "each": 60
+       "graphic": "0x0F52"
       },
       {
-       "name": "emeralds",
+       "name": "book",
        "amount": 3,
-       "graphic": "0x0F10",
-       "each": 60
+       "graphic": "0x0FF1"
+      },
+      {
+       "name": "Dead Wood",
+       "amount": 2,
+       "graphic": "0x0F90"
+      },
+      {
+       "name": "doublet",
+       "amount": 2,
+       "graphic": "0x1F7B"
+      },
+      {
+       "name": "short pants",
+       "amount": 2,
+       "graphic": "0x152E"
+      },
+      {
+       "name": "fancy shirt",
+       "amount": 1,
+       "graphic": "0x1EFD"
+      },
+      {
+       "name": "Gems runebook",
+       "amount": 1,
+       "graphic": "0x0EFA"
+      },
+      {
+       "name": "half apron",
+       "amount": 1,
+       "graphic": "0x153B"
+      },
+      {
+       "name": "long pants",
+       "amount": 1,
+       "graphic": "0x1539"
+      },
+      {
+       "name": "map",
+       "amount": 1,
+       "graphic": "0x0F52"
+      },
+      {
+       "name": "spellbook",
+       "amount": 1,
+       "graphic": "0x0EFA"
+      },
+      {
+       "name": "wizard's hat",
+       "amount": 1,
+       "graphic": "0x1718"
       }
      ]
+    },
+    {
+     "name": "Tailors runebook",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "Tinkers runebook",
+     "marker": null,
+     "items": []
     }
    ],
-   "loose": []
+   "loose": [
+    {
+     "name": "dyeing tub",
+     "amount": 1,
+     "graphic": "0x0FAB"
+    },
+    {
+     "name": "dyes",
+     "amount": 1,
+     "graphic": "0x0FA9"
+    },
+    {
+     "name": "map",
+     "amount": 1,
+     "graphic": "0x102C"
+    },
+    {
+     "name": "spyglass",
+     "amount": 1,
+     "graphic": "0x14F5"
+    }
+   ]
   }
  ],
- "castle_updated": "2026-11-19T23:21:46-0800"
+ "castle_updated": "2026-11-20T19:03:25-0800"
 }
