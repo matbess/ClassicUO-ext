@@ -43,6 +43,10 @@ class Stop(Exception):
 CARRY = os.path.join(WORK, 'tower-carry.json')  # what's in his pack, where it came from and where it goes
 # the user's own chests by the stairs -> the castle's 942 stack, same heights (castle_plan.VAULT[942])
 DEST = {'0x4058ABA9': '0x406EE45B', '0x40746D31': '0x406DF442', '0x4074D82B': '0x406F29C0'}
+# the tower forge's top and 2nd chests -> the grey chests in the great hall (the user, 2026-11-21: "Put the tower top
+# chest into the second column top chest in the castle. Put the tower 2nd chest into the 4th column 2nd chest down";
+# columns from the left/south, looking west: 928,2337 top and 928,2335 middle)
+DEST.update({'0x40531814': '0x406195D4', '0x4073C9D0': '0x403A90F5'})
 GEMS_FROM, GEMS_TO = '0x406F29C0', '0x406E7AA0'
 
 
@@ -316,7 +320,9 @@ def main():
     elif cmd == 'record':
         # the exact layout (the user, 2026-11-20: "i want the items placed in the chests exactly the same so when i
         # open the chests it looks the same as it does here in the tower"): every item's x,y in its container, in
-        # the order the server lists them (the drawing order), bags opened all the way down
+        # the order the server lists them (the drawing order). Bags aren't opened: they go over whole, their insides
+        # as they are (the user, 2026-11-20: "The bag contents will stay the same if you just move the entire bag,
+        # you don't have to record those"; 2026-11-21 opening them stuck on a bag that gave no contents)
         names = uo.load_names()
         try:
             data = json.load(open(LAYOUT, encoding='utf-8'))
@@ -340,8 +346,6 @@ def main():
                 e = {'serial': i['serial'], 'graphic': i['graphic'], 'hue': i.get('hue', 0),
                      'amount': i.get('amount', 1), 'x': i['x'], 'y': i['y'], 'order': n,
                      'name': names.get(i['serial'], i.get('type', ''))}
-                if layout.is_bag(i) and depth < 4:
-                    e['items'] = tree(i['serial'], depth + 1)
                 out.append(e)
             return out
 
