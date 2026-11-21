@@ -180,6 +180,23 @@ into its castle chest at its tower spot, back by castle.py out. What was learned
 - Loose crafting things went to the forge (cloth & leather, tools, boards & logs, ingots), not where they lay.
 - The **user's table** never had to move: the y 2350 row runs round it to the user's vault (the user was told).
 
+## The tower's ground floor (from 2026-11-20)
+
+What's left in the tower after the vault: 6 chests by the stairs, 9 in the bedroom, 3 by the forge. The user decides
+where each goes; 2 are the friend's (they'll say which).
+
+- **The user's own 3** (the stack at 1752,1402 by the stairs: z 14, 10, 6) went to **942** in their vault, same heights
+  (2nd, 3rd, floor), moved exactly as they were: "i want the items placed in the chests exactly the same so when i
+  open the chests it looks the same as it does here in the tower". `tower_down.py record` writes every piece's x,y in
+  its chest and the server's order (the drawing order); `carry` takes them whole (a bag's contents keep their places
+  when the bag moves: the user, "you don't have to record those") and puts each back at its x,y in that order, then
+  checks the spots and the order. 42 of 42 matched. The middle one was Clem's reagent restock chest; he restocks
+  from the castle's reagents chest now. The gem bag went from 942 floor to 939 floor, and 939 took 942's old
+  slots (valuables overflow, house deeds, gems).
+- Razor's AutoSearch also opens the bags inside a bag that lands in his pack: `castle_move.razor_opened` counts
+  those clicks as Razor's too (2026-11-20 18:15).
+- The bedroom (x 1754-1763, y 1402-1409) isn't in Clem's rules areas yet.
+
 ## Known so far, not yet done
 
 - **`castle.py`** (2026-11-18, the user: "that should be a skill or something. We're going to need to do this a lot

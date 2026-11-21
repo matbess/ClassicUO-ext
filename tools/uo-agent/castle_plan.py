@@ -67,13 +67,18 @@ FORGE = {
 # logs moved up to the forge (2026-11-19), so 938 and 939 are free
 VAULT = {
     938: [(FREE, 0)] * 4,
-    939: [(FREE, 0)] * 4,
+    # 939 took what 942 had planned (2026-11-20): 942 is for the user's own chests from the tower
+    939: [('valuables overflow', 0), (FREE, 0), ('house deeds', 0), ('gems', 0)],
     940: [('reagents', 0), ('reagents', 0), ('scrolls', 0), (FREE, 0)],
     941: [('gold', 0)] * 4,
     # gems and house deeds next to the gold (the user, 2026-11-19: "Gems can be down by the intake in the southeast,
     # like the gold is, so can house deeds (house deeds are separate from other types of deeds, house deeds can be
     # traded in for gold and act like gold kind of)")
-    942: [('valuables overflow', 0), ('valuables overflow', 0), ('house deeds', 0), ('gems', 0)],
+    # the user's own chests by the tower's stairs (1752,1402, z 14, 10, 6), moved as they are, every item at its spot
+    # (the user, 2026-11-20: "I want these 3 chests moved into the right-most column in the southeast storage ... so
+    # when i open the chests it looks the same as it does here in the tower")
+    942: [('valuables overflow', 0), ('yours: runes and bags', 0), ('yours: reagents and supplies', 0),
+          ('yours: runebooks and maps', 0)],
 }
 # the friend's vault (south-west, y 2348): never touched. Clem secured the 8 at the west end (x 928 and 929) on
 # 2026-11-18 (castle/secured-friend-2026-11-18.json); on 2026-11-19 the user said to plan them non-secure ("yes plan

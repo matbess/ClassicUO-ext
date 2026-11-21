@@ -360,6 +360,18 @@ def write_pending(d):
         json.dump(d, fh, indent=1)
 
 
+def razor_inner(e, c, secs):
+    """Razor's AutoSearch goes on into the bags inside the one that landed: a double-click on a container inside
+    it, within a few seconds (2026-11-20 18:15:07: a bag inside the backpack, "Finished 2 queued actions")."""
+    if e.get('kind') != 'sent double-click' or not 0 <= secs(e['time']) - secs(c['time']) <= 4:
+        return False
+    try:
+        inside = [i['serial'] for i in uo.call(info, 'GET', '/item', serial=e['serial']).get('insideOf', [])]
+    except uo.BridgeError:
+        return False
+    return c.get('serial') in inside
+
+
 def razor_opened(serial):
     """The takeover is a double-click on `serial` within a second of its drop into his pack, and nothing else of his
     was sent after it: Razor's AutoSearch. Then it's handed back (resume) and True."""
@@ -376,7 +388,8 @@ def razor_opened(serial):
             c, d = clicks[-1], drops[-1]
             secs = lambda t: sum(float(x) * m for x, m in zip(t.split(':'), (3600, 60, 1)))  # noqa: E731
             others = [e for e in events if e['id'] > c['id'] and e.get('kind', '').startswith('sent ')
-                      and e['kind'] not in ('sent single-click', 'sent pick up', 'sent drop')]
+                      and e['kind'] not in ('sent single-click', 'sent pick up', 'sent drop')
+                      and not razor_inner(e, c, secs)]
             if d['id'] < c['id'] and 0 <= secs(c['time']) - secs(d['time']) <= 1.0 and not others:
                 uo.call(info, 'POST', '/resume', handback=True)  # Razor's click, checked above
                 say(f'Razor opened {serial} as it landed in his pack ({took}): not the user; resumed')
