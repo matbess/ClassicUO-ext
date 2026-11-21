@@ -2287,7 +2287,18 @@
    "row": "top",
    "secure": false,
    "bags": [],
-   "loose": []
+   "loose": [
+    {
+     "name": "iron ingots",
+     "amount": 616,
+     "graphic": "0x1BF2"
+    },
+    {
+     "name": "iron ingot",
+     "amount": 1,
+     "graphic": "0x1BF2"
+    }
+   ]
   },
   {
    "serial": "0x4045267F",
@@ -2307,13 +2318,7 @@
    "row": "3rd",
    "secure": false,
    "bags": [],
-   "loose": [
-    {
-     "name": "cut up leather",
-     "amount": 417,
-     "graphic": "0x1081"
-    }
-   ]
+   "loose": []
   },
   {
    "serial": "0x404485F8",
@@ -2343,7 +2348,13 @@
    "row": "2nd",
    "secure": false,
    "bags": [],
-   "loose": []
+   "loose": [
+    {
+     "name": "cut up leather",
+     "amount": 417,
+     "graphic": "0x1081"
+    }
+   ]
   },
   {
    "serial": "0x403A90F5",
@@ -3415,5 +3426,5 @@
    ]
   }
  ],
- "castle_updated": "2026-11-20T19:03:25-0800"
+ "castle_updated": "2026-11-20T19:30:54-0800"
 }
