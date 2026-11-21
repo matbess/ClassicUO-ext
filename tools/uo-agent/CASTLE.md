@@ -180,6 +180,16 @@ into its castle chest at its tower spot, back by castle.py out. What was learned
 - Loose crafting things went to the forge (cloth & leather, tools, boards & logs, ingots), not where they lay.
 - The **user's table** never had to move: the y 2350 row runs round it to the user's vault (the user was told).
 
+## The tables at the forge (from 2026-11-20)
+
+The user moved their table from the south-east up to the forge: two tables now stand locked down across the east
+hall walkway at 948,2328 and 949,2328. Behind them: the east wall, the user's vault and the east intake chests. In
+front: the forge chests, the smelting chests, the barrel and the spare backpacks. Clem moves only the one at 948
+(`castle.TABLE`, 0x405E7C85) aside to 949,2327 from 948,2326, and puts it back from there; the one at 949
+(0x408793A4) is checked locked down. Clem's rules allow the tables' graphic (0x0B35) on the ground. Loot to sort goes on
+the forge room floor; a sort keeps the table aside from its first walk behind it to `finish.py`, then parks him in
+the middle of the forge room (945,2324).
+
 ## The tower's ground floor (from 2026-11-20)
 
 What's left in the tower after the vault: 6 chests by the stairs, 9 in the bedroom, 3 by the forge. The user decides

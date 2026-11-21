@@ -115,12 +115,21 @@ refuses `--side west` (`castle_site.SIDES`). The same five steps and tools; what
   holds 125. A chest takes 125 items, a secure 395 stones; it moves on to the next chest at either. Scroll bags are
   found by their labels in the side's scrolls chest (else the other wall's); a circle with no bag stays in the loot
   (it says so).
-- **The user's table:** the east intake chests and the user's vault are behind it. Any tool whose walk goes there
-  releases and moves it, and every tool closes and locks it down again at the end, even when it stops on a problem.
-  If a tool stops before that (the user took over), check with `python3 -I castle.py where` and close it with
-  `python3 -I castle.py table close` once the user hands him back.
-- **Finish:** `python3 finish.py --side east` counts the castle's smelting chests, says what's still in that side's
-  intake chests, closes the table and parks him on the east hall walkway (948,2336).
+- **The loot is on the forge room floor** (the user, 2026-11-20: "I will put bags of loot to sort in the forge room
+  on the floor, like we did at the tower vault"): `look.py BATCHDIR --side east --floor` takes the bags from there
+  into his pack, and `finish.py --side east --floor` ends it. The intake chests are only for `--side east` without
+  `--floor`.
+- **The tables at the forge** (from 2026-11-20): two tables stand locked down across the east hall walkway at
+  948,2328 and 949,2328 and shut off the east wall, the user's vault and the intake chests. The first walk that goes
+  behind them releases the one at 948 and puts it aside at 949,2327; **it stays aside for the whole sort** and only
+  `finish.py` puts it back and locks it down, after the empty bags are put away (the user: "Remove the table once at
+  the start then wait until the very end ... then lock the table back down"). If a sort stops before finish, run
+  `python3 -I castle.py table close` (once the user hands him back, if they took over).
+- **Finish:** `python3 finish.py --side east --floor` counts the castle's smelting chests, puts the table back and
+  locks both down, and parks him in the middle of the forge room (945,2324; the user: "at the end of sorting you
+  should place the character (clem/johnny) at the center of the forge room").
+- **Razor** double-clicks every bag that lands in his pack (AutoSearch); the castle tools hand those clicks back
+  (`razor.py`) instead of stopping.
 - **The page:** only when the user asks (2026-11-20). `python3 inventory.py --asked` inside the castle counts the castle (every chest that had something last
   time or was never counted; `--all` for every one) and keeps the tower's part as last counted. The page shows the
   castle first, by area: east storage, by the forge, the user's vault, west storage.

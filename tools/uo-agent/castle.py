@@ -51,9 +51,15 @@ CENTRAL_DOOR, CENTRAL_KEY = '0x40913571', '0x408CB8EE'
 CENTRAL_SHUT, CENTRAL_OUT, CENTRAL_IN = (935, 2341), (935, 2343), (935, 2340)
 HALL = (935, 2338)               # where he's left inside: the great hall, by the central door
 
-TABLE = '0x408793A4'             # the south-east table
-TABLE_HOME, TABLE_ASIDE = (943, 2349), (945, 2350)
-TABLE_STAND = (944, 2349)        # outside it (the east side): where the user stood to release it
+# the tables (2026-11-20): the user moved theirs from the south-east (it was 0x408793A4 at 943,2349) up to the forge.
+# Two now stand locked down across the east hall walkway at 948,2328 and 949,2328 and shut off the east wall, the
+# user's vault and the east intake chests (CASTLE.md, "The tables at the forge"). Clem moves only the one at 948, on
+# his route's column: aside to 949,2327 (north of the other one, out of the x 948 column), and back and locked down
+# at the end; the one at 949 is never moved.
+TABLE = '0x405E7C85'             # the table at 948,2328
+TABLE_OTHER = '0x408793A4'       # the one at 949,2328 (the user's old south-east table), checked locked down
+TABLE_HOME, TABLE_ASIDE = (948, 2328), (949, 2327)
+TABLE_STAND = (948, 2326)        # the forge side, on the route: both spots within reach
 
 CASTLE = (921, 2321, 950, 2350)  # the inside, ground floor (x1, y1, x2, y2)
 
@@ -360,10 +366,11 @@ def table(action):
         if at == TABLE_ASIDE:
             put_table(TABLE_HOME)
         house_command('i wish to lock this down', 'locked down')
-        lines = ' '.join(a for r in call('POST', '/name', serial=TABLE) for a in r.get('lines', [])).lower()
-        if 'locked down' not in lines:
-            raise Stop(f'the table at {TABLE_HOME} does not say "locked down": {lines!r}')
-        say('the table is back in its place and locked down')
+        for t, at in ((TABLE, TABLE_HOME), (TABLE_OTHER, None)):
+            lines = ' '.join(a for r in call('POST', '/name', serial=t) for a in r.get('lines', [])).lower()
+            if 'locked down' not in lines:
+                raise Stop(f'the table {t} ({at or spot_or_none(t)}) does not say "locked down": {lines!r}')
+        say('both tables at the forge are in their places and locked down')
 
 
 def put_table(to):

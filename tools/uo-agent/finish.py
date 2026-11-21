@@ -4,7 +4,7 @@
   finish.py [--side east|west]
 
 In the castle (he's inside it): the castle's 4 smelting chests by the forge are counted, he waits on the east hall
-walkway (948,2336) and it says what's still in the intake chests (that side's, or both); the user's table, if a walk opened
+walkway (now the middle of the forge room, 945,2324) and it says what's still in the intake chests (that side's, or both); the user's table, if a walk opened
 it, is closed and locked down.
 
 Puts an ID wand or staff from his hands back in the spares pouch (after a single-click, so names.json has its real
@@ -25,7 +25,8 @@ for module in ('uo', 'look'):
     spec.loader.exec_module(globals()[module])
 sys.path.insert(0, here)
 import castle_site  # noqa: E402
-PARK = (948, 2336)  # in the castle: the middle of the east hall walkway, in front of east storage
+PARK = (945, 2324)  # in the castle: the middle of the forge room (the user, 2026-11-20: "at the end of sorting you
+#                    should place the character (clem/johnny) at the center of the forge room"), in front of the tables
 
 SPARES = '0x4049D6B8'  # pouch of spare ID wands and staves, in the supplies chest
 
@@ -37,6 +38,8 @@ def say(text):
 def main():
     info = uo.find_bridge(None)
     mover = castle_site.install(uo, info, say)
+    import razor
+    razor.install(uo, info, say)
     if mover:  # look.py loads its own uo: its walks go the castle's way too
         look.uo.walk_near = mover.walk_near
     try:
@@ -70,15 +73,15 @@ def finish(info, mover):
     if mover:
         sides = [sys.argv[sys.argv.index('--side') + 1]] if '--side' in sys.argv else list(castle_site.SIDES)
         left = []
-        for side in sides:
+        for side in ([] if '--floor' in sys.argv else sides):  # loot on the forge floor: the intake chests aren't used
             for c in castle_site.intake(side):
                 left += [f"{i['serial']} {i['type']} ({side})" for i in look.open_once(info, c)]
-        say(('STILL IN THE INTAKE CHESTS (sort as another batch): ' + ', '.join(left)) if left
-            else f"the {' and '.join(sides)} intake chests are empty")
+        if '--floor' not in sys.argv:
+            say(('STILL IN THE INTAKE CHESTS (sort as another batch): ' + ', '.join(left)) if left
+                else f"the {' and '.join(sides)} intake chests are empty")
         mover.close_up()
-        mover.go_zone('east')
         mover.walk(*PARK)
-        say(f'{uo.call(info, "GET", "/status")["character"].split()[-1]} is on the east hall walkway at {PARK[0]},{PARK[1]}')
+        say(f'{uo.call(info, "GET", "/status")["character"].split()[-1]} is in the middle of the forge room at {PARK[0]},{PARK[1]}')
         return
     x1, y1, x2, y2 = look.VAULT['box']
     walked = uo.call(info, 'POST', '/walk', x=(x1 + x2) // 2, y=(y1 + y2) // 2, distance=0)

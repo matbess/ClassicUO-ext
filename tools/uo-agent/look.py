@@ -3,6 +3,7 @@
 write down what's there.
 
   look.py BATCHDIR                 the tower: the loot on the chest room's floor
+  look.py BATCHDIR --side east --floor   the castle: the loot bags on the forge room floor (from 2026-11-20)
   look.py BATCHDIR --side east     the castle (CASTLE.md, "Sorting"): the loot in the east (or west) intake chests
 
 In the castle the loot bags are taken out of the intake chests into the sorter's backpack, as many as he can carry
@@ -173,12 +174,56 @@ def from_intake(info, side):
     return carried
 
 
+# the forge room's floor (the user, 2026-11-20: "I will put bags of loot to sort in the forge room on the floor, like
+# we did at the tower vault"): the north corridor's east end, in front of the tables, on the ground floor
+FORGE_FLOOR = {'box': (940, 2321, 950, 2327), 'z': (0, 20)}
+
+
+def from_floor(info):
+    """The castle: the loot bags on the forge room floor into his backpack (as many as he can carry; the rest wait for
+    the next batch). Loose things on the floor are only reported. Returns the containers now carried."""
+    x1, y1, x2, y2 = FORGE_FLOOR['box']
+    z1, z2 = FORGE_FLOOR['z']
+    labels = uo.load_labels()
+    nearby = uo.call(info, 'GET', '/nearby', range=12)
+    nearby = nearby.get('items', nearby) if isinstance(nearby, dict) else nearby
+    here = [i for i in nearby if x1 <= i['x'] <= x2 and y1 <= i['y'] <= y2 and z1 <= i['z'] <= z2
+            and (not labels.get(i['serial']) or reused(i, labels))
+            and not any(k in i.get('type', '') for k in NOT_LOOT + ('table', 'forge', 'anvil', 'bellows', 'chest'))]
+    bags = [i for i in here if kind(i) == 'container']
+    loose = [i for i in here if kind(i) != 'container']
+    if loose:
+        say('LOOSE ON THE FORGE FLOOR (not in a bag; left there): '
+            + ', '.join(f"{i['serial']} {i['type']} at {i['x']},{i['y']}" for i in loose))
+    pack = uo.call(info, 'GET', '/status')['backpack']['serial']
+    st = uo.call(info, 'GET', '/status')
+    room = st['weightMax'] - st['weight'] - 30
+    carried, left = [], []
+    for bag in bags:
+        w = stones_of(info, bag['serial'])
+        if w is None or w > room:
+            left.append(bag)
+            continue
+        result = uo.move(info, bag['serial'], pack)
+        if not result.get('moved'):
+            raise uo.BridgeError(0, f"{bag['serial']} did not come off the floor: {result}")
+        room -= w
+        carried.append(bag['serial'])
+        say(f"{bag['serial']} {bag['type']} ({w} stones) from the forge floor into his pack")
+    if left:
+        say(f'LEFT ON THE FORGE FLOOR for the next batch ({len(left)} bags, too heavy to carry all at once): '
+            + ', '.join(i['serial'] for i in left))
+    return carried
+
+
 def main():
     out = sys.argv[1]
     side = sys.argv[sys.argv.index('--side') + 1] if '--side' in sys.argv else None
     os.makedirs(out, exist_ok=True)
     info = uo.find_bridge(None)
     mover = castle_site.install(uo, info, say)
+    import razor
+    razor.install(uo, info, say)
     if mover:
         if side not in ('east', 'west'):
             sys.exit('in the castle: look.py BATCHDIR --side east|west')
@@ -186,14 +231,14 @@ def main():
             sys.exit(f'the {side} side is not sorted for now (the user, 2026-11-19: "For now we\'ll do just the east '
                      'and southeast and forge"); its intake chests stay as they are')
         try:
-            carried = from_intake(info, side)
+            carried = from_floor(info) if '--floor' in sys.argv else from_intake(info, side)
         finally:
-            mover.close_up()
+            mover.close_up(final=False)
         castle_site.write_site(out, side)
         pack = uo.call(info, 'GET', '/status')['backpack']['serial']
         here = [dict(i) for i in uo.call(info, 'GET', '/contents', serial=pack)['items'] if i['serial'] in carried]
         if not here:
-            say(f'nothing in the {side} intake chests')
+            say('nothing on the forge floor' if '--floor' in sys.argv else f'nothing in the {side} intake chests')
     else:
         if side:
             sys.exit(f'--side is for the castle, and he is not inside it')

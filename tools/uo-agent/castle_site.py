@@ -145,7 +145,7 @@ UP = 20  # z this high and over: upstairs
 # progress" at 924,2326 and 921,2325, 2026-11-19), so these are stepped tile by tile, never left to it
 RAMPS = [[(933, 2333), (932, 2332), (931, 2332), (930, 2332), (929, 2332), (928, 2332)],
          [(921, 2322), (921, 2323), (921, 2324), (921, 2325), (921, 2326), (921, 2327)]]
-TABLE_SPOT = (943, 2349)
+TABLE_SPOT = (948, 2328)  # the table Clem moves, at the forge (castle.TABLE)
 
 
 def cheb(a, b):
@@ -249,6 +249,12 @@ def zone(x, y):
     return None
 
 
+def behind(p):
+    """Behind the tables at the forge (2026-11-20): the east hall south of them, the east intake chests and the user's
+    vault; the only way there is the east hall walkway past the tables."""
+    return zone(*p) in ('east', 'south-east') and p[1] >= 2329
+
+
 class Mover:
     """Walks one character around the castle along the user's ROUTE, opening the user's table when the way goes behind it and
     closing it in close_up(). `uo` is the caller's own uo module (each tool loads its own copy)."""
@@ -300,8 +306,7 @@ class Mover:
             return
         pts3 = route3(here, goal, st['z'])
         pts = [p[:2] for p in pts3]
-        behind = lambda p: zone(*p) == 'south-east'  # noqa: E731 (behind the user's table)
-        if not behind(here) and behind(tuple(goal)) and TABLE_SPOT not in pts and not any(p[1] == 2350 for p in pts):
+        if not behind(here) and behind(tuple(goal)):
             self.open_table()
         # the ride cut at the ramps: a smooth ride to a ramp's end, the ramp stepped tile by tile, on from its other end
         segs, cur = [], [pts3[0]]
@@ -386,15 +391,26 @@ class Mover:
         if self.table_opened:
             return
         castle.info = self.info
+        if castle.spot_or_none(castle.TABLE) == castle.TABLE_ASIDE:  # left aside by an earlier step of this sort
+            self.table_opened = True
+            return
         st = self.status()
         if (st['x'], st['y']) != castle.TABLE_STAND:
             self.go(castle.TABLE_STAND, "to the user's table")
         castle.table('open')
         self.table_opened = True
 
-    def close_up(self):
-        """The user's table back in its place, locked down, if this run opened it. Always called at the end."""
-        if not self.table_opened:
+    def close_up(self, final=True):
+        """The table back in its place, locked down, if this run opened it (or, at a sort's end, if it's aside).
+        The sorting steps (look, idall, plan, sortbatch) pass final=False and leave it aside: the user, 2026-11-20:
+        "Remove the table once at the start then wait until the very end after you put all the empty bags away then
+        lock the table back down". finish.py closes it."""
+        if not final:
+            if self.table_opened:
+                self.say('the table stays aside until the sort is finished (finish.py puts it back)')
+            return
+        castle.info = self.info
+        if not self.table_opened and castle.spot_or_none(castle.TABLE) == castle.TABLE_HOME:
             return
         castle.info = self.info
         st = self.status()

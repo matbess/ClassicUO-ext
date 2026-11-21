@@ -92,7 +92,7 @@
   "mounts": ["0x00043254"],
   // bags of maps are put down at his feet: backpack, bag, pouch
   // and the castle's south-east table (0x0B34), put down beside him (bridge 15)
-  "dropOnGround": ["0x0E75", "0x0E76", "0x0E79", "0x0B34"],
+  "dropOnGround": ["0x0E75", "0x0E76", "0x0E79", "0x0B34", "0x0B35"],  // 0x0B35: the forge tables (2026-11-20)
   // no pausing (the user, 2026-11-05: people walk around the tower; nothing should stop because of that)
   "pauseForPeople": false,
   "ignorePeople": [],

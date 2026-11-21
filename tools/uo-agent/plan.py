@@ -366,7 +366,7 @@ def main():
         try:
             plan_batch(batch, opening, inv, loot, names, labels, info, side)
         finally:
-            mover.close_up()
+            mover.close_up(final=False)
     else:
         plan_batch(batch, opening, inv, loot, names, labels, info, None)
 

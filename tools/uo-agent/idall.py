@@ -154,11 +154,13 @@ def main():
     global MOVER
     info = uo.find_bridge(None)
     MOVER = castle_site.install(uo, info, say)
+    import razor
+    razor.install(uo, info, say)
     try:
         identify(info)
     finally:
         if MOVER:
-            MOVER.close_up()
+            MOVER.close_up(final=False)
 
 
 def identify(info):

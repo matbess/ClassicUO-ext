@@ -101,7 +101,27 @@ def call(method, path, **params):
             raise
 
 
+def holders(serial):
+    """The containers that hold `serial`, outermost first: a castle chest, then the bags inside it."""
+    chain = []
+    for _ in range(4):
+        up = next((c for c, items in CONTENTS.items() if any(i['serial'] == serial for i in items)), None)
+        if up is None:
+            break
+        chain.insert(0, up)
+        if SIDE and up in castle_site.PLAN:
+            return chain
+        serial = up
+    return chain if chain and SIDE and chain[0] in castle_site.PLAN else []
+
+
+def holder(serial):
+    chain = holders(serial)
+    return chain[0] if chain else None
+
+
 def move(serial, to, x=None, y=None):
+    walked = False
     while True:
         while uo.people_to_wait_for(info):
             say('paused: someone is in the room; checking again in a minute')
@@ -110,6 +130,14 @@ def move(serial, to, x=None, y=None):
             result = uo.move(info, serial, to, x, y)
         except uo.BridgeError as e:
             if e.code == 409 and 'paused' in e.message:
+                continue
+            # the castle is big: a pile in a bag in a chest far off (the gem bag in the user's vault, from the east
+            # wall) is out of his client's sight, so the bridge doesn't know it; back to its chest first (2026-11-20)
+            if e.code == 404 and SIDE and not walked and holder(to):
+                walked = True
+                uo.walk_near(info, holder(to))
+                for c in holders(to):  # the chest, then the bag in it, so the client knows the pile again
+                    uo.call(info, 'POST', '/open', serial=c)
                 continue
             if uo.wait_out_world_save(info, e):
                 say('world save finished; carrying on')
@@ -491,13 +519,15 @@ def main():
     if SIDE is None:
         return sort(json.load(open(sys.argv[1])))
     mover = castle_site.install(uo, info, say)
+    import razor
+    razor.install(uo, info, say)
     if not mover:
         sys.exit('this batch is for the castle, and he is not inside it')
     ROOM = castle_site.Room(uo, info)
     try:
         sort(json.load(open(sys.argv[1])))
     finally:
-        mover.close_up()
+        mover.close_up(final=False)
 
 
 def sort(plan):
@@ -723,7 +753,11 @@ def sort(plan):
     # ---- what the chests hold now, for layout.json (read from the client; nothing is sent) ----
     for c in CONTENTS:
         if labels().get(c, '').startswith(('chest: ', 'castle: ')):
-            layout.record(c, uo.call(info, 'GET', '/contents', serial=c)['items'])
+            try:
+                layout.record(c, uo.call(info, 'GET', '/contents', serial=c)['items'])
+            except uo.BridgeError as e:
+                if e.code != 404:  # a castle chest out of his client's sight now: recorded next time it's opened
+                    raise
     say('BATCH DONE')
 
 
@@ -731,5 +765,7 @@ if __name__ == '__main__':
     try:
         main()
     except uo.BridgeError as e:
+        import traceback
+        traceback.print_exc()  # where it stopped, for the log
         say(f'STOPPED: {e}')
         sys.exit(1)

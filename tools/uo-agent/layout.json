@@ -4,28 +4,28 @@
   "items": 0,
   "label": "castle: boards & logs 2 (forge 2327, 3rd)",
   "loose": [],
-  "recorded": "2026-11-19 22:59"
+  "recorded": "2026-11-20 18:43"
  },
  "0x40444EE4": {
   "bags": [],
   "items": 0,
   "label": "castle: cooking (forge 2327, top)",
   "loose": [],
-  "recorded": "2026-11-19 22:59"
+  "recorded": "2026-11-20 18:43"
  },
  "0x404485F8": {
   "bags": [],
   "items": 0,
   "label": "castle: tools (forge 2326, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:59"
+  "recorded": "2026-11-20 18:43"
  },
  "0x4045267F": {
   "bags": [],
   "items": 0,
   "label": "castle: boards & logs (forge 2326, 2nd)",
   "loose": [],
-  "recorded": "2026-11-19 22:59"
+  "recorded": "2026-11-20 18:43"
  },
  "0x404804BD": {
   "bags": [
@@ -561,7 +561,7 @@
   "items": 66,
   "label": "castle: spare backpacks (forge 2327, floor)",
   "loose": [],
-  "recorded": "2026-11-19 23:20"
+  "recorded": "2026-11-20 18:52"
  },
  "0x404ABD74": {
   "bags": [],
@@ -572,24 +572,54 @@
  },
  "0x405685FA": {
   "bags": [],
-  "items": 0,
-  "label": "castle: ingots 2 (forge 2327, 2nd)",
-  "loose": [],
-  "recorded": "2026-11-19 22:59"
+  "items": 2,
+  "label": "castle: cloth & leather (forge 2327, 2nd)",
+  "loose": [
+   {
+    "amount": 286,
+    "name": "cut up leather",
+    "serial": "0x4088E61B",
+    "x": 18,
+    "y": 139
+   },
+   {
+    "amount": 131,
+    "name": "131 pieces of leather",
+    "serial": "0x40891EA1",
+    "x": 18,
+    "y": 139
+   }
+  ],
+  "recorded": "2026-11-20 19:30"
  },
  "0x405F351C": {
   "bags": [],
-  "items": 0,
+  "items": 2,
   "label": "castle: ingots (forge 2326, top)",
-  "loose": [],
-  "recorded": "2026-11-19 22:58"
+  "loose": [
+   {
+    "amount": 616,
+    "name": "616 iron ingots",
+    "serial": "0x408F1765",
+    "x": 57,
+    "y": 130
+   },
+   {
+    "amount": 1,
+    "name": "iron ingot",
+    "serial": "0x4080065F",
+    "x": 89,
+    "y": 141
+   }
+  ],
+  "recorded": "2026-11-20 19:30"
  },
  "0x406195D4": {
   "bags": [],
   "items": 0,
   "label": "castle: smelting 3 (forge 2322, 3rd)",
   "loose": [],
-  "recorded": "2026-11-19 22:58"
+  "recorded": "2026-11-20 18:43"
  },
  "0x406753EE": {
   "bags": [],
@@ -736,7 +766,7 @@
   "items": 0,
   "label": "castle: free (east 2335, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:55"
+  "recorded": "2026-11-20 18:41"
  },
  "0x406B3D52": {
   "bags": [
@@ -811,28 +841,28 @@
     "y": 128
    }
   ],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:52"
  },
  "0x406B4455": {
   "bags": [],
   "items": 0,
   "label": "castle: poison potions 3 (east 2342, top)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406B4D0D": {
   "bags": [],
   "items": 0,
   "label": "castle: best weapons (east 2334, top) [secure]",
   "loose": [],
-  "recorded": "2026-11-19 22:55"
+  "recorded": "2026-11-20 18:41"
  },
  "0x406B5A69": {
   "bags": [],
   "items": 0,
   "label": "castle: best armour (east 2334, 2nd) [secure]",
   "loose": [],
-  "recorded": "2026-11-19 22:55"
+  "recorded": "2026-11-20 18:41"
  },
  "0x406B630F": {
   "bags": [],
@@ -1071,7 +1101,7 @@
     "y": 121
    }
   ],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:52"
  },
  "0x406B68FC": {
   "bags": [],
@@ -1534,14 +1564,14 @@
     "y": 145
    }
   ],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:52"
  },
  "0x406B6F43": {
   "bags": [],
   "items": 0,
   "label": "castle: free (east 2337, top) [secure]",
   "loose": [],
-  "recorded": "2026-11-19 22:55"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406B75B0": {
   "bags": [],
@@ -1857,35 +1887,35 @@
     "y": 141
    }
   ],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:52"
  },
  "0x406B84A2": {
   "bags": [],
   "items": 0,
   "label": "castle: deeds 3 (east 2335, 3rd) [secure]",
   "loose": [],
-  "recorded": "2026-11-19 22:55"
+  "recorded": "2026-11-20 18:41"
  },
  "0x406B8B00": {
   "bags": [],
   "items": 0,
   "label": "castle: studded (east 2333, top)",
   "loose": [],
-  "recorded": "2026-11-19 22:55"
+  "recorded": "2026-11-20 18:41"
  },
  "0x406B9124": {
   "bags": [],
   "items": 0,
   "label": "castle: shields (east 2333, 2nd)",
   "loose": [],
-  "recorded": "2026-11-19 22:55"
+  "recorded": "2026-11-20 18:41"
  },
  "0x406B996B": {
   "bags": [],
   "items": 0,
   "label": "castle: free (east 2338, 2nd)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406BA1AC": {
   "bags": [
@@ -1917,7 +1947,7 @@
   "items": 3,
   "label": "castle: GM armour sets (east 2333, 3rd) [secure]",
   "loose": [],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:51"
  },
  "0x406BB2E2": {
   "bags": [
@@ -1967,14 +1997,14 @@
   "items": 6,
   "label": "castle: scrolls, circles 5-8 (east 2336, 2nd)",
   "loose": [],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:52"
  },
  "0x406BC073": {
   "bags": [],
   "items": 0,
   "label": "castle: refresh potions 2 (east 2340, 2nd)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406BC7BC": {
   "bags": [],
@@ -2311,14 +2341,14 @@
     "y": 136
    }
   ],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:52"
  },
  "0x406BCE69": {
   "bags": [],
   "items": 0,
   "label": "castle: explosion potions 1 (east 2342, 2nd)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406BD592": {
   "bags": [],
@@ -2529,7 +2559,7 @@
     "y": 111
    }
   ],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:52"
  },
  "0x406BDBD7": {
   "bags": [
@@ -2563,7 +2593,7 @@
   "items": 4,
   "label": "castle: plain gear (east 2333, floor)",
   "loose": [],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:52"
  },
  "0x406BE5CF": {
   "bags": [],
@@ -2606,21 +2636,21 @@
     "y": 133
    }
   ],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:52"
  },
  "0x406BEF1A": {
   "bags": [],
   "items": 0,
   "label": "castle: explosion potions 2 (east 2342, 3rd)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406BF924": {
   "bags": [],
   "items": 0,
   "label": "castle: heal potions 2 (east 2339, 2nd)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406C01AD": {
   "bags": [
@@ -2680,28 +2710,28 @@
   "items": 8,
   "label": "castle: chain & ring + coifs (east 2332, 3rd)",
   "loose": [],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:51"
  },
  "0x406C08EB": {
   "bags": [],
   "items": 0,
   "label": "castle: free (east 2338, 3rd)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406C0FB3": {
   "bags": [],
   "items": 0,
   "label": "castle: free (east 2336, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:55"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406C1A08": {
   "bags": [],
   "items": 0,
   "label": "castle: agility potions 2 (east 2340, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406C2406": {
   "bags": [
@@ -2765,14 +2795,14 @@
     "y": 105
    }
   ],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:52"
  },
  "0x406C2CF8": {
   "bags": [],
   "items": 0,
   "label": "castle: deeds 1 (east 2335, top) [secure]",
   "loose": [],
-  "recorded": "2026-11-19 22:55"
+  "recorded": "2026-11-20 18:41"
  },
  "0x406C374C": {
   "bags": [
@@ -2793,14 +2823,14 @@
   "items": 2,
   "label": "castle: helms (east 2332, 2nd)",
   "loose": [],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:51"
  },
  "0x406C3CEA": {
   "bags": [],
   "items": 0,
   "label": "castle: deeds 2 (east 2335, 2nd) [secure]",
   "loose": [],
-  "recorded": "2026-11-19 22:55"
+  "recorded": "2026-11-20 18:41"
  },
  "0x406C4DA6": {
   "bags": [],
@@ -3116,21 +3146,43 @@
     "y": 119
    }
   ],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:52"
  },
  "0x406C57AE": {
-  "bags": [],
-  "items": 0,
+  "bags": [
+   {
+    "kind": "attack wands",
+    "known": 0,
+    "marker": {
+     "name": "a wand of lightning (9 charges)",
+     "serial": "0x402C2735",
+     "x": 29,
+     "y": 129
+    },
+    "serial": "0x409397C1",
+    "x": 22,
+    "y": 106
+   }
+  ],
+  "items": 3,
   "label": "castle: attack wands (east 2331, top) [secure]",
-  "loose": [],
-  "recorded": "2026-11-19 21:02"
+  "loose": [
+   {
+    "amount": 1,
+    "name": "a wand of greater healing (4 charges)",
+    "serial": "0x40717795",
+    "x": 54,
+    "y": 132
+   }
+  ],
+  "recorded": "2026-11-20 18:51"
  },
  "0x406C5FE8": {
   "bags": [],
   "items": 0,
   "label": "castle: leather + caps (east 2332, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:55"
+  "recorded": "2026-11-20 18:41"
  },
  "0x406C6A1A": {
   "bags": [
@@ -3238,7 +3290,7 @@
     "y": 139
    }
   ],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:52"
  },
  "0x406C71AF": {
   "bags": [
@@ -3259,14 +3311,14 @@
   "items": 2,
   "label": "castle: jewellery (east 2331, 3rd) [secure]",
   "loose": [],
-  "recorded": "2026-11-19 23:18"
+  "recorded": "2026-11-20 18:51"
  },
  "0x406C7AEA": {
   "bags": [],
   "items": 0,
   "label": "castle: free (east 2334, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:55"
+  "recorded": "2026-11-20 18:41"
  },
  "0x406C80EE": {
   "bags": [
@@ -3339,14 +3391,14 @@
   "items": 10,
   "label": "castle: plate (east 2332, top)",
   "loose": [],
-  "recorded": "2026-11-19 23:18"
+  "recorded": "2026-11-20 18:51"
  },
  "0x406C8AC2": {
   "bags": [],
   "items": 0,
   "label": "castle: cure potions 2 (east 2339, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406C9241": {
   "bags": [
@@ -3362,7 +3414,7 @@
   "items": 1,
   "label": "castle: healing wands (east 2331, 2nd) [secure]",
   "loose": [],
-  "recorded": "2026-11-19 23:18"
+  "recorded": "2026-11-20 18:51"
  },
  "0x406C9B38": {
   "bags": [
@@ -3391,21 +3443,21 @@
   "items": 3,
   "label": "castle: magic clothing (east 2331, floor) [secure]",
   "loose": [],
-  "recorded": "2026-11-19 23:18"
+  "recorded": "2026-11-20 18:51"
  },
  "0x406CA3C4": {
   "bags": [],
   "items": 0,
   "label": "castle: free (east 2338, top)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406CA946": {
   "bags": [],
   "items": 0,
   "label": "castle: free (east 2329, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:54"
+  "recorded": "2026-11-20 18:40"
  },
  "0x406CB34A": {
   "bags": [
@@ -3426,7 +3478,7 @@
   "items": 2,
   "label": "castle: polearms (east 2330, top)",
   "loose": [],
-  "recorded": "2026-11-19 23:18"
+  "recorded": "2026-11-20 18:51"
  },
  "0x406CBA5B": {
   "bags": [
@@ -3447,14 +3499,14 @@
   "items": 2,
   "label": "castle: fencing (east 2330, 2nd)",
   "loose": [],
-  "recorded": "2026-11-19 23:18"
+  "recorded": "2026-11-20 18:51"
  },
  "0x406CBEE6": {
   "bags": [],
   "items": 0,
   "label": "castle: free (east 2338, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406CD208": {
   "bags": [
@@ -3488,7 +3540,7 @@
   "items": 4,
   "label": "castle: archery (east 2330, 3rd)",
   "loose": [],
-  "recorded": "2026-11-19 23:18"
+  "recorded": "2026-11-20 18:51"
  },
  "0x406CEC4A": {
   "bags": [
@@ -3504,14 +3556,14 @@
   "items": 1,
   "label": "castle: treasure maps (east 2334, 3rd) [secure]",
   "loose": [],
-  "recorded": "2026-11-19 23:19"
+  "recorded": "2026-11-20 18:52"
  },
  "0x406CF6F8": {
   "bags": [],
   "items": 0,
   "label": "castle: free (east 2330, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:54"
+  "recorded": "2026-11-20 18:40"
  },
  "0x406CFDBC": {
   "bags": [
@@ -3532,14 +3584,14 @@
   "items": 2,
   "label": "castle: maces & staves (east 2329, 3rd)",
   "loose": [],
-  "recorded": "2026-11-19 23:18"
+  "recorded": "2026-11-20 18:51"
  },
  "0x406D171A": {
   "bags": [],
   "items": 0,
   "label": "castle: poison potions 2 (east 2341, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406D22C9": {
   "bags": [
@@ -3586,21 +3638,21 @@
   "items": 6,
   "label": "castle: swords (east 2329, top)",
   "loose": [],
-  "recorded": "2026-11-19 23:18"
+  "recorded": "2026-11-20 18:51"
  },
  "0x406D313E": {
   "bags": [],
   "items": 0,
   "label": "castle: needs your decision (east 2337, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406D3AC9": {
   "bags": [],
   "items": 0,
   "label": "castle: strength potions 2 (east 2341, 2nd)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406D42BB": {
   "bags": [
@@ -3647,184 +3699,171 @@
   "items": 6,
   "label": "castle: axes (east 2329, 2nd)",
   "loose": [],
-  "recorded": "2026-11-19 23:18"
+  "recorded": "2026-11-20 18:51"
  },
  "0x406D570B": {
   "bags": [],
   "items": 0,
   "label": "castle: free (east 2342, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:42"
  },
  "0x406DD7D0": {
   "bags": [],
   "items": 0,
   "label": "castle: gold (my vault 941, 2nd)",
   "loose": [],
-  "recorded": "2026-11-19 23:16"
+  "recorded": "2026-11-20 18:45"
  },
  "0x406DF442": {
   "bags": [],
-  "items": 0,
-  "label": "castle: house deeds (my vault 942, 3rd)",
-  "loose": [],
-  "recorded": "2026-11-19 23:16"
+  "items": 12,
+  "label": "castle: yours: reagents and supplies (my vault 942, 3rd)",
+  "loose": [
+   {
+    "amount": 1,
+    "name": "Gate Travel Scroll",
+    "serial": "0x4075E393",
+    "x": 118,
+    "y": 111
+   },
+   {
+    "amount": 227,
+    "name": "227 clean bandage",
+    "serial": "0x4090ADE0",
+    "x": 27,
+    "y": 135
+   },
+   {
+    "amount": 5,
+    "name": "lockpicks",
+    "serial": "0x4088BD44",
+    "x": 46,
+    "y": 150
+   },
+   {
+    "amount": 173,
+    "name": "173 Sulfurous Ash",
+    "serial": "0x409220AD",
+    "x": 94,
+    "y": 143
+   },
+   {
+    "amount": 11,
+    "name": "Recall",
+    "serial": "0x4094D3FD",
+    "x": 18,
+    "y": 146
+   },
+   {
+    "amount": 22,
+    "name": "Garlic",
+    "serial": "0x4084DC09",
+    "x": 41,
+    "y": 118
+   },
+   {
+    "amount": 234,
+    "name": "Spider's Silk",
+    "serial": "0x4084DC64",
+    "x": 110,
+    "y": 121
+   },
+   {
+    "amount": 264,
+    "name": "64 Ginseng",
+    "serial": "0x4084DC72",
+    "x": 84,
+    "y": 119
+   },
+   {
+    "amount": 129,
+    "name": "129 Nightshade",
+    "serial": "0x40877AED",
+    "x": 18,
+    "y": 105
+   },
+   {
+    "amount": 214,
+    "name": "Mandrake Roots",
+    "serial": "0x40901E7A",
+    "x": 62,
+    "y": 121
+   },
+   {
+    "amount": 239,
+    "name": "Blood Moss",
+    "serial": "0x40901ED8",
+    "x": 65,
+    "y": 148
+   },
+   {
+    "amount": 160,
+    "name": "Black Pearls",
+    "serial": "0x40901F45",
+    "x": 118,
+    "y": 155
+   }
+  ],
+  "recorded": "2026-11-20 19:03"
  },
  "0x406E2570": {
   "bags": [],
   "items": 0,
-  "label": "castle: free (my vault 939, 3rd)",
+  "label": "castle: house deeds (my vault 939, 3rd)",
   "loose": [],
-  "recorded": "2026-11-19 23:16"
+  "recorded": "2026-11-20 19:02"
  },
  "0x406E2D98": {
   "bags": [],
   "items": 0,
   "label": "castle: gold (my vault 941, 3rd)",
   "loose": [],
-  "recorded": "2026-11-19 23:16"
+  "recorded": "2026-11-20 18:45"
  },
  "0x406E34E8": {
   "bags": [],
   "items": 0,
   "label": "castle: gold (my vault 941, top)",
   "loose": [],
-  "recorded": "2026-11-19 23:16"
+  "recorded": "2026-11-20 18:45"
  },
  "0x406E3BFC": {
   "bags": [],
   "items": 0,
   "label": "castle: reagents (my vault 940, top)",
   "loose": [],
-  "recorded": "2026-11-19 23:16"
+  "recorded": "2026-11-20 18:45"
  },
  "0x406E4F2F": {
   "bags": [],
   "items": 0,
-  "label": "castle: free (my vault 939, top)",
+  "label": "castle: valuables overflow (my vault 939, top)",
   "loose": [],
-  "recorded": "2026-11-19 23:16"
+  "recorded": "2026-11-20 19:02"
  },
  "0x406E5DAB": {
   "bags": [],
   "items": 0,
   "label": "castle: reagents (my vault 940, 2nd)",
   "loose": [],
-  "recorded": "2026-11-19 23:16"
+  "recorded": "2026-11-20 18:45"
  },
  "0x406E6A20": {
   "bags": [],
   "items": 0,
   "label": "castle: intake (east) (intake 938,2349, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:43"
  },
  "0x406E70A6": {
   "bags": [],
   "items": 0,
   "label": "castle: free (my vault 938, top)",
   "loose": [],
-  "recorded": "2026-11-19 23:10"
+  "recorded": "2026-11-20 18:45"
  },
  "0x406E7AA0": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: free (my vault 939, floor)",
-  "loose": [],
-  "recorded": "2026-11-19 23:16"
- },
- "0x406E85EC": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: free (my vault 938, floor)",
-  "loose": [],
-  "recorded": "2026-11-19 23:16"
- },
- "0x406E9CD6": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: free (east 2343, floor)",
-  "loose": [],
-  "recorded": "2026-11-19 22:56"
- },
- "0x406EA395": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: free (east 2343, 2nd)",
-  "loose": [],
-  "recorded": "2026-11-19 22:56"
- },
- "0x406EC384": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: scrolls (my vault 940, 3rd)",
-  "loose": [],
-  "recorded": "2026-11-19 23:16"
- },
- "0x406ECA50": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: valuables overflow (my vault 942, top)",
-  "loose": [],
-  "recorded": "2026-11-19 23:16"
- },
- "0x406ED0AA": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: free (my vault 938, 3rd)",
-  "loose": [],
-  "recorded": "2026-11-19 23:12"
- },
- "0x406EDB9B": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: free (my vault 940, floor)",
-  "loose": [],
-  "recorded": "2026-11-19 23:16"
- },
- "0x406EE45B": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: valuables overflow (my vault 942, 2nd)",
-  "loose": [],
-  "recorded": "2026-11-19 23:16"
- },
- "0x406EEA7B": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: free (my vault 939, 2nd)",
-  "loose": [],
-  "recorded": "2026-11-19 23:16"
- },
- "0x406EF58B": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: gold (my vault 941, floor)",
-  "loose": [],
-  "recorded": "2026-11-19 23:16"
- },
- "0x406F02E2": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: free (east 2343, top)",
-  "loose": [],
-  "recorded": "2026-11-19 22:56"
- },
- "0x406F0BF5": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: free (east 2343, 3rd)",
-  "loose": [],
-  "recorded": "2026-11-19 22:56"
- },
- "0x406F2466": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: free (my vault 938, 2nd)",
-  "loose": [],
-  "recorded": "2026-11-19 23:11"
- },
- "0x406F29C0": {
   "bags": [
    {
     "kind": "gems",
@@ -3841,16 +3880,339 @@
    }
   ],
   "items": 2,
-  "label": "castle: gems (my vault 942, floor)",
+  "label": "castle: gems (my vault 939, floor)",
   "loose": [],
-  "recorded": "2026-11-19 23:21"
+  "recorded": "2026-11-20 19:02"
+ },
+ "0x406E85EC": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: free (my vault 938, floor)",
+  "loose": [],
+  "recorded": "2026-11-20 18:45"
+ },
+ "0x406E9CD6": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: free (east 2343, floor)",
+  "loose": [],
+  "recorded": "2026-11-20 18:43"
+ },
+ "0x406EA395": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: free (east 2343, 2nd)",
+  "loose": [],
+  "recorded": "2026-11-20 18:43"
+ },
+ "0x406EC384": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: scrolls (my vault 940, 3rd)",
+  "loose": [],
+  "recorded": "2026-11-20 18:45"
+ },
+ "0x406ECA50": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: valuables overflow (my vault 942, top)",
+  "loose": [],
+  "recorded": "2026-11-20 19:02"
+ },
+ "0x406ED0AA": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: free (my vault 938, 3rd)",
+  "loose": [],
+  "recorded": "2026-11-20 18:45"
+ },
+ "0x406EDB9B": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: free (my vault 940, floor)",
+  "loose": [],
+  "recorded": "2026-11-20 18:45"
+ },
+ "0x406EE45B": {
+  "bags": [
+   {
+    "kind": "?",
+    "known": 14,
+    "marker": null,
+    "serial": "0x40832F92",
+    "x": 118,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 3,
+    "marker": null,
+    "serial": "0x408874AF",
+    "x": 118,
+    "y": 123
+   },
+   {
+    "kind": "?",
+    "known": 2,
+    "marker": null,
+    "serial": "0x403CFDB3",
+    "x": 100,
+    "y": 145
+   },
+   {
+    "kind": "?",
+    "known": 3,
+    "marker": null,
+    "serial": "0x40604A8A",
+    "x": 84,
+    "y": 148
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x404E22DE",
+    "x": 62,
+    "y": 152
+   },
+   {
+    "kind": "?",
+    "known": 6,
+    "marker": null,
+    "serial": "0x40872291",
+    "x": 31,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 1,
+    "marker": null,
+    "serial": "0x409167EA",
+    "x": 49,
+    "y": 146
+   },
+   {
+    "kind": "recall rune",
+    "known": 0,
+    "marker": {
+     "name": "a recall rune for Mining Start",
+     "serial": "0x408C9AD0",
+     "x": 31,
+     "y": 125
+    },
+    "serial": "0x4027921D",
+    "x": 18,
+    "y": 107
+   },
+   {
+    "kind": "?",
+    "known": 6,
+    "marker": null,
+    "serial": "0x40766101",
+    "x": 18,
+    "y": 148
+   }
+  ],
+  "items": 19,
+  "label": "castle: yours: runes and bags (my vault 942, 2nd)",
+  "loose": [
+   {
+    "amount": 1,
+    "name": "Mark Scroll",
+    "serial": "0x407FD204",
+    "x": 81,
+    "y": 106
+   },
+   {
+    "amount": 1,
+    "name": "a recall rune for Air Elementals",
+    "serial": "0x406EDA87",
+    "x": 95,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "a recall rune for Mining House",
+    "serial": "0x406EBB17",
+    "x": 106,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "a recall rune for Mining House",
+    "serial": "0x406EBB35",
+    "x": 106,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "a recall rune for Outpost",
+    "serial": "0x406EAA90",
+    "x": 117,
+    "y": 106
+   },
+   {
+    "amount": 1,
+    "name": "a recall rune for Fire Dungeon Exit",
+    "serial": "0x406EDAC4",
+    "x": 45,
+    "y": 111
+   },
+   {
+    "amount": 1,
+    "name": "a recall rune for Delucia",
+    "serial": "0x406EDACD",
+    "x": 57,
+    "y": 110
+   },
+   {
+    "amount": 1,
+    "name": "a recall rune for Mining gate location",
+    "serial": "0x408C98E7",
+    "x": 42,
+    "y": 126
+   },
+   {
+    "amount": 1,
+    "name": "a recall rune for Mining Forge",
+    "serial": "0x408C9783",
+    "x": 54,
+    "y": 124
+   }
+  ],
+  "recorded": "2026-11-20 19:03"
+ },
+ "0x406EEA7B": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: free (my vault 939, 2nd)",
+  "loose": [],
+  "recorded": "2026-11-20 19:02"
+ },
+ "0x406EF58B": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: gold (my vault 941, floor)",
+  "loose": [],
+  "recorded": "2026-11-20 18:45"
+ },
+ "0x406F02E2": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: free (east 2343, top)",
+  "loose": [],
+  "recorded": "2026-11-20 18:42"
+ },
+ "0x406F0BF5": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: free (east 2343, 3rd)",
+  "loose": [],
+  "recorded": "2026-11-20 18:43"
+ },
+ "0x406F2466": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: free (my vault 938, 2nd)",
+  "loose": [],
+  "recorded": "2026-11-20 18:45"
+ },
+ "0x406F29C0": {
+  "bags": [
+   {
+    "kind": "sewing kit",
+    "known": 20,
+    "marker": {
+     "name": "map",
+     "serial": "0x4083EC42",
+     "x": 110,
+     "y": 144
+    },
+    "serial": "0x4092B7DD",
+    "x": 97,
+    "y": 149
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4063658C",
+    "x": 18,
+    "y": 142
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40163DB4",
+    "x": 37,
+    "y": 121
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4016337A",
+    "x": 18,
+    "y": 123
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40761A3B",
+    "x": 18,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407B4809",
+    "x": 36,
+    "y": 105
+   }
+  ],
+  "items": 11,
+  "label": "castle: yours: runebooks and maps (my vault 942, floor)",
+  "loose": [
+   {
+    "amount": 1,
+    "name": "map",
+    "serial": "0x4083EC33",
+    "x": 118,
+    "y": 130
+   },
+   {
+    "amount": 1,
+    "name": "spyglass",
+    "serial": "0x407687AE",
+    "x": 87,
+    "y": 147
+   },
+   {
+    "amount": 1,
+    "name": "dyeing tub",
+    "serial": "0x40895A32",
+    "x": 112,
+    "y": 105
+   },
+   {
+    "amount": 1,
+    "name": "dyes",
+    "serial": "0x40895A39",
+    "x": 115,
+    "y": 105
+   }
+  ],
+  "recorded": "2026-11-20 19:03"
  },
  "0x406F31E5": {
   "bags": [],
   "items": 0,
   "label": "castle: intake (east) (intake 938,2350, floor)",
   "loose": [],
-  "recorded": "2026-11-19 22:56"
+  "recorded": "2026-11-20 18:43"
  },
  "0x40789150": {
   "bags": [],
@@ -3865,29 +4227,14 @@
     "y": 121
    }
   ],
-  "recorded": "2026-11-19 23:20"
+  "recorded": "2026-11-20 18:52"
  },
  "0x40790A06": {
   "bags": [],
-  "items": 2,
-  "label": "castle: cloth & leather (forge 2326, 3rd)",
-  "loose": [
-   {
-    "amount": 286,
-    "name": "cut up leather",
-    "serial": "0x4088E61B",
-    "x": 18,
-    "y": 139
-   },
-   {
-    "amount": 131,
-    "name": "cut up leather",
-    "serial": "0x40891EA1",
-    "x": 18,
-    "y": 139
-   }
-  ],
-  "recorded": "2026-11-19 23:20"
+  "items": 0,
+  "label": "castle: boards & logs (forge 2326, 3rd)",
+  "loose": [],
+  "recorded": "2026-11-20 19:30"
  },
  "0x4080C375": {
   "bags": [
@@ -5211,13 +5558,13 @@
     "y": 123
    }
   ],
-  "recorded": "2026-11-19 23:20"
+  "recorded": "2026-11-20 18:52"
  },
  "0x40C9CAF9": {
   "bags": [],
   "items": 0,
   "label": "castle: smelting 2 (forge 2322, 2nd)",
   "loose": [],
-  "recorded": "2026-11-19 22:58"
+  "recorded": "2026-11-20 18:43"
  }
 }
