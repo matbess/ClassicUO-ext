@@ -2291,7 +2291,7 @@
   },
   {
    "serial": "0x4045267F",
-   "name": "boards & logs",
+   "name": "ingots 2",
    "side": "forge",
    "place": "forge 2326",
    "row": "2nd",
@@ -2301,7 +2301,7 @@
   },
   {
    "serial": "0x40790A06",
-   "name": "cloth & leather",
+   "name": "boards & logs",
    "side": "forge",
    "place": "forge 2326",
    "row": "3rd",
@@ -2317,7 +2317,7 @@
   },
   {
    "serial": "0x404485F8",
-   "name": "tools",
+   "name": "boards & logs 2",
    "side": "forge",
    "place": "forge 2326",
    "row": "floor",
@@ -2337,7 +2337,7 @@
   },
   {
    "serial": "0x405685FA",
-   "name": "ingots 2",
+   "name": "cloth & leather",
    "side": "forge",
    "place": "forge 2327",
    "row": "2nd",
@@ -2347,7 +2347,7 @@
   },
   {
    "serial": "0x403A90F5",
-   "name": "boards & logs 2",
+   "name": "tools",
    "side": "forge",
    "place": "forge 2327",
    "row": "3rd",
