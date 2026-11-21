@@ -105,27 +105,20 @@ mark { background: var(--accent-soft); color: inherit; border-radius: 2px; paddi
 .area { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: grid; gap: 2px; color: inherit; text-decoration: none; }
 .area b { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
 .area.miss { opacity: 0.45; }
-/* the castle's chests as they stand: one row per stack, four chests from the top down to the floor */
-.layout { display: grid; gap: 18px; }
+/* the castle's chests as they stand, as the game draws them: each stack a column (its top chest at the top, the
+   floor chest at the bottom), the columns left to right in the order they appear on screen (screen x goes with
+   map x minus map y) */
+.layout { display: grid; gap: 22px; }
 .layout-area { display: grid; gap: 8px; }
-.stack-wrap { overflow-x: auto; }
-.stacks { display: grid; gap: 6px; min-width: 560px; }
-.stackrow { display: grid; grid-template-columns: 96px repeat(4, minmax(0, 1fr)); gap: 6px; align-items: stretch; }
-.stackrow .where { font-size: 0.78rem; color: var(--muted); align-self: center; font-variant-numeric: tabular-nums; }
-.stackrow .colhead { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-.stackrow .chest { min-height: 52px; padding: 6px 8px; }
-.stackrow .chest .name { font-size: 0.95rem; }
-.stackrow .blank { min-height: 0; }
+.stack-wrap { overflow-x: auto; padding-bottom: 4px; }
+.wallgrid { display: grid; grid-template-columns: 44px repeat(var(--n), minmax(96px, 1fr)); gap: 6px; width: max-content; min-width: 100%; }
+.wallgrid .colhead { font-size: 0.78rem; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; align-self: end; }
+.wallgrid .rowhead { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; align-self: center; }
+.wallgrid .chest { min-height: 60px; padding: 6px 8px; }
+.wallgrid .chest .name { font-size: 0.92rem; }
+.wallgrid .blank { min-height: 0; }
 .chest.yours { border-color: var(--accent); }
-@media (max-width: 640px) {
-  .stacks { min-width: 0; }
-  .stackrow { grid-template-columns: 1fr 1fr; }
-  .stackrow .where { grid-column: 1 / -1; font-weight: 600; color: var(--ink); padding-top: 6px; }
-  .stackrow.head { display: none; }
-  .stackrow .blank { display: none; }
-  .stackrow .chest .row-name { display: inline; }
-}
-.chest .row-name { display: none; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.layout-note { font-size: 0.8rem; color: var(--muted); display: flex; justify-content: space-between; gap: 12px; }
 .secure-tag { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); border: 1px solid var(--accent); border-radius: 3px; padding: 0 4px; margin-left: 6px; vertical-align: 2px; }
 .note { padding: 14px; border: 1px dashed var(--line); border-radius: 6px; color: var(--muted); }
 footer { color: var(--muted); font-size: 0.8rem; }
@@ -226,28 +219,46 @@ function bagsHtml(c, q) {
 
 const STACK_ROWS = ['top', '2nd', '3rd', 'floor'];
 
+// a chest's map position from its place: "east 2329" (x 947), "forge 2326" (x 944), "my vault 938" (y 2348),
+// "intake 938,2349"
+function spot(c) {
+  let m = c.place.match(/(\d+),(\d+)/);
+  if (m) return [+m[1], +m[2]];
+  m = c.place.match(/(\d+)$/);
+  const n = m ? +m[1] : 0;
+  if (c.place.startsWith('east')) return [947, n];
+  if (c.place.startsWith('forge')) return [944, n];
+  if (c.place.startsWith('my vault')) return [n, 2348];
+  return [0, 0];
+}
+// the layout's groups: the intake chests stand in the south-east, beside the user's vault
+const LAYOUT = [['east', 'East storage', 'the east wall, x 947: north end on the right', (c) => c.side === 'east' && !c.place.startsWith('intake')],
+  ['forge', 'By the forge', 'x 944, next to the forges', (c) => c.side === 'forge'],
+  ['vault', 'Your vault', 'south-east, behind your table: the stack nearest the entrance on the left', (c) => c.side === 'vault' || c.place.startsWith('intake')]];
+
 function layoutHtml(castle, q, hitsOf) {
-  return AREAS.map(([side, name, where]) => {
-    const cs = castle.filter((c) => c.side === side);
+  return LAYOUT.map(([side, name, where, take]) => {
+    const cs = castle.filter(take);
     if (!cs.length) return '';
-    const places = [...new Set(cs.map((c) => c.place))];
-    const rows = places.map((pl) => {
-      const here = cs.filter((c) => c.place === pl);
-      const cells = STACK_ROWS.map((r) => {
-        const c = here.find((h) => h.row === r);
+    const places = [...new Set(cs.map((c) => c.place))]
+      .sort((a, b) => { const pa = spot(cs.find((c) => c.place === a)), pb = spot(cs.find((c) => c.place === b)); return (pa[0] - pa[1]) - (pb[0] - pb[1]) || pa[1] - pb[1]; });
+    let html = '<span></span>' + places.map((pl) => `<span class="colhead">${esc(pl.replace(/^(east|forge|my vault) /, '').replace(/^intake /, 'intake<br>'))}</span>`.replace('&lt;br&gt;', '<br>')).join('');
+    STACK_ROWS.forEach((r) => {
+      html += `<span class="rowhead">${r}</span>`;
+      html += places.map((pl) => {
+        const c = cs.find((h) => h.place === pl && h.row === r);
         if (!c) return '<div class="blank"></div>';
         const n = sum(chestItems(c));
         const cls = ['chest', n ? '' : 'empty', c.name.startsWith('yours') ? 'yours' : '',
           q ? (hitsOf(c) ? 'hit' : 'miss') : ''].filter(Boolean).join(' ');
-        const body = `<span class="row-name">${esc(r)}</span><span class="name">${esc(cap(c.name))}</span>`
+        const body = `<span class="name">${esc(cap(c.name))}</span>`
           + `<span class="count">${n ? fmt(n) + ' items' : 'empty'}${c.secure ? ' · secure' : ''}</span>`;
-        return n ? `<a class="${cls}" href="#c-${c.serial}">${body}</a>` : `<div class="${cls}">${body}</div>`;
+        return n ? `<a class="${cls}" href="#c-${c.serial}" title="${esc(pl)}, ${r}">${body}</a>` : `<div class="${cls}" title="${esc(pl)}, ${r}">${body}</div>`;
       }).join('');
-      return `<div class="stackrow"><span class="where">${esc(pl.replace(/^(east|forge|my vault) /, ''))}</span>${cells}</div>`;
-    }).join('');
-    return `<div class="layout-area"><h3>${esc(name)} <span class="muted">· ${esc(where)}</span></h3><div class="stack-wrap"><div class="stacks">`
-      + `<div class="stackrow head"><span class="colhead">${side === 'vault' ? 'x (y 2348)' : 'y'}</span>${STACK_ROWS.map((r) => `<span class="colhead">${r}</span>`).join('')}</div>`
-      + rows + '</div></div></div>';
+    });
+    return `<div class="layout-area"><h3>${esc(name)} <span class="muted">· ${esc(where)}</span></h3>`
+      + `<div class="stack-wrap"><div class="wallgrid" style="--n:${places.length}">${html}</div></div>`
+      + `<div class="layout-note"><span>← left on your screen</span><span>right on your screen →</span></div></div>`;
   }).join('');
 }
 
@@ -278,7 +289,7 @@ function renderCastle(q) {
   }).join('');
   const when = data.castle_updated ? new Date(data.castle_updated).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
   $('castle').innerHTML = `<h2 class="part">The castle</h2><p class="muted">Counted by Clem${when ? ` on ${when}` : ''}. Empty chests aren't listed below.</p><div class="areas">${areas}</div>`
-    + `<h2>Where everything is</h2><p class="muted">Each row is one stack of chests, from the top down to the floor. Tap a chest to see what's in it.</p><div class="layout">${layoutHtml(castle, q, hitsOf)}</div>` + sections;
+    + `<h2>Where everything is</h2><p class="muted">As you see them in the game: each column is one stack of chests, its top chest at the top, and the columns run left to right as on your screen. Tap a chest to see what's in it.</p><div class="layout">${layoutHtml(castle, q, hitsOf)}</div>` + sections;
   return found;
 }
 
