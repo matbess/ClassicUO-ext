@@ -194,6 +194,9 @@ parks him in the middle of the great hall (933,2336, the square the user chose, 
 **938's top 3 are the user's own, secure** (2026-11-20: they can reach them through the window from the castle
 entrance, so secure; "we're also going to use them for supplies that I need to refill when I'm adventuring, like
 reagents"). The user's three chests from the tower moved there from 942 exactly as they lay (`tower_down.py relay`).
+938 floor (not secure) holds the spare backpacks since 2026-11-20 (moved from the forge's 2327 floor, which is free
+now): "I'm also going to need empty backpacks when I'm adventuring". Leaving, Clem locks the table down as he passes
+it (`Mover.leave_to`), never from the great hall and back.
 
 ## The tower's ground floor (from 2026-11-20)
 

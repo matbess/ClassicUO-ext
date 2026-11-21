@@ -79,9 +79,7 @@ def finish(info, mover):
         if '--floor' not in sys.argv:
             say(('STILL IN THE INTAKE CHESTS (sort as another batch): ' + ', '.join(left)) if left
                 else f"the {' and '.join(sides)} intake chests are empty")
-        mover.walk(*PARK)  # there first, past the tables, then the table shut from that side
-        mover.close_up()
-        mover.walk(*PARK)
+        mover.leave_to(PARK)  # out past the tables, the table locked down right there, then to the great hall
         say(f'{uo.call(info, "GET", "/status")["character"].split()[-1]} is in the middle of the great hall at {PARK[0]},{PARK[1]}')
         return
     x1, y1, x2, y2 = look.VAULT['box']

@@ -125,9 +125,12 @@ refuses `--side west` (`castle_site.SIDES`). The same five steps and tools; what
   `finish.py` puts it back and locks it down, after the empty bags are put away (the user: "Remove the table once at
   the start then wait until the very end ... then lock the table back down"). If a sort stops before finish, run
   `python3 -I castle.py table close` (once the user hands him back, if they took over).
-- **Finish:** `python3 finish.py --side east --floor` counts the castle's smelting chests, puts the table back and
-  locks both down from behind, and parks him in the middle of the great hall (933,2336, the square the user chose; the user: "take him into the center of the great hall at the end of sorting"; before that "at the end of sorting you
+- **Finish:** `python3 finish.py --side east --floor` counts the castle's smelting chests, then on the way out puts the
+  table back and locks it down **as he passes it** (the user: "LOCK THE TABLE DOWN RIGHT WHEN YOU LEAVE. Don't go to
+  the great hall and then back to lock it"; `Mover.leave_to`), checks both tables say "locked down", and parks him in the middle of the great hall (933,2336, the square the user chose; the user: "take him into the center of the great hall at the end of sorting"; before that "at the end of sorting you
   should place the character (clem/johnny) at the center of the forge room").
+- **Spare backpacks** are in 938 floor (not secure) since 2026-11-20, so the user can take empty bags through the
+  window when adventuring; emptied loot bags go there.
 - **Razor** double-clicks every bag that lands in his pack (AutoSearch); the castle tools hand those clicks back
   (`razor.py`) instead of stopping.
 - **The page:** only when the user asks (2026-11-20). `python3 inventory.py --asked` inside the castle counts the castle (every chest that had something last

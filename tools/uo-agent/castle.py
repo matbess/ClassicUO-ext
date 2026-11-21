@@ -357,7 +357,12 @@ def table(action):
             raise Stop(f'the table stands at {at}, neither in its place {TABLE_HOME} nor aside {TABLE_ASIDE}')
         if where() not in (TABLE_STAND, TABLE_STAND_BEHIND):
             step(TABLE_STAND, 'get next to the table')
-        house_command('i wish to release this', 'no longer locked down')
+        try:
+            house_command('i wish to release this', 'no longer locked down')
+        except Stop as e:
+            if "isn't locked down" not in str(e):  # released already (left unlocked, 2026-11-20 20:35): go on
+                raise
+            say('the table was not locked down: moving it aside as it is')
         put_table(TABLE_ASIDE)
         say('the table is aside: the way to the chests is open (close it again when done)')
     else:

@@ -2368,343 +2368,12 @@
   },
   {
    "serial": "0x404804BD",
-   "name": "spare backpacks",
+   "name": "free",
    "side": "forge",
    "place": "forge 2327",
    "row": "floor",
    "secure": false,
-   "bags": [
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    }
-   ],
+   "bags": [],
    "loose": []
   },
   {
@@ -3191,12 +2860,343 @@
   },
   {
    "serial": "0x406E85EC",
-   "name": "free",
+   "name": "spare backpacks",
    "side": "vault",
    "place": "my vault 938",
    "row": "floor",
    "secure": false,
-   "bags": [],
+   "bags": [
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    }
+   ],
    "loose": []
   },
   {

@@ -392,10 +392,12 @@ class Mover:
         if self.table_opened:
             return
         castle.info = self.info
+        # next to the table first: from the far end of the user's vault the tables are out of his client's sight
+        # (2026-11-20 20:33, a 404), so where it stands is only known once he's near it
+        self.to_table_stand()
         if castle.spot_or_none(castle.TABLE) == castle.TABLE_ASIDE:  # left aside by an earlier step of this sort
             self.table_opened = True
             return
-        self.to_table_stand()
         castle.table('open')
         self.table_opened = True
 
@@ -410,6 +412,18 @@ class Mover:
             finally:
                 self.table_opened = False
 
+    def leave_to(self, park):
+        """The end of a job: out past the tables, the table back and locked down right there, then on to `park` (in
+        front of them). The user, 2026-11-20: "LOCK THE TABLE DOWN RIGHT WHEN YOU LEAVE. Don't go to the great hall and
+        then back to lock it"."""
+        st = self.status()
+        if behind((st['x'], st['y'])):
+            self.open_table()  # aside already in a sort; else moved aside now
+            self.table_opened = True  # the walk out must not touch it again
+            self.go(castle.TABLE_STAND, 'out past the tables')
+        self.close_up()  # from in front, where he now stands (no walk when he's there already)
+        self.go(park, f'to {park[0]},{park[1]}')
+
     def close_up(self, final=True):
         """The table back in its place, locked down, if this run opened it (or, at a sort's end, if it's aside).
         The sorting steps (look, idall, plan, sortbatch) pass final=False and leave it aside: the user, 2026-11-20:
@@ -420,8 +434,15 @@ class Mover:
                 self.say('the table stays aside until the sort is finished (finish.py puts it back)')
             return
         castle.info = self.info
-        if not self.table_opened and castle.spot_or_none(castle.TABLE) == castle.TABLE_HOME:
-            return
+        if not self.table_opened:
+            try:
+                if castle.spot_or_none(castle.TABLE) == castle.TABLE_HOME and 'locked down' in ' '.join(
+                        a for r in self.uo.call(self.info, 'POST', '/name', serial=castle.TABLE)
+                        for a in r.get('lines', [])).lower():
+                    return  # in its place and locked down (in its place but released, 20:35: it gets locked)
+            except self.uo.BridgeError as e:
+                if e.code != 404:
+                    raise
         castle.info = self.info
         self.table_opened = True  # the walk to the table must not open it again
         self.to_table_stand()
@@ -505,8 +526,8 @@ def test():
     assert sum(e['secure'] for e in PLAN.values() if e['side'] == 'east') == 13
     assert sum(e['secure'] for e in PLAN.values() if e['side'] == 'friend') == 0
     assert all(e['what'] == 'free' for e in PLAN.values() if e['side'] == 'west' and e['x'] == 921)
-    assert [PLAN[s]['place'] for s in targets('gems', 'east')] == ['my vault 942']
-    assert [PLAN[s]['place'] for s in targets('house deeds', 'east')] == ['my vault 942']
+    assert [PLAN[s]['place'] for s in targets('gems', 'east')] == ['my vault 939']
+    assert [PLAN[s]['place'] for s in targets('house deeds', 'east')] == ['my vault 939']
     for name in ('jewellery', 'magic clothing', 'attack wands', 'healing wands', 'GM armour sets', 'best weapons',
                  'best armour', 'treasure maps', 'deeds', 'reagents'):
         t = targets(name, 'east')
@@ -519,7 +540,7 @@ def test():
     assert all(PLAN[s]['what'] == 'gold' for s in targets('gold', 'west'))
     assert [PLAN[s]['what'] for s in targets('ingots', 'east')] == ['ingots', 'ingots 2']
     assert [PLAN[s]['what'] for s in targets('boards & logs', 'east')] == ['boards & logs', 'boards & logs 2']
-    assert [PLAN[s]['side'] for s in targets('new backpacks', 'west')] == ['forge']
+    assert [PLAN[s]['side'] for s in targets('new backpacks', 'west')] == ['vault']  # 938 floor since 2026-11-20
     assert PLAN[targets('supplies', 'east')[0]]['what'] == 'supplies & ID wands'
     assert len(intake('east')) == 2 and len(intake('west')) == 2
     for name in ('swords', 'axes', 'maces & staves', 'polearms', 'fencing', 'archery', 'plate', 'helms', 'chain & ring',

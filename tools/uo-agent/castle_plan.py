@@ -64,8 +64,8 @@ FORGE = {
     # be 2326 3rd and floor chests. 2327 top to bottom should be: cooking, cloth & leather, tools, spare backpacks"
     # (the user moves the things themselves)
     2326: [('ingots', 0), ('ingots 2', 0), ('boards & logs', 0), ('boards & logs 2', 0)],
-    2327: [('cooking', 0), ('cloth & leather', 0), ('tools', 0), ('spare backpacks', 0)],  # backpacks: outside the
-}                                                                                         # tables, anyone drops bags
+    2327: [('cooking', 0), ('cloth & leather', 0), ('tools', 0), (FREE, 0)],  # the spare backpacks went to 938 floor
+}
 # the user's vault (south-east, behind their table, y 2348): no weight limit, no secures needed. The ingots, boards and
 # logs moved up to the forge (2026-11-19), so 938 and 939 are free
 VAULT = {
@@ -73,8 +73,11 @@ VAULT = {
     # make those 3 into secure chests and we're also going to use them for supplies that I need to refill when I'm
     # adventuring, like reagents. My personal chests we put at 942 2nd-4th chests, move those over to the top 3
     # secure chests of 938 so I can reach them through the window from the castle entrance"
+    # 938 floor (not secure): the spare backpacks, moved from the forge (the user, 2026-11-20: "I'm also going to need
+    # empty backpacks when I'm adventuring so I want you to make the bottom unsecure chest in col 938 into the
+    # backpack chest")
     938: [('yours: runes and bags', 1), ('yours: reagents and supplies', 1), ('yours: runebooks and maps', 1),
-          (FREE, 0)],
+          ('spare backpacks', 0)],
     # 939 took what 942 had planned (2026-11-20): 942 is for the user's own chests from the tower
     939: [('valuables overflow', 0), (FREE, 0), ('house deeds', 0), ('gems', 0)],
     940: [('reagents', 0), ('reagents', 0), ('scrolls', 0), (FREE, 0)],
