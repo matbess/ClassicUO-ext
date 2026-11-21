@@ -188,7 +188,7 @@ front: the forge chests, the smelting chests, the barrel and the spare backpacks
 (`castle.TABLE`, 0x405E7C85) aside to 949,2327 from 948,2326, and puts it back from there; the one at 949
 (0x408793A4) is checked locked down. Clem's rules allow the tables' graphic (0x0B35) on the ground. Loot to sort goes on
 the forge room floor; a sort keeps the table aside from its first walk behind it to `finish.py`, then parks him in
-the middle of the forge room (945,2324).
+the middle of the forge room (946,2325, the square the user chose).
 
 ## The tower's ground floor (from 2026-11-20)
 
