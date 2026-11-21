@@ -25,8 +25,8 @@ for module in ('uo', 'look'):
     spec.loader.exec_module(globals()[module])
 sys.path.insert(0, here)
 import castle_site  # noqa: E402
-PARK = (946, 2325)  # in the castle: the middle of the forge room, the square the user put him on (2026-11-20: "at the end of sorting you
-#                    should place the character (clem/johnny) at the center of the forge room"), in front of the tables
+PARK = (935, 2332)  # in the castle: the middle of the great hall (the user, 2026-11-20: "I want you to take him into the
+#                    center of the great hall at the end of sorting"), in front of the tables
 
 SPARES = '0x4049D6B8'  # pouch of spare ID wands and staves, in the supplies chest
 
@@ -79,10 +79,10 @@ def finish(info, mover):
         if '--floor' not in sys.argv:
             say(('STILL IN THE INTAKE CHESTS (sort as another batch): ' + ', '.join(left)) if left
                 else f"the {' and '.join(sides)} intake chests are empty")
-        mover.walk(*PARK)  # the park is behind the tables (in the forge room): there first, then the table shut
-        mover.close_up()  # from behind it
+        mover.walk(*PARK)  # there first, past the tables, then the table shut from that side
+        mover.close_up()
         mover.walk(*PARK)
-        say(f'{uo.call(info, "GET", "/status")["character"].split()[-1]} is in the middle of the forge room at {PARK[0]},{PARK[1]}')
+        say(f'{uo.call(info, "GET", "/status")["character"].split()[-1]} is in the middle of the great hall at {PARK[0]},{PARK[1]}')
         return
     x1, y1, x2, y2 = look.VAULT['box']
     walked = uo.call(info, 'POST', '/walk', x=(x1 + x2) // 2, y=(y1 + y2) // 2, distance=0)
