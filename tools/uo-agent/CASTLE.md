@@ -180,15 +180,20 @@ into its castle chest at its tower spot, back by castle.py out. What was learned
 - Loose crafting things went to the forge (cloth & leather, tools, boards & logs, ingots), not where they lay.
 - The **user's table** never had to move: the y 2350 row runs round it to the user's vault (the user was told).
 
-## The tables at the forge (from 2026-11-20)
+## The tables (from 2026-11-20)
 
-The user moved their table from the south-east up to the forge: two tables now stand locked down across the east
-hall walkway at 948,2328 and 949,2328. Behind them: the east wall, the user's vault and the east intake chests. In
-front: the forge chests, the smelting chests, the barrel and the spare backpacks. Clem moves only the one at 948
-(`castle.TABLE`, 0x405E7C85) aside to 949,2327 from 948,2326, and puts it back from there; the one at 949
-(0x408793A4) is checked locked down. Clem's rules allow the tables' graphic (0x0B35) on the ground. Loot to sort goes on
-the forge room floor; a sort keeps the table aside from its first walk behind it to `finish.py`, then parks him in
-the middle of the forge room (946,2325, the square the user chose).
+The user moved their two tables to the west end of the forge corner: locked down across the corridor at 943,2323
+and 943,2324 ("the forge area is blocked off now too"; at 948-949,2328 the east wall's 2329 stack could be reached
+over them). Behind them: the forge chests, the east wall, the user's vault and the east intake chests. In front: the
+great hall and the rest. Clem moves only the one at 943,2323 (`castle.TABLE`, 0x405E7C85), on his route's row,
+aside to 942,2324, from 941,2323 in front or 944,2323 behind, and puts it back from either; the one at 943,2324
+(0x408793A4) is checked locked down. Clem's rules allow the tables' graphics (0x0B34, 0x0B35) on the ground. Loot to
+sort goes on the forge room floor; a sort keeps the table aside from its first walk past it to `finish.py`, which
+parks him on 946,2325 in the forge room (the square the user chose) and locks the table down from behind.
+
+**938's top 3 are the user's own, secure** (2026-11-20: they can reach them through the window from the castle
+entrance, so secure; "we're also going to use them for supplies that I need to refill when I'm adventuring, like
+reagents"). The user's three chests from the tower moved there from 942 exactly as they lay (`tower_down.py relay`).
 
 ## The tower's ground floor (from 2026-11-20)
 
@@ -196,7 +201,7 @@ What's left in the tower after the vault: 6 chests by the stairs, 9 in the bedro
 where each goes; 2 are the friend's (they'll say which).
 
 - **The user's own 3** (the stack at 1752,1402 by the stairs: z 14, 10, 6) went to **942** in their vault, same heights
-  (2nd, 3rd, floor), moved exactly as they were: "i want the items placed in the chests exactly the same so when i
+  (2nd, 3rd, floor), then on to **938's top 3** (secure), moved exactly as they were: "i want the items placed in the chests exactly the same so when i
   open the chests it looks the same as it does here in the tower". `tower_down.py record` writes every piece's x,y in
   its chest and the server's order (the drawing order); `carry` takes them whole (a bag's contents keep their places
   when the bag moves: the user, "you don't have to record those") and puts each back at its x,y in that order, then

@@ -193,6 +193,53 @@ def check(dest, pieces):
         f"{'the same' if same_order else 'DIFFERENT'}")
 
 
+def relay(pairs):
+    """In the castle: each SRC chest's pieces into DEST, every piece at its spot and in its order (the drawing order),
+    a chest at a time through his pack, then checked. The user's own chests from 942 to 938's secures (2026-11-20)."""
+    mover = castle_site.install(uo, info, say)
+    if not mover:
+        raise Stop('relay is done inside the castle')
+    look.uo.walk_near = mover.walk_near
+    pack = status()['backpack']['serial']
+    for src, dest in pairs:
+        before = [p for p in read_carry() if p['src'] == src and p['dest'] == dest]  # a relay stopped part way
+        if before:
+            record = sorted(before, key=lambda p: p['order'])
+            if not look.open_once(info, src) and not look.open_once(info, dest):
+                pass
+            elif not set(i['serial'] for i in look.open_once(info, dest)) <= {p['serial'] for p in record}:
+                raise Stop(f'{dest} holds pieces that are not from {src}')
+        else:
+            if look.open_once(info, dest):
+                raise Stop(f'{dest} is not empty: nothing goes in on top of it')
+            pieces = look.open_once(info, src)
+            lines = ' '.join(uo.call(info, 'POST', '/name', serial=src)[0].get('lines', []))
+            m = re.search(r'\((\d+) items?, (\d+) stones?\)', lines)
+            items, stones = pack_room()
+            if m and (int(m.group(1)) > items - 2 or int(m.group(2)) > stones - 5):
+                raise Stop(f'{src} ({m.group(1)} items, {m.group(2)} stones) will not fit in his pack '
+                           f'({items} items, {stones} stones of room)')
+            record = [dict(serial=i['serial'], x=i['x'], y=i['y'], order=n, name=i.get('type', ''), src=src, dest=dest)
+                      for n, i in enumerate(pieces)]
+            write_carry(record)
+        still = {i['serial'] for i in look.open_once(info, src)}
+        for p in record:
+            if p['serial'] in still:
+                uo.call(info, 'POST', '/move', serial=p['serial'], to=pack)
+        say(f'{src}: {len(record)} pieces in his pack')
+        mover.walk_near(info, dest)
+        taken = read_carry()
+        there = {i['serial'] for i in look.open_once(info, dest)}
+        for p in record:
+            if p['serial'] in there:
+                continue
+            uo.call(info, 'POST', '/move', serial=p['serial'], to=dest, x=p['x'], y=p['y'])
+            taken = [t for t in taken if t['serial'] != p['serial']]
+            write_carry(taken)
+        check(dest, record)
+    say('RELAY DONE (the table stays as it is: finish.py or castle.py table close puts it back)')
+
+
 def gems_over():
     """The gem bag and its marker gem from 942 floor to 939 floor, each at the same spot, in the same order."""
     mover = castle_site.install(uo, info, say)
@@ -264,6 +311,8 @@ def main():
         place_all()
     elif cmd == 'gems':
         gems_over()
+    elif cmd == 'relay':
+        relay([a.split(':') for a in sys.argv[2:]])
     elif cmd == 'record':
         # the exact layout (the user, 2026-11-20: "i want the items placed in the chests exactly the same so when i
         # open the chests it looks the same as it does here in the tower"): every item's x,y in its container, in

@@ -372,6 +372,14 @@ def razor_inner(e, c, secs):
     return c.get('serial') in inside
 
 
+def razor_landed(e, events, secs):
+    """A double-click on a bag within a second of its own drop: Razor's AutoSearch on the next bag that landed."""
+    if e.get('kind') != 'sent double-click':
+        return False
+    return any(d.get('kind') == 'sent drop' and d.get('serial') == e.get('serial') and d['id'] < e['id']
+               and 0 <= secs(e['time']) - secs(d['time']) <= 1.0 for d in events)
+
+
 def razor_opened(serial):
     """The takeover is a double-click on `serial` within a second of its drop into his pack, and nothing else of his
     was sent after it: Razor's AutoSearch. Then it's handed back (resume) and True."""
@@ -383,13 +391,22 @@ def razor_opened(serial):
         # 20:53:26 the attack wands bag's click stopped the move of its marker), and that item's drop
         when = took[len('a double-click at '):]
         clicks = [e for e in events if e.get('kind') == 'sent double-click' and e['time'].startswith(when)]
+        secs0 = lambda t: sum(float(x) * m for x, m in zip(t.split(':'), (3600, 60, 1)))  # noqa: E731
+        if clicks and not any(e.get('kind') == 'sent drop' and e.get('serial') == clicks[-1].get('serial')
+                              for e in events):
+            # the takeover is Razor's click on a bag inside the one that landed (2026-11-20 20:13:37): the click
+            # that counts is the one on the landed bag, just before it
+            outer = [e for e in events if e.get('kind') == 'sent double-click' and e['id'] < clicks[-1]['id']
+                     and razor_inner(clicks[-1], e, secs0)]
+            if outer:
+                clicks = [outer[-1]]
         drops = [e for e in events if e.get('kind') == 'sent drop' and clicks and e.get('serial') == clicks[-1].get('serial')]
         if took.startswith('a double-click at ') and clicks and drops:
             c, d = clicks[-1], drops[-1]
             secs = lambda t: sum(float(x) * m for x, m in zip(t.split(':'), (3600, 60, 1)))  # noqa: E731
             others = [e for e in events if e['id'] > c['id'] and e.get('kind', '').startswith('sent ')
                       and e['kind'] not in ('sent single-click', 'sent pick up', 'sent drop')
-                      and not razor_inner(e, c, secs)]
+                      and not razor_inner(e, c, secs) and not razor_landed(e, events, secs)]
             if d['id'] < c['id'] and 0 <= secs(c['time']) - secs(d['time']) <= 1.0 and not others:
                 uo.call(info, 'POST', '/resume', handback=True)  # Razor's click, checked above
                 say(f'Razor opened {serial} as it landed in his pack ({took}): not the user; resumed')

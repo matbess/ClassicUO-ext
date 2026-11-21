@@ -51,15 +51,16 @@ CENTRAL_DOOR, CENTRAL_KEY = '0x40913571', '0x408CB8EE'
 CENTRAL_SHUT, CENTRAL_OUT, CENTRAL_IN = (935, 2341), (935, 2343), (935, 2340)
 HALL = (935, 2338)               # where he's left inside: the great hall, by the central door
 
-# the tables (2026-11-20): the user moved theirs from the south-east (it was 0x408793A4 at 943,2349) up to the forge.
-# Two now stand locked down across the east hall walkway at 948,2328 and 949,2328 and shut off the east wall, the
-# user's vault and the east intake chests (CASTLE.md, "The tables at the forge"). Clem moves only the one at 948, on
-# his route's column: aside to 949,2327 (north of the other one, out of the x 948 column), and back and locked down
-# at the end; the one at 949 is never moved.
-TABLE = '0x405E7C85'             # the table at 948,2328
-TABLE_OTHER = '0x408793A4'       # the one at 949,2328 (the user's old south-east table), checked locked down
-TABLE_HOME, TABLE_ASIDE = (948, 2328), (949, 2327)
-TABLE_STAND = (948, 2326)        # the forge side, on the route: both spots within reach
+# the tables (2026-11-20, second place): the user moved both to the west end of the forge corner, across the
+# corridor at 943,2323 and 943,2324 ("the forge area is blocked off now too"). Behind them: the forge chests, the
+# east wall, the user's vault and the east intake chests. Clem moves only the one at 943,2323, on his route's row
+# (y 2323): aside to 942,2324, out of that row, and back and locked down at the end; the one at 943,2324 is never
+# moved. He works it from in front (941,2323) or from behind (944,2323): both spots within reach from either.
+TABLE = '0x405E7C85'             # the table at 943,2323
+TABLE_OTHER = '0x408793A4'       # the one at 943,2324, checked locked down
+TABLE_HOME, TABLE_ASIDE = (943, 2323), (942, 2324)
+TABLE_STAND = (941, 2323)        # in front (the great hall side), on the route
+TABLE_STAND_BEHIND = (944, 2323)  # behind (the forge side)
 
 CASTLE = (921, 2321, 950, 2350)  # the inside, ground floor (x1, y1, x2, y2)
 
@@ -354,14 +355,15 @@ def table(action):
             return
         if at != TABLE_HOME:
             raise Stop(f'the table stands at {at}, neither in its place {TABLE_HOME} nor aside {TABLE_ASIDE}')
-        step(TABLE_STAND, 'get next to the table')
+        if where() not in (TABLE_STAND, TABLE_STAND_BEHIND):
+            step(TABLE_STAND, 'get next to the table')
         house_command('i wish to release this', 'no longer locked down')
         put_table(TABLE_ASIDE)
         say('the table is aside: the way to the chests is open (close it again when done)')
     else:
         if at not in (TABLE_ASIDE, TABLE_HOME):
             raise Stop(f'the table stands at {at}, neither aside {TABLE_ASIDE} nor in its place {TABLE_HOME}')
-        if where() != TABLE_STAND:
+        if where() not in (TABLE_STAND, TABLE_STAND_BEHIND):
             step(TABLE_STAND, 'get next to the table')
         if at == TABLE_ASIDE:
             put_table(TABLE_HOME)
@@ -370,7 +372,7 @@ def table(action):
             lines = ' '.join(a for r in call('POST', '/name', serial=t) for a in r.get('lines', [])).lower()
             if 'locked down' not in lines:
                 raise Stop(f'the table {t} ({at or spot_or_none(t)}) does not say "locked down": {lines!r}')
-        say('both tables at the forge are in their places and locked down')
+        say('both tables are in their places and locked down')
 
 
 def put_table(to):

@@ -119,14 +119,14 @@ refuses `--side west` (`castle_site.SIDES`). The same five steps and tools; what
   on the floor, like we did at the tower vault"): `look.py BATCHDIR --side east --floor` takes the bags from there
   into his pack, and `finish.py --side east --floor` ends it. The intake chests are only for `--side east` without
   `--floor`.
-- **The tables at the forge** (from 2026-11-20): two tables stand locked down across the east hall walkway at
-  948,2328 and 949,2328 and shut off the east wall, the user's vault and the intake chests. The first walk that goes
-  behind them releases the one at 948 and puts it aside at 949,2327; **it stays aside for the whole sort** and only
+- **The tables** (from 2026-11-20): two tables stand locked down across the corridor at 943,2323 and 943,2324 and
+  shut off the forge corner, the east wall, the user's vault and the intake chests. The first walk past them
+  releases the one at 943,2323 and puts it aside at 942,2324; **it stays aside for the whole sort** and only
   `finish.py` puts it back and locks it down, after the empty bags are put away (the user: "Remove the table once at
   the start then wait until the very end ... then lock the table back down"). If a sort stops before finish, run
   `python3 -I castle.py table close` (once the user hands him back, if they took over).
 - **Finish:** `python3 finish.py --side east --floor` counts the castle's smelting chests, puts the table back and
-  locks both down, and parks him in the middle of the forge room (946,2325, the square the user chose; "at the end of sorting you
+  locks both down from behind, and parks him in the middle of the forge room (946,2325, the square the user chose; "at the end of sorting you
   should place the character (clem/johnny) at the center of the forge room").
 - **Razor** double-clicks every bag that lands in his pack (AutoSearch); the castle tools hand those clicks back
   (`razor.py`) instead of stopping.

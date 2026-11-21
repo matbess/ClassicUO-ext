@@ -79,7 +79,8 @@ def finish(info, mover):
         if '--floor' not in sys.argv:
             say(('STILL IN THE INTAKE CHESTS (sort as another batch): ' + ', '.join(left)) if left
                 else f"the {' and '.join(sides)} intake chests are empty")
-        mover.close_up()
+        mover.walk(*PARK)  # the park is behind the tables (in the forge room): there first, then the table shut
+        mover.close_up()  # from behind it
         mover.walk(*PARK)
         say(f'{uo.call(info, "GET", "/status")["character"].split()[-1]} is in the middle of the forge room at {PARK[0]},{PARK[1]}')
         return

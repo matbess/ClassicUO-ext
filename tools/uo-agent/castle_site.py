@@ -145,7 +145,7 @@ UP = 20  # z this high and over: upstairs
 # progress" at 924,2326 and 921,2325, 2026-11-19), so these are stepped tile by tile, never left to it
 RAMPS = [[(933, 2333), (932, 2332), (931, 2332), (930, 2332), (929, 2332), (928, 2332)],
          [(921, 2322), (921, 2323), (921, 2324), (921, 2325), (921, 2326), (921, 2327)]]
-TABLE_SPOT = (948, 2328)  # the table Clem moves, at the forge (castle.TABLE)
+TABLE_SPOT = (943, 2323)  # the table Clem moves (castle.TABLE)
 
 
 def cheb(a, b):
@@ -250,9 +250,10 @@ def zone(x, y):
 
 
 def behind(p):
-    """Behind the tables at the forge (2026-11-20): the east hall south of them, the east intake chests and the user's
-    vault; the only way there is the east hall walkway past the tables."""
-    return zone(*p) in ('east', 'south-east') and p[1] >= 2329
+    """Behind the user's tables at 943,2323-2324 (2026-11-20): the forge corner from x 944, the east hall, the east
+    intake chests and the user's vault; the only way there is the corridor past the tables."""
+    z = zone(*p)
+    return z in ('east', 'south-east') or (z == 'forge' and p[0] >= 944)
 
 
 class Mover:
@@ -306,7 +307,7 @@ class Mover:
             return
         pts3 = route3(here, goal, st['z'])
         pts = [p[:2] for p in pts3]
-        if not behind(here) and behind(tuple(goal)):
+        if behind(here) != behind(tuple(goal)):
             self.open_table()
         # the ride cut at the ramps: a smooth ride to a ramp's end, the ramp stepped tile by tile, on from its other end
         segs, cur = [], [pts3[0]]
@@ -394,11 +395,20 @@ class Mover:
         if castle.spot_or_none(castle.TABLE) == castle.TABLE_ASIDE:  # left aside by an earlier step of this sort
             self.table_opened = True
             return
-        st = self.status()
-        if (st['x'], st['y']) != castle.TABLE_STAND:
-            self.go(castle.TABLE_STAND, "to the user's table")
+        self.to_table_stand()
         castle.table('open')
         self.table_opened = True
+
+    def to_table_stand(self):
+        """Next to the table on the side he's on: in front of it, or behind it."""
+        st = self.status()
+        stand = castle.TABLE_STAND_BEHIND if behind((st['x'], st['y'])) else castle.TABLE_STAND
+        if (st['x'], st['y']) != stand:
+            self.table_opened = True  # no table crossing on the way to it (go() would open it again)
+            try:
+                self.go(stand, "to the user's table")
+            finally:
+                self.table_opened = False
 
     def close_up(self, final=True):
         """The table back in its place, locked down, if this run opened it (or, at a sort's end, if it's aside).
@@ -413,9 +423,8 @@ class Mover:
         if not self.table_opened and castle.spot_or_none(castle.TABLE) == castle.TABLE_HOME:
             return
         castle.info = self.info
-        st = self.status()
-        if (st['x'], st['y']) != castle.TABLE_STAND:
-            self.go(castle.TABLE_STAND, "back out past the user's table")
+        self.table_opened = True  # the walk to the table must not open it again
+        self.to_table_stand()
         castle.table('close')
         self.table_opened = False
 

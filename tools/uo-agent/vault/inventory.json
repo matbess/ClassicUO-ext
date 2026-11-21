@@ -2709,247 +2709,11 @@
   },
   {
    "serial": "0x406E70A6",
-   "name": "free",
-   "side": "vault",
-   "place": "my vault 938",
-   "row": "top",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406F2466",
-   "name": "free",
-   "side": "vault",
-   "place": "my vault 938",
-   "row": "2nd",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406ED0AA",
-   "name": "free",
-   "side": "vault",
-   "place": "my vault 938",
-   "row": "3rd",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406E85EC",
-   "name": "free",
-   "side": "vault",
-   "place": "my vault 938",
-   "row": "floor",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406E4F2F",
-   "name": "valuables overflow",
-   "side": "vault",
-   "place": "my vault 939",
-   "row": "top",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406EEA7B",
-   "name": "free",
-   "side": "vault",
-   "place": "my vault 939",
-   "row": "2nd",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406E2570",
-   "name": "house deeds",
-   "side": "vault",
-   "place": "my vault 939",
-   "row": "3rd",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406E7AA0",
-   "name": "gems",
-   "side": "vault",
-   "place": "my vault 939",
-   "row": "floor",
-   "secure": false,
-   "bags": [
-    {
-     "name": "gems",
-     "marker": {
-      "name": "tourmaline",
-      "amount": 1,
-      "graphic": "0x0F2D",
-      "each": 45
-     },
-     "items": [
-      {
-       "name": "pieces of amber",
-       "amount": 10,
-       "graphic": "0x0F25",
-       "each": 30
-      },
-      {
-       "name": "amethysts",
-       "amount": 8,
-       "graphic": "0x0F16",
-       "each": 60
-      },
-      {
-       "name": "citrines",
-       "amount": 8,
-       "graphic": "0x0F15",
-       "each": 30
-      },
-      {
-       "name": "diamonds",
-       "amount": 8,
-       "graphic": "0x0F26",
-       "each": 120
-      },
-      {
-       "name": "rubies",
-       "amount": 8,
-       "graphic": "0x0F13",
-       "each": 45
-      },
-      {
-       "name": "tourmalines",
-       "amount": 7,
-       "graphic": "0x0F2D",
-       "each": 45
-      },
-      {
-       "name": "star sapphires",
-       "amount": 6,
-       "graphic": "0x0F21",
-       "each": 75
-      },
-      {
-       "name": "sapphires",
-       "amount": 5,
-       "graphic": "0x0F19",
-       "each": 60
-      },
-      {
-       "name": "emeralds",
-       "amount": 3,
-       "graphic": "0x0F10",
-       "each": 60
-      }
-     ]
-    }
-   ],
-   "loose": []
-  },
-  {
-   "serial": "0x406E3BFC",
-   "name": "reagents",
-   "side": "vault",
-   "place": "my vault 940",
-   "row": "top",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406E5DAB",
-   "name": "reagents",
-   "side": "vault",
-   "place": "my vault 940",
-   "row": "2nd",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406EC384",
-   "name": "scrolls",
-   "side": "vault",
-   "place": "my vault 940",
-   "row": "3rd",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406EDB9B",
-   "name": "free",
-   "side": "vault",
-   "place": "my vault 940",
-   "row": "floor",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406E34E8",
-   "name": "gold",
-   "side": "vault",
-   "place": "my vault 941",
-   "row": "top",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406DD7D0",
-   "name": "gold",
-   "side": "vault",
-   "place": "my vault 941",
-   "row": "2nd",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406E2D98",
-   "name": "gold",
-   "side": "vault",
-   "place": "my vault 941",
-   "row": "3rd",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406EF58B",
-   "name": "gold",
-   "side": "vault",
-   "place": "my vault 941",
-   "row": "floor",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406ECA50",
-   "name": "valuables overflow",
-   "side": "vault",
-   "place": "my vault 942",
-   "row": "top",
-   "secure": false,
-   "bags": [],
-   "loose": []
-  },
-  {
-   "serial": "0x406EE45B",
    "name": "yours: runes and bags",
    "side": "vault",
-   "place": "my vault 942",
-   "row": "2nd",
-   "secure": false,
+   "place": "my vault 938",
+   "row": "top",
+   "secure": true,
    "bags": [
     {
      "name": "backpack",
@@ -3228,12 +2992,12 @@
    ]
   },
   {
-   "serial": "0x406DF442",
+   "serial": "0x406F2466",
    "name": "yours: reagents and supplies",
    "side": "vault",
-   "place": "my vault 942",
-   "row": "3rd",
-   "secure": false,
+   "place": "my vault 938",
+   "row": "2nd",
+   "secure": true,
    "bags": [],
    "loose": [
     {
@@ -3299,12 +3063,12 @@
    ]
   },
   {
-   "serial": "0x406F29C0",
+   "serial": "0x406ED0AA",
    "name": "yours: runebooks and maps",
    "side": "vault",
-   "place": "my vault 942",
-   "row": "floor",
-   "secure": false,
+   "place": "my vault 938",
+   "row": "3rd",
+   "secure": true,
    "bags": [
     {
      "name": "Blacksmiths runebook",
@@ -3424,6 +3188,242 @@
      "graphic": "0x14F5"
     }
    ]
+  },
+  {
+   "serial": "0x406E85EC",
+   "name": "free",
+   "side": "vault",
+   "place": "my vault 938",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E4F2F",
+   "name": "valuables overflow",
+   "side": "vault",
+   "place": "my vault 939",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406EEA7B",
+   "name": "free",
+   "side": "vault",
+   "place": "my vault 939",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E2570",
+   "name": "house deeds",
+   "side": "vault",
+   "place": "my vault 939",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E7AA0",
+   "name": "gems",
+   "side": "vault",
+   "place": "my vault 939",
+   "row": "floor",
+   "secure": false,
+   "bags": [
+    {
+     "name": "gems",
+     "marker": {
+      "name": "tourmaline",
+      "amount": 1,
+      "graphic": "0x0F2D",
+      "each": 45
+     },
+     "items": [
+      {
+       "name": "pieces of amber",
+       "amount": 10,
+       "graphic": "0x0F25",
+       "each": 30
+      },
+      {
+       "name": "amethysts",
+       "amount": 8,
+       "graphic": "0x0F16",
+       "each": 60
+      },
+      {
+       "name": "citrines",
+       "amount": 8,
+       "graphic": "0x0F15",
+       "each": 30
+      },
+      {
+       "name": "diamonds",
+       "amount": 8,
+       "graphic": "0x0F26",
+       "each": 120
+      },
+      {
+       "name": "rubies",
+       "amount": 8,
+       "graphic": "0x0F13",
+       "each": 45
+      },
+      {
+       "name": "tourmalines",
+       "amount": 7,
+       "graphic": "0x0F2D",
+       "each": 45
+      },
+      {
+       "name": "star sapphires",
+       "amount": 6,
+       "graphic": "0x0F21",
+       "each": 75
+      },
+      {
+       "name": "sapphires",
+       "amount": 5,
+       "graphic": "0x0F19",
+       "each": 60
+      },
+      {
+       "name": "emeralds",
+       "amount": 3,
+       "graphic": "0x0F10",
+       "each": 60
+      }
+     ]
+    }
+   ],
+   "loose": []
+  },
+  {
+   "serial": "0x406E3BFC",
+   "name": "reagents",
+   "side": "vault",
+   "place": "my vault 940",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E5DAB",
+   "name": "reagents",
+   "side": "vault",
+   "place": "my vault 940",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406EC384",
+   "name": "scrolls",
+   "side": "vault",
+   "place": "my vault 940",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406EDB9B",
+   "name": "free",
+   "side": "vault",
+   "place": "my vault 940",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E34E8",
+   "name": "gold",
+   "side": "vault",
+   "place": "my vault 941",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406DD7D0",
+   "name": "gold",
+   "side": "vault",
+   "place": "my vault 941",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406E2D98",
+   "name": "gold",
+   "side": "vault",
+   "place": "my vault 941",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406EF58B",
+   "name": "gold",
+   "side": "vault",
+   "place": "my vault 941",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406ECA50",
+   "name": "valuables overflow",
+   "side": "vault",
+   "place": "my vault 942",
+   "row": "top",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406EE45B",
+   "name": "free",
+   "side": "vault",
+   "place": "my vault 942",
+   "row": "2nd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406DF442",
+   "name": "free",
+   "side": "vault",
+   "place": "my vault 942",
+   "row": "3rd",
+   "secure": false,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x406F29C0",
+   "name": "free",
+   "side": "vault",
+   "place": "my vault 942",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
+   "loose": []
   }
  ],
  "castle_updated": "2026-11-20T19:30:54-0800"

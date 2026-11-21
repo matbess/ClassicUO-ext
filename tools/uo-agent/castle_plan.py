@@ -69,7 +69,12 @@ FORGE = {
 # the user's vault (south-east, behind their table, y 2348): no weight limit, no secures needed. The ingots, boards and
 # logs moved up to the forge (2026-11-19), so 938 and 939 are free
 VAULT = {
-    938: [(FREE, 0)] * 4,
+    # the user, 2026-11-20: "top 3 chests in column 938 are not secure, i can reach them from the castle entrance ...
+    # make those 3 into secure chests and we're also going to use them for supplies that I need to refill when I'm
+    # adventuring, like reagents. My personal chests we put at 942 2nd-4th chests, move those over to the top 3
+    # secure chests of 938 so I can reach them through the window from the castle entrance"
+    938: [('yours: runes and bags', 1), ('yours: reagents and supplies', 1), ('yours: runebooks and maps', 1),
+          (FREE, 0)],
     # 939 took what 942 had planned (2026-11-20): 942 is for the user's own chests from the tower
     939: [('valuables overflow', 0), (FREE, 0), ('house deeds', 0), ('gems', 0)],
     940: [('reagents', 0), ('reagents', 0), ('scrolls', 0), (FREE, 0)],
@@ -80,8 +85,7 @@ VAULT = {
     # the user's own chests by the tower's stairs (1752,1402, z 14, 10, 6), moved as they are, every item at its spot
     # (the user, 2026-11-20: "I want these 3 chests moved into the right-most column in the southeast storage ... so
     # when i open the chests it looks the same as it does here in the tower")
-    942: [('valuables overflow', 0), ('yours: runes and bags', 0), ('yours: reagents and supplies', 0),
-          ('yours: runebooks and maps', 0)],
+    942: [('valuables overflow', 0), (FREE, 0), (FREE, 0), (FREE, 0)],  # the user's own chests went on to 938
 }
 # the friend's vault (south-west, y 2348): never touched. Clem secured the 8 at the west end (x 928 and 929) on
 # 2026-11-18 (castle/secured-friend-2026-11-18.json); on 2026-11-19 the user said to plan them non-secure ("yes plan
@@ -106,7 +110,7 @@ def plan():
         elif x == 944 and y in FORGE:
             e.update(side='forge', place=f'forge {y}', what=FORGE[y][i][0], secure=False)
         elif y == 2348 and x in VAULT:
-            e.update(side='vault', place=f'my vault {x}', what=VAULT[x][i][0], secure=False)
+            e.update(side='vault', place=f'my vault {x}', what=VAULT[x][i][0], secure=bool(VAULT[x][i][1]))
         elif y == 2348 and 928 <= x <= 933:
             e.update(side='friend', place=f'his vault {x}', what="friend's", secure=x in FRIEND_SECURE)
         elif (x, y) in ((938, 2349), (938, 2350)):
@@ -128,12 +132,13 @@ AGENT_RULES = os.path.join(uo.AGENT_DIR, 'rules-Clem.json')
 # the friend's row: from 928,2349 for both west stacks (928 and 929): 2026-11-19 piles of gold coins stand stacked on the
 # walkway at 929-931,2349 and he can't step there; the 929 stack is a tile away
 STAND = {'east': lambda e: (948, e['y']), 'west': lambda e: (922, e['y']),
-         'friend': lambda e: (928, 2349) if e['x'] <= 929 else (e['x'], 2349)}
+         'friend': lambda e: (928, 2349) if e['x'] <= 929 else (e['x'], 2349),
+         'vault': lambda e: __import__('castle_site').stand_spot(e['x'], e['y'])}
 # the way between the halls (CASTLE.md): long walks stop short, so they go in stages
 EAST_TO_WEST = [(948, 2327), (945, 2323), (930, 2323), (923, 2326), (923, 2335), (923, 2346), (925, 2348)]
 
 
-def secure_all():
+def secure_all(only=None):
     """Make every chest the plan marks secure, secure: walk to it, "I wish to secure this", aim the house's cursor at
     it, and check it answers "locked down & secure". The house makes them friends-level (the user, 2026-11-18: "I'm
     pretty sure everything is locked down as friends. I've never seen a window come up to pick"). The friend's 8 are
@@ -141,7 +146,8 @@ def secure_all():
     import time
     info = uo.find_bridge('Clem')
     todo = [(s, e) for s, e in sorted(plan().items(), key=lambda kv: (kv[1]['side'] != 'east', kv[1]['y'], kv[1]['x'],
-                                                                        -kv[1]['z'])) if e['secure']]
+                                                                        -kv[1]['z'])) if e['secure']
+            and (not only or s in only)]
     original = open(AGENT_RULES, encoding='utf-8').read()
     friend = [s for s, e in todo if e['side'] == 'friend']
     try:
@@ -248,7 +254,7 @@ def unsecure_all():
 def main():
     cmd = sys.argv[1] if len(sys.argv) > 1 else 'show'
     if cmd == 'secure':
-        return secure_all()
+        return secure_all(set(sys.argv[2:]) or None)  # secure [SERIAL...]: only these
     if cmd == 'unsecure':
         return unsecure_all()
     p = plan()
