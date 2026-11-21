@@ -126,7 +126,7 @@ refuses `--side west` (`castle_site.SIDES`). The same five steps and tools; what
   the start then wait until the very end ... then lock the table back down"). If a sort stops before finish, run
   `python3 -I castle.py table close` (once the user hands him back, if they took over).
 - **Finish:** `python3 finish.py --side east --floor` counts the castle's smelting chests, puts the table back and
-  locks both down from behind, and parks him in the middle of the great hall (935,2332; the user: "take him into the center of the great hall at the end of sorting"; before that "at the end of sorting you
+  locks both down from behind, and parks him in the middle of the great hall (933,2336, the square the user chose; the user: "take him into the center of the great hall at the end of sorting"; before that "at the end of sorting you
   should place the character (clem/johnny) at the center of the forge room").
 - **Razor** double-clicks every bag that lands in his pack (AutoSearch); the castle tools hand those clicks back
   (`razor.py`) instead of stopping.

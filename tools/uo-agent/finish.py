@@ -25,7 +25,7 @@ for module in ('uo', 'look'):
     spec.loader.exec_module(globals()[module])
 sys.path.insert(0, here)
 import castle_site  # noqa: E402
-PARK = (935, 2332)  # in the castle: the middle of the great hall (the user, 2026-11-20: "I want you to take him into the
+PARK = (933, 2336)  # in the castle: the middle of the great hall, the square the user put him on (the user, 2026-11-20: "I want you to take him into the
 #                    center of the great hall at the end of sorting"), in front of the tables
 
 SPARES = '0x4049D6B8'  # pouch of spare ID wands and staves, in the supplies chest

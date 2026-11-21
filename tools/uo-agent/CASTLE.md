@@ -189,7 +189,7 @@ great hall and the rest. Clem moves only the one at 943,2323 (`castle.TABLE`, 0x
 aside to 942,2324, from 941,2323 in front or 944,2323 behind, and puts it back from either; the one at 943,2324
 (0x408793A4) is checked locked down. Clem's rules allow the tables' graphics (0x0B34, 0x0B35) on the ground. Loot to
 sort goes on the forge room floor; a sort keeps the table aside from its first walk past it to `finish.py`, which
-parks him in the middle of the great hall (935,2332, the user, 2026-11-20) and locks the table down from behind.
+parks him in the middle of the great hall (933,2336, the square the user chose, 2026-11-20) and locks the table down from behind.
 
 **938's top 3 are the user's own, secure** (2026-11-20: they can reach them through the window from the castle
 entrance, so secure; "we're also going to use them for supplies that I need to refill when I'm adventuring, like
