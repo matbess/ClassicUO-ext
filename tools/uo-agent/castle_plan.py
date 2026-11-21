@@ -60,9 +60,12 @@ WALL = {
 # to the forge"): a pile counts as one item and a locked-down chest has no weight limit, so two chests each is plenty
 FORGE = {
     2322: [('smelting 1', 0), ('smelting 2', 0), ('smelting 3', 0), ('smelting 4', 0)],
-    2326: [('ingots', 0), ('boards & logs', 0), ('cloth & leather', 0), ('tools', 0)],
-    2327: [('cooking', 0), ('ingots 2', 0), ('boards & logs 2', 0), ('spare backpacks', 0)],  # backpacks: outside the
-}                                                                                             # tables, anyone drops bags
+    # the user, 2026-11-20: "Ingots 1 and 2 should both be 2326 top and 2nd chests. Boards & logs 1 and 2 should both
+    # be 2326 3rd and floor chests. 2327 top to bottom should be: cooking, cloth & leather, tools, spare backpacks"
+    # (the user moves the things themselves)
+    2326: [('ingots', 0), ('ingots 2', 0), ('boards & logs', 0), ('boards & logs 2', 0)],
+    2327: [('cooking', 0), ('cloth & leather', 0), ('tools', 0), ('spare backpacks', 0)],  # backpacks: outside the
+}                                                                                         # tables, anyone drops bags
 # the user's vault (south-east, behind their table, y 2348): no weight limit, no secures needed. The ingots, boards and
 # logs moved up to the forge (2026-11-19), so 938 and 939 are free
 VAULT = {
