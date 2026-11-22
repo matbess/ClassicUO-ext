@@ -4,13 +4,19 @@ unsecure personal reagent chest by the forge and pull out that many reagents and
 
   python3 tools/uo-agent/reagents_topup.py [--then-shovels]
 
-From: the user's personal chest by the forge (2327, 2nd, 0x4059020A), its piles split where they lie (the part
-taken keeps the serial; the rest stays on the same spot), wherever in the chest (in a bag too).
+From: the user's personal chest by the forge (2327, 2nd, 0x4059020A) first; whatever it can't cover from the main
+reagents chest on the east wall (2336, 3rd, 0x406BE5CF), the last place to look (the user, 2026-11-22: "If my
+personal chest didn't have enough reagents then I want you to go to the "main" reagent chest ... If not, then that's
+the last place to check and you'll have to inform me that they're still short by giving me the whole table"). Piles
+are split where they lie (the part taken keeps the serial; the rest stays on the same spot), wherever in the chest
+(in a backpack or bag too). The whole table (every reagent: before, taken from each, now, still short) is printed at
+the end and written to ~/claude/uo-agent-work/castle/reagents-topup.json.
 To: their secure chest by the window (938 2nd, 0x406F2466), each onto its pile there; a reagent with no pile there
 goes on a free spot. Then counted again. --then-shovels puts away the shovels in his pack first (tools_room.py; he's
 behind the tables anyway). He comes in first if he's outside (castle.go_in), and finish.py ends it: the table locked
 down as he leaves, parked in the great hall.
 """
+import json
 import os
 import subprocess
 import sys
@@ -24,6 +30,8 @@ import look  # noqa: E402
 
 TARGET = 250
 FROM, TO = '0x4059020A', '0x406F2466'
+SOURCES = [(FROM, 'forge'), ('0x406BE5CF', 'main')]  # in this order: the user's forge chest, then the east wall's
+REPORT = os.path.expanduser('~/claude/uo-agent-work/castle/reagents-topup.json')
 REAGENTS = {'0x0F7A': 'black pearl', '0x0F7B': 'blood moss', '0x0F84': 'garlic', '0x0F85': 'ginseng',
             '0x0F86': 'mandrake root', '0x0F88': 'nightshade', '0x0F8C': 'sulfurous ash', '0x0F8D': "spider's silk"}
 # free spots in the entrance chest for a reagent with no pile there yet (its other piles: 18-118 x, 105-150 y)
@@ -82,25 +90,31 @@ def main():
     say('the entrance chest: ' + ', '.join(f'{REAGENTS[g]} {have[g]}' for g in REAGENTS)
         + ' | short: ' + (', '.join(f'{REAGENTS[g]} {n}' for g, n in need.items() if n) or 'nothing'))
     if not any(need.values()):
+        table(have, {name: {} for _, name in SOURCES}, have)
         return finish()
 
-    mover.walk_near(info, FROM)
-    source = piles(FROM)
-    got, carried = {}, []
-    for g, n in need.items():
-        for p in [p for p in source if p['graphic'] == g]:
-            if n <= 0:
-                break
-            take = min(n, p.get('amount', 1))
-            spot = (40 + 14 * len(carried), 80)
-            uo.call(info, 'POST', '/move', serial=p['serial'], to=pack, x=spot[0], y=spot[1],
-                    **({'amount': take} if take < p.get('amount', 1) else {}))
-            carried.append((p['serial'], g, take))
-            got[g] = got.get(g, 0) + take
-            n -= take
-    short = {g: need[g] - got.get(g, 0) for g in need if need[g] - got.get(g, 0) > 0}
-    say('taken from the forge chest: ' + ', '.join(f'{REAGENTS[g]} {n}' for g, n in got.items())
-        + (' | NOT ENOUGH THERE: ' + ', '.join(f'{REAGENTS[g]} {n}' for g, n in short.items()) if short else ''))
+    taken = {name: {} for _, name in SOURCES}
+    carried = []
+    left = dict(need)
+    for chest, name in SOURCES:
+        if not any(left.values()):
+            break
+        mover.walk_near(info, chest)
+        source = piles(chest)
+        for g in REAGENTS:
+            for p in [p for p in source if p['graphic'] == g]:
+                if left[g] <= 0:
+                    break
+                take = min(left[g], p.get('amount', 1))
+                spot = (40 + 14 * (len(carried) % 8), 80 + 10 * (len(carried) // 8))
+                uo.call(info, 'POST', '/move', serial=p['serial'], to=pack, x=spot[0], y=spot[1],
+                        **({'amount': take} if take < p.get('amount', 1) else {}))
+                carried.append((p['serial'], g, take))
+                taken[name][g] = taken[name].get(g, 0) + take
+                left[g] -= take
+        say(f'taken from the {name} chest: ' + (', '.join(f'{REAGENTS[g]} {n}' for g, n in taken[name].items())
+                                               or 'nothing it had was needed')
+            + (' | still short: ' + ', '.join(f'{REAGENTS[g]} {n}' for g, n in left.items() if n) if any(left.values()) else ''))
 
     mover.walk_near(info, TO)
     there = {i['graphic']: i for i in look.open_once(info, TO) if i['graphic'] in REAGENTS}
@@ -114,8 +128,22 @@ def main():
             there[g] = {'serial': serial}
             say(f'{REAGENTS[g]}: a new pile at {x},{y}')
     after = counts(look.open_once(info, TO))
-    say('the entrance chest now: ' + ', '.join(f'{REAGENTS[g]} {after[g]}' for g in REAGENTS))
+    table(have, taken, after)
     finish()
+
+
+def table(before, taken, after):
+    rows = []
+    for g in sorted(REAGENTS, key=lambda g: REAGENTS[g]):
+        rows.append({'reagent': REAGENTS[g], 'before': before[g], 'forge': taken['forge'].get(g, 0),
+                     'main': taken['main'].get(g, 0), 'now': after[g], 'short': max(0, TARGET - after[g])})
+    json.dump(rows, open(REPORT, 'w'), indent=1)
+    print(f"{'reagent':15} {'before':>6} {'forge':>6} {'main':>6} {'now':>6} {'short':>6}")
+    for r in rows:
+        print(f"{r['reagent']:15} {r['before']:6} {r['forge']:6} {r['main']:6} {r['now']:6} {r['short']:6}")
+    short = [r for r in rows if r['short']]
+    say('STILL SHORT (TELL THE USER, with the whole table): ' + ', '.join(f"{r['reagent']} {r['short']}" for r in short)
+        if short else f'every reagent at {TARGET} or more')
 
 
 def finish():
