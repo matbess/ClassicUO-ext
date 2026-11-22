@@ -282,6 +282,7 @@
   "0x409397C4": "bag: tunics & shirts (magic clothing chest)",
   "0x409397C8": "bag: plate gorgets (plate chest)",
   "0x409397C9": "bag: knives (swords chest)",
+  "0x409397CC": "players: to repair (red backpack by the forge; Clem never moves anything in or out)",
   "0x409397CE": "bag: helms (helms chest)",
   "0x409397CF": "bag: healing wands (magic wands chest)",
   "0x409397D0": "bag: plate legs (plate chest)",
@@ -307,6 +308,7 @@
   "0x4098F2D2": "maps: blank (overflow, 3rd floor)",
   "0x4098F2D7": "maps: blank (overflow, 3rd floor)",
   "0x4098F2D8": "bag: maces & staves (maces & staves chest)",
+  "0x4098F2E3": "players: repaired (green backpack by the forge; Clem never moves anything in or out)",
   "0x4098F2E5": "maps: blank (overflow, 3rd floor)",
   "0x4098F2E7": "maps: blank (overflow, 3rd floor)"
 }

@@ -100,7 +100,8 @@ def on_floor(info):
     nearby = uo.call(info, 'GET', '/nearby', range=14)
     nearby = nearby.get('items', nearby) if isinstance(nearby, dict) else nearby
     return [i for i in nearby if x1 <= i['x'] <= x2 and y1 <= i['y'] <= y2 and z1 <= i['z'] <= z2
-            and not any(k in i.get('type', '') for k in NOT_LOOT) and i['graphic'] not in CARPENTRY]
+            and not any(k in i.get('type', '') for k in NOT_LOOT) and i['graphic'] not in CARPENTRY
+            and i['serial'] not in castle_site.PLAYER_BAGS]
 
 
 def reused(item, labels):
@@ -188,6 +189,7 @@ def from_floor(info):
     nearby = uo.call(info, 'GET', '/nearby', range=12)
     nearby = nearby.get('items', nearby) if isinstance(nearby, dict) else nearby
     here = [i for i in nearby if x1 <= i['x'] <= x2 and y1 <= i['y'] <= y2 and z1 <= i['z'] <= z2
+            and i['serial'] not in castle_site.PLAYER_BAGS  # the players' repair bags: never sorted
             and (not labels.get(i['serial']) or reused(i, labels))
             and not any(k in i.get('type', '') for k in NOT_LOOT + ('table', 'forge', 'anvil', 'bellows', 'chest'))]
     bags = [i for i in here if kind(i) == 'container']

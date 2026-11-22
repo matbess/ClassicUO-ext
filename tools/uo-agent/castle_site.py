@@ -258,6 +258,15 @@ def behind(p):
     return z in ('east', 'south-east') or (z == 'forge' and p[0] >= 944)
 
 
+# the two backpacks on the floor by the forge that only players use (the user, 2026-11-21: "I have 2 bags that I do not
+# want sorted into inventory. They are the green and red bags next to the forge. You should mark those clearly and
+# don't take stuff out or put stuff in. The red is "to repair" and the green is "repaired". You can inventory them
+# though just don't move stuff in/out, that's for players to do"): never taken off the floor by a sort, nothing moved in
+# or out of them; counted for the Vault page
+PLAYER_BAGS = {'0x409397CC': ('to repair', 'red backpack by the forge, 946,2323'),
+               '0x4098F2E3': ('repaired', 'green backpack by the forge, 947,2323')}
+
+
 def personal(serial):
     """The user's own chests (938 top 3 in their vault, 944,2327 2nd by the forge) and the friend's personal chest
     by the forge (944,2327 top): theirs to manage. Nothing is sorted into them, moved in them or counted (the user,

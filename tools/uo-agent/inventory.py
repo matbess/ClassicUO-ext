@@ -289,6 +289,19 @@ def castle_chests(info, labels, names, known, every):
                     'secure': e['secure'], 'bags': bags, 'loose': loose})
         if bags or loose:
             say(f"{castle_site.chest_title(serial, labels)} ({e['row']}): {len(bags)} bags, {len(loose)} loose")
+    for serial, (name, where) in castle_site.PLAYER_BAGS.items():  # the players' repair bags: counted, never touched
+        if only is not None and serial not in only and serial in kept:
+            out.append(kept[serial])
+            continue
+        try:
+            items = contents(serial)
+        except uo.BridgeError as e:
+            say(f'{name} ({serial}): {e}')
+            continue
+        bags, loose = bag_entries(items, labels, names, contents)
+        out.append({'serial': serial, 'name': name, 'side': 'forge', 'place': where, 'row': 'on the floor',
+                    'secure': False, 'player': True, 'bags': bags, 'loose': loose})
+        say(f'{name} ({where}): {len(bags)} bags, {len(loose)} loose')
     return out
 
 
