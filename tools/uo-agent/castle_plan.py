@@ -63,8 +63,12 @@ FORGE = {
     # the user, 2026-11-20: "Ingots 1 and 2 should both be 2326 top and 2nd chests. Boards & logs 1 and 2 should both
     # be 2326 3rd and floor chests. 2327 top to bottom should be: cooking, cloth & leather, tools, spare backpacks"
     # (the user moves the things themselves)
-    2326: [('ingots', 0), ('ingots 2', 0), ('boards & logs', 0), ('boards & logs 2', 0)],
-    2327: [('cooking', 0), ('cloth & leather', 0), ('tools', 0), (FREE, 0)],  # the spare backpacks went to 938 floor
+    # the user, 2026-11-21: "We actually don't need 2 chests for ingots and boards because they stack into a single pile
+    # right? I want you to change that column so it's ingots, boards & logs, cloth & leather, cooking. Then in the
+    # column to the left of it we'll have my friend's personal chest, my personal chest, tools & empty" (a personal
+    # chest each behind the tables on the east side; nothing is sorted into them)
+    2326: [('ingots', 0), ('boards & logs', 0), ('cloth & leather', 0), ('cooking', 0)],
+    2327: [("friend's: personal", 0), ('yours: personal', 0), ('tools', 0), (FREE, 0)],
 }
 # the user's vault (south-east, behind their table, y 2348): no weight limit, no secures needed. The ingots, boards and
 # logs moved up to the forge (2026-11-19), so 938 and 939 are free
