@@ -256,6 +256,18 @@ def behind(p):
     return z in ('east', 'south-east') or (z == 'forge' and p[0] >= 944)
 
 
+def table_crossing(pts3):
+    """The index k of the route's stretch pts3[k] -> pts3[k+1] that passes the user's tables (the ground floor's
+    corridor at y 2323 across x 941-944, between the stand in front and the one behind), or None."""
+    fx, bx = castle.TABLE_STAND[0], castle.TABLE_STAND_BEHIND[0]
+    for k, (a, b) in enumerate(zip(pts3, pts3[1:])):
+        if a[2] or b[2] or a[1] != castle.TABLE_STAND[1] or b[1] != castle.TABLE_STAND[1]:
+            continue
+        if min(a[0], b[0]) <= fx and max(a[0], b[0]) >= bx:
+            return k
+    return None
+
+
 class Mover:
     """Walks one character around the castle along the user's ROUTE, opening the user's table when the way goes behind it and
     closing it in close_up(). `uo` is the caller's own uo module (each tool loads its own copy)."""
@@ -299,25 +311,42 @@ class Mover:
             return  # a tile off: close enough for anything within reach (2 tiles)
         raise self.uo.BridgeError(0, f"could not go {what}: he's at {st['x']},{st['y']},{st['z']}")
 
-    def go(self, goal, what=''):
-        """Along the user's route to goal (the last tile included), in one ride."""
+    def go(self, goal, what='', leaving=False):
+        """Along the user's route to goal (the last tile included): one route, worked out once. Where it passes the
+        tables he stops at the table on his side, moves it aside (unless it is aside already) and goes on along the
+        same route (the user, 2026-11-21: "You just need to plan 1 route, if the table is on the route, then you deal
+        with the table when you get to it and when you leave it"). leaving: out from behind the tables for good, so
+        it goes back and is locked down from the far side as he passes it (leave_to)."""
         st = self.status()
         here = (st['x'], st['y'])
         if here == tuple(goal):
             return
-        if behind(here) != behind(tuple(goal)):
-            self.open_table()
-            # the route from where opening the table left him, next to it: the one worked out before it (from the
-            # great hall) sent him back to its start, round by the stairs and the upper floor, and only then through
-            # (the user, 2026-11-21 16:00: "He walked from the great hall to the table, unlocked the table, then
-            # walked all the way back up to the stairs and to the second floor of the castle")
-            st = self.status()
-            here = (st['x'], st['y'])
-            if here == tuple(goal):
-                return
+        what = what or f'to {goal[0]},{goal[1]}'
         pts3 = route3(here, goal, st['z'])
-        pts = [p[:2] for p in pts3]
-        # the ride cut at the ramps: a smooth ride to a ramp's end, the ramp stepped tile by tile, on from its other end
+        k = table_crossing(pts3)
+        if k is None or self.table_opened and not leaving:  # no table on the way, or it's aside already (a sort)
+            self.ride(pts3, what)
+            return
+        a, b = pts3[k], pts3[k + 1]
+        out = behind(a[:2])  # from behind the tables to the front
+        near = castle.TABLE_STAND_BEHIND if out else castle.TABLE_STAND
+        far = castle.TABLE_STAND if out else castle.TABLE_STAND_BEHIND
+        self.ride(pts3[:k + 1] + [(near[0], near[1], False)], f"{what}: to the user's table")
+        self.open_table()  # he's next to it: no walk
+        if leaving and out:
+            self.ride([(near[0], near[1], False), (far[0], far[1], False)], 'out past the tables')
+            self.close_up()  # from in front, right as he passes it
+        self.ride([(self.where()[0], self.where()[1], False)] + pts3[k + 1:], what)
+
+    def where(self):
+        st = self.status()
+        return (st['x'], st['y'])
+
+    def ride(self, pts3, what):
+        """One stretch of a route: a smooth ride, cut at the ramps (each ramp stepped tile by tile)."""
+        pts3 = [p for n, p in enumerate(pts3) if n == 0 or p[:2] != pts3[n - 1][:2]]
+        if len(pts3) < 2:
+            return
         segs, cur = [], [pts3[0]]
         for prev, nxt in zip(pts3, pts3[1:]):
             ramp = next((r for r in RAMPS if prev[:2] in (r[0], r[-1]) and nxt[:2] in (r[0], r[-1])
@@ -335,7 +364,7 @@ class Mover:
             if kind == 'ramp':
                 self.step_ramp(*seg)
             else:
-                self.travel([p[:2] for p in seg], what or f'to {goal[0]},{goal[1]}', up=seg[-1][2])
+                self.travel([p[:2] for p in seg], what, up=seg[-1][2])
 
     def step_ramp(self, ramp, a, b):
         """Up or down a ramp one tile at a time, along the user's own tiles."""
@@ -410,26 +439,22 @@ class Mover:
         self.table_opened = True
 
     def to_table_stand(self):
-        """Next to the table on the side he's on: in front of it, or behind it."""
+        """Next to the table on the side he's on (in front of it, or behind it), along the route to it."""
         st = self.status()
         stand = castle.TABLE_STAND_BEHIND if behind((st['x'], st['y'])) else castle.TABLE_STAND
         if (st['x'], st['y']) != stand:
-            self.table_opened = True  # no table crossing on the way to it (go() would open it again)
-            try:
-                self.go(stand, "to the user's table")
-            finally:
-                self.table_opened = False
+            self.ride(route3((st['x'], st['y']), stand, st['z']), "to the user's table")
 
     def leave_to(self, park):
-        """The end of a job: out past the tables, the table back and locked down right there, then on to `park` (in
-        front of them). The user, 2026-11-20: "LOCK THE TABLE DOWN RIGHT WHEN YOU LEAVE. Don't go to the great hall and
-        then back to lock it"."""
-        st = self.status()
-        if behind((st['x'], st['y'])):
-            self.open_table()  # aside already in a sort; else moved aside now
-            self.table_opened = True  # the walk out must not touch it again
-            self.go(castle.TABLE_STAND, 'out past the tables')
-        self.close_up()  # from in front, where he now stands (no walk when he's there already)
+        """The end of a job: one route to `park`; where it passes the tables he goes through, puts the table back and
+        locks it down right there, then on along the route. The user, 2026-11-20: "LOCK THE TABLE DOWN RIGHT WHEN YOU
+        LEAVE. Don't go to the great hall and then back to lock it"."""
+        if behind(self.where()):
+            self.go(park, f'to {park[0]},{park[1]}', leaving=True)
+            if self.table_opened:  # the route didn't pass the tables (it should): lock it from where he is
+                self.close_up()
+            return
+        self.close_up()  # in front already: from the stand in front, if it's still aside
         self.go(park, f'to {park[0]},{park[1]}')
 
     def close_up(self, final=True):
