@@ -44,6 +44,9 @@ NAMES = {
     'new backpacks': 'spare backpacks',
 }
 SECURE_KINDS = None  # filled from the plan: the kinds with a secure chest on the east wall
+# the valuable kinds (their east wall chests were secures until 2026-11-21): overflow into the user's vault
+VALUABLE_KINDS = {'attack wands', 'healing wands', 'jewellery', 'magic clothing', 'GM armour sets', 'best weapons',
+                  'best armour', 'treasure maps', 'deeds', 'reagents'}
 
 
 def base(what):
@@ -76,6 +79,8 @@ def targets(name, side):
         secure = [s for s in chests(what, 'east') if PLAN[s]['secure']]
         mine = chests(what, 'vault') or chests('valuables overflow', 'vault')
         return secure + mine
+    if what in VALUABLE_KINDS:  # the east wall's (plain since 2026-11-21), then the user's vault
+        return chests(what, 'east') + (chests(what, 'vault') or chests('valuables overflow', 'vault'))
     if what == 'gold':
         return chests('gold', 'vault')
     found = chests(what, side) + chests(what, other) + chests(what, 'forge') + chests(what, 'vault')
@@ -595,7 +600,7 @@ def test():
     """Offline checks of the tables above (version 2 of the plan: the west wall free, the secures as made on 18 Nov)."""
     assert targets('swords', 'east')[0] == next(s for s, e in PLAN.items() if e['what'] == 'swords' and e['side'] == 'east')
     assert SIDES == ('east',)
-    assert sum(e['secure'] for e in PLAN.values() if e['side'] == 'east') == 13
+    assert sum(e['secure'] for e in PLAN.values() if e['side'] == 'east') == 0  # all plain (2026-11-21)
     assert sum(e['secure'] for e in PLAN.values() if e['side'] == 'friend') == 0
     assert all(e['what'] == 'free' for e in PLAN.values() if e['side'] == 'west' and e['x'] == 921)
     assert [PLAN[s]['place'] for s in targets('gems', 'east')] == ['my vault 939']
@@ -603,7 +608,7 @@ def test():
     for name in ('jewellery', 'magic clothing', 'attack wands', 'healing wands', 'GM armour sets', 'best weapons',
                  'best armour', 'treasure maps', 'deeds', 'reagents'):
         t = targets(name, 'east')
-        assert PLAN[t[0]]['secure'] and PLAN[t[0]]['side'] == 'east', name
+        assert PLAN[t[0]]['side'] == 'east', name
         assert PLAN[t[-1]]['side'] == 'vault', name
     assert PLAN[targets('reagents', 'east')[-1]]['side'] == 'vault'
     assert [PLAN[s]['what'] for s in targets('heal potions', 'east')][:2] == ['heal potions 1', 'heal potions 2']

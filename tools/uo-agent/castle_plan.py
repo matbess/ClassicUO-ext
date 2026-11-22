@@ -36,18 +36,19 @@ ROWS = {18: 'top', 14: '2nd', 10: '3rd', 6: 'floor'}
 Z = [18, 14, 10, 6]
 FREE = 'free'
 
-# (what, secure) for each row of a tile, top to bottom; the east wall runs north (y 2329) to south (y 2343). The 13
-# secures are the ones made on 2026-11-18, kept as they are for now (the user, 2026-11-19)
+# (what, secure) for each row of a tile, top to bottom; the east wall runs north (y 2329) to south (y 2343). None
+# secure: the user, 2026-11-21: "Everything on the east wall was supposed to be non secure" (the 13 made on
+# 2026-11-18 unsecured that day: the tables close the east side off, and the secures were needed elsewhere)
 WALL = {
     2329: [('swords', 0), ('axes', 0), ('maces & staves', 0), (FREE, 0)],
     2330: [('polearms', 0), ('fencing', 0), ('archery', 0), (FREE, 0)],
-    2331: [('attack wands', 1), ('healing wands', 1), ('jewellery', 1), ('magic clothing', 1)],
+    2331: [('attack wands', 0), ('healing wands', 0), ('jewellery', 0), ('magic clothing', 0)],
     2332: [('plate', 0), ('helms', 0), ('chain & ring + coifs', 0), ('leather + caps', 0)],
-    2333: [('studded', 0), ('shields', 0), ('GM armour sets', 1), ('plain gear', 0)],
-    2334: [('best weapons', 1), ('best armour', 1), ('treasure maps', 1), (FREE, 0)],
-    2335: [('deeds 1', 1), ('deeds 2', 1), ('deeds 3', 1), (FREE, 0)],
-    2336: [('scrolls, circles 1-4', 0), ('scrolls, circles 5-8', 0), ('reagents', 1), (FREE, 0)],
-    2337: [(FREE, 1), ('miscellaneous', 0), ('supplies & ID wands', 0), ('needs your decision', 0)],  # gems: the vault
+    2333: [('studded', 0), ('shields', 0), ('GM armour sets', 0), ('plain gear', 0)],
+    2334: [('best weapons', 0), ('best armour', 0), ('treasure maps', 0), (FREE, 0)],
+    2335: [('deeds 1', 0), ('deeds 2', 0), ('deeds 3', 0), (FREE, 0)],
+    2336: [('scrolls, circles 1-4', 0), ('scrolls, circles 5-8', 0), ('reagents', 0), (FREE, 0)],
+    2337: [(FREE, 0), ('miscellaneous', 0), ('supplies & ID wands', 0), ('needs your decision', 0)],  # gems: the vault
     2338: [(FREE, 0)] * 4,
     2339: [('heal potions 1', 0), ('heal potions 2', 0), ('cure potions 1', 0), ('cure potions 2', 0)],
     2340: [('refresh potions 1', 0), ('refresh potions 2', 0), ('agility potions 1', 0), ('agility potions 2', 0)],

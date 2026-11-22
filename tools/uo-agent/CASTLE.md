@@ -117,6 +117,11 @@ hall (the user).
 the window from the entrance room (`castle.restock_at_window`, standing at 936,2349), else the long way round past the
 tables (`castle.restock_inside`, the table locked down as he comes out). The tower's restock chest is empty.
 
+**The east wall unsecured (2026-11-21):** the user: "Everything on the east wall was supposed to be non secure". The 13
+secures Clem made there on 2026-11-18 are plain locked-down chests again (checked by a click each); the castle's
+secures are the user's: 12 behind the thrones in the great hall, 938's top 3 and the entrance room's rune box. The
+valuable kinds still overflow into the vault's "valuables overflow" chests (939 and 942 top).
+
 ### The secure south rooms
 
 Each south room is shut off by a **locked-down table** across the walkway on y 2349:
