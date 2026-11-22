@@ -3101,13 +3101,13 @@
  ],
  "castle_updated": "2026-11-21T18:01:35-0800",
  "tools_room": {
-  "updated": "2026-11-21T21:10:29-0800",
+  "updated": "2026-11-21T21:54:15-0800",
   "bags": 6,
-  "in_use": 2,
+  "in_use": 3,
   "tools": [
    {
     "name": "shovels",
-    "amount": 76
+    "amount": 132
    }
   ]
  }
