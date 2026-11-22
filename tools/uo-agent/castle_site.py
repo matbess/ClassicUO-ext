@@ -225,6 +225,8 @@ def stand_spot(x, y):
         return (922, y)
     if y == 2348 and 937 <= x <= 942:  # in front, but not on the east intake chests (938,2349 and 938,2350)
         return (939, 2349) if x <= 938 else (x, 2349)
+    if x == 928 and 2335 <= y <= 2338:  # the grey chests in the great hall (2026-11-21), from the hall's floor
+        return (930, y)
     if x == 944 and y <= 2327:  # the forge chests: in front of them, where the user stood (945,2323 and 946,2325;
         return (945, 2323) if y <= 2323 else (945, 2325)  # 2026-11-19 20:50: from 943,2324 one wouldn't open)
     return nearest_point((x, y))
@@ -254,6 +256,12 @@ def behind(p):
     intake chests and the user's vault; the only way there is the corridor past the tables."""
     z = zone(*p)
     return z in ('east', 'south-east') or (z == 'forge' and p[0] >= 944)
+
+
+def hall_floor(p):
+    """A spot on the great hall's ground floor that's not on the stairs: west of the stairs' foot (932,2332) only
+    from y 2334 down (the grey chests' side, 928-930,2335-2338)."""
+    return p[0] >= 932 or p[1] >= 2334
 
 
 def table_crossing(pts3):
@@ -322,6 +330,16 @@ class Mover:
         if here == tuple(goal):
             return
         what = what or f'to {goal[0]},{goal[1]}'
+        if zone(*here) == 'hall' and zone(*goal) == 'hall' and st['z'] < UP and hall_floor(goal):
+            # across the great hall's own floor: a plain walk. The route there is the stairs' (928-929,2332 is
+            # upstairs on it), and on 2026-11-21 16:10 it took him up above the grey chests at x 928, where opening
+            # one got no answer and the bridge stopped
+            for _ in range(3):
+                self.uo.call(self.info, 'POST', '/walk', x=goal[0], y=goal[1], distance=0)
+                st = self.status()
+                if (st['x'], st['y']) == tuple(goal) and st['z'] < UP:
+                    return
+            raise self.uo.BridgeError(0, f"could not walk {what}: he's at {st['x']},{st['y']},{st['z']}")
         pts3 = route3(here, goal, st['z'])
         k = table_crossing(pts3)
         if k is None or self.table_opened and not leaving:  # no table on the way, or it's aside already (a sort)
