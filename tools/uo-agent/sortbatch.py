@@ -289,7 +289,7 @@ def deliver(serials, name, inv):
 
 
 def to_tools_room(serials):
-    """Axes for lumberjacking (plan.py: plain hatchets, and every chopping axe that would have been smelted) into
+    """Shovels, and axes for lumberjacking (plan.py: plain hatchets, and every chopping axe that would have been smelted), into
     the castle's tools room (tools_room.py), in loads as much as he can carry, then back out to its doorway."""
     pending = list(serials)
     if not pending:
@@ -309,9 +309,9 @@ def to_tools_room(serials):
             load.append(serial)
         if not load:
             sys.exit(f'{WHO} is carrying too much to pick anything up')
-        tools_room.put(['axes'], extra=set(load))
+        tools_room.put(extra=set(load))
         tools_room.walk_to(tools_room.OUT, 'out of the tools room')
-        say(f"{len(load)} axes -> the tools room: {', '.join(names.get(s, s) for s in load)}")
+        say(f"{len(load)} tools -> the tools room: {', '.join(names.get(s, s) for s in load)}")
 
 
 def cut_up(serials, inv):

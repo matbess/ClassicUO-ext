@@ -107,7 +107,9 @@ refuses `--side west` (`castle_site.SIDES`). The same five steps and tools; what
   **NO ROOM**: tell the user. Changes from the tower (the plan approved 2026-11-18): weapons of force and up and
   vanquishing go to **best weapons**, armour of fortification and up (and any bone kept) to **best armour**, in bags
   by kind as before; deeds to the **deeds** secures; treasure maps to their own secure; raw food to the **cooking**
-  chest by the forge; spare scissors to **tools**.
+  chest by the forge; spare scissors to **tools**; ingots to the **ingots** chest by the forge (merged onto the pile);
+  shovels, plain hatchets and every chopping axe that would be smelted to the **tools room** (CASTLE.md, "The tools
+  room"; sortbatch `to_tools_room`). GM pieces are always kept where they were.
 - **Sort:** gold goes behind the user's table (their gold chests); cut leather and cloth to **cloth & leather**,
   boards and logs to **boards & logs** (logs stay logs if he has no saw), ore and junk metal to the 4 **smelting**
   chests by the forge, trash to the barrel there (949,2322); potions to their kind's chests at the south end of the

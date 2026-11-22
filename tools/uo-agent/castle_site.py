@@ -29,7 +29,7 @@ import castle_plan  # noqa: E402
 
 LIMIT = 125            # items a chest holds, counting everything inside (the tower's rule, the same server)
 SECURE_STONES = 395    # what a secure chest holds (the user, 2026-11-18: "either 395 or 400")
-BARREL = '0x407EECC7'  # the trash barrel in the forge corner, 949,2322 (the user, 2026-11-18: "yes that's the trash barrel")
+BARREL = '0x404E160C'  # the trash barrel in the forge corner, 949,2322 (the user, 2026-11-18: "yes that's the trash barrel"; a new one there by 2026-11-21 22:21, was 0x407EECC7)
 SITE_FILE = 'site.json'  # in a batch directory: {"site": "castle", "side": "east"}
 # the sides sorted for now: the west intake chests, the west wall and the south-west wait (the user, 2026-11-19: "We'll
 # figure out the west and southwest & secures later. For now we'll do just the east and southeast and forge")

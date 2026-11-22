@@ -402,10 +402,15 @@ def plan_batch(batch, opening, inv, loot, names, labels, info, side):
         if side and t in LUMBER_AXES and (action in ('smelt', 'trash') or (
                 t == 'hatchet' and re.fullmatch(r'(an? )?hatchet', name.lower()))):
             action, detail = 'tools_room', 'for lumberjacking'
+        if side and t == 'shovel':  # the tools room's north wall (the user, 2026-11-21)
+            action, detail = 'tools_room', 'shovels'
+        if side and t.endswith('ingots'):  # every ingot to the forge's ingots chest (the user, 2026-11-19: "All the
+            action, detail = 'keep', ('ingots',)  # ingots, boards and logs ... should be moved up to the chests
+            # closest to the forge"; 2026-11-21: ingots, then boards & logs, in the 2326 column)
         report[action].append((str(detail), name or item['type']))
         if action == 'keep':
             what = detail[0]
-            if what in ('deeds', 'house deeds', 'cooking', 'tools'):
+            if what in ('deeds', 'house deeds', 'cooking', 'tools', 'ingots'):
                 spec['place_in'].append([s, what])
             elif what == 'best weapon':
                 groups[(detail[1], 'best weapons')].append(s)
