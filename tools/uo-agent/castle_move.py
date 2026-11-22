@@ -392,6 +392,16 @@ def razor_opened(serial):
         when = took[len('a double-click at '):]
         clicks = [e for e in events if e.get('kind') == 'sent double-click' and e['time'].startswith(when)]
         secs0 = lambda t: sum(float(x) * m for x, m in zip(t.split(':'), (3600, 60, 1)))  # noqa: E731
+        # Razor says "Queuing action request ..." just before a click it sends itself (2026-11-21 17:17:57: it opened
+        # the tower chest again right after a bag from it landed in his pack): such a click is Razor's
+        if clicks:
+            c0 = secs0(clicks[-1]['time'])
+            queued = [e for e in events if e.get('kind') == 'message' and str(e.get('text', '')).startswith('Queuing ')
+                      and 0 <= c0 - secs0(e['time']) <= 0.5]
+            if queued:
+                uo.call(info, 'POST', '/resume', handback=True)  # Razor's own queued click, checked above
+                say(f"Razor's queued click ({took}, after \"{queued[-1]['text']}\"): not the user; resumed")
+                return True
         if clicks and not any(e.get('kind') == 'sent drop' and e.get('serial') == clicks[-1].get('serial')
                               for e in events):
             # the takeover is Razor's click on a bag inside the one that landed (2026-11-20 20:13:37): the click

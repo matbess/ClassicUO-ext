@@ -291,7 +291,8 @@ def table_crossing(pts3):
     for k, (a, b) in enumerate(zip(pts3, pts3[1:])):
         if a[2] or b[2] or a[1] != castle.TABLE_STAND[1] or b[1] != castle.TABLE_STAND[1]:
             continue
-        if min(a[0], b[0]) <= fx and max(a[0], b[0]) >= bx:
+        # past the table's own spot (943): from 942,2324, next to it, the route starts at 942 (2026-11-21 17:20)
+        if min(a[0], b[0]) < castle.TABLE_HOME[0] < max(a[0], b[0]):
             return k
     return None
 

@@ -322,8 +322,9 @@ def go_in():
         through(CENTRAL_DOOR, CENTRAL_KEY, CENTRAL_SHUT, CENTRAL_OUT, CENTRAL_IN, 'central door')
     step(HALL, 'get into the great hall')
     say(f'in the castle, in the great hall at {HALL[0]},{HALL[1]}; both doors locked and closed')
-    if restock.low(restock.counts()):  # the window didn't do it: the long way round
-        restock_inside()
+    # no restock here: the next trip out tops him up first (reagents_ok), from the window or past the tables. On
+    # 2026-11-21 17:14 a top-up here sent him past the tables and back out, and then past them again with the load
+    # (the user: "he didn't put the stuff in my friends chest")
 
 
 WINDOW = (936, 2349)  # in the entrance room, 2 tiles from 938,2348 through the window (the user, 2026-11-21)
@@ -333,11 +334,13 @@ def restock_at_window():
     """In the entrance room on the way in: any reagent below 25 is topped up from the user's chest (938 2nd) through
     the window. If it can't be reached from here, he goes on in and restock_inside() does it."""
     try:
-        if not restock.low(restock.counts()):
+        have = restock.counts()
+        # the courtyard rune still to come uses one of each Recall reagent: topped up unless every one is 2 over
+        if min(have.values()) >= restock.MINIMUM + 2:
             return
         tower_chest, restock.CHEST = restock.CHEST, restock.CASTLE_CHEST
         try:
-            restock.ensure(walk=lambda: step(WINDOW, 'to the window'))
+            restock.ensure(force=True, walk=lambda: step(WINDOW, 'to the window'))
         finally:
             restock.CHEST = tower_chest
     except (restock.Stop, uo.BridgeError) as e:
@@ -395,6 +398,9 @@ def table(action):
         if where() not in (TABLE_STAND, TABLE_STAND_BEHIND):
             step(TABLE_STAND, 'get next to the table')
         if at != TABLE_HOME:  # from wherever it was put aside (within his reach of the stand)
+            # the user may have locked it down where it stands aside (942,2324, 2026-11-21 17:21): released first
+            if 'locked down' in ' '.join(a for r in call('POST', '/name', serial=TABLE) for a in r.get('lines', [])).lower():
+                house_command('i wish to release this', 'no longer locked down')
             put_table(TABLE_HOME)
         house_command('i wish to lock this down', 'locked down')
         for t, at in ((TABLE, TABLE_HOME), (TABLE_OTHER, None)):

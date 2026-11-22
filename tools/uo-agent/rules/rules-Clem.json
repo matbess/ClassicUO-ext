@@ -14,6 +14,10 @@
     // the smithy, for the gold from selling gems: into the bottom chest of the stack by the forge (0x4074A4C1 at
     // 1757,1407; the user, 2026-11-09; GEMS.md)
     { "name": "smithy (the gold chest)", "box": [1755, 1407, 1758, 1409], "z": [0, 25] },
+    // the bedroom: the friend's chest, the top left of its 9 (1755,1402,14), going to his personal chest by the forge
+    // (the user, 2026-11-21)
+    { "name": "bedroom (the friend's chest)", "box": [1754, 1402, 1759, 1406], "z": [0, 25] },
+    { "name": "outside the bedroom door (to the hall)", "box": [1759, 1406, 1760, 1409], "z": [0, 25] },
     { "name": "bag room (2nd floor)", "box": [1750, 1402, 1756, 1413], "z": [26, 45] },
     { "name": "vault door (2nd floor)", "box": [1757, 1412, 1757, 1412], "z": [26, 45] },
     { "name": "vault (gems only)", "box": [1758, 1402, 1763, 1412], "z": [26, 45] },
@@ -76,7 +80,7 @@
   // and shop doors on the way to a jeweler: Marnie's room upstairs in Trinsic (1896,2806, z 20; GEMS.md)
   // the castle's front door and central door (both halves), and the key rings hanging by them: 0x4093D690 outside
   // the front door, 0x408CB8EE on the courtyard side of the central door (CASTLE.md)
-  "doors": ["0x408AEA54", "0x408AEA55", "0x408AEA59", "0x4000FCF3", "0x40913567", "0x40913568", "0x40913571", "0x40913572"],
+  "doors": ["0x408AEA57", "0x408AEA54", "0x408AEA55", "0x408AEA59", "0x4000FCF3", "0x40913567", "0x40913568", "0x40913571", "0x40913572"],
   "keys": ["0x4040A302", "0x404099E0", "0x4093D690", "0x408CB8EE"],
   // a trapped pouch, used when he's paralysed; and the Gems runebook (0x0EFA, a spellbook's graphic), opened to
   // press a rune's Recall button (GEMS.md); and for sorting (the user, 2026-11-14: "yes you can use Clem's
