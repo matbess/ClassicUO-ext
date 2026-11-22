@@ -13,7 +13,10 @@ everything, don't list each bag just list the total number of shovels (and any o
 put-away updates those totals itself (vault/inventory.json "tools_room", embedded in vault/index.html).
 
 Bags fill bottom layer first, west to east (the user's first 4 stacks on the north wall, x 944-947 at y 2345), each
-up to 50. When they're full, an empty backpack from Clem's pack goes on top of the lowest stack (west first).
+up to 50. When they're full, more come from the spare backpacks chest (938 floor), only plain backpacks and only empty
+ones (the user, 2026-11-21: "when we run out of room in these backpacks you'll get more backpacks from the chest ...
+you should only use backpacks for the tools room, not other containers"), each put on top of the lowest stack (west
+first).
 """
 import os
 import sys
@@ -35,6 +38,8 @@ ROOM = (943, 2344, 947, 2348)
 STACKS = {'shovels': [(944, 2345), (945, 2345), (946, 2345), (947, 2345)]}
 STAND = (945, 2346)  # within 2 of all four north-wall stacks
 PER_BAG = {'shovels': 50}
+SPARE_BACKPACKS = '0x406E85EC'  # 938 floor, the spare backpacks chest (castle_plan)
+SPARE_STAND = (939, 2349)       # in front of it, on the south walkway (the tables are up at the forge since 2026-11-20)
 info = None
 OFF_LIMITS = set()
 
@@ -43,11 +48,63 @@ def say(text):
     td.say(text)
 
 
-def stand():
-    st = uo.call(info, 'GET', '/status')
-    if (st['x'], st['y']) != STAND:
-        uo.call(info, 'POST', '/walk', x=STAND[0], y=STAND[1])
+def walk_to(p, what):
+    for _ in range(3):
+        st = uo.call(info, 'GET', '/status')
+        if (st['x'], st['y']) == tuple(p):
+            return
+        uo.call(info, 'POST', '/walk', x=p[0], y=p[1])
         time.sleep(0.5)
+    raise td.Stop(f"couldn't get {what} ({p[0]},{p[1]}): he's at {st['x']},{st['y']}")
+
+
+def stand():
+    """Into the tools room. A plain walk from behind the tables (the tools room, the south-east rooms, the east
+    hall); from anywhere else the castle's own route, which deals with the tables (castle_site.Mover)."""
+    import castle_site
+    st = uo.call(info, 'GET', '/status')
+    here = (st['x'], st['y'])
+    if not (ROOM[0] <= here[0] <= ROOM[2] and ROOM[1] <= here[1] <= ROOM[3]) and not castle_site.behind(here):
+        global MOVER
+        MOVER = castle_site.Mover(uo, info, say)
+        MOVER.go((944, 2348), 'to the tools room')
+    walk_to(STAND, 'to the tools room')
+
+
+MOVER = None  # set when he came in past the tables: he leaves the same way at the end, the table locked behind him
+
+
+def fetch_backpacks(n, pack):
+    """n empty backpacks from the spare backpacks chest into his pack, and back to the tools room. Only backpacks,
+    and only empty ones."""
+    walk_to(SPARE_STAND, 'to the spare backpacks chest')
+    items = look.open_once(info, SPARE_BACKPACKS)
+    got = []
+    for b in [i for i in items if i.get('graphic') == BACKPACK]:
+        if len(got) == n:
+            break
+        if contents(b['serial'])[0]:
+            say(f"{b['serial']} in the spare backpacks chest isn't empty: left there")
+            continue
+        uo.call(info, 'POST', '/move', serial=b['serial'], to=pack, x=60 + 8 * len(got), y=70)
+        got.append(b['serial'])
+    walk_to(STAND, 'back to the tools room')
+    if len(got) < n:
+        say(f'the spare backpacks chest had only {len(got)} empty backpacks of the {n} needed')
+    return got
+
+
+def place_bag(serial, kind):
+    """A backpack from his pack onto the lowest of that kind's stacks (west first)."""
+    _, by_spot = bags(kind)
+    spots = STACKS[kind]
+    x, y = min(spots, key=lambda s: (len(by_spot.get(s, [])), spots.index(s)))
+    r = uo.call(info, 'POST', '/move', serial=serial, ground=1, x=x, y=y)
+    it = uo.call(info, 'GET', '/item', serial=serial)
+    if it.get('insideOf') or (it.get('x'), it.get('y')) != (x, y):
+        raise td.Stop(f"the backpack {serial} didn't go down on the stack at {x},{y} "
+                      f"({' | '.join(m.get('text', '') for m in r.get('messages', []))})")
+    return dict(it, serial=serial)
 
 
 def bags(kind):
@@ -169,6 +226,14 @@ def shovels():
                           f"{', '.join(i.get('type') or i['graphic'] for i in others)}")
         held[b['serial']], areas[b['serial']] = len(items), area
     say('the bags: ' + ', '.join(f"{b['x']},{b['y']} z{b['z']} {held[b['serial']]}" for b in order))
+    short = len(found) - sum(PER_BAG[kind] - n for n in held.values())
+    if short > 0:  # more bags: from the spare backpacks chest, onto the stacks
+        for serial in fetch_backpacks(-(-short // PER_BAG[kind]), pack):
+            b = place_bag(serial, kind)
+            items, area = contents(serial)
+            order.append(b)
+            held[serial], areas[serial] = len(items), area
+            say(f"a new bag {serial} on the stack at {b['x']},{b['y']} (z {b.get('z')})")
     moved = 0
     for b in order:
         while found and held[b['serial']] < PER_BAG[kind]:
@@ -180,7 +245,8 @@ def shovels():
         if not found:
             break
     if found:
-        raise td.Stop(f'{moved} shovels put away; {len(found)} left with no room in the bags (needs another bag on a stack)')
+        raise td.Stop(f'{moved} shovels put away; {len(found)} left with no room in the bags (the spare backpacks '
+                      'chest ran out of empty backpacks)')
     say(f'{moved} shovels put away. The bags: '
         + ', '.join(f"{b['x']},{b['y']} z{b['z']} {held[b['serial']]}" for b in order))
     others = {b['serial'] for b in room_bags()} - set(held)  # other tools' bags: opened for the page's totals
@@ -191,6 +257,8 @@ def shovels():
     empty = [c for c in opened if not contents(c)[0]]
     if empty:
         say(f"emptied and still in his pack: {', '.join(empty)}")
+    if MOVER:  # he came in past the tables: out the same way, the table locked down behind him
+        MOVER.leave_to((933, 2336))
 
 
 def show():

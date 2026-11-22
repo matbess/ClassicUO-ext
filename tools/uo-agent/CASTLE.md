@@ -267,6 +267,10 @@ castle now").
 - **Never open a pouch in Clem's pack**: the user keeps **trapped pouches** there (0x408558A0, 0x4085588D, 0x4085589F,
   in Clem's rules offLimits). tools_room.py opened all 3 on 2026-11-21 before the user said so (a trap went off).
   The bridge's `/open` doesn't check offLimits, so `uo.call` refuses opens of off-limits serials itself.
+- **More bags come from the spare backpacks chest** (938 floor, `0x406E85EC`; 61 backpacks on 2026-11-21): only
+  plain backpacks, only empty ones, never another kind of container (the user, 2026-11-21: "you'll get more backpacks
+  from the chest ... you should only use backpacks for the tools room, not other containers"). Each goes on top of
+  the lowest stack, west first. Clem walks there and back along the south walkway (the tables are at the forge).
 - **On The Vault page, combined**: one total per tool, never bag by bag (the user, 2026-11-21: "combine everything,
   don't list each bag just list the total number of shovels (and any other tools we add there)"). Every put-away
   updates it; `tools_room.py count [--known]` recounts it. Then publish `vault/index.html`.
