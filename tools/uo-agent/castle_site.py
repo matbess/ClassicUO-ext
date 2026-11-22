@@ -305,10 +305,18 @@ class Mover:
         here = (st['x'], st['y'])
         if here == tuple(goal):
             return
-        pts3 = route3(here, goal, st['z'])
-        pts = [p[:2] for p in pts3]
         if behind(here) != behind(tuple(goal)):
             self.open_table()
+            # the route from where opening the table left him, next to it: the one worked out before it (from the
+            # great hall) sent him back to its start, round by the stairs and the upper floor, and only then through
+            # (the user, 2026-11-21 16:00: "He walked from the great hall to the table, unlocked the table, then
+            # walked all the way back up to the stairs and to the second floor of the castle")
+            st = self.status()
+            here = (st['x'], st['y'])
+            if here == tuple(goal):
+                return
+        pts3 = route3(here, goal, st['z'])
+        pts = [p[:2] for p in pts3]
         # the ride cut at the ramps: a smooth ride to a ramp's end, the ramp stepped tile by tile, on from its other end
         segs, cur = [], [pts3[0]]
         for prev, nxt in zip(pts3, pts3[1:]):

@@ -106,6 +106,10 @@ The forge corner also has the forges (946-947,2322), bellows (945 and 948,2322),
 places, same kinds; the serials in the data files were renamed (`forge_swap.py remap`). The grey chests go to the great
 hall (the user).
 
+**Clem's reagents (2026-11-21):** from the user's own chest, 938 2nd (`restock.CASTLE_CHEST`): on the way in through
+the window from the entrance room (`castle.restock_at_window`, standing at 936,2349), else the long way round past the
+tables (`castle.restock_inside`, the table locked down as he comes out). The tower's restock chest is empty.
+
 ### The secure south rooms
 
 Each south room is shut off by a **locked-down table** across the walkway on y 2349:

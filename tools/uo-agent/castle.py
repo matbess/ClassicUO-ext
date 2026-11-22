@@ -267,20 +267,8 @@ def reagents_ok():
                     raise
                 say(f'reagents: {e}; going on, the castle reagents chest tops him up')
             return
-        if inside((x, y)):  # the castle: its reagents chest (2026-11-19, the tower's stock moved in) is his chest here
-            import castle_site
-            tower_chest = restock.CHEST
-            restock.CHEST = castle_site.targets('reagents', 'east')[0]
-            try:
-                restock.ensure()
-            except restock.Stop as e:
-                # the castle chest is out of one too (22:44: black pearl 24, none in the chest): on to the tower if
-                # none is under 20, where its restock chest tops him up
-                if min(restock.counts().values()) < 20:
-                    raise
-                say(f'reagents: {e}; going on, the tower restock chest tops him up')
-            finally:
-                restock.CHEST = tower_chest
+        if inside((x, y)):  # the castle: the user's own reagents chest in their vault (938 2nd), the long way round
+            restock_inside()
             return
         have = restock.counts()
     except restock.Stop as e:
@@ -318,7 +306,8 @@ def go_in():
         here = where()
         if not (2347 <= here[1] <= 2350):
             raise Stop(f'the fight ended with him at {here}, not in the entrance room')
-    if 2347 <= here[1] <= 2350:  # the entrance room: the courtyard rune in the secure box
+    if 2347 <= here[1] <= 2350:  # the entrance room: reagents through the window, then the courtyard rune
+        restock_at_window()
         call('POST', '/open', serial=RUNE_BOX)
         items = call('GET', '/contents', serial=RUNE_BOX)['items']
         runes = [i['serial'] for i in items if int(i['graphic'], 16) in RUNES]
@@ -333,6 +322,43 @@ def go_in():
         through(CENTRAL_DOOR, CENTRAL_KEY, CENTRAL_SHUT, CENTRAL_OUT, CENTRAL_IN, 'central door')
     step(HALL, 'get into the great hall')
     say(f'in the castle, in the great hall at {HALL[0]},{HALL[1]}; both doors locked and closed')
+    if restock.low(restock.counts()):  # the window didn't do it: the long way round
+        restock_inside()
+
+
+WINDOW = (936, 2349)  # in the entrance room, 2 tiles from 938,2348 through the window (the user, 2026-11-21)
+
+
+def restock_at_window():
+    """In the entrance room on the way in: any reagent below 25 is topped up from the user's chest (938 2nd) through
+    the window. If it can't be reached from here, he goes on in and restock_inside() does it."""
+    try:
+        if not restock.low(restock.counts()):
+            return
+        tower_chest, restock.CHEST = restock.CHEST, restock.CASTLE_CHEST
+        try:
+            restock.ensure(walk=lambda: step(WINDOW, 'to the window'))
+        finally:
+            restock.CHEST = tower_chest
+    except (restock.Stop, uo.BridgeError) as e:
+        say(f'reagents through the window: {e}; the long way round once inside')
+
+
+def restock_inside():
+    """Inside the castle: to the user's chest (938 2nd) behind the tables, topped up, and out past the tables with the
+    table locked down as he passes it, to the great hall."""
+    if not restock.low(restock.counts()):
+        return
+    import castle_site
+    mover = castle_site.Mover(uo, info, say)
+    tower_chest, restock.CHEST = restock.CHEST, restock.CASTLE_CHEST
+    try:
+        restock.ensure(walk=lambda: mover.walk_near(info, restock.CASTLE_CHEST))
+    except restock.Stop as e:
+        raise Stop(f'reagents: {e}')
+    finally:
+        restock.CHEST = tower_chest
+        mover.leave_to(HALL)
 
 
 def go_out():

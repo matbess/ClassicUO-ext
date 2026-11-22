@@ -26,7 +26,12 @@ LOG = os.path.expanduser('~/claude/uo-agent-work/combat/restock.log')
 BAG = '0x407660FB'       # his reagent bag, in his pack (2026-11-11; 0x40677564 before, Razor's restock and
                          # scavenger hot bag): find_bag() finds it by what's in it when this one is gone
 PLAIN_BAG = 0x0E76       # only plain bags are looked into for it: his pouches are trapped (opening one sets it off)
-CHEST = '0x40746D31'     # the restock chest, ground floor stairs room, 1752,1402,10
+CHEST = '0x40746D31'     # the restock chest, ground floor stairs room, 1752,1402,10 (empty since 2026-11-20)
+# in the castle: the user's own reagents and supplies chest, 938 2nd (secure), the far left of their vault (the user,
+# 2026-11-21: "The reagents are in the southeast in my personal chest that's by the "window" where the dump chests
+# are. They can be either retreived either when you enter the building, by reachign through the "window" or by going
+# all the way around to the southeast corner")
+CASTLE_CHEST = '0x406F2466'
 MINIMUM = 25             # any below this: restock (the user)
 # restock-agent-1's amounts, as it left the bag (2026-11-06 16:27)
 TARGET = {0x0F84: ('garlic', 35), 0x0F8D: ("spider's silk", 35), 0x0F85: ('ginseng', 35),
@@ -117,12 +122,16 @@ def show(have):
     return ', '.join(f'{TARGET[g][0]} {n}' for g, n in have.items())
 
 
-def restock(have):
-    """Top every reagent up to restock-agent-1's amount from the chest: one move each."""
-    say('restocking from the chest')
-    r = call('POST', '/walk', to=CHEST, distance=1)
-    if not r.get('arrived'):
-        raise Stop(f'could not get to the restock chest: {r}')
+def restock(have, walk=None):
+    """Top every reagent up to restock-agent-1's amount from the chest: one move each. walk: how he gets within
+    reach of it (the castle's routes); else a plain walk."""
+    say(f'restocking from the chest {CHEST}')
+    if walk:
+        walk()
+    else:
+        r = call('POST', '/walk', to=CHEST, distance=1)
+        if not r.get('arrived'):
+            raise Stop(f'could not get to the restock chest: {r}')
     call('POST', '/open', serial=CHEST)
     chest = stacks(CHEST)
     bag = stacks(BAG)
@@ -144,14 +153,18 @@ def restock(have):
     call('POST', '/close', serial=CHEST)
 
 
-def ensure(force=False):
+def low(have):
+    return [TARGET[g][0] for g, n in have.items() if n < MINIMUM]
+
+
+def ensure(force=False, walk=None):
     """Restock if any reagent is below MINIMUM (or force). Returns the counts after."""
     have = counts()
-    low = [TARGET[g][0] for g, n in have.items() if n < MINIMUM]
-    say(f'reagents: {show(have)}' + (f'; low: {", ".join(low)}' if low else ''))
-    if not low and not force:
+    short = low(have)
+    say(f'reagents: {show(have)}' + (f'; low: {", ".join(short)}' if short else ''))
+    if not short and not force:
         return have
-    restock(have)
+    restock(have, walk)
     have = counts()
     say(f'after restocking: {show(have)}')
     still = [TARGET[g][0] for g, n in have.items() if n < MINIMUM]
