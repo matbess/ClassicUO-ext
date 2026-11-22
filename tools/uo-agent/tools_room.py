@@ -46,6 +46,10 @@ BACKPACK = '0x0E75'
 # open those ones"); the 3 there are offLimits in his rules too
 CONTAINERS = {'0x0E75', '0x0E76', '0x09B0', '0x0E7D', '0x09AA', '0x09A8', '0x0E3D', '0x0E3E', '0x0E3F'}
 ROOM = (943, 2344, 947, 2348)
+# Clem's own things, never put away into the room's bags (still his to use: not offLimits in his rules)
+KEEP = {
+    '0x4084BB01': "Clem's own hatchet (the user, 2026-11-21: \"that hatchet is his own and should never go into another bag\")",
+}
 STACKS = {k: v['stacks'] for k, v in KINDS.items()}
 PER_BAG = {k: v['per_bag'] for k, v in KINDS.items()}
 STAND = (945, 2346)  # within 2 of every stack, both walls
@@ -211,7 +215,7 @@ def find_in_pack(pack):
             opened.append(c)
         for i in items:
             kind = kind_of(i)
-            if kind:
+            if kind and i['serial'] not in KEEP:
                 found[kind].append(dict(i, inside=c))
             elif i.get('graphic') in CONTAINERS and i['serial'] not in OFF_LIMITS:
                 queue.append(i['serial'])

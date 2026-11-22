@@ -263,7 +263,8 @@ castle now").
   will be mostly shovels. The user's first 4 stacks: x 944, 945, 946 and 947 at y 2345 (944 three bags high).
 - **Hatchets for lumberjacking on the west wall**, 3 stacks at x 944, y 2346-2348 (the user, 2026-11-21: "along the
   west wall we can fix 3 stacks of bags and we'll put hatches/axes for lumberjacking. That will probably be all we put
-  in this room"), 50 to a bag like the shovels. **Saws stay** in the tools chests by the forge ("we'll leave the saws
+  in this room"), 50 to a bag like the shovels. **Clem's own hatchet `0x4084BB01` stays in his pack**, never in a
+  bag ("that hatchet is his own and should never go into another bag"; `tools_room.KEEP`). **Saws stay** in the tools chests by the forge ("we'll leave the saws
   where they are for now").
 - **When the user brings tools home**, find every one of these kinds in Clem's pack, loose or in any bag in it, and put
   them away: `python3 -I tools_room.py put` (or `shovels` / `hatchets` for one kind). Clem stands at 945,2346, within
