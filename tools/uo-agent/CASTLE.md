@@ -261,8 +261,13 @@ castle now").
 
 - **Shovels first, 50 to a bag** ("because they're kind of heavy": 5 stones each, 250 a bag). The north wall (y 2345)
   will be mostly shovels. The user's first 4 stacks: x 944, 945, 946 and 947 at y 2345 (944 three bags high).
-- **When the user brings shovels home**, find every one in Clem's pack, loose or in any bag in it, and put them away:
-  `python3 -I tools_room.py shovels` (Clem stands at 945,2346, within reach of all 4 stacks). Bags fill bottom layer
+- **Hatchets for lumberjacking on the west wall**, 3 stacks at x 944, y 2346-2348 (the user, 2026-11-21: "along the
+  west wall we can fix 3 stacks of bags and we'll put hatches/axes for lumberjacking. That will probably be all we put
+  in this room"), 50 to a bag like the shovels. **Saws stay** in the tools chests by the forge ("we'll leave the saws
+  where they are for now").
+- **When the user brings tools home**, find every one of these kinds in Clem's pack, loose or in any bag in it, and put
+  them away: `python3 -I tools_room.py put` (or `shovels` / `hatchets` for one kind). Clem stands at 945,2346, within
+  reach of all 7 stacks. Bags fill bottom layer
   first, west to east, up to 50 each. `tools_room.py show` lists the bags.
 - **Never open a pouch in Clem's pack**: the user keeps **trapped pouches** there (0x408558A0, 0x4085588D, 0x4085589F,
   in Clem's rules offLimits). tools_room.py opened all 3 on 2026-11-21 before the user said so (a trap went off).
