@@ -14,7 +14,7 @@ put-away updates those totals itself (vault/inventory.json "tools_room", embedde
 
 Bags fill bottom layer first, west to east (the user's first 4 stacks on the north wall, x 944-947 at y 2345), each
 up to 50. When they're full, more come from the spare backpacks chest (938 floor), only plain backpacks and only empty
-ones (the user, 2026-11-21: "when we run out of room in these backpacks you'll get more backpacks from the chest ...
+ones, stacks up to 20 bags high (the user, 2026-11-21: "when we run out of room in these backpacks you'll get more backpacks from the chest ...
 you should only use backpacks for the tools room, not other containers"), each put on top of the lowest stack (west
 first).
 """
@@ -38,6 +38,7 @@ ROOM = (943, 2344, 947, 2348)
 STACKS = {'shovels': [(944, 2345), (945, 2345), (946, 2345), (947, 2345)]}
 STAND = (945, 2346)  # within 2 of all four north-wall stacks
 PER_BAG = {'shovels': 50}
+STACK_MAX = 20  # bags to a stack, up to the ceiling (the user, 2026-11-21: "I think 20 is the limit allowed. Let's set it at 20")
 SPARE_BACKPACKS = '0x406E85EC'  # 938 floor, the spare backpacks chest (castle_plan)
 SPARE_STAND = (939, 2349)       # in front of it, on the south walkway (the tables are up at the forge since 2026-11-20)
 info = None
@@ -98,7 +99,11 @@ def place_bag(serial, kind):
     """A backpack from his pack onto the lowest of that kind's stacks (west first)."""
     _, by_spot = bags(kind)
     spots = STACKS[kind]
-    x, y = min(spots, key=lambda s: (len(by_spot.get(s, [])), spots.index(s)))
+    room = [s for s in spots if len(by_spot.get(s, [])) < STACK_MAX]
+    if not room:
+        raise td.Stop(f'the {kind} stacks are all {STACK_MAX} high: where do the next bags go? '
+                      f'(the backpack {serial} is in his pack)')
+    x, y = min(room, key=lambda s: (len(by_spot.get(s, [])), spots.index(s)))
     r = uo.call(info, 'POST', '/move', serial=serial, ground=1, x=x, y=y)
     it = uo.call(info, 'GET', '/item', serial=serial)
     if it.get('insideOf') or (it.get('x'), it.get('y')) != (x, y):
@@ -228,7 +233,12 @@ def shovels():
     say('the bags: ' + ', '.join(f"{b['x']},{b['y']} z{b['z']} {held[b['serial']]}" for b in order))
     short = len(found) - sum(PER_BAG[kind] - n for n in held.values())
     if short > 0:  # more bags: from the spare backpacks chest, onto the stacks
-        for serial in fetch_backpacks(-(-short // PER_BAG[kind]), pack):
+        _, by_spot = bags(kind)
+        free = sum(STACK_MAX - len(by_spot.get(s, [])) for s in STACKS[kind])
+        need = -(-short // PER_BAG[kind])
+        if need > free:
+            say(f'{need} more bags needed but only room for {free} on the {kind} stacks ({STACK_MAX} high)')
+        for serial in fetch_backpacks(min(need, free), pack):
             b = place_bag(serial, kind)
             items, area = contents(serial)
             order.append(b)

@@ -270,7 +270,8 @@ castle now").
 - **More bags come from the spare backpacks chest** (938 floor, `0x406E85EC`; 61 backpacks on 2026-11-21): only
   plain backpacks, only empty ones, never another kind of container (the user, 2026-11-21: "you'll get more backpacks
   from the chest ... you should only use backpacks for the tools room, not other containers"). Each goes on top of
-  the lowest stack, west first. Clem walks there and back along the south walkway (the tables are at the forge).
+  the lowest stack, west first, **up to 20 bags a stack** (the ceiling: "I think 20 is the limit allowed. Let's set it
+  at 20"); when all are 20 high, Clem stops and asks where next. Clem walks there and back along the south walkway (the tables are at the forge).
 - **On The Vault page, combined**: one total per tool, never bag by bag (the user, 2026-11-21: "combine everything,
   don't list each bag just list the total number of shovels (and any other tools we add there)"). Every put-away
   updates it; `tools_room.py count [--known]` recounts it. Then publish `vault/index.html`.
