@@ -260,14 +260,13 @@ def behind(p):
 
 def personal(serial):
     """The user's own chests (938 top 3 in their vault, 944,2327 2nd by the forge) and the friend's personal chest
-    by the forge (944,2327 top), and Clem's own (938 2nd, his reagents: "it's his personal chest so you should take
-    them out of there"): theirs to manage. Nothing is sorted into them, moved in them or counted (the user,
+    by the forge (944,2327 top): theirs to manage. Nothing is sorted into them, moved in them or counted (the user,
     2026-11-21: "You don't need to manage that chest, you also don't need to manage my friends personal chest near the
-    forge ... You don't need to manage my personal chests over by the frontdoor/southeast room either"). Clem still
-    takes his reagents from 938 2nd (the user named it, 2026-11-21)."""
+    forge ... You don't need to manage my personal chests over by the frontdoor/southeast room either"). 938 2nd is
+    where every one of the user's characters takes reagents from, Clem too (the user, 2026-11-21: "all of my
+    characters can take reagents from that chest, it's not just clem")."""
     e = PLAN.get(serial)
-    return bool(e) and (e['what'].startswith('yours') or e['what'].startswith("friend's:")
-                        or e['what'].startswith("Clem's:"))  # 938 2nd: Clem's own (the user, 2026-11-21)
+    return bool(e) and (e['what'].startswith('yours') or e['what'].startswith("friend's:"))
 
 
 def hall_floor(p):

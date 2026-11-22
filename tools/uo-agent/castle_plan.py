@@ -80,7 +80,7 @@ VAULT = {
     # 938 floor (not secure): the spare backpacks, moved from the forge (the user, 2026-11-20: "I'm also going to need
     # empty backpacks when I'm adventuring so I want you to make the bottom unsecure chest in col 938 into the
     # backpack chest")
-    938: [('yours: runes and bags', 1), ("Clem's: reagents and supplies", 1), ('yours: runebooks and maps', 1),
+    938: [('yours: runes and bags', 1), ('yours: reagents and supplies', 1), ('yours: runebooks and maps', 1),
           ('spare backpacks', 0)],
     # 939 took what 942 had planned (2026-11-20): 942 is for the user's own chests from the tower
     939: [('valuables overflow', 0), (FREE, 0), ('house deeds', 0), ('gems', 0)],
