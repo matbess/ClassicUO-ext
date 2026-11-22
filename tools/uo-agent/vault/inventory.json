@@ -2271,13 +2271,7 @@
    "row": "floor",
    "secure": false,
    "bags": [],
-   "loose": [
-    {
-     "name": "deed",
-     "amount": 1,
-     "graphic": "0x14F0"
-    }
-   ]
+   "loose": []
   },
   {
    "serial": "0x4058C67C",
@@ -2290,7 +2284,7 @@
    "loose": [
     {
      "name": "iron ingots",
-     "amount": 616,
+     "amount": 516,
      "graphic": "0x1BF2"
     },
     {
@@ -2302,37 +2296,65 @@
   },
   {
    "serial": "0x4058B001",
-   "name": "ingots 2",
+   "name": "boards & logs",
    "side": "forge",
    "place": "forge 2326",
    "row": "2nd",
    "secure": false,
    "bags": [],
-   "loose": []
+   "loose": [
+    {
+     "name": "boards",
+     "amount": 7996,
+     "graphic": "0x1BD7"
+    }
+   ]
   },
   {
    "serial": "0x4058CCBA",
-   "name": "boards & logs",
+   "name": "cloth & leather",
    "side": "forge",
    "place": "forge 2326",
    "row": "3rd",
    "secure": false,
    "bags": [],
-   "loose": []
+   "loose": [
+    {
+     "name": "cut cloth",
+     "amount": 2327,
+     "graphic": "0x1766"
+    },
+    {
+     "name": "cut up leather",
+     "amount": 417,
+     "graphic": "0x1081"
+    }
+   ]
   },
   {
    "serial": "0x40589C3C",
-   "name": "boards & logs 2",
+   "name": "cooking",
    "side": "forge",
    "place": "forge 2326",
    "row": "floor",
    "secure": false,
    "bags": [],
-   "loose": []
+   "loose": [
+    {
+     "name": "fish steaks",
+     "amount": 59499,
+     "graphic": "0x097B"
+    },
+    {
+     "name": "raw fish steaks",
+     "amount": 57334,
+     "graphic": "0x097A"
+    }
+   ]
   },
   {
    "serial": "0x4058DAD8",
-   "name": "cooking",
+   "name": "friend's: personal",
    "side": "forge",
    "place": "forge 2327",
    "row": "top",
@@ -2342,19 +2364,24 @@
   },
   {
    "serial": "0x4059020A",
-   "name": "cloth & leather",
+   "name": "yours: personal",
    "side": "forge",
    "place": "forge 2327",
    "row": "2nd",
    "secure": false,
-   "bags": [],
-   "loose": [
+   "bags": [
     {
-     "name": "cut up leather",
-     "amount": 417,
-     "graphic": "0x1081"
+     "name": "backpack",
+     "marker": null,
+     "items": []
+    },
+    {
+     "name": "backpack",
+     "marker": null,
+     "items": []
     }
-   ]
+   ],
+   "loose": []
   },
   {
    "serial": "0x4058A89F",
@@ -3426,5 +3453,5 @@
    "loose": []
   }
  ],
- "castle_updated": "2026-11-20T19:30:54-0800"
+ "castle_updated": "2026-11-21T16:37:14-0800"
 }

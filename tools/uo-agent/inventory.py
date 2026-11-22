@@ -8,6 +8,8 @@ empty after a restart; --known reads only what the client already knows and send
 
 Only when the user asks for it (the user, 2026-11-20: "Change the scripts so that you don't do a full recount and
 update the vault page unless I explicitly ask"): it refuses to run without --asked, and nothing runs it on its own.
+Also after a change to the layout, for the chests it touched (the user, 2026-11-21: "update the page when you change
+the layout"): --asked --only those chests.
 
 In the castle (he's inside it), the castle's chests instead (castle_site.py: east and west storage, the forge, the
 user's vault behind their table and the intake chests; never the friend's): every one with something in it at the
@@ -131,7 +133,8 @@ def main():
         try:
             castle = castle_chests(info, labels, names, known, '--all' in sys.argv)
         finally:
-            mover.close_up()
+            if not known:  # --known sends nothing, not even a walk
+                mover.leave_to((933, 2336))  # out past the tables, locked as he passes, to the great hall's middle
         data = dict(before, castle=castle, castle_updated=time.strftime('%Y-%m-%dT%H:%M:%S%z'),
                     gem_prices_from=max(PRICED.values(), default=''))
         data.setdefault('wall', [])
