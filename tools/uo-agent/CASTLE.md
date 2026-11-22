@@ -278,7 +278,8 @@ castle now").
 - **When the user brings tools home**, find every one of these kinds in Clem's pack, loose or in any bag in it, and put
   them away: `python3 -I tools_room.py put` (or `shovels` / `axes` for one kind). Only plain axes are taken from
   his pack (a single click checks the name). Clem stands at 945,2346, within
-  reach of all 7 stacks. Bags fill bottom layer
+  reach of all 7 stacks. From the entrance room, courtyard or front he comes in first (`castle.go_in`), and from
+  in front of the tables he goes round past them and locks the table again on the way out. Bags fill bottom layer
   first, west to east, up to 50 each. `tools_room.py show` lists the bags.
 - **Never open a pouch in Clem's pack**: the user keeps **trapped pouches** there (0x408558A0, 0x4085588D, 0x4085589F,
   in Clem's rules offLimits). tools_room.py opened all 3 on 2026-11-21 before the user said so (a trap went off).

@@ -147,8 +147,18 @@ def stand():
     hall); from anywhere else the castle's own route, which deals with the tables (castle_site.Mover)."""
     import castle_site
     global MOVER
+    import castle
     st = uo.call(info, 'GET', '/status')
     here = (st['x'], st['y'])
+    if not in_room(here) and not castle.inside(here):  # the entrance room, the courtyard or the front: in first
+        import restock                                    # (window top-up, courtyard rune, doors locked behind him)
+        castle.info = restock.info = info
+        try:
+            castle.go_in()
+        except castle.Stop as e:
+            raise td.Stop(f'getting in: {e}')
+        st = uo.call(info, 'GET', '/status')
+        here = (st['x'], st['y'])
     if not in_room(here) and not castle_site.behind(here):
         MOVER = castle_site.Mover(uo, info, say)
         MOVER.go(OUT, 'to the tools room')
