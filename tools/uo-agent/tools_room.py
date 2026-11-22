@@ -5,6 +5,12 @@ tools chests by the forge keep just one bag of each kind.
 
   python3 tools_room.py shovels   every shovel in Clem's pack (loose, or in any bag in it) into the shovel bags
   python3 tools_room.py show      the stacks and what each bag holds (opens them; nothing is moved)
+  python3 tools_room.py count [--known]   open every bag in the room and put the totals on The Vault page (then
+                                  publish it); --known sends nothing, from what the client knows
+
+The Vault page shows the room combined, one total per tool, never bag by bag (the user, 2026-11-21: "combine
+everything, don't list each bag just list the total number of shovels (and any other tools we add there)"). A
+put-away updates those totals itself (vault/inventory.json "tools_room", embedded in vault/index.html).
 
 Bags fill bottom layer first, west to east (the user's first 4 stacks on the north wall, x 944-947 at y 2345), each
 up to 50. When they're full, an empty backpack from Clem's pack goes on top of the lowest stack (west first).
@@ -13,7 +19,8 @@ import os
 import sys
 import time
 
-sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
+HERE = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, HERE)
 import uo  # noqa: E402
 import castle_move  # noqa: E402
 import look  # noqa: E402
@@ -58,6 +65,49 @@ def bags(kind):
             if level < len(by_spot.get(s, [])):
                 order.append(by_spot[s][level])
     return order, by_spot
+
+
+def room_bags():
+    """Every backpack on the tools room floor, whatever stack it's in."""
+    found = uo.call(info, 'GET', '/nearby', range=8, containers=1)
+    items = found.get('items', found) if isinstance(found, dict) else found
+    return [i for i in items if not i.get('parent') and i.get('graphic') == BACKPACK and i.get('x') is not None
+            and ROOM[0] <= i['x'] <= ROOM[2] and ROOM[1] <= i['y'] <= ROOM[3]]
+
+
+def plural(name):
+    name = name.lower()
+    return name if name.endswith('s') else name[:-1] + 'ies' if name.endswith('y') else name + 's'
+
+
+def to_page(held):
+    """The room's totals onto The Vault page: held is {bag serial: [item type, ...]} for every bag in the room."""
+    import collections
+    import json
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('inventory', os.path.join(HERE, 'inventory.py'))
+    inv = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(inv)
+    totals = collections.Counter(plural(t) for items in held.values() for t in items)
+    data = json.load(open(inv.OUT, encoding='utf-8'))
+    data['tools_room'] = {'updated': time.strftime('%Y-%m-%dT%H:%M:%S%z'), 'bags': len(held),
+                          'in_use': sum(1 for items in held.values() if items),
+                          'tools': [{'name': k, 'amount': v} for k, v in sorted(totals.items())]}
+    inv.save(inv.OUT, data)
+    say('the page: tools room ' + (', '.join(f'{v} {k}' for k, v in sorted(totals.items())) or 'empty')
+        + f' in {len(held)} bags (publish vault/index.html)')
+
+
+def count():
+    """--known: from what the client already knows (sends nothing; fine while the user has Clem)."""
+    known = '--known' in sys.argv
+    if not known:
+        stand()
+    held = {}
+    for b in room_bags():
+        items = uo.call(info, 'GET', '/contents', serial=b['serial'])['items'] if known else contents(b['serial'])[0]
+        held[b['serial']] = [i.get('type') or i['graphic'] for i in items]
+    to_page(held)
 
 
 def contents(serial):
@@ -133,6 +183,11 @@ def shovels():
         raise td.Stop(f'{moved} shovels put away; {len(found)} left with no room in the bags (needs another bag on a stack)')
     say(f'{moved} shovels put away. The bags: '
         + ', '.join(f"{b['x']},{b['y']} z{b['z']} {held[b['serial']]}" for b in order))
+    others = {b['serial'] for b in room_bags()} - set(held)  # other tools' bags: opened for the page's totals
+    page = {serial: ['shovel'] * n for serial, n in held.items()}
+    for serial in others:
+        page[serial] = [i.get('type') or i['graphic'] for i in contents(serial)[0]]
+    to_page(page)
     empty = [c for c in opened if not contents(c)[0]]
     if empty:
         say(f"emptied and still in his pack: {', '.join(empty)}")
@@ -155,7 +210,7 @@ def main():
     castle_move.say = say
     uo.call = td.call_past_razor
     look.uo = uo
-    {'shovels': shovels, 'show': show}[sys.argv[1] if len(sys.argv) > 1 else 'show']()
+    {'shovels': shovels, 'show': show, 'count': count}[sys.argv[1] if len(sys.argv) > 1 else 'show']()
 
 
 if __name__ == '__main__':
