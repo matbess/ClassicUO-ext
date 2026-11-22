@@ -42,12 +42,25 @@
     "serial": "0x408558AD",
     "x": 18,
     "y": 123
+   },
+   {
+    "kind": "saw",
+    "known": 52,
+    "marker": {
+     "name": "saw",
+     "serial": "0x407E82D6",
+     "x": 118,
+     "y": 140
+    },
+    "serial": "0x4091AFF3",
+    "x": 114,
+    "y": 118
    }
   ],
-  "items": 2,
+  "items": 4,
   "label": "castle: tools (forge 2327, 3rd)",
   "loose": [],
-  "recorded": "2026-11-21 16:46"
+  "recorded": "2026-11-21 18:01"
  },
  "0x4058B001": {
   "bags": [],
@@ -130,11 +143,51 @@
   "recorded": "2026-11-21 16:37"
  },
  "0x4058E8DE": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: free (forge 2327, floor)",
+  "bags": [
+   {
+    "kind": "saw",
+    "known": 34,
+    "marker": {
+     "name": "saw",
+     "serial": "0x407BE551",
+     "x": 35,
+     "y": 140
+    },
+    "serial": "0x40736808",
+    "x": 25,
+    "y": 113
+   },
+   {
+    "kind": "saw",
+    "known": 54,
+    "marker": {
+     "name": "saw",
+     "serial": "0x407BF1DB",
+     "x": 68,
+     "y": 140
+    },
+    "serial": "0x4072F19D",
+    "x": 54,
+    "y": 111
+   },
+   {
+    "kind": "saw",
+    "known": 26,
+    "marker": {
+     "name": "saw",
+     "serial": "0x408C50AA",
+     "x": 98,
+     "y": 140
+    },
+    "serial": "0x40735825",
+    "x": 86,
+    "y": 109
+   }
+  ],
+  "items": 6,
+  "label": "castle: tools 2 (forge 2327, floor)",
   "loose": [],
-  "recorded": "2026-11-21 16:37"
+  "recorded": "2026-11-21 18:01"
  },
  "0x4058EDBE": {
   "bags": [],

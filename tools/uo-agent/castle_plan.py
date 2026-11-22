@@ -69,7 +69,7 @@ FORGE = {
     # column to the left of it we'll have my friend's personal chest, my personal chest, tools & empty" (a personal
     # chest each behind the tables on the east side; nothing is sorted into them)
     2326: [('ingots', 0), ('boards & logs', 0), ('cloth & leather', 0), ('cooking', 0)],
-    2327: [("friend's: personal", 0), ('yours: personal', 0), ('tools', 0), (FREE, 0)],
+    2327: [("friend's: personal", 0), ('yours: personal', 0), ('tools', 0), ('tools 2', 0)],  # tools 2: 2026-11-21
 }
 # the user's vault (south-east, behind their table, y 2348): no weight limit, no secures needed. The ingots, boards and
 # logs moved up to the forge (2026-11-19), so 938 and 939 are free

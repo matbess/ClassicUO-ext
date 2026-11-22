@@ -2396,18 +2396,84 @@
        "graphic": "0x13E3"
       }
      ]
+    },
+    {
+     "name": "small crate",
+     "marker": {
+      "name": "saw",
+      "amount": 1,
+      "graphic": "0x1034"
+     },
+     "items": [
+      {
+       "name": "saw",
+       "amount": 52,
+       "graphic": "0x1034"
+      }
+     ]
     }
    ],
    "loose": []
   },
   {
    "serial": "0x4058E8DE",
-   "name": "free",
+   "name": "tools 2",
    "side": "forge",
    "place": "forge 2327",
    "row": "floor",
    "secure": false,
-   "bags": [],
+   "bags": [
+    {
+     "name": "crate",
+     "marker": {
+      "name": "saw",
+      "amount": 1,
+      "graphic": "0x1034"
+     },
+     "items": [
+      {
+       "name": "saw",
+       "amount": 34,
+       "graphic": "0x1034"
+      }
+     ]
+    },
+    {
+     "name": "crate",
+     "marker": {
+      "name": "saw",
+      "amount": 1,
+      "graphic": "0x1034"
+     },
+     "items": [
+      {
+       "name": "saw",
+       "amount": 53,
+       "graphic": "0x1034"
+      },
+      {
+       "name": "world map",
+       "amount": 1,
+       "graphic": "0x1034"
+      }
+     ]
+    },
+    {
+     "name": "crate",
+     "marker": {
+      "name": "saw",
+      "amount": 1,
+      "graphic": "0x1034"
+     },
+     "items": [
+      {
+       "name": "saw",
+       "amount": 26,
+       "graphic": "0x1034"
+      }
+     ]
+    }
+   ],
    "loose": []
   },
   {
@@ -3033,5 +3099,5 @@
    "loose": []
   }
  ],
- "castle_updated": "2026-11-21T16:51:29-0800"
+ "castle_updated": "2026-11-21T18:01:35-0800"
 }

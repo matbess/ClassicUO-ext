@@ -134,7 +134,10 @@ def main():
             castle = castle_chests(info, labels, names, known, '--all' in sys.argv)
         finally:
             if not known:  # --known sends nothing, not even a walk
-                mover.leave_to((933, 2336))  # out past the tables, locked as he passes, to the great hall's middle
+                try:
+                    mover.leave_to((933, 2336))  # out past the tables, locked as he passes, to the great hall's middle
+                except uo.BridgeError as e:  # the count is kept all the same (2026-11-21 18:01: the user took him over
+                    say(f'leaving: {e}')     # as he left, and the count was lost)
         data = dict(before, castle=castle, castle_updated=time.strftime('%Y-%m-%dT%H:%M:%S%z'),
                     gem_prices_from=max(PRICED.values(), default=''))
         data.setdefault('wall', [])
