@@ -238,6 +238,8 @@ def empty_bags(n):
             continue
         bags.append(item)
         TAKEN.add(item['serial'])
+        if SIDE:  # the castle's spare backpacks chest is far from most chests: into his pack, or his client loses
+            move(item['serial'], BACKPACK)  # sight of the bag on the way (2026-11-21 23:04, a 404 at the chest)
     if len(bags) < n:
         sys.exit('not enough empty bags in the backpacks crate')
     return bags

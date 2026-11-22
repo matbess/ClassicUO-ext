@@ -334,7 +334,7 @@ def spot(area, n):
     return int(x0 + col * (x1 - x0 - 50) / 9), int(y0 + row * (y1 - y0 - 50) / 4)
 
 
-def put(kinds=None, extra=()):
+def put(kinds=None, extra=(), leave=True):
     """Everything of these kinds in his pack into the room's bags. extra: serials to take even if magic (a sort's
     axes that would have gone to smelting)."""
     kinds = kinds or list(KINDS)
@@ -366,7 +366,7 @@ def put(kinds=None, extra=()):
     empty = [c for c in opened if not contents(c)[0]]
     if empty:
         say(f"emptied and still in his pack: {', '.join(empty)}")
-    if MOVER:  # he came in past the tables: out the same way, the table locked down behind him
+    if MOVER and leave:  # he came in past the tables: out the same way, the table locked down behind him
         MOVER.leave_to((933, 2336))
 
 

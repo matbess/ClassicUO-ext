@@ -233,8 +233,9 @@ def decide(item, name):
         return 'keep', ('supplies',)
     if t in MISC or item['graphic'] in MISC_GRAPHICS:
         return 'keep', ('misc',)  # kept, loose in the miscellaneous chest (the user, 2026-11-04)
-    # cloth clothes, hats and footwear
-    if any(w in n for w in GOOD_WEAR):
+    # cloth clothes, hats and footwear. "a magical wizard's hat" (the server's word, not "magic", so no ID wand
+    # charge) is kept too: the user, 2026-11-21: "we can keep the wizards hat"
+    if any(w in n for w in GOOD_WEAR) or re.match(r'^(an? )?magical ', n):
         return 'keep', ('clothing', 'footwear' if t in FOOTWEAR else 'hats' if 'hat' in t or t in
                         ('cap', 'bandana', 'skullcap', 'bonnet') else 'tunics & shirts')
     if re.search(r'\b(hat|cap|bandana|skullcap|bonnet|shirt|tunic|doublet|skirt|kilt|pants|robe|cloak|dress|sash|'
