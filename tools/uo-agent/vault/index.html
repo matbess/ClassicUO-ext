@@ -70,6 +70,8 @@ header { display: grid; gap: 14px; }
   border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: inherit; text-decoration: none;
 }
 .chest:hover, .chest:focus-visible { border-color: var(--accent); outline: none; }
+.playerbags { margin-top: 12px; display: grid; gap: 6px; }
+.playerbag-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; max-width: 420px; }
 .chest .name { font-family: var(--font-display); font-size: 1rem; line-height: 1.15; }
 .chest .count { font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .chest.empty { background: transparent; border-style: dashed; }
@@ -236,6 +238,18 @@ const LAYOUT = [['east', 'East storage', 'the east wall, x 947: north end on the
   ['forge', 'By the forge', 'x 944, next to the forges', (c) => c.side === 'forge' && !c.player],
   ['vault', 'Your vault', 'south-east, behind your table: the stack nearest the entrance on the left', (c) => c.side === 'vault' || c.place.startsWith('intake')]];
 
+// the players' bags on the floor by the forge (the user, 2026-11-21): counted, never touched by Clem
+function playerBagsHtml(castle) {
+  const bags = castle.filter((c) => c.player);
+  if (!bags.length) return '';
+  return '<div class="playerbags"><span class="eyebrow">On the floor by the forge · players only</span><div class="playerbag-row">'
+    + bags.map((c) => {
+      const n = sum(chestItems(c));
+      return `<a class="chest yours" href="#c-${c.serial}" title="${esc(c.place)}"><span class="name">${esc(cap(c.name))}</span>`
+        + `<span class="count">${n ? fmt(n) + ' items' : 'empty'} · ${esc(c.place.split(' backpack')[0])} backpack</span></a>`;
+    }).join('') + '</div></div>';
+}
+
 function layoutHtml(castle, q, hitsOf) {
   return LAYOUT.map(([side, name, where, take]) => {
     const cs = castle.filter(take);
@@ -259,7 +273,8 @@ function layoutHtml(castle, q, hitsOf) {
     });
     return `<div class="layout-area"><h3>${esc(name)} <span class="muted">· ${esc(where)}</span></h3>`
       + `<div class="stack-wrap"><div class="wallgrid" style="--n:${places.length}">${html}</div></div>`
-      + `<div class="layout-note"><span>← left on your screen</span><span>right on your screen →</span></div></div>`;
+      + `<div class="layout-note"><span>← left on your screen</span><span>right on your screen →</span></div>`
+      + (side === 'forge' ? playerBagsHtml(castle) : '') + '</div>';
   }).join('');
 }
 
@@ -283,6 +298,7 @@ function renderCastle(q) {
     const cs = castle.filter((c) => c.side === side && !c.personal && !/^(yours|friend's|Clem's)/.test(c.name)
       && (c.player || c.bags.length || c.loose.length) && (!q || hitsOf(c)));
     if (!cs.length) return '';
+    cs.sort((a, b) => (b.player ? 1 : 0) - (a.player ? 1 : 0));  // the players' bags first
     return `<h2 id="castle-${side}">${esc(name)}</h2>` + cs.map((c) => {
       const loose = list(c.loose, q);
       if (c.player) return `<section class="chest-section" id="c-${c.serial}"><div class="chest-head"><h2>${esc(cap(c.name))}<span class="secure-tag">players only</span></h2><span class="muted">${esc(c.place)} · ${fmt(sum(chestItems(c)))} items · Clem never moves anything in or out</span></div><div class="bags">`
