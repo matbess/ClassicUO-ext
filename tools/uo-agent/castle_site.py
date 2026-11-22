@@ -151,6 +151,23 @@ UP = 20  # z this high and over: upstairs
 RAMPS = [[(933, 2333), (932, 2332), (931, 2332), (930, 2332), (929, 2332), (928, 2332)],
          [(921, 2322), (921, 2323), (921, 2324), (921, 2325), (921, 2326), (921, 2327)]]
 TABLE_SPOT = (943, 2323)  # the table Clem moves (castle.TABLE)
+# the stairs' two ends (the user, 2026-11-21: "place a point at the top and the bottom of the stairs that you direct the
+# path finding to. You have to direct it first to the top of the stairs, then when you get to that point.. THEN you
+# direct it to the bottom of the stairs (and vice versa)"): a change of floor goes to the end on his floor first,
+# checked (that spot, that floor), and only then along the stairs to the other end, checked again
+STAIRS = [{'name': 'the great hall stairs', 'bottom': (933, 2333), 'top': (928, 2332), 'tiles': RAMPS[0]},
+          {'name': 'the west stairs', 'bottom': (921, 2327), 'top': (921, 2322), 'tiles': RAMPS[1]}]
+RAMP_INSIDE = {t for r in RAMPS for t in r[1:-1]}  # the stairs' middle tiles: never a point to head for
+
+
+def stairs_between(a, b):
+    """The stairs whose ends are a and b (x, y), or None."""
+    return next((s for s in STAIRS if {tuple(a), tuple(b)} == {s['bottom'], s['top']}), None)
+
+
+def nearest_stairs(p, up):
+    """The stairs whose end on that floor (up: the top) is nearest p."""
+    return min(STAIRS, key=lambda s: cheb(p, s['top' if up else 'bottom']))
 
 
 def cheb(a, b):
@@ -199,6 +216,7 @@ def route3(start, goal, z=6):
         return (a if cheb(a, t) <= cheb(b, t) else b)[2] >= UP
     pts = [(s_tile[0], s_tile[1], z >= UP)] + [(r[0], r[1], r[2] >= UP) for r in mid] + \
         [(g_tile[0], g_tile[1], floor_on(j, g_tile)), (goal[0], goal[1], floor_on(j, g_tile))]
+    pts = [p for k, p in enumerate(pts) if k == 0 or p[:2] not in RAMP_INSIDE]
     return [p for k, p in enumerate(pts) if k == 0 or p[:2] != pts[k - 1][:2]]
 
 
@@ -363,8 +381,15 @@ class Mover:
             for _ in range(3):
                 self.uo.call(self.info, 'POST', '/walk', x=goal[0], y=goal[1], distance=0)
                 st = self.status()
-                if (st['x'], st['y']) == tuple(goal) and st['z'] < UP:
+                if st['z'] >= UP:  # the path-finder took him upstairs (2026-11-21 17:46, someone on the spot): down
+                    self.onto_floor(False)
+                    continue
+                if (st['x'], st['y']) == tuple(goal):
                     return
+            st = self.status()
+            if st['z'] < UP and cheb((st['x'], st['y']), goal) <= 1:
+                self.say(f"{what}: {goal[0]},{goal[1]} is taken; next to it, at {st['x']},{st['y']}")
+                return
             raise self.uo.BridgeError(0, f"could not walk {what}: he's at {st['x']},{st['y']},{st['z']}")
         pts3 = route3(here, goal, st['z'])
         k = table_crossing(pts3)
@@ -386,29 +411,74 @@ class Mover:
         st = self.status()
         return (st['x'], st['y'])
 
-    def ride(self, pts3, what):
-        """One stretch of a route: a smooth ride, cut at the ramps (each ramp stepped tile by tile)."""
-        pts3 = [p for n, p in enumerate(pts3) if n == 0 or p[:2] != pts3[n - 1][:2]]
-        if len(pts3) < 2:
+    def floor(self):
+        return self.status()['z'] >= UP
+
+    def to_point(self, p, up, what):
+        """Onto spot p on that floor, by the bridge's walk on the floor he's on; checked: that spot, that floor."""
+        for _ in range(3):
+            st = self.status()
+            if (st['x'], st['y']) == tuple(p) and (st['z'] >= UP) == up:
+                return
+            if (st['z'] >= UP) != up:
+                raise self.uo.BridgeError(0, f"{what}: he's on the {'upper' if st['z'] >= UP else 'ground'} floor at "
+                                             f"{st['x']},{st['y']},{st['z']}, not the {'upper' if up else 'ground'} one")
+            self.uo.call(self.info, 'POST', '/walk', x=p[0], y=p[1], distance=0)
+        st = self.status()
+        if (st['x'], st['y']) != tuple(p) or (st['z'] >= UP) != up:
+            raise self.uo.BridgeError(0, f"{what}: could not get onto {p[0]},{p[1]} ({'upper' if up else 'ground'} "
+                                         f"floor); he's at {st['x']},{st['y']},{st['z']}")
+
+    def take_stairs(self, s, up):
+        """Up (up=True) or down the stairs s: to the end on his floor first, checked, then along them to the other end,
+        checked."""
+        start, end = (s['bottom'], s['top']) if up else (s['top'], s['bottom'])
+        st = self.status()
+        if (st['x'], st['y']) not in s['tiles']:
+            self.to_point(start, not up, f"to the {'bottom' if up else 'top'} of {s['name']}")
+        self.step_ramp(s['tiles'], start, end)
+        self.to_point(end, up, f"{'up' if up else 'down'} {s['name']}")
+        self.say(f"{'up' if up else 'down'} {s['name']}: at {end[0]},{end[1]}")
+
+    def onto_floor(self, up, near=None):
+        """On the floor wanted, by the nearest stairs (near: the spot he's heading for), if he isn't on it."""
+        if self.floor() == up:
             return
-        segs, cur = [], [pts3[0]]
-        for prev, nxt in zip(pts3, pts3[1:]):
-            ramp = next((r for r in RAMPS if prev[:2] in (r[0], r[-1]) and nxt[:2] in (r[0], r[-1])
-                         and prev[:2] != nxt[:2]), None)
-            if ramp:
-                if len(cur) > 1:
-                    segs.append(('ride', cur))
-                segs.append(('ramp', (ramp, prev[:2], nxt[:2])))
-                cur = [nxt]
+        st = self.status()
+        here = (st['x'], st['y'])
+        s = nearest_stairs(here, not up)
+        self.take_stairs(s, up)
+
+    def ride(self, pts3, what):
+        """One stretch of a route: a smooth ride on each floor; where the floor changes, the stairs (take_stairs)."""
+        # the stairs' middle tiles are never headed for (a start snapped onto one, 932,2332, sent him along the upper
+        # floor, 2026-11-21 17:47): the stairs are taken end to end
+        pts3 = [p for p in pts3 if p[:2] not in RAMP_INSIDE] or pts3[-1:]
+        pts3 = [p for n, p in enumerate(pts3) if n == 0 or p[:2] != pts3[n - 1][:2]]
+        if not pts3:
+            return
+        self.onto_floor(pts3[0][2])
+        if len(pts3) < 2:
+            self.to_point(pts3[0][:2], pts3[0][2], what)
+            return
+        runs, cur = [], [pts3[0]]
+        for p in pts3[1:]:
+            if p[2] != cur[-1][2]:
+                runs.append(cur)
+                cur = [p]
             else:
-                cur.append(nxt)
-        if len(cur) > 1:
-            segs.append(('ride', cur))
-        for kind, seg in segs:
-            if kind == 'ramp':
-                self.step_ramp(*seg)
-            else:
-                self.travel([p[:2] for p in seg], what, up=seg[-1][2])
+                cur.append(p)
+        runs.append(cur)
+        for n, run in enumerate(runs):
+            if n:  # a change of floor between the last run's end and this one's start
+                a, b = runs[n - 1][-1], run[0]
+                s = stairs_between(a[:2], b[:2]) or nearest_stairs(a[:2], a[2])
+                self.take_stairs(s, b[2])
+            st = self.status()
+            pts = [(st['x'], st['y'])] + [p[:2] for p in run]
+            pts = [q for k, q in enumerate(pts) if k == 0 or q != pts[k - 1]]
+            if len(pts) > 1:
+                self.travel(pts, what, up=run[-1][2])
 
     def step_ramp(self, ramp, a, b):
         """Up or down a ramp one tile at a time, along the user's own tiles."""
