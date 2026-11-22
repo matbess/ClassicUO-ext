@@ -310,7 +310,7 @@
    "side": "east",
    "place": "east 2331",
    "row": "top",
-   "secure": true,
+   "secure": false,
    "bags": [],
    "loose": []
   },
@@ -320,7 +320,7 @@
    "side": "east",
    "place": "east 2331",
    "row": "2nd",
-   "secure": true,
+   "secure": false,
    "bags": [
     {
      "name": "healing wands",
@@ -372,7 +372,7 @@
    "side": "east",
    "place": "east 2331",
    "row": "3rd",
-   "secure": true,
+   "secure": false,
    "bags": [
     {
      "name": "rings",
@@ -392,7 +392,7 @@
    "side": "east",
    "place": "east 2331",
    "row": "floor",
-   "secure": true,
+   "secure": false,
    "bags": [
     {
      "name": "footwear",
@@ -720,7 +720,7 @@
    "side": "east",
    "place": "east 2333",
    "row": "3rd",
-   "secure": true,
+   "secure": false,
    "bags": [
     {
      "name": "GM set 1",
@@ -975,7 +975,7 @@
    "side": "east",
    "place": "east 2334",
    "row": "top",
-   "secure": true,
+   "secure": false,
    "bags": [],
    "loose": []
   },
@@ -985,7 +985,7 @@
    "side": "east",
    "place": "east 2334",
    "row": "2nd",
-   "secure": true,
+   "secure": false,
    "bags": [],
    "loose": []
   },
@@ -995,7 +995,7 @@
    "side": "east",
    "place": "east 2334",
    "row": "3rd",
-   "secure": true,
+   "secure": false,
    "bags": [
     {
      "name": "treasure maps",
@@ -1021,7 +1021,7 @@
    "side": "east",
    "place": "east 2335",
    "row": "top",
-   "secure": true,
+   "secure": false,
    "bags": [],
    "loose": []
   },
@@ -1031,7 +1031,7 @@
    "side": "east",
    "place": "east 2335",
    "row": "2nd",
-   "secure": true,
+   "secure": false,
    "bags": [],
    "loose": []
   },
@@ -1041,7 +1041,7 @@
    "side": "east",
    "place": "east 2335",
    "row": "3rd",
-   "secure": true,
+   "secure": false,
    "bags": [],
    "loose": []
   },
@@ -1486,7 +1486,7 @@
    "side": "east",
    "place": "east 2336",
    "row": "3rd",
-   "secure": true,
+   "secure": false,
    "bags": [],
    "loose": [
     {
@@ -1532,7 +1532,7 @@
    "side": "east",
    "place": "east 2337",
    "row": "top",
-   "secure": true,
+   "secure": false,
    "bags": [],
    "loose": []
   },
