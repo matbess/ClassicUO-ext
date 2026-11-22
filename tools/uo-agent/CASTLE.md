@@ -270,8 +270,9 @@ castle now").
   hatchets and every chopping axe that would have gone to smelting or the barrel here (sortbatch `to_tools_room`);
   good magic ones (force and up, vanquishing) and GM-made ones keep their east-wall homes, magic hatchets stay in the
   axes chest's hatchets bag.
-- **A bag holds 50 tools and at most 250 stones** (50 shovels; 31 of the 8-stone axes). What each bag holds is kept
-  in `castle/tools-room.json`, so a put-away opens only the bags with room. **Clem's own hatchet `0x4084BB01` stays
+- **A bag holds 50 tools and at most 250 stones** (50 shovels; 31 of the 8-stone axes). Every put-away opens and
+  counts **every bag in the room** first (the user, 2026-11-21: "I will be taking shovels out often. You shouldn't
+  rely on the previous count being correct"); `castle/tools-room.json` only records the last count. **Clem's own hatchet `0x4084BB01` stays
   in his pack**, never in a bag ("that hatchet is his own and should never go into another bag"; `tools_room.KEEP`).
   **Saws stay** in the tools chests by the forge ("we'll leave the saws where they are for now").
 - **When the user brings tools home**, find every one of these kinds in Clem's pack, loose or in any bag in it, and put

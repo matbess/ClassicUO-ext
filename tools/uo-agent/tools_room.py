@@ -31,8 +31,9 @@ Clem's own things in his pack (KEEP) are never put away. Pouches in his pack are
 
 The Vault page shows the room combined, one total per tool, never bag by bag (the user, 2026-11-21: "combine
 everything, don't list each bag just list the total number of shovels (and any other tools we add there)"). What
-each bag holds is kept in castle/tools-room.json, so a put-away opens only the bags with room and updates the page
-from that (vault/inventory.json "tools_room", embedded in vault/index.html; publish it after).
+each bag holds is kept in castle/tools-room.json, but every put-away opens and counts every bag in the room again
+(the user takes tools out often: "You shouldn't rely on the previous count being correct") and updates the page from
+that (vault/inventory.json "tools_room", embedded in vault/index.html; publish it after).
 """
 import collections
 import json
@@ -339,11 +340,18 @@ def put(kinds=None, extra=()):
         return
     stand()
     cache = load()
+    filled = set()
     for kind in kinds:
         if found[kind]:
-            fill(kind, found[kind], pack, cache)
-    if set(cache) != {b['serial'] for b in nearby_bags()}:  # bags the record doesn't know (or one gone): all again
-        refresh(cache)
+            filled |= fill(kind, found[kind], pack, cache)
+    # the rest of the room counted again too (the user takes tools out): the page's totals are today's
+    here = nearby_bags()
+    for gone in set(cache) - {b['serial'] for b in here}:
+        del cache[gone]
+    for b in here:
+        if b['serial'] not in filled:
+            record(cache, b, contents(b['serial'])[0])
+    save(cache)
     to_page(cache)
     empty = [c for c in opened if not contents(c)[0]]
     if empty:
@@ -369,9 +377,8 @@ def fill(kind, found, pack, cache):
     order, _ = bags(kind)
     areas = {}
     for b in order:
-        e = cache.get(b['serial'])
-        if e and (e['x'], e['y']) == (b['x'], b['y']) and not any(fits(e, g) for g in graphics):
-            continue  # full at the last look: not opened again
+        # every bag opened, full or not: the user takes tools out often (2026-11-21: "you should check the count ...
+        # You shouldn't rely on the previous count being correct")
         items, areas[b['serial']] = contents(b['serial'])
         others = [i for i in items if i.get('graphic') not in graphics]
         if others:
@@ -417,6 +424,7 @@ def fill(kind, found, pack, cache):
     if pending:
         raise td.Stop(f'{len(pending)} {kind} left with no room in the bags (the stacks are full or the spare '
                       'backpacks chest ran out of empty backpacks)')
+    return set(areas)
 
 
 def show():
