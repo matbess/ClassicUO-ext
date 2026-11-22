@@ -29,11 +29,25 @@
   "recorded": "2026-11-21 16:37"
  },
  "0x4058A89F": {
-  "bags": [],
-  "items": 0,
+  "bags": [
+   {
+    "kind": "smith's hammer",
+    "known": 32,
+    "marker": {
+     "name": "smith's hammer",
+     "serial": "0x40952B65",
+     "x": 23,
+     "y": 143
+    },
+    "serial": "0x408558AD",
+    "x": 18,
+    "y": 123
+   }
+  ],
+  "items": 2,
   "label": "castle: tools (forge 2327, 3rd)",
   "loose": [],
-  "recorded": "2026-11-21 16:37"
+  "recorded": "2026-11-21 16:46"
  },
  "0x4058B001": {
   "bags": [],

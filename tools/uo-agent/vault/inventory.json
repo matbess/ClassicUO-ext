@@ -2381,7 +2381,23 @@
    "place": "forge 2327",
    "row": "3rd",
    "secure": false,
-   "bags": [],
+   "bags": [
+    {
+     "name": "pouch",
+     "marker": {
+      "name": "smith's hammer",
+      "amount": 1,
+      "graphic": "0x13E3"
+     },
+     "items": [
+      {
+       "name": "smith's hammer",
+       "amount": 32,
+       "graphic": "0x13E3"
+      }
+     ]
+    }
+   ],
    "loose": []
   },
   {
@@ -2995,5 +3011,5 @@
    "loose": []
   }
  ],
- "castle_updated": "2026-11-21T16:37:14-0800"
+ "castle_updated": "2026-11-21T16:46:21-0800"
 }
