@@ -9,7 +9,8 @@ reagents chest on the east wall (2336, 3rd, 0x406BE5CF), the last place to look 
 personal chest didn't have enough reagents then I want you to go to the "main" reagent chest ... If not, then that's
 the last place to check and you'll have to inform me that they're still short by giving me the whole table"). Piles
 are split where they lie (the part taken keeps the serial; the rest stays on the same spot), wherever in the chest
-(in a backpack or bag too). The whole table (every reagent: before, taken from each, now, still short) is printed at
+(in a backpack or bag too). The whole table (every reagent: before, taken from each, now, still short, and what's left in the user's forge
+chest, their backup: it's always looked in) is printed at
 the end and written to ~/claude/uo-agent-work/castle/reagents-topup.json.
 To: their secure chest by the window (938 2nd, 0x406F2466), each onto its pile there; a reagent with no pile there
 goes on a free spot. Then counted again. --then-shovels puts away the shovels in his pack first (tools_room.py; he's
@@ -89,18 +90,18 @@ def main():
     need = {g: max(0, TARGET - n) for g, n in have.items()}
     say('the entrance chest: ' + ', '.join(f'{REAGENTS[g]} {have[g]}' for g in REAGENTS)
         + ' | short: ' + (', '.join(f'{REAGENTS[g]} {n}' for g, n in need.items() if n) or 'nothing'))
-    if not any(need.values()):
-        table(have, {name: {} for _, name in SOURCES}, have)
-        return finish()
-
     taken = {name: {} for _, name in SOURCES}
+    held = {}  # what each source chest held when he looked, by reagent
     carried = []
     left = dict(need)
     for chest, name in SOURCES:
-        if not any(left.values()):
+        # the forge chest is always looked in: the user wants to know how much is left in their backup (2026-11-22:
+        # "tell me how many reagents are in my personal backup chest so I know if it's running low too")
+        if not any(left.values()) and name != 'forge':
             break
         mover.walk_near(info, chest)
         source = piles(chest)
+        held[name] = counts(source)
         for g in REAGENTS:
             for p in [p for p in source if p['graphic'] == g]:
                 if left[g] <= 0:
@@ -116,6 +117,9 @@ def main():
                                                or 'nothing it had was needed')
             + (' | still short: ' + ', '.join(f'{REAGENTS[g]} {n}' for g, n in left.items() if n) if any(left.values()) else ''))
 
+    if not carried:
+        table(have, taken, have, held)
+        return finish()
     mover.walk_near(info, TO)
     there = {i['graphic']: i for i in look.open_once(info, TO) if i['graphic'] in REAGENTS}
     spots = iter(NEW_SPOTS)
@@ -128,19 +132,23 @@ def main():
             there[g] = {'serial': serial}
             say(f'{REAGENTS[g]}: a new pile at {x},{y}')
     after = counts(look.open_once(info, TO))
-    table(have, taken, after)
+    table(have, taken, after, held)
     finish()
 
 
-def table(before, taken, after):
+def table(before, taken, after, held):
+    """The whole table: every reagent, before, taken from each chest, now, still short, and what's left in the
+    user's forge chest (their backup), worked out as what it held when he looked less what he took."""
     rows = []
     for g in sorted(REAGENTS, key=lambda g: REAGENTS[g]):
         rows.append({'reagent': REAGENTS[g], 'before': before[g], 'forge': taken['forge'].get(g, 0),
-                     'main': taken['main'].get(g, 0), 'now': after[g], 'short': max(0, TARGET - after[g])})
+                     'main': taken['main'].get(g, 0), 'now': after[g], 'short': max(0, TARGET - after[g]),
+                     'forge_left': held.get('forge', {}).get(g, 0) - taken['forge'].get(g, 0)})
     json.dump(rows, open(REPORT, 'w'), indent=1)
-    print(f"{'reagent':15} {'before':>6} {'forge':>6} {'main':>6} {'now':>6} {'short':>6}")
+    print(f"{'reagent':15} {'before':>6} {'forge':>6} {'main':>6} {'now':>6} {'short':>6} {'left in forge chest':>20}")
     for r in rows:
-        print(f"{r['reagent']:15} {r['before']:6} {r['forge']:6} {r['main']:6} {r['now']:6} {r['short']:6}")
+        print(f"{r['reagent']:15} {r['before']:6} {r['forge']:6} {r['main']:6} {r['now']:6} {r['short']:6} "
+              f"{r['forge_left']:20}")
     short = [r for r in rows if r['short']]
     say('STILL SHORT (TELL THE USER, with the whole table): ' + ', '.join(f"{r['reagent']} {r['short']}" for r in short)
         if short else f'every reagent at {TARGET} or more')

@@ -301,7 +301,9 @@ entrance-chest to have 250 of each reagent"), topped up from their unsecure pers
 `0x4059020A`), then, for whatever is still short, from the main reagents chest on the east wall (2336 3rd,
 `0x406BE5CF`), the last place to look (2026-11-22: "If not, then that's the last place to check and you'll have to
 inform me that they're still short by giving me the whole table"): `python3 -I reagents_topup.py` counts what's short, takes that much from the forge chest (piles split
-where they lie), puts each onto its pile in the entrance chest, counts again, prints the whole table (before, from each chest, now, still short; also
+where they lie), puts each onto its pile in the entrance chest, counts again, prints the whole table (before, from each chest, now, still short, and what's left in the forge chest, the user's
+backup, which is always looked in: "tell me how many reagents are in my personal backup chest so I know if it's
+running low too"; also
 `~/claude/uo-agent-work/castle/reagents-topup.json`), and finish.py locks the table and parks him. Anything still short:
 tell the user with the whole table, every reagent. `--then-shovels` puts away his shovels first in the same trip. Only the forge chest's backpacks and bags are
 looked in, never its pouches (trapped) or wooden boxes (one in the keys bag never answers an open). On 2026-11-22 its
