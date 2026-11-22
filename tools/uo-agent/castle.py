@@ -328,6 +328,22 @@ def go_in():
 
 
 WINDOW = (936, 2349)  # in the entrance room, 2 tiles from 938,2348 through the window (the user, 2026-11-21)
+# the window's tile can be taken (a table on it, 2026-11-21 23:30): the tiles beside it reach the chest too
+WINDOW_SPOTS = [WINDOW, (936, 2350), (936, 2348)]
+
+
+def to_window():
+    if where() in WINDOW_SPOTS:
+        return
+    for p in WINDOW_SPOTS:
+        try:
+            step(p, 'to the window')
+            return
+        except UserHas:
+            raise
+        except Stop:
+            continue
+    raise Stop(f'no free tile at the window ({WINDOW_SPOTS}); he is at {where()}')
 
 
 def restock_at_window():
@@ -340,10 +356,12 @@ def restock_at_window():
             return
         tower_chest, restock.CHEST = restock.CHEST, restock.CASTLE_CHEST
         try:
-            restock.ensure(force=True, walk=lambda: step(WINDOW, 'to the window'))
+            restock.ensure(force=True, walk=to_window)
         finally:
             restock.CHEST = tower_chest
-    except (restock.Stop, uo.BridgeError) as e:
+    except UserHas:
+        raise
+    except (restock.Stop, uo.BridgeError, Stop) as e:
         say(f'reagents through the window: {e}; the long way round once inside')
 
 
