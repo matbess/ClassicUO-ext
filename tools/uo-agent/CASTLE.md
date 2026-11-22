@@ -261,13 +261,22 @@ castle now").
 
 - **Shovels first, 50 to a bag** ("because they're kind of heavy": 5 stones each, 250 a bag). The north wall (y 2345)
   will be mostly shovels. The user's first 4 stacks: x 944, 945, 946 and 947 at y 2345 (944 three bags high).
-- **Hatchets for lumberjacking on the west wall**, 3 stacks at x 944, y 2346-2348 (the user, 2026-11-21: "along the
-  west wall we can fix 3 stacks of bags and we'll put hatches/axes for lumberjacking. That will probably be all we put
-  in this room"), 50 to a bag like the shovels. **Clem's own hatchet `0x4084BB01` stays in his pack**, never in a
-  bag ("that hatchet is his own and should never go into another bag"; `tools_room.KEEP`). **Saws stay** in the tools chests by the forge ("we'll leave the saws
-  where they are for now").
+- **Axes for lumberjacking on the west wall**, 3 stacks at x 944, y 2346-2348 (the user, 2026-11-21: "along the
+  west wall we can fix 3 stacks of bags and we'll put hatches/axes for lumberjacking"). Every **plain** chopping axe
+  ("the tools room will store all non-magical axes and hatchets.. AND it will also store any axe/hatchet you find that
+  would normally go to smelting"; "only bring the ones that work for lumberjacking", "i mostly bring double axe"):
+  hatchet, axe, battle axe, double axe, executioner's axe, large battle axe, two handed axe, mixed in the bags. Not
+  the war axe (no harvest system in RunUO) or the pickaxe. A sort in the castle (plan.py `LUMBER_AXES`) sends plain
+  hatchets and every chopping axe that would have gone to smelting or the barrel here (sortbatch `to_tools_room`);
+  good magic ones (force and up, vanquishing) and GM-made ones keep their east-wall homes, magic hatchets stay in the
+  axes chest's hatchets bag.
+- **A bag holds 50 tools and at most 250 stones** (50 shovels; 31 of the 8-stone axes). What each bag holds is kept
+  in `castle/tools-room.json`, so a put-away opens only the bags with room. **Clem's own hatchet `0x4084BB01` stays
+  in his pack**, never in a bag ("that hatchet is his own and should never go into another bag"; `tools_room.KEEP`).
+  **Saws stay** in the tools chests by the forge ("we'll leave the saws where they are for now").
 - **When the user brings tools home**, find every one of these kinds in Clem's pack, loose or in any bag in it, and put
-  them away: `python3 -I tools_room.py put` (or `shovels` / `hatchets` for one kind). Clem stands at 945,2346, within
+  them away: `python3 -I tools_room.py put` (or `shovels` / `axes` for one kind). Only plain axes are taken from
+  his pack (a single click checks the name). Clem stands at 945,2346, within
   reach of all 7 stacks. Bags fill bottom layer
   first, west to east, up to 50 each. `tools_room.py show` lists the bags.
 - **Never open a pouch in Clem's pack**: the user keeps **trapped pouches** there (0x408558A0, 0x4085588D, 0x4085589F,

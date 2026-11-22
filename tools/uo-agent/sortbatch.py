@@ -288,6 +288,32 @@ def deliver(serials, name, inv):
             say(f"{names.get(serial, inv[serial]['type'])} -> {labels().get(c, c)}")
 
 
+def to_tools_room(serials):
+    """Axes for lumberjacking (plan.py: plain hatchets, and every chopping axe that would have been smelted) into
+    the castle's tools room (tools_room.py), in loads as much as he can carry, then back out to its doorway."""
+    pending = list(serials)
+    if not pending:
+        return
+    import tools_room
+    tools_room.setup(info)
+    while pending:
+        load = []
+        carried = {i['serial'] for i in call('GET', '/contents', serial=BACKPACK)['items']}
+        while pending:
+            status = call('GET', '/status')
+            if status['weight'] + 20 > status['weightMax']:
+                break
+            serial = pending.pop(0)
+            if serial not in carried:
+                move(serial, BACKPACK)
+            load.append(serial)
+        if not load:
+            sys.exit(f'{WHO} is carrying too much to pick anything up')
+        tools_room.put(['axes'], extra=set(load))
+        tools_room.walk_to(tools_room.OUT, 'out of the tools room')
+        say(f"{len(load)} axes -> the tools room: {', '.join(names.get(s, s) for s in load)}")
+
+
 def cut_up(serials, inv):
     """Cut leather and cloth with the scissors in the sorter's backpack, 15 at a time so the cuttings never weigh
     him down, and pile the cut leather and cloth in the supplies chest. With none in his pack (Clem has none), he
@@ -646,6 +672,7 @@ def sort(plan):
     trash = plan.get('trash', [])
     deliver(trash, 'trash', inv)
     deliver(plan.get('smelt', []), 'smelting', inv)
+    to_tools_room(plan.get('tools_room', []))
 
     # ---- scroll markers for circles that have none ----
     for circle, serial in plan.get('scroll_markers', {}).items():
@@ -658,7 +685,7 @@ def sort(plan):
         say(f"{item['type']} -> marker for circle {circle}")
     done = {s for s, _ in plan.get('into', [])} | {s for s, _ in plan.get('place_in', [])} | set(plan.get('spares', [])) | \
         set(trash) | set(plan.get('scroll_markers', {}).values()) | {m for _, m, _ in plan.get('new_slots', [])} | set(plan.get('cut', [])) | \
-        set(plan.get('sets', [])) | set(plan.get('smelt', []))
+        set(plan.get('sets', [])) | set(plan.get('smelt', [])) | set(plan.get('tools_room', []))
 
     # ---- stackables ----
     hides, logs = [], []

@@ -60,6 +60,11 @@ WOOD = {'club', 'quarter staff', 'black staff', 'gnarled staff', "shepherd's cro
 # the server says "You can't melt that down into ingots." for these (tinker-made tools and orc helms; 31 pieces came
 # back from smelting on 2026-11-07), so like wood they go to the barrel, never the smelting crates
 NO_SMELT = {'skinning knife', 'butcher knife', 'cleaver', 'pickaxe', 'pitchfork', 'hatchet', 'orc helm'}
+# the axes that chop wood (the user, 2026-11-21: "only bring the ones that work for lumberjacking"; not the war axe,
+# whose RunUO class has no harvest system, nor the pickaxe). In the castle, a plain hatchet and any of these that would
+# go to smelting or the barrel go to the tools room instead (tools_room.py): "the tools room will store all
+# non-magical axes and hatchets.. AND it will also store any axe/hatchet you find that would normally go to smelting"
+LUMBER_AXES = {'hatchet', 'axe', 'battle axe', 'double axe', "executioner's axe", 'large battle axe', 'two handed axe'}
 NO_FORCE = {'dagger', 'skinning knife', 'butcher knife', 'cleaver', "shepherd's crook"}  # force/power isn't enough
 JEWELLERY = {'bracelet', 'earrings', 'necklace', 'bead necklace', 'ring'}
 SHIELDS = {'buckler', 'kite shield', 'metal shield', 'wooden shield', 'heater shield', 'metal kite shield',
@@ -373,7 +378,7 @@ def main():
 
 def plan_batch(batch, opening, inv, loot, names, labels, info, side):
     spec = {'loot': loot, 'learn_first': [], 'new_slots': [], 'into': [], 'place_in': [], 'spares': [], 'trash': [],
-            'smelt': [], 'cut': [], 'sets': []}
+            'smelt': [], 'cut': [], 'sets': [], 'tools_room': []}
     groups = collections.defaultdict(list)  # (bag kind, chest) -> serials
     limited = collections.defaultdict(list)
     report = collections.defaultdict(list)
@@ -394,6 +399,9 @@ def plan_batch(batch, opening, inv, loot, names, labels, info, side):
         if side:
             action, detail = castle_home(action, detail, item, name)
         t = base(item['type'])
+        if side and t in LUMBER_AXES and (action in ('smelt', 'trash') or (
+                t == 'hatchet' and re.fullmatch(r'(an? )?hatchet', name.lower()))):
+            action, detail = 'tools_room', 'for lumberjacking'
         report[action].append((str(detail), name or item['type']))
         if action == 'keep':
             what = detail[0]
