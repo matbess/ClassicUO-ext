@@ -27,7 +27,7 @@ BAG = '0x407660FB'       # his reagent bag, in his pack (2026-11-11; 0x40677564 
                          # scavenger hot bag): find_bag() finds it by what's in it when this one is gone
 PLAIN_BAG = 0x0E76       # only plain bags are looked into for it: his pouches are trapped (opening one sets it off)
 CHEST = '0x40746D31'     # the restock chest, ground floor stairs room, 1752,1402,10 (empty since 2026-11-20)
-# in the castle: the user's own reagents and supplies chest, 938 2nd (secure), the far left of their vault (the user,
+# in the castle: the user's own reagents and supplies chest, 938 2nd (secure), Clem's own chest, the far left of their vault (the user,
 # 2026-11-21: "The reagents are in the southeast in my personal chest that's by the "window" where the dump chests
 # are. They can be either retreived either when you enter the building, by reachign through the "window" or by going
 # all the way around to the southeast corner")

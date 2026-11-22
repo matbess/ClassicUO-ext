@@ -106,7 +106,7 @@ they stack into single piles). 944,2327: the friend's personal chest (off limits
 chest, tools, free. Nothing is sorted into the personal chests.
 **Personal chests aren't managed** (the user, 2026-11-21): the user's (938 top 3, 944,2327 2nd) and the friend's
 (944,2327 top) are theirs. Clem doesn't sort into them, move things in them or count them; the Vault page shows them as
-"personal" (`castle_site.personal`). He still takes his reagents from 938 2nd.
+"personal" (`castle_site.personal`). 938 2nd is Clem's own chest (his reagents and supplies; the user, 2026-11-21: "it's his personal chest so you should take them out of there").
 
 **Undyed forge chests (2026-11-21):** the 12 grey-dyed chests by the forge were swapped for plain wooden chests
 (`forge_swap.py`; the user turned and placed most of them, since a chest's facing can't be changed by Clem). Same
