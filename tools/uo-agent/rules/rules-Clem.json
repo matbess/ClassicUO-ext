@@ -54,6 +54,9 @@
     { "name": "castle west hall", "box": [921, 2325, 924, 2348], "z": [0, 40] },
     { "name": "castle east hall", "box": [946, 2325, 950, 2350], "z": [0, 40] },
     { "name": "castle south-east rooms (the user's own chests, behind the table)", "box": [937, 2347, 946, 2350], "z": [0, 25] },
+    // the tools room (the user, 2026-11-21: "The southeast room is going to be the tools room"): stacks of backpacks
+    // along its north wall (y 2345, x 944-947) and its west wall, 50 shovels to a bag (tools_room.py)
+    { "name": "castle tools room (the backpack stacks)", "box": [943, 2344, 947, 2348], "z": [0, 40] },
     // the walkway to the west intake chests (933,2349 and 933,2350), which are exempt from the friend's side (the user,
     // 2026-11-18: "Clem should be able to go over there and sort those into the westside chests"); the friend's
     // chests along it stay off limits
@@ -106,7 +109,9 @@
   // (y 2348, x 928-933). Their tables were removed by the user (2026-11-18), so the walkway to the west intake chests
   // is open
   // 0x4058DAD8: the friend's personal chest by the forge (944,2327 top; the user, 2026-11-21)
-  "offLimits": ["0x4058DAD8", "0x406D706B", "0x406D8317", "0x406DDDA7", "0x406DEDCE", "0x406DFE61", "0x406E05D1", "0x406E1054",
+  // the user's 3 trapped pouches in Clem's pack (2026-11-21: "dont' open those ones ... mark those 3 pouches as do not
+  // open"); opened by tools_room.py by mistake that day (a trap went off, 100 -> 89 hits)
+  "offLimits": ["0x408558A0", "0x4085588D", "0x4085589F", "0x4058DAD8", "0x406D706B", "0x406D8317", "0x406DDDA7", "0x406DEDCE", "0x406DFE61", "0x406E05D1", "0x406E1054",
                 "0x406E178D", "0x406E477B", "0x406E6238", "0x406EB990", "0x40873984", "0x40874881", "0x40874EBA",
                 "0x40875299", "0x40875E86", "0x40876658", "0x40876C92", "0x40877048", "0x40877360", "0x408776D7",
                 "0x40877C35", "0x4087804E", "0x4087850E"],

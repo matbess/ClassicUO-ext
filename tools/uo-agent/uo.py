@@ -323,7 +323,24 @@ def _keep_both(pairs):
     return d
 
 
+_off_limits = {}  # port -> (time read, the rules' offLimits)
+
+
+def off_limits(info):
+    """The character's rules' offLimits serials (read from the bridge, nothing sent to the server; kept 30 s)."""
+    t, s = _off_limits.get(info['port'], (0, None))
+    if s is None or time.time() - t > 30:
+        s = set(call(info, 'GET', '/rules').get('offLimits', []))
+        _off_limits[info['port']] = (time.time(), s)
+    return s
+
+
 def call(info, method, endpoint, **params):
+    # the bridge's /open doesn't check offLimits (only moves, uses and targets do; to fix in the next build), so
+    # refuse here: the user's trapped pouches in Clem's pack (2026-11-21: "you're opening my trapped bags, dont'
+    # open those ones") and the friend's chests are never opened
+    if method == 'POST' and endpoint == '/open' and str(params.get('serial', '')).upper().replace('0X', '0x') in off_limits(info):
+        raise BridgeError(403, f"{params['serial']} is off limits (the rules' offLimits): never opened")
     # never resume over the user's takeover (only `handback`, when the user says so, or the login routine's)
     if method == 'POST' and endpoint == '/resume' and not params.pop('handback', False):
         taken = taken_over(info)

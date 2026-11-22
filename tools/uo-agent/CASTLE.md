@@ -251,3 +251,20 @@ where each goes; 2 are the friend's (they'll say which).
   a chest, the bank), not only carried ones ("You should be able to recall from any rune"). Installed 2026-11-18.
 - The layout of the east wall and the forge chests (which category goes where) is to be drafted on a map page for
   the user, then the move from the tower.
+
+## The tools room (the user, 2026-11-21)
+
+The south-east room is the **tools room**: tools in bulk, in backpacks on the floor stacked along its north and west
+walls, one kind of tool to a bag ("we'll fill them up with tools like shovels and hatches and saws"). The tools chests
+by the forge (944,2327 3rd and floor) keep just one bag of each kind. The tower isn't managed any more ("we live in the
+castle now").
+
+- **Shovels first, 50 to a bag** ("because they're kind of heavy": 5 stones each, 250 a bag). The north wall (y 2345)
+  will be mostly shovels. The user's first 4 stacks: x 944, 945, 946 and 947 at y 2345 (944 three bags high).
+- **When the user brings shovels home**, find every one in Clem's pack, loose or in any bag in it, and put them away:
+  `python3 -I tools_room.py shovels` (Clem stands at 945,2346, within reach of all 4 stacks). Bags fill bottom layer
+  first, west to east, up to 50 each. `tools_room.py show` lists the bags.
+- **Never open a pouch in Clem's pack**: the user keeps **trapped pouches** there (0x408558A0, 0x4085588D, 0x4085589F,
+  in Clem's rules offLimits). tools_room.py opened all 3 on 2026-11-21 before the user said so (a trap went off).
+  The bridge's `/open` doesn't check offLimits, so `uo.call` refuses opens of off-limits serials itself.
+- Clem's rules area "castle tools room (the backpack stacks)": x 943-947, y 2344-2348.
