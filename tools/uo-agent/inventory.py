@@ -271,6 +271,13 @@ def castle_chests(info, labels, names, known, every):
             # --only: the other chests as at the last count, with today's plan names
             out.append(dict(kept[serial], name=e['what'], place=e['place'], row=e['row'], secure=e['secure']))
             continue
+        if castle_site.personal(serial):
+            # the user's and the friend's personal chests: theirs to manage, not opened or counted (the user,
+            # 2026-11-21: "You don't need to manage that chest ... my friend's personal chest near the forge ... my
+            # personal chests over by the frontdoor/southeast room")
+            out.append({'serial': serial, 'name': e['what'], 'side': e['side'], 'place': e['place'], 'row': e['row'],
+                        'secure': e['secure'], 'personal': True, 'bags': [], 'loose': []})
+            continue
         last = recorded.get(serial)
         if every or known or last is None or last.get('items') or serial in force or only:
             items = contents(serial)

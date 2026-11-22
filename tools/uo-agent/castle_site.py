@@ -258,6 +258,16 @@ def behind(p):
     return z in ('east', 'south-east') or (z == 'forge' and p[0] >= 944)
 
 
+def personal(serial):
+    """The user's own chests (938 top 3 in their vault, 944,2327 2nd by the forge) and the friend's personal chest
+    by the forge (944,2327 top): theirs to manage. Nothing is sorted into them, moved in them or counted (the user,
+    2026-11-21: "You don't need to manage that chest, you also don't need to manage my friends personal chest near the
+    forge ... You don't need to manage my personal chests over by the frontdoor/southeast room either"). Clem still
+    takes his reagents from 938 2nd (the user named it, 2026-11-21)."""
+    e = PLAN.get(serial)
+    return bool(e) and (e['what'].startswith('yours') or e['what'].startswith("friend's:"))
+
+
 def hall_floor(p):
     """A spot on the great hall's ground floor that's not on the stairs: west of the stairs' foot (932,2332) only
     from y 2334 down (the grey chests' side, 928-930,2335-2338)."""

@@ -104,6 +104,9 @@ The forge corner also has the forges (946-947,2322), bellows (945 and 948,2322),
 **Forge columns (2026-11-21):** 944,2326 top to floor: ingots, boards & logs, cloth & leather, cooking (one chest each:
 they stack into single piles). 944,2327: the friend's personal chest (off limits in Clem's rules), the user's personal
 chest, tools, free. Nothing is sorted into the personal chests.
+**Personal chests aren't managed** (the user, 2026-11-21): the user's (938 top 3, 944,2327 2nd) and the friend's
+(944,2327 top) are theirs. Clem doesn't sort into them, move things in them or count them; the Vault page shows them as
+"personal" (`castle_site.personal`). He still takes his reagents from 938 2nd.
 
 **Undyed forge chests (2026-11-21):** the 12 grey-dyed chests by the forge were swapped for plain wooden chests
 (`forge_swap.py`; the user turned and placed most of them, since a chest's facing can't be changed by Clem). Same
