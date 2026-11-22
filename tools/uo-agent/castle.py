@@ -376,11 +376,9 @@ def go_out():
 def table(action):
     at = spot_or_none(TABLE)
     if action == 'open':
-        if at == TABLE_ASIDE:
-            say('the table is aside already: the way to the chests is open')
+        if at != TABLE_HOME:  # aside already, at 942,2324 or wherever the user put it (941,2324, 2026-11-21)
+            say(f'the table is aside already ({at}): the way to the chests is open')
             return
-        if at != TABLE_HOME:
-            raise Stop(f'the table stands at {at}, neither in its place {TABLE_HOME} nor aside {TABLE_ASIDE}')
         if where() not in (TABLE_STAND, TABLE_STAND_BEHIND):
             step(TABLE_STAND, 'get next to the table')
         try:
@@ -392,11 +390,11 @@ def table(action):
         put_table(TABLE_ASIDE)
         say('the table is aside: the way to the chests is open (close it again when done)')
     else:
-        if at not in (TABLE_ASIDE, TABLE_HOME):
-            raise Stop(f'the table stands at {at}, neither aside {TABLE_ASIDE} nor in its place {TABLE_HOME}')
+        if at is None:
+            raise Stop('the table is not on the ground (in a pack?)')
         if where() not in (TABLE_STAND, TABLE_STAND_BEHIND):
             step(TABLE_STAND, 'get next to the table')
-        if at == TABLE_ASIDE:
+        if at != TABLE_HOME:  # from wherever it was put aside (within his reach of the stand)
             put_table(TABLE_HOME)
         house_command('i wish to lock this down', 'locked down')
         for t, at in ((TABLE, TABLE_HOME), (TABLE_OTHER, None)):

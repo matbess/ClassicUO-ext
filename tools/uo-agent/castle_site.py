@@ -470,7 +470,7 @@ class Mover:
         # next to the table first: from the far end of the user's vault the tables are out of his client's sight
         # (2026-11-20 20:33, a 404), so where it stands is only known once he's near it
         self.to_table_stand()
-        if castle.spot_or_none(castle.TABLE) == castle.TABLE_ASIDE:  # left aside by an earlier step of this sort
+        if castle.spot_or_none(castle.TABLE) != castle.TABLE_HOME:  # aside already (a sort, or the user)
             self.table_opened = True
             return
         castle.table('open')

@@ -3009,7 +3009,29 @@
    "secure": false,
    "bags": [],
    "loose": []
+  },
+  {
+   "serial": "0x409397CC",
+   "name": "to repair",
+   "side": "forge",
+   "place": "red backpack by the forge, 946,2323",
+   "row": "on the floor",
+   "secure": false,
+   "player": true,
+   "bags": [],
+   "loose": []
+  },
+  {
+   "serial": "0x4098F2E3",
+   "name": "repaired",
+   "side": "forge",
+   "place": "green backpack by the forge, 947,2323",
+   "row": "on the floor",
+   "secure": false,
+   "player": true,
+   "bags": [],
+   "loose": []
   }
  ],
- "castle_updated": "2026-11-21T16:46:21-0800"
+ "castle_updated": "2026-11-21T16:51:29-0800"
 }
