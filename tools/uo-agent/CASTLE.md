@@ -293,3 +293,13 @@ castle now").
   don't list each bag just list the total number of shovels (and any other tools we add there)"). Every put-away
   updates it; `tools_room.py count [--known]` recounts it. Then publish `vault/index.html`.
 - Clem's rules area "castle tools room (the backpack stacks)": x 943-947, y 2344-2348.
+
+## Topping up the entrance reagent chest (the user, 2026-11-22)
+
+The user's secure chest by the window (938 2nd, `0x406F2466`) is kept at **250 of each reagent** ("I want my secure
+entrance-chest to have 250 of each reagent"), topped up from their unsecure personal chest by the forge (2327 2nd,
+`0x4059020A`): `python3 -I reagents_topup.py` counts what's short, takes that much from the forge chest (piles split
+where they lie), puts each onto its pile in the entrance chest, counts again, and finish.py locks the table and parks
+him. `--then-shovels` puts away his shovels first in the same trip. Only the forge chest's backpacks and bags are
+looked in, never its pouches (trapped) or wooden boxes (one in the keys bag never answers an open). On 2026-11-22 its
+reagents were in a backpack (hue 33): no garlic or nightshade there.
