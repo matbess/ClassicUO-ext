@@ -113,8 +113,8 @@ refuses `--side west` (`castle_site.SIDES`). The same five steps and tools; what
 - **Sort:** gold goes behind the user's table (their gold chests); cut leather and cloth to **cloth & leather**,
   boards and logs to **boards & logs** (logs stay logs if he has no saw), ore and junk metal to the 4 **smelting**
   chests by the forge, trash to the barrel there (949,2322); potions to their kind's chests at the south end of the
-  wall; emptied loot bags to the **spare backpacks** chest by the forge (944,2327, floor), or the trash once it
-  holds 125. A chest takes 125 items, a secure 395 stones; it moves on to the next chest at either. Scroll bags are
+  wall; emptied loot bags to the **spare backpacks** chest (938 3rd, secure, by the entrance window), or the
+  trash once it holds 125. A chest takes 125 items, a secure 395 stones; it moves on to the next chest at either. Scroll bags are
   found by their labels in the side's scrolls chest (else the other wall's); a circle with no bag stays in the loot
   (it says so).
 - **The loot is on the forge room floor** (the user, 2026-11-20: "I will put bags of loot to sort in the forge room

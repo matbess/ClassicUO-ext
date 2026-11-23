@@ -12,7 +12,7 @@ when the sorter (Clem) is in the user's castle rather than the tower vault (CAST
 - **Getting around**: long walks stop short and some places are only reached by stairs, so every walk goes zone by
   zone along the user's own routes (route.jsonl, 2026-11-18). Opening the user's table on the way to the south-east
   rooms (the east intake chests and the user's vault are behind it), and closing it at the end (close_up), always.
-- **The intake chests**: the loot is whatever lies in the side's two intake chests.
+- **The intake chests**: the loot is whatever lies in the side's intake chests (east: 3 since 2026-11-23, west: 2).
 
 Nothing here runs by itself; the tools call it. `python3 -I castle_site.py test` checks the tables offline.
 """
@@ -687,9 +687,9 @@ def test():
     assert all(PLAN[s]['what'] == 'gold' for s in targets('gold', 'west'))
     assert [PLAN[s]['what'] for s in targets('ingots', 'east')] == ['ingots']
     assert [PLAN[s]['what'] for s in targets('boards & logs', 'east')] == ['boards & logs']
-    assert [PLAN[s]['side'] for s in targets('new backpacks', 'west')] == ['vault']  # 938 floor since 2026-11-20
+    assert [PLAN[s]['side'] for s in targets('new backpacks', 'west')] == ['vault']  # 938 floor 2026-11-20, 938 3rd since 2026-11-23
     assert PLAN[targets('supplies', 'east')[0]]['what'] == 'supplies & ID wands'
-    assert len(intake('east')) == 2 and len(intake('west')) == 2
+    assert len(intake('east')) == 3 and len(intake('west')) == 2  # 938 floor too, since 2026-11-23
     for name in ('swords', 'axes', 'maces & staves', 'polearms', 'fencing', 'archery', 'plate', 'helms', 'chain & ring',
                  'leather + caps', 'studded', 'spare + invulnerability shields', 'bone armour', 'plain gear',
                  'miscellaneous', 'needs your decision', 'cooking', 'cloth & leather', 'tools', 'boards & logs',

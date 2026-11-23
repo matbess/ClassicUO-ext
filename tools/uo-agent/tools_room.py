@@ -22,7 +22,7 @@ The kinds (the user, 2026-11-21):
 
 A bag holds up to 50 tools and 250 stones (50 shovels; the double, two handed and executioner's axes weigh 8, so 31 of
 those). Bags fill bottom layer first, along the wall from the north-west corner. When they're full, more come from the
-spare backpacks chest (938 floor), only plain backpacks and only empty ones, each put on top of the lowest stack (west
+spare backpacks chest (938 3rd), only plain backpacks and only empty ones, each put on top of the lowest stack (west
 first), stacks up to 20 bags high (the user, 2026-11-21: "when we run out of room in these backpacks you'll get more
 backpacks from the chest ... you should only use backpacks for the tools room, not other containers"; "Let's set it at
 20").
@@ -78,7 +78,7 @@ CONTAINERS = {'0x0E75', '0x0E76', '0x09B0', '0x0E7D', '0x09AA', '0x09A8', '0x0E3
 ROOM = (943, 2344, 947, 2348)
 STAND = (945, 2346)  # within 2 of every stack, both walls
 OUT = (944, 2348)    # the room's side on the castle's routes (zone east): where a sort carries on from
-SPARE_BACKPACKS = '0x406E85EC'  # 938 floor, the spare backpacks chest (castle_plan)
+SPARE_BACKPACKS = '0x406ED0AA'  # 938 3rd, the spare backpacks chest (castle_plan; 938 floor until 2026-11-23)
 SPARE_STAND = (939, 2349)       # in front of it, on the south walkway (the tables are up at the forge since 2026-11-20)
 CACHE = os.path.join(HERE, 'castle', 'tools-room.json')  # bag serial -> {x, y, z, items: {graphic: n}}
 info = None

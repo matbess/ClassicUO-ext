@@ -56,20 +56,21 @@ They stand in stacks of 4 on one tile (z 6, 10, 14 and 18), which is 4 rows, lik
 | **West wall**, x 921, y 2329-2343 | 15 | 60 | Mirrors the east wall: extra space. Loot dumped on the west side is sorted to the west, and either side takes the other's overflow. |
 | **North-east, by the forge**, x 944, y 2322 / 2326 / 2327 | 3 | 12 | Crafting supplies, and things for crafting and leveling skills. |
 | **South-east row**, y 2348, x 938-942 | 5 | 20 | **The user's personal chests**, managed by Claude. |
-| **South-east floor chests**, 938,2349 and 938,2350 | 2 | 2 | **Dump chests**, east side (loot to sort, like backpacks on the tower floor). |
+| **South-east floor chests**, 938,2349 and 938,2350, and 938,2348's floor chest | 3 | 3 | **Dump chests**, east side (loot to sort, like backpacks on the tower floor). The third since 2026-11-23. |
 | **South-west row**, y 2348, x 928-933 | 6 | 24 | **The user's friend's personal chests: never touch** (unless the user says otherwise). |
 | **South-west floor chests**, 933,2349 and 933,2350 | 2 | 2 | **Dump chests**, west side. |
 
-The 4 dump chests are next to the "window" by the main entrance.
+The 5 dump chests are next to the "window" by the main entrance.
 
 **Spare backpacks** (the user, 2026-11-18): the emptied loot bags, as the tower's backpacks crate. Once it holds 125,
-further empty bags go in the trash. Since version 2, one chest by the forge (944,2327, floor), not one on each wall.
+further empty bags go in the trash. Since version 2, one chest, not one on each wall: by the forge (944,2327, floor),
+then 938 floor (2026-11-20), and **938 3rd** (secure, `0x406ED0AA`) since 2026-11-23.
 
 **The user's words** (2026-11-18):
 - **East storage** is the east wall, **west storage** the west wall. **"My vault"** is the user's personal chests
   (south-east, behind their table); **"his vault"** is the friend's (south-west).
-- The 4 floor chests by the entrance are the **intake** or **dump chests**: 2 east (938,2349 and 938,2350), 2 west
-  (933,2349 and 933,2350).
+- The floor chests by the entrance are the **intake** or **dump chests**: 3 east (938,2349, 938,2350 and, since
+  2026-11-23, 938,2348's floor chest), 2 west (933,2349 and 933,2350).
 - **"Sort the east side"** sorts the east dump chests into east storage. **"Sort the west side"** sorts the west dump
   chests into west storage. **"Sort all"** (or "all the dump chests") does both, each into its own side.
 - The west dump chests are **exempt** from the friend's side: Clem goes over there to sort them ("Clem should be
@@ -215,8 +216,11 @@ parks him in the middle of the great hall (933,2336, the square the user chose, 
 **938's top 3 are the user's own, secure** (2026-11-20: they can reach them through the window from the castle
 entrance, so secure; "we're also going to use them for supplies that I need to refill when I'm adventuring, like
 reagents"). The user's three chests from the tower moved there from 942 exactly as they lay (`tower_down.py relay`).
-938 floor (not secure) holds the spare backpacks since 2026-11-20 (moved from the forge's 2327 floor, which is free
-now): "I'm also going to need empty backpacks when I'm adventuring". Leaving, Clem locks the table down as he passes
+938 floor (not secure) held the spare backpacks from 2026-11-20 (moved from the forge's 2327 floor, which is free
+now): "I'm also going to need empty backpacks when I'm adventuring". On 2026-11-23 they moved up to **938 3rd** (secure;
+its runebooks and maps were gone, the user emptied it), each on the spot it lay, and 938 floor (`0x406E85EC`) became
+a **third east dump chest**: "move them up to the 3rd chest (because I can't take stuff out of the bottom chest
+through the window. The bottom chest will now be a 3rd dump chest". Leaving, Clem locks the table down as he passes
 it (`Mover.leave_to`), never from the great hall and back.
 
 ## The tower's ground floor (from 2026-11-20)
@@ -284,7 +288,7 @@ castle now").
 - **Never open a pouch in Clem's pack**: the user keeps **trapped pouches** there (0x408558A0, 0x4085588D, 0x4085589F,
   in Clem's rules offLimits). tools_room.py opened all 3 on 2026-11-21 before the user said so (a trap went off).
   The bridge's `/open` doesn't check offLimits, so `uo.call` refuses opens of off-limits serials itself.
-- **More bags come from the spare backpacks chest** (938 floor, `0x406E85EC`; 61 backpacks on 2026-11-21): only
+- **More bags come from the spare backpacks chest** (938 3rd, `0x406ED0AA`, since 2026-11-23; 64 backpacks then): only
   plain backpacks, only empty ones, never another kind of container (the user, 2026-11-21: "you'll get more backpacks
   from the chest ... you should only use backpacks for the tools room, not other containers"). Each goes on top of
   the lowest stack, west first, **up to 20 bags a stack** (the ceiling: "I think 20 is the limit allowed. Let's set it
