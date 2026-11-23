@@ -472,7 +472,7 @@
  },
  "0x406B630F": {
   "bags": [],
-  "items": 33,
+  "items": 35,
   "label": "castle: agility potions 1 (east 2340, 3rd)",
   "loose": [
    {
@@ -705,9 +705,23 @@
     "serial": "0x4094B15F",
     "x": 28,
     "y": 121
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x40446E7E",
+    "x": 54,
+    "y": 115
+   },
+   {
+    "amount": 1,
+    "name": "Blue Potion",
+    "serial": "0x40452615",
+    "x": 54,
+    "y": 115
    }
   ],
-  "recorded": "2026-11-20 18:52"
+  "recorded": "2026-11-21 22:26"
  },
  "0x406B68FC": {
   "bags": [],
@@ -1572,7 +1586,7 @@
    },
    {
     "kind": "circle 6 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Explosion Scroll",
      "serial": "0x406FFA2C",
@@ -1603,7 +1617,7 @@
   "items": 6,
   "label": "castle: scrolls, circles 5-8 (east 2336, 2nd)",
   "loose": [],
-  "recorded": "2026-11-20 18:52"
+  "recorded": "2026-11-21 22:18"
  },
  "0x406BC073": {
   "bags": [],
@@ -1614,7 +1628,7 @@
  },
  "0x406BC7BC": {
   "bags": [],
-  "items": 47,
+  "items": 49,
   "label": "castle: heal potions 1 (east 2339, top)",
   "loose": [
    {
@@ -1945,9 +1959,23 @@
     "serial": "0x4013651C",
     "x": 39,
     "y": 136
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x4077407C",
+    "x": 54,
+    "y": 115
+   },
+   {
+    "amount": 1,
+    "name": "Yellow Potion",
+    "serial": "0x40453264",
+    "x": 54,
+    "y": 115
    }
   ],
-  "recorded": "2026-11-20 18:52"
+  "recorded": "2026-11-21 22:26"
  },
  "0x406BCE69": {
   "bags": [],
@@ -2440,7 +2468,7 @@
  },
  "0x406C4DA6": {
   "bags": [],
-  "items": 44,
+  "items": 45,
   "label": "castle: cure potions 1 (east 2339, 3rd)",
   "loose": [
    {
@@ -2750,9 +2778,16 @@
     "serial": "0x404D127E",
     "x": 118,
     "y": 119
+   },
+   {
+    "amount": 1,
+    "name": "Orange Potion",
+    "serial": "0x40453794",
+    "x": 54,
+    "y": 115
    }
   ],
-  "recorded": "2026-11-20 18:52"
+  "recorded": "2026-11-21 22:26"
  },
  "0x406C57AE": {
   "bags": [
@@ -3248,10 +3283,18 @@
  },
  "0x406D313E": {
   "bags": [],
-  "items": 0,
+  "items": 1,
   "label": "castle: needs your decision (east 2337, floor)",
-  "loose": [],
-  "recorded": "2026-11-20 18:42"
+  "loose": [
+   {
+    "amount": 1,
+    "name": "a magical wizard's hat",
+    "serial": "0x401420AD",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "recorded": "2026-11-21 22:18"
  },
  "0x406D3AC9": {
   "bags": [],
@@ -3432,7 +3475,7 @@
   "items": 0,
   "label": "castle: gold (my vault 941, top)",
   "loose": [],
-  "recorded": "2026-11-20 18:45"
+  "recorded": "2026-11-21 22:26"
  },
  "0x406E3BFC": {
   "bags": [],
@@ -3470,32 +3513,531 @@
   "recorded": "2026-11-20 18:45"
  },
  "0x406E7AA0": {
-  "bags": [
-   {
-    "kind": "gems",
-    "known": 0,
-    "marker": {
-     "name": "tourmaline",
-     "serial": "0x408D9F17",
-     "x": 30,
-     "y": 127
-    },
-    "serial": "0x4098CD0A",
-    "x": 18,
-    "y": 105
-   }
-  ],
-  "items": 2,
-  "label": "castle: gems (my vault 939, floor)",
-  "loose": [],
-  "recorded": "2026-11-20 19:02"
- },
- "0x406E85EC": {
   "bags": [],
   "items": 0,
-  "label": "castle: free (my vault 938, floor)",
+  "label": "castle: gems (my vault 939, floor)",
   "loose": [],
-  "recorded": "2026-11-20 18:45"
+  "recorded": "2026-11-21 22:26"
+ },
+ "0x406E85EC": {
+  "bags": [
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E04E",
+    "x": 27,
+    "y": 107
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E054",
+    "x": 47,
+    "y": 114
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E056",
+    "x": 52,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E05C",
+    "x": 18,
+    "y": 119
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E060",
+    "x": 40,
+    "y": 115
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E062",
+    "x": 27,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E064",
+    "x": 70,
+    "y": 117
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E069",
+    "x": 118,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2BC",
+    "x": 55,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F79",
+    "x": 67,
+    "y": 108
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F87",
+    "x": 118,
+    "y": 141
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F76",
+    "x": 118,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F7A",
+    "x": 32,
+    "y": 128
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F7D",
+    "x": 72,
+    "y": 137
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4045C02F",
+    "x": 34,
+    "y": 139
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x409397BB",
+    "x": 118,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407D0B9F",
+    "x": 27,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2DB",
+    "x": 18,
+    "y": 136
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2E1",
+    "x": 72,
+    "y": 133
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E049",
+    "x": 33,
+    "y": 136
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E04D",
+    "x": 112,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E04F",
+    "x": 104,
+    "y": 128
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E055",
+    "x": 91,
+    "y": 128
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E05F",
+    "x": 45,
+    "y": 132
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E063",
+    "x": 25,
+    "y": 108
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E066",
+    "x": 60,
+    "y": 136
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2BB",
+    "x": 18,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F67",
+    "x": 23,
+    "y": 138
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F60",
+    "x": 89,
+    "y": 115
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F86",
+    "x": 80,
+    "y": 128
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F6D",
+    "x": 50,
+    "y": 116
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098CD08",
+    "x": 76,
+    "y": 139
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2D9",
+    "x": 59,
+    "y": 114
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2CA",
+    "x": 88,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F7E",
+    "x": 26,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2C6",
+    "x": 75,
+    "y": 135
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40836C02",
+    "x": 18,
+    "y": 131
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40836C0B",
+    "x": 39,
+    "y": 144
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x409167C1",
+    "x": 49,
+    "y": 111
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40836C0F",
+    "x": 103,
+    "y": 134
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x400F878C",
+    "x": 96,
+    "y": 130
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40875680",
+    "x": 23,
+    "y": 116
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2C1",
+    "x": 37,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x409167C0",
+    "x": 63,
+    "y": 112
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40836C0D",
+    "x": 45,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2E4",
+    "x": 18,
+    "y": 135
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x409397C6",
+    "x": 39,
+    "y": 122
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2CC",
+    "x": 59,
+    "y": 130
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4045BFF9",
+    "x": 18,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2C7",
+    "x": 56,
+    "y": 131
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E052",
+    "x": 19,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2BE",
+    "x": 27,
+    "y": 135
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2D3",
+    "x": 79,
+    "y": 107
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40836C22",
+    "x": 24,
+    "y": 133
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40836C0A",
+    "x": 49,
+    "y": 143
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2C3",
+    "x": 66,
+    "y": 106
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098F2DC",
+    "x": 62,
+    "y": 143
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x400F8748",
+    "x": 20,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x409167A3",
+    "x": 95,
+    "y": 145
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098CD25",
+    "x": 42,
+    "y": 138
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407B195A",
+    "x": 70,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E04C",
+    "x": 78,
+    "y": 125
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4092B7E2",
+    "x": 34,
+    "y": 157
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x409167BC",
+    "x": 64,
+    "y": 116
+   }
+  ],
+  "items": 64,
+  "label": "castle: spare backpacks (my vault 938, floor)",
+  "loose": [],
+  "recorded": "2026-11-21 22:26"
  },
  "0x406E9CD6": {
   "bags": [],
