@@ -227,6 +227,24 @@ class Fizzled(Exception):
     """A spell fizzled (the bridge before cuo-agent14 stops on it; the loop resumes it)."""
 
 
+class ServerDown(Stop):
+    """The game went away: a bridge can't be reached or doesn't answer, or the server said it has shut down. At the
+    nightly reboot (NIGHTLY_REBOOT) the loop waits for the server, puts things right and carries on (the user,
+    2026-11-22: "The game always shuts down at night and you restart the mining when it comes back up and
+    reconnects"); at any other time it's a Stop like any other."""
+
+
+# the server's nightly reboot: it shuts down at about 04:15, the clients log back in by themselves at about 04:19, and
+# the world comes back as it was at the save about 15 minutes before the shutdown (MINING.md "The nightly reboot")
+NIGHTLY_REBOOT = ('04:05', '04:35')   # a server that goes away between these times is the reboot
+REBOOT_WAIT = 30 * 60                 # how long to wait for it to come back before stopping for the user
+SAVE_BEFORE = 15 * 60                 # the save it comes back to, before the shutdown (seen 14 to 17 minutes)
+
+
+def nightly(t):
+    return NIGHTLY_REBOOT[0] <= time.strftime('%H:%M', time.localtime(t)) <= NIGHTLY_REBOOT[1]
+
+
 def log(text):
     line = time.strftime('%H:%M:%S ') + text
     print(line, flush=True)
@@ -283,7 +301,14 @@ class Char:
 
     def call(self, method, endpoint, **params):
         try:
-            return uo.call(self.info, method, endpoint, **params)
+            r = uo.call(self.info, method, endpoint, **params)
+            # the server's last word before the nightly reboot (2026-11-22 04:15:18: it came back from a mount, and
+            # the loop took it for McGee refusing Icepick). Not from /messages: the journal keeps last night's.
+            if endpoint != '/messages' and isinstance(r, dict) and any(
+                    'server has shut down' in (m.get('text') or '').lower()
+                    for m in r.get('messages') or [] if isinstance(m, dict)):
+                raise ServerDown(f'{self.name}: the server has shut down')
+            return r
         except uo.TakenOver:
             check_taken_over(self)
             raise Again()  # (only the login routine's, resumed)
@@ -307,18 +332,18 @@ class Char:
                 if uo.wait_out_world_save(self.info, e):
                     log(f'{self.name}: a world save interrupted; carrying on')
                     raise Again()
-                raise Stop(f'{self.name}: the bridge stopped because the server went quiet ({text})')
+                raise ServerDown(f'{self.name}: the bridge stopped because the server went quiet ({text})')
             if e.code == 503 and 'not responding' in text:
                 # the game was busy for a few seconds (the bridge waits 5 s for it); if it answers again, carry on
                 time.sleep(3)
                 try:
                     uo.call(self.info, 'GET', '/status')
                 except uo.BridgeError:
-                    raise Stop(f'{self.name}: {text}')
+                    raise ServerDown(f'{self.name}: {text}')
                 log(f'{self.name}: the game was slow to answer; carrying on')
                 raise Again()
             if e.code in (0, 503):
-                raise Stop(f'{self.name}: {text}')
+                raise ServerDown(f'{self.name}: {text}')
             raise
 
     def status(self):
@@ -1995,6 +2020,20 @@ class Miner:
         return [i['serial'] for i in self.bur.call('GET', '/contents', serial=bags['shovels'])['items']
                 if i.get('graphic') in mining.SHOVELS]
 
+    def bank_shovel_total(self, bank, bags):
+        """Every shovel in the bank box: loose and in every bag in it, opened to count (the user, 2026-11-22: "always
+        count all the shovels, i need an accurate count so I know when to get more for the bank"; the count had been
+        only the one bag he takes them from)."""
+        total = 0
+        for item in self.bur.call('GET', '/contents', serial=bank)['items']:
+            if item.get('graphic') in mining.SHOVELS:
+                total += 1
+            elif item.get('container') and item['serial'] != bags.get('ingots'):
+                self.bur.call('POST', '/open', serial=item['serial'])
+                total += sum(1 for i in self.bur.call('GET', '/contents', serial=item['serial'])['items']
+                             if i.get('graphic') in mining.SHOVELS)
+        return total
+
     def bank_known_empty(self):
         t = self.state.get('bank_out_of_shovels')
         return bool(t) and time.time() - t < 1800
@@ -2125,12 +2164,12 @@ class Miner:
                 for shovel in spare:
                     self.bur.call('POST', '/move', serial=shovel, to=to)
                 log(f'Burgers took {len(spare)} shovels from the bank'
-                    + (f'; {len(self.bank_shovels(bags))} left there' if spare else
+                    + (f'; {self.bank_shovel_total(bank, bags)} left there' if spare else
                        '; the bank has none left (the user needs to put more in)'))
                 # an empty bank isn't worth a trip at every handoff: look again in half an hour (2026-11-02 20:15)
                 self.state['bank_out_of_shovels'] = None if spare else time.time()
             # the bank's shovels, for the handoff lines (the user, 2026-11-08)
-            self.state['bank_shovels'] = {'count': len(self.bank_shovels(bags)),
+            self.state['bank_shovels'] = {'count': self.bank_shovel_total(bank, bags),
                                           'time': time.strftime('%H:%M')}
             # and its iron, counted here after the shovels so the bag's piles have settled (the user, 2026-11-08)
             try:  # (a count that goes wrong mustn't leave him standing at the bank)
@@ -2169,13 +2208,10 @@ class Miner:
         self.smelt_all()
         self.handoff()
 
-    # ---- the pass ----
+    # ---- after the nightly reboot ----
 
-    def preflight(self):
-        burgers_rules(bank=False)  # in case a run stopped in the middle of a bank trip
-        # Icepick's mining rules, in case smith.py left his smithing rules in the client (SMITHING.md)
-        icepick_rules()
-        # after a login (a server reboot, say) the client knows nothing inside bags until they're opened
+    def open_packs(self):
+        """After a login (a server reboot, say) the client knows nothing inside bags until they're opened."""
         for c in (self.ice, self.bur):
             pack = c.status()['backpack']
             if not pack.get('knownItems'):
@@ -2183,6 +2219,106 @@ class Miner:
         for item in self.bur.pack():
             if item.get('container') and not item.get('knownItems'):
                 self.bur.call('POST', '/open', serial=item['serial'])  # his reagent pouch
+
+    HANDOFF_LINE = re.compile(r'handed Burgers (?P<ingots>\d+) ingots \((?P<iron>\d+) iron\).*?'
+                              r'Burgers is carrying (?P<carrying>\d+) more'
+                              r'(?:.*?Shovels: Burgers \d+, bank (?P<shovels>\d+) \(counted (?P<counted>\d\d:\d\d)\))?')
+    BANKED_LINE = re.compile(r'Burgers emptied his pack into the ingot bag; the bank has (?P<iron>\d+) iron ingots '
+                             r'\((?P<all>\d+) in all\)(?P<stuck>; \d+ ingots are still)?')
+    SHOVELS_LINE = re.compile(r'Burgers took \d+ shovels from the bank; (?P<left>\d+) left there')
+
+    def rolled_back(self, down):
+        """The nightly reboot brings the world back as it was at the save about 15 minutes before the shutdown
+        (MINING.md "The nightly reboot"), so the handoffs and bank trips after it never happened. The save is found by
+        the iron Burgers holds now: each handoff line says how much he carried after it, and a bank trip leaves him
+        none. Then the state is put back to that point (a copy of it kept first): the totals lose the undone handoffs,
+        the bank's counts go back to the last bank trip that stood, the blocks emptied since dig again, and Icepick
+        starts again at the block he was on. Stops if Burgers' iron matches no point in the log."""
+        stamp = lambda t: time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(t))
+        seconds = lambda s: time.mktime(time.strptime(s, '%Y-%m-%d %H:%M:%S'))
+        iron = sum(i.get('amount', 1) for i in self.ingots(self.bur) if not i.get('hue'))
+        events, shovels = [], []   # handoffs and bank trips; the bank's shovel counts (time, count, HH:MM)
+        since, until = stamp(down - 60 * 60), stamp(down)
+        with open(LOG, encoding='utf-8') as fh:
+            for line in fh:
+                t, text = line[:19], line[20:]
+                if not since <= t <= until:
+                    continue
+                m = self.HANDOFF_LINE.search(text)
+                if m:
+                    events.append({'time': t, 'kind': 'handoff', 'carrying': int(m['carrying']),
+                                   'ingots': int(m['ingots']), 'iron': int(m['iron'])})
+                    if m['shovels']:
+                        shovels.append((t, int(m['shovels']), m['counted']))
+                    continue
+                m = self.BANKED_LINE.search(text)
+                if m:
+                    events.append({'time': t, 'kind': 'bank trip', 'carrying': None if m['stuck'] else 0,
+                                   'bank': {'iron': int(m['iron']), 'all': int(m['all']), 'time': t[11:16]}})
+                    continue
+                m = self.SHOVELS_LINE.search(text)
+                if m:
+                    shovels.append((t, int(m['left']), t[11:16]))
+        # the save is about SAVE_BEFORE before the shutdown: any handoff or bank trip from 5 minutes before that on
+        # (or the one just before them) may be the last that stood, or the very last one if nothing was lost
+        first = next((i for i, e in enumerate(events) if e['time'] >= stamp(down - SAVE_BEFORE - 300)), len(events))
+        matches = [i for i in range(max(first - 1, 0), len(events)) if events[i]['carrying'] == iron]
+        if not matches:
+            raise Stop(f"after the nightly reboot Burgers holds {iron} iron ingots, which matches no handoff or bank "
+                       f"trip in the log from {stamp(down - SAVE_BEFORE - 300)[11:16]} to {until[11:16]}: I can't tell "
+                       "where the server rolled back to. Both are hidden; the state is as the loop left it")
+        i = min(matches, key=lambda i: abs(seconds(events[i]['time']) - (down - SAVE_BEFORE)))
+        save, undone = events[i]['time'], events[i + 1:]
+        handoffs = [e for e in undone if e['kind'] == 'handoff']
+        trips = [e for e in undone if e['kind'] == 'bank trip']
+        lost_ingots, lost_iron = sum(e['ingots'] for e in handoffs), sum(e['iron'] for e in handoffs)
+        # the block Icepick was on at the save
+        started = [s for s in self.state.get('started', []) if s[1] <= save]
+        block = started[-1][0] if started else self.state.get('next', 0)
+        with open(STATE + time.strftime('.before-reboot-%Y%m%d'), 'w', encoding='utf-8') as fh:
+            json.dump(self.state, fh, indent=1)
+        totals = self.state.setdefault('totals', {'ingots': 0, 'iron': 0})
+        totals['ingots'] -= lost_ingots
+        totals['iron'] -= lost_iron
+        what = (f"the {len(handoffs)} handoffs from {handoffs[0]['time'][11:19]} on ({lost_ingots} ingots, "
+                f"{lost_iron} iron)" if handoffs else 'no handoffs')
+        what += ''.join(f" and the {e['time'][11:16]} bank trip" for e in trips)
+        if trips:
+            # the bank as the last bank trip that stood left it (not counted, if that's more than an hour back)
+            stood = [e['bank'] for e in events[:i + 1] if e['kind'] == 'bank trip']
+            if stood:
+                self.state['bank_ingots'] = stood[-1]
+            else:
+                self.state.pop('bank_ingots', None)
+            counted = [s for s in shovels if s[0] <= save]
+            if counted:
+                self.state['bank_shovels'] = {'count': counted[-1][1], 'time': counted[-1][2]}
+            else:
+                self.state.pop('bank_shovels', None)
+        self.state['next'] = block
+        self.state['emptied'] = {k: v for k, v in self.state.get('emptied', {}).items() if v < save[:16]}
+        self.state['started'] = started
+        # for colours.py: the smelts and handoffs in this window never happened
+        self.state.setdefault('rolled_back', []).append([stamp(seconds(save) + 1), stamp(time.time())])
+        note = (f"server rolled back to about {save[11:16]} on {save[:10]} (found by the loop from Burgers' {iron} "
+                f"iron): {what} never happened" + (f", corrected to {totals['ingots']} / {totals['iron']}"
+                                                   if handoffs else '') + f'; back to block {block}')
+        totals['note'] = f"{totals['note']}; {note}" if totals.get('note') else note
+        self.save_state()
+        log(f'the nightly reboot rolled the world back to about {save[11:19]}: {what} never happened'
+            + (f'; totals now {totals["ingots"]} ingots, {totals["iron"]} iron' if handoffs else '')
+            + (f"; the bank as counted at {self.state['bank_ingots']['time']}" if trips and 'bank_ingots' in self.state
+               else '; the bank not counted until his next trip' if trips else '')
+            + f'; Icepick starts again at block {block}'
+            + ('' if started else " (no record of the blocks' times: the block the loop was on)"))
+
+    # ---- the pass ----
+
+    def preflight(self):
+        burgers_rules(bank=False)  # in case a run stopped in the middle of a bank trip
+        # Icepick's mining rules, in case smith.py left his smithing rules in the client (SMITHING.md)
+        icepick_rules()
+        self.open_packs()
         si, sb = self.ice.status(), self.bur.status()
         log(f"Icepick at {si['x']},{si['y']} weight {si['weight']}/{si['weightMax']}, {len(self.shovels())} shovels; "
             f"Burgers at {sb['x']},{sb['y']} mana {sb['mana']}/{sb['manaMax']}, {self.burgers_spares()} spare shovels")
@@ -2229,6 +2365,10 @@ class Miner:
                 self.safely(self.to_start)
             for n in range(first, last + 1):
                 self.state['next'] = n
+                # when each block was begun, so a reboot's rollback can find the one Icepick was on at the save
+                started = self.state.setdefault('started', [])
+                started.append([n, time.strftime('%Y-%m-%d %H:%M:%S')])
+                del started[:-200]
                 self.save_state()
                 self.safely(self.dig_block, n)
                 self.stats['blocks'] += 1
@@ -2355,23 +2495,23 @@ def main():
         os.remove(PARK_FILE)  # an old request, from a run that ended before it got to it
     except OSError:
         pass
-    miner = None
+    keep = {'miner': None}
     try:
-        miner = Miner(args)
         if args.bank or args.empty:
+            miner = keep['miner'] = Miner(args)
             start = time.time()
             miner.preflight()
             miner.safely(miner.bank_trip if args.bank else miner.empty_pack)
             miner.report(start)
             return
-        miner.run()
+        mine_on(args, keep)
     except Parked as e:
         log(f'PARKED: {e}')
-        miner.report(time.time())
+        keep['miner'].report(time.time())
     except Stop as e:
         log(f'STOPPED: {e}')
-        if miner:
-            miner.report(time.time())
+        if keep['miner']:
+            keep['miner'].report(time.time())
         sys.exit(2)
     except uo.BridgeError as e:
         log(f'STOPPED on an unexpected answer from the bridge: {e}')
@@ -2379,6 +2519,85 @@ def main():
     finally:
         if running_loop() == os.getpid():
             os.remove(PID_FILE)
+
+
+def back_after_reboot(down):
+    """The nightly reboot (MINING.md): wait for both characters' bridges to answer again (the clients log back in by
+    themselves at about 04:19), then hand each back from the login's double-click, resume a bridge that halted, and
+    hide both. Stops if they aren't back within REBOOT_WAIT."""
+    log(f"the server went away at {time.strftime('%H:%M', time.localtime(down))}: the nightly reboot. Waiting up to "
+        f'{REBOOT_WAIT // 60} minutes for it to come back')
+    chars = None
+    while not chars:
+        if time.time() > down + REBOOT_WAIT:
+            raise Stop(f"the server went away at {time.strftime('%H:%M', time.localtime(down))} (the nightly reboot, "
+                       f"it seemed) and Icepick and Burgers aren't back after {REBOOT_WAIT // 60} minutes")
+        time.sleep(20)
+        try:
+            chars = [Char(name) for name in ('Icepick', 'Burgers')]
+            for c in chars:
+                uo.call(c.info, 'GET', '/status')
+        except (Stop, uo.BridgeError):
+            chars = None
+    log('Icepick and Burgers are back; a minute for the logins to settle')
+    time.sleep(60)
+    since = time.strftime('%H:%M:%S', time.localtime(down))
+    for c in chars:
+        try:
+            s = uo.call(c.info, 'GET', '/status')
+        except uo.BridgeError as e:
+            raise ServerDown(f'{c.name}: {e.message}') if e.code in (0, 503) else e
+        taken = s.get('takenOver')
+        if taken:
+            # the login double-clicks a bag, the character, the backpack (HEALING.md): that's no user, it's the
+            # login (the user, 2026-11-22). Anything else, or from before the server went, is the user.
+            if taken.startswith('a double-click at ') and taken.rsplit(' ', 1)[-1] >= since:
+                uo.call(c.info, 'POST', '/resume', handback=True)
+                log(f"{c.name}: the login's double-click counted as a takeover ({taken}); handed back")
+            else:
+                raise UserHas(f'the user took {c.name} over ({taken}) after the nightly reboot; the loop has stopped')
+        if s.get('halted'):
+            uo.call(c.info, 'POST', '/resume')
+            log(f"{c.name}: his bridge had halted ({s['halted']}); resumed")
+    for c in chars:
+        c.hide()
+
+
+def mine_on(args, keep):
+    """Miner.run(), carrying on through the nightly reboot: a ServerDown between NIGHTLY_REBOOT's times waits for the
+    server, puts the state right for its rollback and runs again. keep['miner'] is the current Miner (for main's
+    report). A stop in the first five minutes after the reboot (the server still slow) gets one more try."""
+    down, first_down, back = None, None, None
+    while True:
+        keep['miner'] = None
+        try:
+            if down is not None:
+                back_after_reboot(down)
+                miner = keep['miner'] = Miner(args)
+                miner.open_packs()
+                miner.rolled_back(down)
+                down, first_down, back = None, None, time.time()
+                args.start = None  # (a --from given at the start: on from the block the rollback found)
+                log('mining on after the nightly reboot')
+            keep['miner'] = Miner(args)
+            return keep['miner'].run()
+        except ServerDown as e:
+            now = time.time()
+            first_down = first_down or now
+            if not nightly(now) or now > first_down + REBOOT_WAIT + 15 * 60:
+                raise
+            log(f'the game went away ({e})')
+            if keep['miner'] and down is None:
+                keep['miner'].report(now)
+            down = down or now
+        except (Parked, UserHas):
+            raise
+        except Stop as e:
+            if not back or time.time() > back + 300:
+                raise
+            log(f'{e}; the server is still slow after the reboot: once more in a minute')
+            back = None
+            time.sleep(60)
 
 
 def running_loop():

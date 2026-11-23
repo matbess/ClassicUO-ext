@@ -70,6 +70,10 @@ symlink to `tools/uo-agent`). This skill lives at `tools/uo-agent/skills/uo/SKIL
 - **Stop and tell on problems.** When something doesn't match the plan (an item missing, an unexpected answer), the
   script stops and Claude tells the user what it found. No workarounds, no fallbacks, no changing the user's tables
   on its own: offer, then wait. Routine recoveries (world saves, lag, the ~04:15 nightly reboot) carry on.
+- **The nightly reboot** (~04:15, back ~04:19) is never a reason to stop and ask. mine.py rides through it itself
+  (MINING.md "The nightly reboot"); any loop that stops on it anyway gets recovered and restarted by Claude at once,
+  following its doc, with no question to the user (2026-11-22: a loop left stopped for 12 hours over it). Keep the
+  Monitor running through the night. The login's double-click shows as `takenOver`: that's not the user.
 - **"Pause"** means within seconds. A `--park` that waits out the current step can take minutes: start it at once
   and say so in the same reply, and that they can just take over.
 - **Clem outside the tower:** never unwatched, never standing among creatures, always parked back inside in the safe

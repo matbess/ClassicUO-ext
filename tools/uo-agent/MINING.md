@@ -67,7 +67,25 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
   found empty, set `bank_out_of_shovels` to null in the state first, or Burgers won't go back for them until the
   30 minutes are up.
 - **The nightly reboot** (about 04:15; the server rolls the world back to its last save, about 15 minutes before).
-  The loop stops with "the game is not responding". Then:
+  **The loop rides through it by itself** (from 2026-11-22; the user, after a night the loop sat stopped for 12
+  hours: "The game always shuts down at night and you restart the mining when it comes back up and reconnects").
+  When the game goes away between 04:05 and 04:35 (`ServerDown`: a bridge can't be reached or doesn't answer, or the
+  server says "The server has shut down"), `mine_on` in mine.py:
+  1. waits up to 30 minutes for both bridges to answer again, then a minute for the logins to settle;
+  2. hands each back from the login's double-click (a takeover dated after the shutdown; any other takeover stops
+     it), resumes a halted bridge, and hides both;
+  3. opens the packs and runs `Miner.rolled_back`: Burgers' iron matches the "carrying N more" of one handoff line
+     (or 0 after a bank trip) near the save, the one nearest 15 minutes before the shutdown. `state.json` is copied
+     to `state.json.before-reboot-YYYYMMDD`; the later handoffs come off `totals` (and go in `totals.note`); the bank
+     counts go back to the last bank trip that stood; `emptied` entries from the save's minute on are dropped;
+     `next` goes back to the block begun last before the save (`started` in the state, kept from 2026-11-22); the
+     window goes in `rolled_back` for colours.py;
+  4. mines on, and a stop in the first five minutes after (the server still slow) gets one more try a minute later.
+
+  It stops and logs STOPPED if the server isn't back in 30 minutes, if Burgers' iron matches no point in the log,
+  or if the user took a character over. Outages at any other time stop as before. Keep the Monitor running through
+  the night: its lines "the nightly reboot …", "are back", "handed back" and "mining on" say how it went; tell the
+  user in the next update. **If the loop stopped anyway**, do it by hand at once, without asking (it's routine):
   1. Wait until both bridges answer again (about 04:19; the clients log back in on their own).
   2. Anyone in sight is hidden at once (`uo --char Icepick skill 21`; a second try 10 s later if it fails).
      Icepick on foot gets on McGee first (`uo --char Icepick mount 0x00042FCB`).
@@ -78,8 +96,8 @@ can pick it up. The newest decisions are near the bottom; where an earlier note 
   5. Back up `state.json`, then take the later handoffs off `totals` (ingots and iron) and say so in `totals.note`;
      set `next` to the block Icepick was on at the save; drop the `emptied` entries dated after it. If a bank
      trip came after the save, set `bank_ingots` and `bank_shovels` back to the bank trip before it.
-  6. Start the loop and the Monitor again, add the reboot to this file and its window to `ROLLED_BACK` in
-     `colours.py`, and tell the user.
+  6. Start the loop and the Monitor again, add the reboot to this file and its window to `rolled_back` in
+     `state.json` (colours.py reads it), and tell the user.
 
 ## The job
 
@@ -461,6 +479,14 @@ files further: they apply at once, without a new build.
   mounted him). The handoffs from 04:01:14 on (324 ingots, 242 iron) and the 04:13 bank trip never happened: totals
   96001 / 75966 corrected to 95677 / 75724, back to block 22, the 15 blocks emptied from 04:00 on dropped,
   `bank_ingots` / `bank_shovels` back to the 03:56 count (4071 iron, 12599 in all; 27 shovels).
+- **And 2026-11-22 04:15** (the nightly reboot): the loop stopped as always, and I (Claude) stopped watching and
+  asked the user instead of restarting: both sat hidden-less at the forge for 12 hours. Rolled back to 03:59:50
+  (Burgers back with no ingots and the reagents of the 03:59 bank trip; Icepick at 1141,1850 with an empty pack).
+  The handoffs from 04:02:36 on (324 ingots, 248 iron) and the 04:13 bank trip never happened: totals 122412 / 96730
+  corrected to 122088 / 96482, bank back to the 03:59 count (13877 iron, 28062 in all; 33 shovels), back to block
+  32. The server's last word, "The server has shut down.", came back from a mount, and the loop took it for McGee
+  refusing Icepick (a retame counted). That night led to the loop riding through the reboot itself (above); the
+  correction was made with its `Miner.rolled_back`, which found the same save point, the block set by hand.
 - **A tile outside the area** (2026-11-05 09:38): on the long straight stretch to waypoint 31 (1101,1594 to
   1101,1649, along the area's west edge at x 1100) the client's path finder stepped Icepick to 1099,1649. The
   bridge stops every walk the moment it sees him outside the area, even one heading back in, so the replans and

@@ -7,9 +7,11 @@ the ore smelted since the previous handoff, so the colour figures are estimates 
 The early handoff lines (2026-11-01) don't give iron, so those are split by all the ore smelted.
 
 After a nightly reboot the server rolls the world back to its last save, and what happened after it never happened:
-add each one's window to ROLLED_BACK (from just after the last handoff that survived to when the clients were back;
-MINING.md has the reboots)."""
+the windows up to 2026-11-17 are in ROLLED_BACK (from just after the last handoff that survived to when the clients
+were back; MINING.md has the reboots). From 2026-11-22 mine.py finds each rollback itself and keeps its window in
+state.json ("rolled_back"), which is read here too."""
 import collections
+import json
 import os
 import re
 import sys
@@ -23,6 +25,11 @@ ROLLED_BACK = [('2026-11-02 04:00:20', '2026-11-02 04:19:00'),
                ('2026-11-09 03:57:07', '2026-11-09 04:19:00'),
                ('2026-11-10 03:59:03', '2026-11-10 04:19:00'),
                ('2026-11-17 03:58:40', '2026-11-17 04:19:00')]
+try:  # the windows mine.py records after a nightly reboot (Miner.rolled_back)
+    with open(os.path.join(os.path.dirname(os.path.abspath(LOG)), 'state.json'), encoding='utf-8') as fh:
+        ROLLED_BACK += [tuple(w) for w in json.load(fh).get('rolled_back', [])]
+except (OSError, ValueError):
+    pass
 smelt = re.compile(r'^(\S+ \S+) smelt \S+ \(hue (\d+), (\d+)\): You smelt the ore')
 hand = re.compile(r'^(\S+ \S+) handed Burgers (\d+) ingots(?: \((\d+) iron\))?')
 
