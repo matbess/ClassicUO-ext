@@ -2500,33 +2500,12 @@
   },
   {
    "serial": "0x406ED0AA",
-   "name": "yours: runebooks and maps",
+   "name": "spare backpacks",
    "side": "vault",
    "place": "my vault 938",
    "row": "3rd",
    "secure": true,
-   "bags": [],
-   "loose": [],
-   "personal": true
-  },
-  {
-   "serial": "0x406E85EC",
-   "name": "spare backpacks",
-   "side": "vault",
-   "place": "my vault 938",
-   "row": "floor",
-   "secure": false,
    "bags": [
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
-    {
-     "name": "backpack",
-     "marker": null,
-     "items": []
-    },
     {
      "name": "backpack",
      "marker": null,
@@ -2848,6 +2827,16 @@
      "items": []
     }
    ],
+   "loose": []
+  },
+  {
+   "serial": "0x406E85EC",
+   "name": "intake (east)",
+   "side": "vault",
+   "place": "my vault 938",
+   "row": "floor",
+   "secure": false,
+   "bags": [],
    "loose": []
   },
   {
@@ -3099,7 +3088,7 @@
    "loose": []
   }
  ],
- "castle_updated": "2026-11-21T18:01:35-0800",
+ "castle_updated": "2026-11-23T11:21:01-0800",
  "tools_room": {
   "updated": "2026-11-22T00:16:41-0800",
   "bags": 6,

@@ -3520,39 +3520,42 @@
   "recorded": "2026-11-21 22:26"
  },
  "0x406E85EC": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: intake (east) (my vault 938, floor)",
+  "loose": [],
+  "recorded": "2026-11-23 11:20"
+ },
+ "0x406E9CD6": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: free (east 2343, floor)",
+  "loose": [],
+  "recorded": "2026-11-20 18:43"
+ },
+ "0x406EA395": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: free (east 2343, 2nd)",
+  "loose": [],
+  "recorded": "2026-11-20 18:43"
+ },
+ "0x406EC384": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: scrolls (my vault 940, 3rd)",
+  "loose": [],
+  "recorded": "2026-11-20 18:45"
+ },
+ "0x406ECA50": {
+  "bags": [],
+  "items": 0,
+  "label": "castle: valuables overflow (my vault 942, top)",
+  "loose": [],
+  "recorded": "2026-11-20 19:02"
+ },
+ "0x406ED0AA": {
   "bags": [
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098E04E",
-    "x": 27,
-    "y": 107
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098E054",
-    "x": 47,
-    "y": 114
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098E056",
-    "x": 52,
-    "y": 146
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098E05C",
-    "x": 18,
-    "y": 119
-   },
    {
     "kind": "?",
     "known": 0,
@@ -4021,58 +4024,55 @@
     "kind": "?",
     "known": 0,
     "marker": null,
-    "serial": "0x4092B7E2",
-    "x": 34,
-    "y": 157
+    "serial": "0x409167BC",
+    "x": 64,
+    "y": 116
    },
    {
     "kind": "?",
     "known": 0,
     "marker": null,
-    "serial": "0x409167BC",
-    "x": 64,
-    "y": 116
+    "serial": "0x409167B1",
+    "x": 112,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40836C01",
+    "x": 101,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4091CFCF",
+    "x": 118,
+    "y": 123
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4091CFCE",
+    "x": 39,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4091CFC8",
+    "x": 18,
+    "y": 105
    }
   ],
   "items": 64,
-  "label": "castle: spare backpacks (my vault 938, floor)",
+  "label": "castle: spare backpacks (my vault 938, 3rd) [secure]",
   "loose": [],
-  "recorded": "2026-11-21 22:26"
- },
- "0x406E9CD6": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: free (east 2343, floor)",
-  "loose": [],
-  "recorded": "2026-11-20 18:43"
- },
- "0x406EA395": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: free (east 2343, 2nd)",
-  "loose": [],
-  "recorded": "2026-11-20 18:43"
- },
- "0x406EC384": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: scrolls (my vault 940, 3rd)",
-  "loose": [],
-  "recorded": "2026-11-20 18:45"
- },
- "0x406ECA50": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: valuables overflow (my vault 942, top)",
-  "loose": [],
-  "recorded": "2026-11-20 19:02"
- },
- "0x406ED0AA": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: free (my vault 938, 3rd)",
-  "loose": [],
-  "recorded": "2026-11-20 18:45"
+  "recorded": "2026-11-23 11:18"
  },
  "0x406EDB9B": {
   "bags": [],
