@@ -2,7 +2,10 @@
 entrance-chest to have 250 of each reagent ... look at the chest and see how many are missing and then go to my
 unsecure personal reagent chest by the forge and pull out that many reagents and take them over to top it up").
 
-  python3 tools/uo-agent/reagents_topup.py [--then-shovels]
+  python3 tools/uo-agent/reagents_topup.py [--then-shovels] [--pack 'black pearl=200,blood moss=200,mandrake=200']
+
+--pack: after the top-up, that many of each from the main chest into Clem's pack, as new piles (for the user to
+hand to another character).
 
 From: the user's personal chest by the forge (2327, 2nd, 0x4059020A) first; whatever it can't cover from the main
 reagents chest on the east wall (2336, 3rd, 0x406BE5CF), the last place to look (the user, 2026-11-22: "If my
@@ -119,6 +122,7 @@ def main():
 
     if not carried:
         table(have, taken, have, held)
+        for_pack(info, mover, pack)
         return finish()
     mover.walk_near(info, TO)
     there = {i['graphic']: i for i in look.open_once(info, TO) if i['graphic'] in REAGENTS}
@@ -133,7 +137,47 @@ def main():
             say(f'{REAGENTS[g]}: a new pile at {x},{y}')
     after = counts(look.open_once(info, TO))
     table(have, taken, after, held)
+    for_pack(info, mover, pack)
     finish()
+
+
+MAIN = SOURCES[1][0]
+
+
+def for_pack(info, mover, pack):
+    """--pack 'black pearl=200,blood moss=200': that many into Clem's pack from the main reagents chest (east 2336
+    3rd), each reagent as its own new pile, never merged onto his own casting reagents (the user, 2026-11-24: "put 200
+    of black pearl, blood moss and mandrake into clems bag, i need to give it to burgers"). Never from the user's
+    backup chest by the forge: that's theirs, for the entrance chest. Short: said, with what the main chest had."""
+    if '--pack' not in sys.argv:
+        return
+    by_name = {v: g for g, v in REAGENTS.items()}
+    want = {}
+    for part in sys.argv[sys.argv.index('--pack') + 1].split(','):
+        name, n = part.rsplit('=', 1)
+        name = {'mandrake': 'mandrake root', 'silk': "spider's silk", 'ash': 'sulfurous ash'}.get(name.strip(), name.strip())
+        want[by_name[name]] = int(n)
+    mover.walk_near(info, MAIN)
+    source = piles(MAIN)
+    had = counts(source)
+    got = {}
+    for k, (g, n) in enumerate(want.items()):
+        left, mine = n, None
+        for p in [p for p in source if p['graphic'] == g]:
+            if left <= 0:
+                break
+            take = min(left, p.get('amount', 1))
+            extra = {'amount': take} if take < p.get('amount', 1) else {}
+            if mine:  # onto the pile already made for this, not his own
+                uo.call(info, 'POST', '/move', serial=p['serial'], to=mine, **extra)
+            else:
+                uo.call(info, 'POST', '/move', serial=p['serial'], to=pack, x=100 + 14 * k, y=120, **extra)
+                mine = p['serial']
+            left -= take
+        got[g] = n - left
+    say('into his pack for the user (from the main chest): '
+        + ', '.join(f'{REAGENTS[g]} {got[g]}' + (f' (SHORT {want[g] - got[g]}: the main chest had {had[g]})'
+                                                if got[g] < want[g] else '') for g in want))
 
 
 def table(before, taken, after, held):

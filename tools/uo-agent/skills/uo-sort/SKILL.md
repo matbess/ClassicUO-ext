@@ -89,7 +89,7 @@ Batch working files go in `~/claude/uo-agent-work/batchN` (scratch, not needed l
 
 ## Sorting in the castle (from 2026-11-19; CASTLE.md, "Sorting")
 
-The loot is moving to the user's castle; Clem sorts there. **"Sort the east side"** sorts the 2 east intake chests
+The loot is moving to the user's castle; Clem sorts there. **"Sort the east side"** sorts the 3 east intake chests
 into east storage. **For now only the east side** (the user, 2026-11-19: "For now we'll do just the east and
 southeast and forge"): the west intake chests, the west wall and the friend's row are worked out later, and look.py
 refuses `--side west` (`castle_site.SIDES`). The same five steps and tools; what changes:
@@ -131,8 +131,9 @@ refuses `--side west` (`castle_site.SIDES`). The same five steps and tools; what
   table back and locks it down **as he passes it** (the user: "LOCK THE TABLE DOWN RIGHT WHEN YOU LEAVE. Don't go to
   the great hall and then back to lock it"; `Mover.leave_to`), checks both tables say "locked down", and parks him in the middle of the great hall (933,2336, the square the user chose; the user: "take him into the center of the great hall at the end of sorting"; before that "at the end of sorting you
   should place the character (clem/johnny) at the center of the forge room").
-- **Spare backpacks** are in 938 floor (not secure) since 2026-11-20, so the user can take empty bags through the
-  window when adventuring; emptied loot bags go there.
+- **Spare backpacks** are in 938 3rd (secure) since 2026-11-23 (938 floor before, now a third east dump chest), so
+  the user can take empty bags through the window when adventuring; emptied loot bags go there. The castle's other
+  jobs (tools room, reagent top-up, the user's loot bag): the `uo-castle` skill.
 - **Razor** double-clicks every bag that lands in his pack (AutoSearch); the castle tools hand those clicks back
   (`razor.py`) instead of stopping.
 - **The page:** only when the user asks (2026-11-20). `python3 inventory.py --asked` inside the castle counts the castle (every chest that had something last

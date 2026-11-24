@@ -36,6 +36,7 @@ symlink to `tools/uo-agent`). This skill lives at `tools/uo-agent/skills/uo/SKIL
    | Healing on a ghost | Burgers | `HEALING.md` | `heal.py` |
    | Cooking fish steaks for Intelligence | Icepick | `COOKING.md` | `cook.py` |
    | The Castle (new home, 2026-11-18): getting in, its chests, the move from the tower | Clem | `CASTLE.md` | `castle.py` |
+   | Running the castle: sorting intake loot, the tools room, spare backpacks, the entrance reagent chest | Clem | `skills/uo-castle/SKILL.md`, `CASTLE.md` | `tools_room.py`, `reagents_topup.py`, look/idall/plan/sortbatch/finish |
 
    Each doc ends with how to run it, what the user's words mean, and what to tell them. `HISTORY.md` is old notes.
 3. **Check what else is going on.** Several Claude sessions work on the same characters.

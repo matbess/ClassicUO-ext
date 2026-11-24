@@ -316,3 +316,9 @@ running low too"; also
 tell the user with the whole table, every reagent. `--then-shovels` puts away his shovels first in the same trip. Only the forge chest's backpacks and bags are
 looked in, never its pouches (trapped) or wooden boxes (one in the keys bag never answers an open). On 2026-11-22 its
 reagents were in a backpack (hue 33): no garlic or nightshade there.
+
+**Reagents for another character** (the user, 2026-11-24: "put 200 of black pearl, blood moss and mandrake into
+clems bag, i need to give it to burgers"): `reagents_topup.py --pack 'black pearl=200,blood moss=200,mandrake=200'`,
+after the top-up, from the main chest only (not the user's backup), each as its own new pile in Clem's pack.
+
+The jobs here in short, with the commands: the `uo-castle` skill (`skills/uo-castle/SKILL.md`).
