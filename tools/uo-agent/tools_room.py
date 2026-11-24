@@ -363,9 +363,12 @@ def put(kinds=None, extra=(), leave=True):
             record(cache, b, contents(b['serial'])[0])
     save(cache)
     to_page(cache)
+    # a bag emptied of its tools stays in his pack, nothing more: the user keeps their loot bag there (2026-11-24,
+    # 0x409167C6: "that's my loot bag, leave it alone, I always have a loot bag. once I fill it up with loot ill have
+    # you sort the loot"); never offer to move it to the spare backpacks
     empty = [c for c in opened if not contents(c)[0]]
     if empty:
-        say(f"emptied and still in his pack: {', '.join(empty)}")
+        say(f"emptied, left in his pack (the user's loot bag stays there): {', '.join(empty)}")
     if MOVER and leave:  # he came in past the tables: out the same way, the table locked down behind him
         MOVER.leave_to((933, 2336))
 

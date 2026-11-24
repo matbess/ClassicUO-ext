@@ -288,6 +288,10 @@ castle now").
 - **Never open a pouch in Clem's pack**: the user keeps **trapped pouches** there (0x408558A0, 0x4085588D, 0x4085589F,
   in Clem's rules offLimits). tools_room.py opened all 3 on 2026-11-21 before the user said so (a trap went off).
   The bridge's `/open` doesn't check offLimits, so `uo.call` refuses opens of off-limits serials itself.
+- **The user's loot bag stays in Clem's pack** (0x409167C6 on 2026-11-24): "that's my loot bag, leave it alone, I
+  always have a loot bag. once I fill it up with loot ill have you sort the loot". Shovels can come out of it, but
+  the bag itself is never moved to the spare backpacks, emptied out, or offered. When the user asks to sort it, sort
+  what's in it and leave the bag where it is.
 - **More bags come from the spare backpacks chest** (938 3rd, `0x406ED0AA`, since 2026-11-23; 64 backpacks then): only
   plain backpacks, only empty ones, never another kind of container (the user, 2026-11-21: "you'll get more backpacks
   from the chest ... you should only use backpacks for the tools room, not other containers"). Each goes on top of
