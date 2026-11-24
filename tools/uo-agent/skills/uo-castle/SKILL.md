@@ -89,10 +89,13 @@ forge (2327 2nd) first, then the main reagents chest (east 2336 3rd); nowhere el
 - **Report two full tables, all 8 reagents each** (memory `reagent-topup-report`): the entrance chest (before, from
   the backup chest, from the main chest, now, still short), and **what's left in the backup chest**. Both are in
   `~/claude/uo-agent-work/castle/reagents-topup.json`. Lead with anything still short or running low.
-- **Reagents for another character** (the user, 2026-11-24: "put 200 of black pearl, blood moss and mandrake into
-  clems bag, i need to give it to burgers"): `--pack 'black pearl=200,blood moss=200,mandrake=200'` takes them from
-  the **main chest** into Clem's pack as their own new piles, apart from his casting reagents, after the top-up.
-  Never from the user's backup chest. Say what he's carrying and anything short.
+- **Reagents for another character: only when the user asks, that one time.** Never part of a normal top-up (the
+  user, 2026-11-24: "I don't want you to do leave 200 reagents every time you top up the reagent chest either. This
+  is something I'm asking for this time only"). When asked (that day: "put 200 of black pearl, blood moss and
+  mandrake into clems bag, i need to give it to burgers"): `--pack 'black pearl=200,blood moss=200,mandrake=200'`
+  (`--pack-only` without a top-up) takes them from the main chest, then the user's backup chest for the rest, into
+  Clem's pack as their own piles, apart from his casting reagents. **Bring the whole amount they asked for**: the main
+  chest had 6 of each and I stopped to ask; they wanted their 200 ("where's my 200 reagents i asked for").
 - Clem's own casting reagents are separate: `restock.py` before he leaves (below 25), from the entrance chest.
 
 ## The vault page

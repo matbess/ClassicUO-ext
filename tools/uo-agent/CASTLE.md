@@ -317,8 +317,11 @@ tell the user with the whole table, every reagent. `--then-shovels` puts away hi
 looked in, never its pouches (trapped) or wooden boxes (one in the keys bag never answers an open). On 2026-11-22 its
 reagents were in a backpack (hue 33): no garlic or nightshade there.
 
-**Reagents for another character** (the user, 2026-11-24: "put 200 of black pearl, blood moss and mandrake into
-clems bag, i need to give it to burgers"): `reagents_topup.py --pack 'black pearl=200,blood moss=200,mandrake=200'`,
-after the top-up, from the main chest only (not the user's backup), each as its own new pile in Clem's pack.
+**Reagents for another character, only when asked** (the user, 2026-11-24: "put 200 of black pearl, blood moss and
+mandrake into clems bag, i need to give it to burgers"; then "I don't want you to do leave 200 reagents every time you
+top up the reagent chest either. This is something I'm asking for this time only"): `reagents_topup.py --pack 'black
+pearl=200,blood moss=200,mandrake=200'` (`--pack-only`: no top-up), from the main chest, then the user's backup chest
+for the rest (the main chest had 6 of each; "where's my 200 reagents i asked for"), each as its own pile in Clem's
+pack. A plain top-up never does this.
 
 The jobs here in short, with the commands: the `uo-castle` skill (`skills/uo-castle/SKILL.md`).
