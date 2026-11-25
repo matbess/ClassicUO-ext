@@ -102,11 +102,13 @@
   // 2026-11-24: "you probably have to go through the door")
   // and the Vesper tinker's door 0x4001008F (2895,787), between the Vesper 2 rune's spot and Amie (18:42: no answer
   // to "Amie buy" from outside it)
+  // and the doors round the Serpent's 2 rune's spot (2932,3507; no path to Andre at 2940,3498, 21:02): 0x4000FE36 at
+  // 2935,3508, 0x4000FE33 and 0x4000FE34 at 2932-2933,3511
   // the castle's north doors (0x40913573/0x40913575 at 934-935,2325) and their key ring 0x408CB8EB at 935,2326: the way in
   // from the north yard, where the courtyard ("skara") rune lands him (shovels.py; the user, 2026-11-24)
   // the castle's front door and central door (both halves), and the key rings hanging by them: 0x4093D690 outside
   // the front door, 0x408CB8EE on the courtyard side of the central door (CASTLE.md)
-  "doors": ["0x408AEA57", "0x408AEA54", "0x408AEA55", "0x408AEA59", "0x4000FCF3", "0x40913567", "0x40913568", "0x40913571", "0x40913572", "0x40913573", "0x40913575", "0x4000FCC9", "0x4001008F"],
+  "doors": ["0x408AEA57", "0x408AEA54", "0x408AEA55", "0x408AEA59", "0x4000FCF3", "0x40913567", "0x40913568", "0x40913571", "0x40913572", "0x40913573", "0x40913575", "0x4000FCC9", "0x4001008F", "0x4000FE36", "0x4000FE33", "0x4000FE34"],
   "keys": ["0x4040A302", "0x404099E0", "0x4093D690", "0x408CB8EE", "0x408CB8EB"],
   // a trapped pouch, used when he's paralysed; and the Gems runebook (0x0EFA, a spellbook's graphic), opened to
   // press a rune's Recall button (GEMS.md); and for sorting (the user, 2026-11-14: "yes you can use Clem's
