@@ -83,6 +83,10 @@ SPARE_STAND = (939, 2349)       # in front of it, on the south walkway (the tabl
 CACHE = os.path.join(HERE, 'castle', 'tools-room.json')  # bag serial -> {x, y, z, items: {graphic: n}}
 info = None
 OFF_LIMITS = set()
+# during a shovel run (shovels.py; the user, 2026-11-24: "you don't have to keep re-inventorying it, that would be slow,
+# just assume no one is taking them out while you're doing a run. You only inventory it at the start of a run"): True
+# skips the full bags and the recount of the rest; only the bags with room are opened. Off for every other job.
+TRUST_CACHE = False
 MOVER = None  # set when he came in past the tables: he leaves the same way at the end, the table locked behind him
 
 
@@ -359,7 +363,7 @@ def put(kinds=None, extra=(), leave=True):
     for gone in set(cache) - {b['serial'] for b in here}:
         del cache[gone]
     for b in here:
-        if b['serial'] not in filled:
+        if b['serial'] not in filled and not (TRUST_CACHE and b['serial'] in cache):
             record(cache, b, contents(b['serial'])[0])
     save(cache)
     to_page(cache)
@@ -390,6 +394,8 @@ def fill(kind, found, pack, cache):
     order, _ = bags(kind)
     areas = {}
     for b in order:
+        if TRUST_CACHE and b['serial'] in cache and not fits(cache[b['serial']], graphics[0]):
+            continue  # full, as counted at the start of the run
         # every bag opened, full or not: the user takes tools out often (2026-11-21: "you should check the count ...
         # You shouldn't rely on the previous count being correct")
         items, areas[b['serial']] = contents(b['serial'])

@@ -55,6 +55,10 @@ on the forge ONE AT A TIME, since a double-click cooks a whole stack for one ski
 wall is primary, the west wall mirrors it, the south-east chests are the user's own behind a locked-down table, and
 the south-west chests are the friend's and never touched) and the dump chests.
 
+**Buying shovels** (Clem, from 2026-11-24: the Tinkers runebook's 7 tinkers bought out of shovels, each on his own
+hourly clock, gold from his Ocllo bank box, home by the "skara" rune to the castle's north yard and the north door, into
+the tools room): read `SHOVELS.md` first; the tool is `shovels.py`.
+
 **The user taking over (every character, every tool; the user, 2026-11-14: "that should be shared across all the
 skills/agents").** Every character's rules have `"handOver": true`: any command the user gives a character themselves
 (a step, a spell, a skill, a double-click, a target, war mode, an attack; not Razor's lifts and drops or single

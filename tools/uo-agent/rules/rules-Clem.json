@@ -43,6 +43,15 @@
     { "name": "jeweler: Vesper Gems", "box": [2851, 692, 2901, 742], "z": [-30, 80] },
     { "name": "jeweler: Magincia Gems", "box": [3633, 2162, 3683, 2212], "z": [-30, 80] },
     { "name": "jeweler: Nujel'm Gems", "box": [3750, 1147, 3800, 1197], "z": [-30, 80] },
+    // the tinkers in the Tinkers runebook (shovels.py; the user, 2026-11-24: buy all their shovels every hour): 25 tiles
+    // round where each rune lands, from the book's sextant coordinates
+    { "name": "tinker: Britain Tinker", "box": [1399, 1636, 1449, 1686], "z": [-30, 80] },
+    { "name": "tinker: Jhelom Tinker", "box": [1370, 3783, 1420, 3833], "z": [-30, 80] },
+    { "name": "tinker: Minoc Tinker", "box": [2439, 428, 2489, 478], "z": [-30, 80] },
+    { "name": "tinker: Trinsic Tinker", "box": [1816, 2650, 1866, 2700], "z": [-30, 80] },
+    { "name": "tinker: Vesper Tinker", "box": [2876, 761, 2926, 811], "z": [-30, 80] },
+    { "name": "tinker: Magincia Tinker", "box": [3689, 2097, 3739, 2147], "z": [-30, 80] },
+    { "name": "tinker: Serpent's Hold Tinker", "box": [2917, 3485, 2967, 3535], "z": [-30, 80] },
     // the Castle (the user's new house, 2026-11-18; CASTLE.md): where the loot moves to and Clem will live. Not the
     // south-west rooms (x 925-934, y 2347-2350): the user's friend's, never touched (see offLimits)
     { "name": "castle front (outside, where the Castle rune lands)", "box": [929, 2351, 941, 2362], "z": [-20, 30] },
@@ -67,8 +76,9 @@
   // and the jewelers in the Gems runebook (GEMS.md; the user, 2026-11-09: seven of them, sell only): the nine gems,
   // citrine 0x0F15, sapphire 0x0F19, diamond 0x0F26, star sapphire 0x0F21, ruby 0x0F13, emerald 0x0F10, amethyst
   // 0x0F16, tourmaline 0x0F2D, amber 0x0F25
-  "vendors": ["mapmaker", "jeweler"],
-  "goods": ["0x14EB", "0x0F15", "0x0F19", "0x0F26", "0x0F21", "0x0F13", "0x0F10", "0x0F16", "0x0F2D", "0x0F25"],
+  // and the tinkers in the Tinkers runebook, shovels only (0x0F39, 0x0F3A; shovels.py, the user, 2026-11-24)
+  "vendors": ["mapmaker", "jeweler", "tinker"],
+  "goods": ["0x0F39", "0x0F3A", "0x14EB", "0x0F15", "0x0F19", "0x0F26", "0x0F21", "0x0F13", "0x0F10", "0x0F16", "0x0F2D", "0x0F25"],
   "spend": 3000,
   // fights (bridge 7, COMBAT.md): skills and spells at creatures anybody may attack (never a person or a pet) and
   // at himself, and walks that don't wait
@@ -81,10 +91,12 @@
   // the vault door (metal, 1757,1412, z 26: shut 0x0681, open 0x0682) and its key ring locked down in the bag room at
   // 1756,1410 (z 38), as Icepick uses them (SMITHING.md); for the gem bag only (GEMS.md)
   // and shop doors on the way to a jeweler: Marnie's room upstairs in Trinsic (1896,2806, z 20; GEMS.md)
+  // the castle's north doors (0x40913573/0x40913575 at 934-935,2325) and their key ring 0x408CB8EB at 935,2326: the way in
+  // from the north yard, where the courtyard ("skara") rune lands him (shovels.py; the user, 2026-11-24)
   // the castle's front door and central door (both halves), and the key rings hanging by them: 0x4093D690 outside
   // the front door, 0x408CB8EE on the courtyard side of the central door (CASTLE.md)
-  "doors": ["0x408AEA57", "0x408AEA54", "0x408AEA55", "0x408AEA59", "0x4000FCF3", "0x40913567", "0x40913568", "0x40913571", "0x40913572"],
-  "keys": ["0x4040A302", "0x404099E0", "0x4093D690", "0x408CB8EE"],
+  "doors": ["0x408AEA57", "0x408AEA54", "0x408AEA55", "0x408AEA59", "0x4000FCF3", "0x40913567", "0x40913568", "0x40913571", "0x40913572", "0x40913573", "0x40913575"],
+  "keys": ["0x4040A302", "0x404099E0", "0x4093D690", "0x408CB8EE", "0x408CB8EB"],
   // a trapped pouch, used when he's paralysed; and the Gems runebook (0x0EFA, a spellbook's graphic), opened to
   // press a rune's Recall button (GEMS.md); and for sorting (the user, 2026-11-14: "yes you can use Clem's
   // scissors"): scissors (the spare pair he borrows from the supplies chest) and saws
@@ -95,7 +107,8 @@
   // his own chests, put back and locked down again every time
   // "i wish to secure this": the castle's 21 secure chests, at the friends level (the user, 2026-11-18: "make them
   // all accessible to friends for now")
-  "say": ["all follow me", "remove thyself", "i wish to release this", "i wish to lock this down", "i wish to secure this"],
+  // "bank" at the Ocllo bank for gold for the shovels (shovels.py, the user, 2026-11-24)
+  "say": ["bank", "all follow me", "remove thyself", "i wish to release this", "i wish to lock this down", "i wish to secure this"],
   "mounts": ["0x00043254"],
   // bags of maps are put down at his feet: backpack, bag, pouch
   // and the castle's south-east table (0x0B34), put down beside him (bridge 15)
