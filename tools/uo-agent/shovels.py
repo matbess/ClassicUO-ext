@@ -607,7 +607,7 @@ def visit(v, state, entry, me):
     """Every tinker near this landing. Returns True when every one of them is bought out."""
     tot = state.setdefault('totals', {})
     tinkers = find_tinkers(v, me)
-    t = tinker(state, entry['slot'])
+    t = tinker(state, entry['loc'])
     t['name'] = entry['name']
     t.pop('skip_until', None)
     if t.get('bought_out') is not False or not t.get('due'):  # the first open since he was bought out (or ever):
@@ -684,24 +684,37 @@ class Blocked(Exception):
     """The rune's spot stayed blocked: the next tinker this trip, this one again next trip."""
 
 
-def recall_to(v, state, entry, me, away):
-    """gems.recall_to, but "That location is blocked." waits a minute and tries again (the user, 2026-11-24: "If a
-    location is blocked then try it again in 1 minute")."""
+def recall_to(v, state, loc, me, away):
+    """To a town's tinker by one of its runes. The user, 2026-11-24, after blocked spots: "I fixed it by creating 2
+    runes for each location. From now on we should alternate betweek rune 1 and 2 for each location": each visit starts
+    with the rune after the one that took him last time. A blocked spot tries the town's other rune at once; both
+    blocked: the backoff (the user: "If a location is blocked then try it again in 1 minute" -> "exponential backoff up
+    to 2 minutes"), both runes again after each wait. Every blocked try is logged by rune (blocked.jsonl)."""
+    t = tinker(state, loc['loc'])
+    runes = loc['runes']
+    first = t.get('next_rune', 0) % len(runes)
+    order = runes[first:] + runes[:first]
     for attempt in range(len(BLOCKED_WAITS) + 1):
-        if away:
-            recall_reagents_ok(ONWARD_NEED, f'to try {entry["name"]} again')
-        st = recall_once(state, entry)
-        if attempt or st is None:
-            with open(BLOCKED_LOG, 'a', encoding='utf-8') as fh:
-                fh.write(json.dumps({'time': time.strftime('%Y-%m-%d %H:%M:%S'), 'rune': entry['name'],
-                                     'spot': entry.get('spot'), 'try': attempt + 1,
-                                     'blocked': st is None}) + '\n')
-        if st is not None:
-            return st
+        for rune in order:
+            if away:
+                recall_reagents_ok(ONWARD_NEED, f'to try {rune["name"]}')
+            gems.here['entry'] = rune
+            st = recall_once(state, rune)
+            if attempt or st is None or rune is not order[0]:
+                with open(BLOCKED_LOG, 'a', encoding='utf-8') as fh:
+                    fh.write(json.dumps({'time': time.strftime('%Y-%m-%d %H:%M:%S'), 'rune': rune['name'],
+                                         'spot': rune.get('spot'), 'try': attempt + 1,
+                                         'blocked': st is None}) + '\n')
+            if st is not None:
+                t['next_rune'] = (runes.index(rune) + 1) % len(runes)
+                t['last_rune'] = rune['name']
+                return st
+            if len(order) > 1 and rune is not order[-1]:
+                say(f'{rune["name"]}: that location is blocked; trying {order[order.index(rune) + 1]["name"]}')
         if attempt == len(BLOCKED_WAITS) or check_stop_file():
             break
         wait = BLOCKED_WAITS[attempt]
-        say(f'{entry["name"]}: that location is blocked; again in {wait} s')
+        say(f'{loc["name"]}: ' + ('both runes' if len(runes) > 1 else 'that location') + f' blocked; again in {wait} s')
         end = time.time() + wait
         while time.time() < end:
             if away:
@@ -709,7 +722,46 @@ def recall_to(v, state, entry, me, away):
             elif taken():
                 raise UserHas(f'the user took over ({taken()})')
             time.sleep(10)
-    raise Blocked(f'{entry["name"]}: the location stayed blocked (tried again after {sum(BLOCKED_WAITS)} s)')
+    raise Blocked(f'{loc["name"]}: every rune stayed blocked (tried again after {sum(BLOCKED_WAITS)} s)')
+
+
+def location_key(name):
+    """ "Britain 1", "Britain 2" -> "Britain"; "Serpents Tinker" (the old book) -> "Serpents" """
+    import re
+    return re.sub(r'\s+(\d+|tinker)$', '', name.strip(), flags=re.I)
+
+
+def norm(name):
+    import re
+    return re.sub('[^a-z]', '', location_key(name).split()[0].lower()) if name.strip() else ''
+
+
+def locations(entries):
+    """The book's runes by town, in the book's order, rune 1 before rune 2."""
+    import re
+    out = {}
+    for e in entries:
+        key = location_key(e['name'])
+        e['loc'] = key
+        out.setdefault(key, {'loc': key, 'name': key, 'runes': []})['runes'].append(e)
+    def number(e):
+        m = re.search(r'(\d+)$', e['name'])
+        return int(m.group(1)) if m else 0
+    for loc in out.values():
+        loc['runes'].sort(key=number)
+    return out
+
+
+def rekey(state, locs):
+    """The tinkers' state by town (it was by runebook slot, one rune a town, before 2026-11-24 17:00)."""
+    tinkers = state.setdefault('tinkers', {})
+    by_norm = {norm(k): k for k in locs}
+    for old in [k for k in tinkers if k.isdigit()]:
+        t = tinkers.pop(old)
+        new = by_norm.get(norm(t.get('name') or ''))
+        if new and new not in tinkers:
+            tinkers[new] = t
+            say(f'the state of {t.get("name")} (slot {old}) is now {new}\'s')
 
 
 # ---- the schedule: a clock per tinker ----
@@ -831,7 +883,7 @@ def trip(v, state, entries, todo):
     except gems.PlayerInTown as e:
         why = 'player'
         say(f'leaving town: {e}')
-        slot = (gems.here.get('entry') or {}).get('slot')
+        slot = (gems.here.get('entry') or {}).get('loc')
         if slot is not None:
             # the town rule (map and gem trips): home, and 15 minutes before going back there
             skip(state, slot, PLAYER_WAIT, str(e))
@@ -841,7 +893,7 @@ def trip(v, state, entries, todo):
             raise Stop(f'could not leave the castle: {e}')
         why = str(e)
         say(f'leaving town: {e}')
-        slot = (gems.here.get('entry') or {}).get('slot')
+        slot = (gems.here.get('entry') or {}).get('loc')
         if isinstance(e, trips.GoHome) and slot is not None:
             skip(state, slot, SKIP_BLOCKED, str(e))
             say(f'{entries[slot]["name"]}: skipped for {SKIP_BLOCKED // 60} minutes ({e})')
@@ -951,8 +1003,8 @@ def migrate(state):
 
 def schedule_line(state, entries):
     return '; '.join(f"{e['name'].replace(' Tinker', '')} " +
-                     ('now' if due_at(state, e['slot']) <= time.time() else
-                      time.strftime('%H:%M', time.localtime(due_at(state, e['slot'])))) for e in entries)
+                     ('now' if due_at(state, e['loc']) <= time.time() else
+                      time.strftime('%H:%M', time.localtime(due_at(state, e['loc'])))) for e in entries)
 
 
 def run(once=False, now=False, keep_count=False):
@@ -986,13 +1038,17 @@ def run(once=False, now=False, keep_count=False):
     g = gems.open_book(state)
     entries = gems.book_entries(g)
     gems.close_book(g)
-    by_slot = {e['slot']: e for e in entries}
-    for e in entries:
-        tinker(state, e['slot'])['name'] = e['name']
+    by_slot = locations(entries)  # by town: two runes each since 2026-11-24 17:00
+    rekey(state, by_slot)
+    for key in by_slot:
+        tinker(state, key)['name'] = key
     sync_areas(entries)
     if now:
-        for e in entries:
-            tinker(state, e['slot']).pop('skip_until', None)
+        for key in by_slot:
+            tinker(state, key).pop('skip_until', None)
+    entries = list(by_slot.values())  # the schedule lines go by town
+    save_state(state)
+    say('the runebook: ' + ', '.join(f"{k} ({', '.join(r['name'] for r in loc['runes'])})" for k, loc in by_slot.items()))
     say('the tinkers are due: ' + schedule_line(state, entries))
     idle, last_wait_line = 0, None
     while not check_stop_file():

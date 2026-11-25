@@ -114,36 +114,36 @@ def test_visit_cycle():
     S.gems.check_town = lambda v, me: None
     S.VISITS = os.path.join(tempfile.mkdtemp(), 'visits.jsonl')
     v = {'npcs': {'0x1': 'Merele the tinker'}}
-    entry = {'slot': 0, 'name': 'Britain Tinker'}
+    entry = {'loc': 'Britain', 'name': 'Britain'}
     try:
         S.buy_from = lambda v, st, e, tk: (19, 19, 14, 0)
-        state = {'tinkers': {'0': {'bought_out': True, 'due': time.time() - 10}}}
+        state = {'tinkers': {'Britain': {'bought_out': True, 'due': time.time() - 10}}}
         before = time.time()
         done = S.visit(v, state, entry, '0xme')
-        t = state['tinkers']['0']
+        t = state['tinkers']['Britain']
         check('a due tinker bought out: done, clock restarted an hour on',
               done and t['bought_out'] is True and t['due'] >= before + S.RESTOCK - 1)
         # a pack too small: he buys 10 of 19, goes home full; the clock must not restart on the way back
         S.buy_from = lambda v, st, e, tk: (10, 19, 14, 9)
-        state = {'tinkers': {'0': {'bought_out': True, 'due': time.time() - 10}}}
+        state = {'tinkers': {'Britain': {'bought_out': True, 'due': time.time() - 10}}}
         S.shovel_room = lambda: 0
         try:
             S.visit(v, state, entry, '0xme')
             check('full part way: raises Full', False, 'no exception')
         except S.Full:
             pass
-        first_due = state['tinkers']['0']['due']
+        first_due = state['tinkers']['Britain']['due']
         S.shovel_room = lambda: 50
         S.buy_from = lambda v, st, e, tk: (9, 9, 14, 0)
         time.sleep(0.01)
         S.visit(v, state, entry, '0xme')
-        t = state['tinkers']['0']
+        t = state['tinkers']['Britain']
         check('the revisit for the rest keeps the clock of the first open', t['due'] == first_due and t['bought_out'])
         # Serpent's Hold after the first round: bought_out False, no clock yet -> the visit starts one
         S.buy_from = lambda v, st, e, tk: (19, 19, 14, 0)
-        state = {'tinkers': {'6': {'bought_out': False}}}
-        S.visit(v, state, {'slot': 6, 'name': 'Serpents Tinker'}, '0xme')
-        check('no clock yet: the visit starts one', state['tinkers']['6'].get('due'))
+        state = {'tinkers': {"Serpent's": {'bought_out': False}}}
+        S.visit(v, state, {'loc': "Serpent's", 'name': "Serpent's"}, '0xme')
+        check('no clock yet: the visit starts one', state['tinkers']["Serpent's"].get('due'))
         # gold short with room left: to the bank
         S.buy_from = lambda v, st, e, tk: (5, 19, 14, 14)
         S.gold_carried = lambda: 3
@@ -177,7 +177,8 @@ def test_blocked_backoff():
         clock[0] += s
     S.time.sleep = fake_sleep
     S.time.time = lambda: clock[0]
-    entry = {'slot': 5, 'name': 'Magencia Tinker', 'spot': [3714, 2122]}
+    rune = {'slot': 5, 'name': 'Magencia Tinker', 'spot': [3714, 2122], 'loc': 'Magencia'}
+    entry = {'loc': 'Magencia', 'name': 'Magencia', 'runes': [rune]}
     try:
         S.recall_once = lambda state, e: None  # blocked every time
         try:
@@ -208,6 +209,53 @@ def test_blocked_backoff():
         (S.recall_once, S.recall_reagents, S.time.sleep, S.say, S.BLOCKED_LOG, S.check_stop_file, S.taken,
          S.gems.check_town) = saved
         S.time.time = real_time
+
+
+def test_two_runes():
+    """2026-11-24 17:00, the user: "I fixed it by creating 2 runes for each location. From now on we should alternate
+    betweek rune 1 and 2 for each location"."""
+    book = [{'slot': i, 'name': n, 'spot': [0, 0]} for i, n in enumerate([
+        'Britain 1', 'Britain 2', 'Jhelom 1', 'Jhelom 2', 'Minoc 1', 'Minoc 2', 'Vesper 1', 'Vesper 2',
+        "Serpent's 1", "Serpent's 2", 'Magencia 1', 'Magencia 2', 'Trinsic 1', 'Trinsic 2'])]
+    locs = S.locations(book)
+    check('14 runes, 7 towns, rune 1 then 2', list(locs) == ['Britain', 'Jhelom', 'Minoc', 'Vesper', "Serpent's",
+                                                             'Magencia', 'Trinsic']
+          and all([r['name'][-1] for r in l['runes']] == ['1', '2'] for l in locs.values()))
+    # the old state (by slot, one rune a town) carried over by town
+    saved = S.say
+    S.say = lambda text: None
+    state = {'tinkers': {'0': {'name': 'Britain Tinker', 'due': 1}, '6': {'name': 'Serpents Tinker', 'due': 2},
+                         '5': {'name': 'Magencia Tinker', 'due': 3}}}
+    S.rekey(state, locs)
+    S.say = saved
+    check('the old clocks carried over by town', state['tinkers'].get('Britain', {}).get('due') == 1
+          and state['tinkers'].get("Serpent's", {}).get('due') == 2 and state['tinkers'].get('Magencia', {}).get('due') == 3
+          and not any(k.isdigit() for k in state['tinkers']))
+    # alternating, and the other rune at once when one is blocked
+    used = []
+    saved = (S.recall_once, S.recall_reagents, S.say, S.BLOCKED_LOG, S.check_stop_file, S.time.sleep)
+    S.recall_reagents = lambda: {'black pearl': 40, 'blood moss': 40, 'mandrake root': 40}
+    S.say = lambda text: None
+    S.BLOCKED_LOG = os.path.join(tempfile.mkdtemp(), 'blocked.jsonl')
+    S.check_stop_file = lambda: False
+    S.time.sleep = lambda s: None
+    try:
+        blocked = set()
+        S.recall_once = lambda st, rune: used.append(rune['name']) or (None if rune['name'] in blocked else {'x': 1})
+        state = {}
+        mag = locs['Magencia']
+        for _ in range(3):
+            S.recall_to({}, state, mag, '0xme', True)
+        check('alternates rune 1, 2, 1', used == ['Magencia 1', 'Magencia 2', 'Magencia 1'], used)
+        used.clear()
+        blocked = {'Magencia 2'}
+        S.recall_to({}, state, mag, '0xme', True)
+        check('rune 2 blocked: rune 1 at once, no wait', used == ['Magencia 2', 'Magencia 1'], used)
+        used.clear()
+        S.recall_to({}, state, mag, '0xme', True)
+        check('and next time rune 2 again (after the one that took him)', used[0] == 'Magencia 2', used)
+    finally:
+        S.recall_once, S.recall_reagents, S.say, S.BLOCKED_LOG, S.check_stop_file, S.time.sleep = saved
 
 
 def test_reagent_reserve():
@@ -318,7 +366,7 @@ def test_pause_flag():
 
 def main():
     for t in (test_names, test_full_bag_check, test_clocks, test_migrate, test_visit_cycle, test_blocked_backoff,
-              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag):
+              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag, test_two_runes):
         try:
             t()
         except Exception as e:
