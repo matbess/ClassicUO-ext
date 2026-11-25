@@ -403,7 +403,17 @@ def refill_reagents():
     mover = castle_site.Mover(uo, info, say)
     tower_chest, restock.CHEST = restock.CHEST, restock.CASTLE_CHEST
     try:
-        restock.ensure(walk=lambda: mover.walk_near(info, restock.CASTLE_CHEST))
+        try:
+            restock.ensure(walk=lambda: mover.walk_near(info, restock.CASTLE_CHEST))
+        except restock.Stop as e:
+            # the entrance chest has run short (2026-11-24 23:55: no black pearl or mandrake root): topped up from the
+            # user's backup chest by the forge, then the main reagents chest (the user: "yes obviously, get reagents from
+            # the other chest"; reagents_topup.py, which ends in the great hall with the table locked), then again
+            if 'below' not in str(e):
+                raise
+            topup_entrance_chest(str(e))
+            mover = castle_site.Mover(uo, info, say)
+            restock.ensure(walk=lambda: mover.walk_near(info, restock.CASTLE_CHEST))
     finally:
         restock.CHEST = tower_chest
     if mover.table_opened:  # (only if he was in front of the tables to start with)
@@ -412,6 +422,27 @@ def refill_reagents():
     else:
         mover.go(tools_room.OUT, 'back to the tools room')
         tools_room.walk_to(tools_room.STAND, 'into the tools room')
+
+
+def topup_entrance_chest(why):
+    """reagents_topup.py (the castle job): the entrance chest to 250 of each from the backup chest, then the main one.
+    Its whole table goes into the log as TOPUP lines for the user (memory: two full tables after each top-up)."""
+    import subprocess
+    say(f'the entrance reagent chest has run short ({why}): topping it up from the backup chest by the forge')
+    r = subprocess.run([sys.executable, '-I', os.path.join(HERE, 'reagents_topup.py')], capture_output=True,
+                       text=True, env=dict(os.environ, UO_CHAR='Clem'))
+    out = (r.stdout or '') + (r.stderr or '')
+    for line in out.splitlines():
+        if line.startswith('reagent ') or re_row(line) or 'STILL SHORT' in line or 'every reagent at' in line:
+            say('TOPUP: ' + line.rstrip())
+    if r.returncode:
+        raise Stop(f'the reagent top-up stopped: {out.strip().splitlines()[-1] if out.strip() else r.returncode}')
+
+
+def re_row(line):
+    import re
+    return re.match(r"^(black pearl|blood moss|garlic|ginseng|mandrake root|nightshade|spider's silk|sulfurous ash)\s+\d",
+                    line) is not None
 
 
 def prepare(state, need_mana):

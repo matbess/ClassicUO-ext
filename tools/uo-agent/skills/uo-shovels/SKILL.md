@@ -77,6 +77,8 @@ why, and where Clem is (always inside: the north door locked, the user's table l
 - **Recall reagents** (black pearl, blood moss, mandrake root): topped up from the user's entrance chest (938 2nd)
   before trips when any is below 25, straight back to the tools room (never the great hall); in town he always keeps
   3 of each for the way home.
+- **The entrance chest running out**: the loop tops it up itself (reagents_topup.py) and logs TOPUP lines: relay the
+  two tables (the entrance chest, what's left in the backup chest), as after any top-up.
 - **Home** is the skara rune `0x406EAA74` (by serial: its name was wiped by a second Mark; `0x408E20F9` "Skara" is the
   castle FRONT) to the north yard, the north door locked behind him. Not the great hall ("we skip it").
 - A player in town: ignored unless he comes within 1 tile and stays within 5 (10 s); then home, that town in 10 min. Takeover: stop at once, nothing sent. Blockers (no gold in
