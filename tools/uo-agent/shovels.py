@@ -868,6 +868,19 @@ def trip(v, state, entries, todo):
     return why
 
 
+def wait_until(t):
+    """In the tools room until t (the stop file, a takeover or a bridge stop end it early). Sends nothing."""
+    while time.time() < t:
+        if check_stop_file():
+            return
+        st = uo.call(info, 'GET', '/status')
+        if st.get('takenOver'):
+            raise UserHas(f'the user took over ({st["takenOver"]})')
+        if st.get('halted'):
+            raise Stop(f'the bridge stopped ({st["halted"]})')
+        time.sleep(15)
+
+
 def migrate(state):
     """The first round (16:11-16:19, one clock for the whole round): each tinker's first open as his clock."""
     rnd = state.get('round') or {}
