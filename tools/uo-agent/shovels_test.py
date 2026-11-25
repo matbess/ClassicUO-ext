@@ -359,6 +359,32 @@ def test_door_on_no_path():
         S.gems.approach, S.call, S.say, S.time.sleep = saved
 
 
+def test_door_on_no_answer():
+    asks, used = [], []
+    def fake_shop(serial, mode):
+        asks.append(serial)
+        if len(asks) == 1:
+            raise S.trips.GoHome('no answer from the mapmaker to "Amie buy", three times')
+        return {'open': True, 'items': []}
+    def fake_call(method, endpoint, **p):
+        if endpoint == '/rules':
+            return {'doors': ['0x4001008F']}
+        if endpoint == '/nearby':
+            return {'items': [{'serial': '0x4001008F', 'type': 'wooden door', 'x': 2895, 'y': 787}]}
+        if endpoint == '/use':
+            used.append(p['serial'])
+            return {}
+    saved = (S.trips.shop, S.call, S.say, S.time.sleep)
+    S.trips.shop, S.call, S.say, S.time.sleep = fake_shop, fake_call, (lambda t: None), (lambda x: None)
+    try:
+        r = S.shop_buy('0xAmie')
+        check('no answer: the door opened, asked again', used == ['0x4001008F'] and len(asks) == 2 and r.get('open'))
+    except Exception as e:
+        check('no answer: the door opened, asked again', False, repr(e))
+    finally:
+        S.trips.shop, S.call, S.say, S.time.sleep = saved
+
+
 def test_reagent_reserve():
     check('3 of each kept for the way home (3 tries)', S.HOME_RESERVE == 3)
     check('on to a tinker needs 2 casts more', S.ONWARD_NEED == S.HOME_RESERVE + 2)
@@ -470,7 +496,7 @@ def test_pause_flag():
 
 def main():
     for t in (test_names, test_full_bag_check, test_clocks, test_migrate, test_visit_cycle, test_blocked_backoff,
-              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag, test_two_runes, test_players, test_bad_rune, test_batching, test_door_on_no_path):
+              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag, test_two_runes, test_players, test_bad_rune, test_batching, test_door_on_no_path, test_door_on_no_answer):
         try:
             t()
         except Exception as e:

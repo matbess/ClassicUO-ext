@@ -569,17 +569,33 @@ def approach(vendor):
     except trips.GoHome as e:
         if 'no way to' not in str(e) and 'no path' not in str(e):
             raise
-        allowed = set(call('GET', '/rules').get('doors', []))
-        near = [i for i in call('GET', '/nearby', range=DOOR_REACH)['items']
-                if i['serial'] in allowed and 'door' in (i.get('type') or i.get('name') or '').lower()]
-        if not near:
+        if not open_doors_near('no path to the tinker'):
             raise
-        for d in near:
-            a = call('POST', '/use', serial=d['serial'])
-            say(f"no path to the tinker: opened the door {d['serial']} at {d.get('x')},{d.get('y')}"
-                + (f' ({texts(a)})' if texts(a) else ''))
-        time.sleep(1)
         return gems.approach(vendor)
+
+
+def open_doors_near(why):
+    """Every door in his rules within DOOR_REACH tiles used once (opened). True if there was one."""
+    allowed = set(call('GET', '/rules').get('doors', []))
+    near = [i for i in call('GET', '/nearby', range=DOOR_REACH)['items']
+            if i['serial'] in allowed and 'door' in (i.get('type') or i.get('name') or '').lower()]
+    for d in near:
+        a = call('POST', '/use', serial=d['serial'])
+        say(f"{why}: opened the door {d['serial']} at {d.get('x')},{d.get('y')}" + (f' ({texts(a)})' if texts(a) else ''))
+    if near:
+        time.sleep(1)
+    return bool(near)
+
+
+def shop_buy(serial):
+    """trips.shop(serial, 'buy'), but no answer at all opens his rules' doors nearby and asks once more: a vendor
+    doesn't hear through a wall (Vesper 2's spot is outside Amie's door 0x4001008F, 18:42: three times unanswered)."""
+    try:
+        return trips.shop(serial, 'buy')
+    except trips.GoHome as e:
+        if 'no answer' not in str(e) or not open_doors_near('no answer from the tinker'):
+            raise
+        return trips.shop(serial, 'buy')
 
 
 def strangers_near(v, me, within):
@@ -640,7 +656,7 @@ def buy_from(v, state, entry, tinker):
     label = v['npcs'].get(serial, serial)
     if not tinker.get('title'):
         gems.titles(v, [serial])  # the client forgets titles once he has left town; the bridge needs it
-    r = trips.shop(serial, 'buy')
+    r = shop_buy(serial)
     rows = [i for i in r.get('items', []) if int(i['graphic'], 16) in SHOVELS]
     stock = sum(i.get('amount') or 0 for i in rows)
     price = max((i.get('price') or 0) for i in rows) if rows else None
