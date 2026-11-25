@@ -1008,6 +1008,12 @@ def trip(v, state, entries, todo):
                     rune = (gems.here.get('entry') or {}).get('name')
                     if 'no way to' not in str(e) or not rune or len(usable_runes(state, entry)) < 2:
                         raise
+                    try:  # the doors about, for the user and for his rules (Serpent's 2, 19:53: a door not yet known)
+                        doors = [f"{i['serial']} at {i.get('x')},{i.get('y')}" for i in
+                                 call('GET', '/nearby', range=14)['items'] if 'door' in (i.get('type') or '').lower()]
+                        say(f'{rune}: doors about: ' + (', '.join(doors) or 'none'))
+                    except (uo.BridgeError, Stop) as e2:
+                        say(f'{rune}: looking for doors: {e2}')
                     state.setdefault('bad_runes', {})[rune] = f"{time.strftime('%Y-%m-%d %H:%M')}: {e}"
                     save_state(state)
                     say(f'{rune}: {e}; set aside (needs re-marking), the other rune now')
