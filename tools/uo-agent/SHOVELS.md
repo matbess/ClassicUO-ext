@@ -125,6 +125,16 @@ tinker visit) and `vendors.json` (the NPCs and players seen). Newer notes win wh
   from 22 to 17 (gems.recall_to cast three times per try). Now one cast per try (`recall_once`), and no try in town
   without 3 of each left.
 
+## The tools room filling up
+
+- **The next row** (the user, 2026-11-24): "When you fill up those 4 columns completely full of bags and shovels then
+  you'll go to the next 'row' of 4 spots on the floor" (y 2346, x 944-947); the axe stacks on the west wall are on
+  hold ("we're not going to do axes right now, we're goign to do shovels instead, so put the axe stacks on hold for
+  now, we might find another place for them"). Not built yet: 4 stacks x 20 bags x 50 = 4,000 shovels first ("Do the
+  second row when we get to it"); tools_room.py stops and asks when all 4 are 20 high. Then: the 4 spots at y 2346
+  as shovel stacks, filled only once the first row is full, and Clem's stand moved off 945,2346 (945,2347 reaches
+  both rows).
+
 ## What to tell the user
 
 **A status line in the chat after every trip home** (the user, 2026-11-24: "print a status update line here showing
