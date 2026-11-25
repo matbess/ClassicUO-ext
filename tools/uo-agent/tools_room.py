@@ -394,7 +394,7 @@ def fill(kind, found, pack, cache):
     order, _ = bags(kind)
     areas = {}
     for b in order:
-        if TRUST_CACHE and b['serial'] in cache and not fits(cache[b['serial']], graphics[0]):
+        if TRUST_CACHE and b['serial'] in cache and not fits(cache[b['serial']], next(iter(graphics))):
             continue  # full, as counted at the start of the run
         # every bag opened, full or not: the user takes tools out often (2026-11-21: "you should check the count ...
         # You shouldn't rely on the previous count being correct")
