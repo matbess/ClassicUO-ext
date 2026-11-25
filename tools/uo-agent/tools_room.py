@@ -59,11 +59,19 @@ TYPE = {'0x0F39': 'shovel', '0x0F3A': 'shovel', '0x0F43': 'hatchet', '0x0F44': '
 # each kind: its graphics, its stacks (bottom layer filled first, in this order), and whether only plain (non-magic)
 # ones in Clem's pack go (a sort's leftovers are passed in by serial, magic or not)
 KINDS = {
-    'shovels': {'graphics': {'0x0F39', '0x0F3A'}, 'stacks': [(944, 2345), (945, 2345), (946, 2345), (947, 2345)],
+    # the user, 2026-11-24: "When you fill up those 4 columns completely full of bags and shovels then you'll go to the
+    # next 'row' of 4 spots on the floor"; the axe stacks on hold ("we're not going to do axes right now ... we might
+    # find another place for them"): rows are filled in order, the next only once every stack before it is STACK_MAX
+    'shovels': {'graphics': {'0x0F39', '0x0F3A'},
+                'rows': [[(944, 2345), (945, 2345), (946, 2345), (947, 2345)],
+                         [(944, 2346), (945, 2346), (946, 2346), (947, 2346)]],
                 'plain_only': False},
     'axes': {'graphics': {g for g, t in TYPE.items() if t != 'shovel'},
-             'stacks': [(944, 2346), (944, 2347), (944, 2348)], 'plain_only': True},
+             'stacks': [(944, 2347), (944, 2348)], 'plain_only': True},
 }
+for _k in KINDS.values():
+    _k.setdefault('rows', [_k.get('stacks', [])])
+    _k['stacks'] = [s for row in _k['rows'] for s in row]
 ALIASES = {'hatchets': 'axes'}
 PER_BAG, MAX_STONES = 50, 250
 STACK_MAX = 20
@@ -192,12 +200,11 @@ def fetch_backpacks(n, pack):
 def place_bag(serial, kind):
     """A backpack from his pack onto the lowest of that kind's stacks (west first)."""
     _, by_spot = bags(kind)
-    spots = KINDS[kind]['stacks']
-    room = [s for s in spots if len(by_spot.get(s, [])) < STACK_MAX]
-    if not room:
+    spot = next_spot(kind, by_spot)
+    if not spot:
         raise td.Stop(f'the {kind} stacks are all {STACK_MAX} high: where do the next bags go? '
                       f'(the backpack {serial} is in his pack)')
-    x, y = min(room, key=lambda s: (len(by_spot.get(s, [])), spots.index(s)))
+    x, y = spot
     r = uo.call(info, 'POST', '/move', serial=serial, ground=1, x=x, y=y)
     got = uo.call(info, 'GET', '/item', serial=serial)
     it = got['item']
@@ -205,6 +212,16 @@ def place_bag(serial, kind):
         raise td.Stop(f"the backpack {serial} didn't go down on the stack at {x},{y} "
                       f"({' | '.join(m.get('text', '') for m in r.get('messages', []))})")
     return dict(it, serial=serial)
+
+
+def next_spot(kind, by_spot):
+    """Where the next bag goes: the lowest stack of the first row with room (west first); the next row only once
+    every stack of the rows before it is STACK_MAX high. None when every row is full."""
+    for row in KINDS[kind]['rows']:
+        room = [s for s in row if len(by_spot.get(s, [])) < STACK_MAX]
+        if room:
+            return min(room, key=lambda s: (len(by_spot.get(s, [])), row.index(s)))
+    return None
 
 
 def nearby_bags():

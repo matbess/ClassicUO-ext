@@ -403,6 +403,24 @@ def test_guildmasters_skipped():
         S.call, S.trips.save_vendor = saved
 
 
+def test_second_row():
+    """The next row of shovel stacks (y 2346) only once the first row's four are 20 high (the user, 2026-11-24)."""
+    row1 = [(944, 2345), (945, 2345), (946, 2345), (947, 2345)]
+    by = {s: [0] * 17 for s in row1}
+    check('first row not full: its lowest stack', tools_room.next_spot('shovels', by) == (944, 2345))
+    by = {s: [0] * 20 for s in row1}
+    by[(947, 2345)] = [0] * 19
+    check('one first-row stack still has room: that one', tools_room.next_spot('shovels', by) == (947, 2345))
+    by = {s: [0] * 20 for s in row1}
+    check('first row full: the second row, west first', tools_room.next_spot('shovels', by) == (944, 2346))
+    by.update({(944, 2346): [0] * 3})
+    check('then the lowest of the second row', tools_room.next_spot('shovels', by) == (945, 2346))
+    by.update({s: [0] * 20 for s in [(944, 2346), (945, 2346), (946, 2346), (947, 2346)]})
+    check('both rows full: none (stop and ask)', tools_room.next_spot('shovels', by) is None)
+    check('the axes no longer use 944,2346', (944, 2346) not in tools_room.KINDS['axes']['stacks'])
+    check('the shovels\' stacks cover both rows', len(tools_room.KINDS['shovels']['stacks']) == 8)
+
+
 def test_reagent_reserve():
     check('3 of each kept for the way home (3 tries)', S.HOME_RESERVE == 3)
     check('on to a tinker needs 2 casts more', S.ONWARD_NEED == S.HOME_RESERVE + 2)
@@ -514,7 +532,7 @@ def test_pause_flag():
 
 def main():
     for t in (test_names, test_full_bag_check, test_clocks, test_migrate, test_visit_cycle, test_blocked_backoff,
-              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag, test_two_runes, test_players, test_bad_rune, test_batching, test_door_on_no_path, test_door_on_no_answer, test_guildmasters_skipped):
+              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag, test_two_runes, test_players, test_bad_rune, test_batching, test_door_on_no_path, test_door_on_no_answer, test_guildmasters_skipped, test_second_row):
         try:
             t()
         except Exception as e:
