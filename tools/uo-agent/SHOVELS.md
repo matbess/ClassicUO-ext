@@ -111,6 +111,13 @@ tinker visit) and `vendors.json` (the NPCs and players seen). Newer notes win wh
   improve the rune locations for those"): every blocked try in `blocked.jsonl` (time, rune, spot, try number);
   `python3 -I shovels.py blocked` sums them per rune. Magincia's was blocked 16:18-16:19 and again from 16:25 (the
   first, before the log).
+- **Pause** (the user, 2026-11-24: "I'd like to pause it so I can fix the runes and use clem for a while. The pause
+  ability should understand how to adjust the schedule when I pause/unpause"): `shovels.py pause` finishes the step
+  (in town: that tinker, home), puts the shovels away and exits, the rune and book staying in his pack;
+  `shovels.py resume` hands him back, comes home from wherever he is, re-reads the runebook (re-marked runes: the
+  rules' tinker areas follow, `sync_areas`), forgets the blocked skips, and goes on. A vendor's restock clock runs
+  through a pause, so nothing is shifted: whoever came due meanwhile is due at once. First paused 16:58 (Clem in
+  the tools room; the user fixing the Trinsic and Magincia runes).
 - **Blocked Recalls cost reagents**: 16:25-16:28 Magincia's blocked spot took black pearl, blood moss and mandrake
   from 22 to 17 (gems.recall_to cast three times per try). Now one cast per try (`recall_once`), and no try in town
   without 3 of each left.

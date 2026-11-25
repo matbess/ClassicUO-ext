@@ -67,6 +67,13 @@ STATE = os.path.join(WORK, 'state.json')
 VENDORS = os.path.join(WORK, 'vendors.json')
 VISITS = os.path.join(WORK, 'visits.jsonl')
 STOP_FILE = os.path.join(WORK, 'stop')
+# the user, 2026-11-24: "is there a pause ability? I'd like to pause it so I can fix the runes and use clem for a while.
+# The pause ability should understand how to adjust the schedule when I pause/unpause". `pause` writes this file: the
+# loop finishes the step it's on (in town: that tinker, home, the shovels away), keeps the rune and the book, and
+# exits. `resume` takes him back (the user asking is the handback), re-reads the runebook (re-marked runes: new spots,
+# his rules' areas follow), forgets the blocked-spot skips, and goes on from wherever he is. The clocks are the
+# vendors' own and kept running through the pause: whoever came due meanwhile is due at once, earliest first.
+PAUSE_FILE = os.path.join(WORK, 'paused')
 # every Recall spot found blocked (the user, 2026-11-24: "try to remember which locations are blocked frequently so I
 # can improve the rune locations for those"): one line per blocked try; `shovels.py blocked` sums them up
 BLOCKED_LOG = os.path.join(WORK, 'blocked.jsonl')
@@ -176,6 +183,9 @@ def check_stop_file():
     if os.path.exists(STOP_FILE) and not stopping['flag']:
         stopping['flag'] = True
         say('asked to stop: finishing this step, then home, the shovels away, the rune and book into the chest')
+    if os.path.exists(PAUSE_FILE) and not stopping['flag']:
+        stopping['flag'] = stopping['pause'] = True
+        say('asked to pause: finishing this step, then home and the shovels away; the rune and book stay with him')
     return stopping['flag']
 
 
@@ -881,6 +891,39 @@ def wait_until(t):
         time.sleep(15)
 
 
+RULES = os.path.join(HERE, 'rules', 'rules-Clem.json')
+AREA_HALF = 25
+
+
+def area_lines(entries):
+    return [f'    {{ "name": "tinker: {e["name"]}", "box": [{e["spot"][0] - AREA_HALF}, {e["spot"][1] - AREA_HALF}, '
+            f'{e["spot"][0] + AREA_HALF}, {e["spot"][1] + AREA_HALF}], "z": [-30, 80] }},' for e in entries if e.get('spot')]
+
+
+def sync_areas(entries, rules_path=None, agent_dir=None):
+    """Clem's rules' tinker areas from the runebook: a rune the user re-marked (to get off a blocked spot) moves its
+    area with it. Returns True when the rules changed (written here and into the client's Agent folder)."""
+    import re
+    rules_path = rules_path or RULES
+    text = open(rules_path, encoding='utf-8').read()
+    pat = re.compile(r'(?m)^    \{ "name": "tinker: .*\},\n')
+    old = pat.findall(text)
+    new = [line + '\n' for line in area_lines(entries)]
+    if not old or sorted(old) == sorted(new):
+        return False
+    first = pat.search(text).start()
+    text = pat.sub('', text)
+    text = text[:first] + ''.join(new) + text[first:]
+    with open(rules_path, 'w', encoding='utf-8') as fh:
+        fh.write(text)
+    if agent_dir is not False:
+        import shutil
+        shutil.copy(rules_path, os.path.join(agent_dir or uo.AGENT_DIR, 'rules-Clem.json'))
+    say("the runebook's spots changed: Clem's rules' tinker areas updated (" +
+        ', '.join(f"{e['name']} {e['spot']}" for e in entries) + ')')
+    return True
+
+
 def migrate(state):
     """The first round (16:11-16:19, one clock for the whole round): each tinker's first open as his clock."""
     rnd = state.get('round') or {}
@@ -946,6 +989,7 @@ def run(once=False, now=False, keep_count=False):
     by_slot = {e['slot']: e for e in entries}
     for e in entries:
         tinker(state, e['slot'])['name'] = e['name']
+    sync_areas(entries)
     if now:
         for e in entries:
             tinker(state, e['slot']).pop('skip_until', None)
@@ -981,6 +1025,15 @@ def run(once=False, now=False, keep_count=False):
             f"spent; the bank {bank.get('gold', '?')} gold (at {bank.get('time', '?')[-5:]}), he carries "
             f"{gold_carried()}; next due: {schedule_line(state, entries)}")
         last_wait_line = None
+    if stopping.get('pause'):
+        if shovels_carried():
+            put_away(state)
+        state['paused'] = time.strftime('%Y-%m-%d %H:%M:%S')
+        save_state(state)
+        st = status()
+        say(f"PAUSED: Clem waits in the tools room at {st['x']},{st['y']} with the rune and the book; the tinkers' "
+            f"clocks keep running (`shovels.py resume` goes on with whoever is due)")
+        return
     if stopping['flag'] or once:
         if shovels_carried():
             put_away(state)
@@ -1040,7 +1093,7 @@ def on_term(signum, frame):
 def main():
     global info
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('command', choices=['run', 'stop', 'cleanup', 'fetch', 'status', 'blocked'])
+    parser.add_argument('command', choices=['run', 'stop', 'pause', 'resume', 'cleanup', 'fetch', 'status', 'blocked'])
     parser.add_argument('--once', action='store_true', help='one round, then the cleanup')
     parser.add_argument('--keep-count', action='store_true',
                         help='a restart mid-run: no recount of the tools room, the count kept so far stands')
@@ -1052,6 +1105,12 @@ def main():
         return
     if args.command == 'blocked':
         blocked_report()
+        return
+    if args.command == 'pause':
+        open(PAUSE_FILE, 'w').close()
+        running = os.popen("pgrep -f 'Python -I shovels.py (run|resume)'").read().split()
+        print('asked: the loop finishes this step (in town: that tinker, then home), puts the shovels away and exits; '
+              'the rune and book stay with him' if running else 'paused (the loop was not running)')
         return
     if args.command == 'stop':
         open(STOP_FILE, 'w').close()
@@ -1066,18 +1125,35 @@ def main():
     trips.approach = gems.approach  # up to a vendor by his shop's way (gems.SHOP_ROOMS), another floor: on to the next
     trips.VENDOR = gems.VENDORS = VENDORS
     st = uo.call(info, 'GET', '/status')
+    if args.command == 'resume':
+        try:
+            os.remove(PAUSE_FILE)
+        except OSError:
+            pass
+        if st.get('takenOver'):  # the user asking to resume is the handback (the uo skill: start means handback)
+            uo.call(info, 'POST', '/resume', handback=True)
+            say(f"handed back by the user to resume (was: {st['takenOver']})")
+            st = uo.call(info, 'GET', '/status')
+    elif os.path.exists(PAUSE_FILE) and args.command == 'run':
+        sys.exit('paused: `shovels.py resume` to go on')
     if st.get('takenOver'):
         sys.exit(f"the user has him ({st['takenOver']}): `uo --char Clem handback` when they ask for a job with him")
     if st.get('halted'):
         sys.exit(f"the bridge has stopped ({st['halted']}): look first")
     try:
-        if args.command == 'run':
+        if args.command in ('run', 'resume'):
             try:
                 os.remove(STOP_FILE)
             except OSError:
                 pass
             signal.signal(signal.SIGTERM, on_term)
-            run(args.once, args.now, args.keep_count)
+            if args.command == 'resume':
+                state = load_state()
+                state.pop('paused', None)
+                save_state(state)
+                run(now=True, keep_count=True)  # skips forgotten (the runes may be fixed), no recount mid-run
+            else:
+                run(args.once, args.now, args.keep_count)
         elif args.command == 'cleanup':
             cleanup(load_state())
         elif args.command == 'fetch':

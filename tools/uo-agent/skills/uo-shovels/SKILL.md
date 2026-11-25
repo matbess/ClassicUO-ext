@@ -24,12 +24,25 @@ python3 -I shovels_test.py                 # offline checks: run after ANY chang
 python3 -I shovels.py run                  # a new run: counts the tools room once, then the loop
 python3 -I shovels.py run --keep-count     # a restart mid-run (new code, a crash, the nightly reboot): no recount
 python3 -I shovels.py stop                 # the user said stop: home, shovels away, rune + book into their chest
+python3 -I shovels.py pause                # the user wants Clem for a while: finishes the step, home, exits (keeps the kit)
+python3 -I shovels.py resume               # the user said go on: handback, re-reads the book, due tinkers at once
 python3 -I shovels.py status               # clocks, stock, prices, skips, totals
 python3 -I shovels.py blocked              # which rune spots were blocked how often (for the user to re-mark)
 ```
 
 Run `run` in the background (`run_in_background`, output to `~/claude/uo-agent-work/shovels/run.out`); the log is
 `~/claude/uo-agent-work/shovels/shovels.log`.
+
+## Pause and resume (the user, 2026-11-24)
+
+"I'd like to pause it so I can fix the runes and use clem for a while. The pause ability should understand how to
+adjust the schedule when I pause/unpause." `pause` (the user says pause: start it at once and say so; it finishes
+the step it's on, minutes in town, so they can also just take Clem over) leaves Clem in the tools room with the rune
+and the book and exits; stop the Monitor too (no tokens while paused). `resume`: the user asking is the handback; he
+goes on from wherever the user left him (town, the yard, the courtyard: home first), the runebook is read again and a
+re-marked rune moves its tinker area in his rules (`sync_areas`), the blocked-spot skips are forgotten. The clocks are
+the vendors' own and kept running: every tinker who came due during the pause is due at once, earliest first; nobody
+is pushed back. Run `resume` in the background like `run`, and start the Monitor again.
 
 ## Watching it: quietly
 

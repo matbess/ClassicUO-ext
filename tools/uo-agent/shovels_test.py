@@ -243,9 +243,82 @@ def test_gold():
         S.status, S.est_price = saved
 
 
+def strip_comments(text):
+    """The rules file is JSON with // comments (the bridge reads it so): the comments out, strings left alone."""
+    out, i, in_str = [], 0, False
+    while i < len(text):
+        c = text[i]
+        if in_str:
+            out.append(c)
+            if c == '\\':
+                out.append(text[i + 1])
+                i += 1
+            elif c == '"':
+                in_str = False
+        elif c == '"':
+            in_str = True
+            out.append(c)
+        elif text.startswith('//', i):
+            while i < len(text) and text[i] != '\n':
+                i += 1
+            continue
+        else:
+            out.append(c)
+        i += 1
+    return ''.join(out)
+
+
+def test_sync_areas():
+    """A re-marked rune moves its tinker area in Clem's rules; the rest of the rules file is untouched."""
+    import shutil
+    d = tempfile.mkdtemp()
+    path = os.path.join(d, 'rules-Clem.json')
+    shutil.copy(os.path.join(HERE, 'rules', 'rules-Clem.json'), path)
+    before = open(path, encoding='utf-8').read()
+    saved = S.say
+    S.say = lambda text: None
+    try:
+        entries = [{'slot': i, 'name': n, 'spot': p} for i, (n, p) in enumerate([
+            ('Britain Tinker', [1424, 1661]), ('Jhelom Tinker', [1395, 3808]), ('Minoc Tinker', [2464, 453]),
+            ('Trinsic Tinker', [1841, 2675]), ('Vesper Tinker', [2901, 786]), ('Magencia Tinker', [3720, 2130]),
+            ('Serpents Tinker', [2942, 3510])])]
+        changed = S.sync_areas(entries, path, agent_dir=False)
+        after = open(path, encoding='utf-8').read()
+        check('a moved rune: the rules change', changed)
+        check('Magincia\'s area follows the new spot', '"box": [3695, 2105, 3745, 2155]' in after)
+        strip = lambda t: [line for line in t.splitlines() if '"tinker: ' not in line]
+        check('nothing else in the rules changes', strip(before) == strip(after))
+        check('seven tinker areas, still', after.count('"name": "tinker: ') == 7)
+        check('the same book again: no change', not S.sync_areas(entries, path, agent_dir=False))
+        json.loads(strip_comments(after))
+        check('the rules still parse', True)
+    except ValueError as e:
+        check('the rules still parse', False, repr(e))
+    finally:
+        S.say = saved
+
+
+def test_pause_flag():
+    saved = (S.PAUSE_FILE, S.STOP_FILE, S.say, dict(S.stopping))
+    d = tempfile.mkdtemp()
+    S.PAUSE_FILE, S.STOP_FILE = os.path.join(d, 'paused'), os.path.join(d, 'stop')
+    S.say = lambda text: None
+    S.stopping.clear()
+    S.stopping['flag'] = False
+    try:
+        check('not paused: carries on', not S.check_stop_file())
+        open(S.PAUSE_FILE, 'w').close()
+        check('paused: the loop winds down as a pause, not a stop',
+              S.check_stop_file() and S.stopping.get('pause') is True)
+    finally:
+        S.PAUSE_FILE, S.STOP_FILE, S.say = saved[:3]
+        S.stopping.clear()
+        S.stopping.update(saved[3])
+
+
 def main():
     for t in (test_names, test_full_bag_check, test_clocks, test_migrate, test_visit_cycle, test_blocked_backoff,
-              test_reagent_reserve, test_gold):
+              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag):
         try:
             t()
         except Exception as e:
