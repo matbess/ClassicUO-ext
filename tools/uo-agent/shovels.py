@@ -94,7 +94,13 @@ ONWARD_MANA = 11 + 11 + 5     # on to the next place in town: that Recall, and t
 # unblock, then move on, we'll try it again on the next round. We don't want to wait too long or the vendors won't be
 # refreshed after 1 hour. it will get out of sync")
 BLOCKED_WAITS = [15, 30, 60, 120]
-PLAYER_WAIT = trips.PLAYER_WAIT  # 15 minutes inside after a player in town (the map and gem trips' rule)
+# players in town (the user, 2026-11-24, after Clem left Jhelom for someone 15 tiles off: "I don't want you to do this.
+# We're in town and not carrying much. You should only do this if the player gets within 1 tile of you and doesn't leave
+# (they stay within 5 tiles). Then leave and come back 10 min later"): a stranger who comes within PLAYER_CLOSE and is
+# still within PLAYER_STAY PLAYER_STAY_SECS later sends him home; that town again in PLAYER_WAIT. Anyone else: ignored.
+PLAYER_CLOSE, PLAYER_STAY, PLAYER_STAY_SECS = 1, 5, 10
+PLAYER_WAIT = 10 * 60
+close_by = {}  # stranger serial -> when he first came within PLAYER_CLOSE
 # the courtyard rune, known by its serial: the user marked it in the courtyard (2026-11-24 15:53:55), named it "skara",
 # then marked it again (15:54:50), which wiped the name ("a recall rune for an unknown location"). The rune that IS
 # named "a recall rune for Skara" is 0x408E20F9, the user's recall-home rune to the castle FRONT (935,2356, among the
@@ -548,6 +554,43 @@ def bank(state, todo):
 
 # ---- at the tinkers ----
 
+def strangers_near(v, me, within):
+    """People within `within` tiles who aren't known NPCs, yellow vendors or the user's characters; anyone new that close
+    gets his paperdoll looked at once (a title makes him an NPC)."""
+    near = [m for m in call('GET', '/nearby', range=max(within, 2))['mobiles']
+            if m.get('human') and not m.get('dead') and m['serial'] != me and m.get('distance', 99) <= within
+            and m.get('notoriety') != 'Invulnerable' and (m.get('name') or '').strip().lower() not in gems.FRIENDS]
+    npcs = trips.known_npcs(v)
+    unknown = [m['serial'] for m in near if m['serial'] not in npcs and m['serial'] not in v['players']]
+    if unknown:
+        for serial, title in gems.titles(v, unknown).items():
+            if title and trips.NPC_LABEL.search(title):
+                v['npcs'][serial] = title
+        trips.save_vendor(v)
+        npcs = trips.known_npcs(v)
+    return [m for m in near if m['serial'] not in npcs]
+
+
+def check_town(v, me):
+    """Leave only for a stranger who comes within PLAYER_CLOSE tile(s) and stays within PLAYER_STAY tiles for
+    PLAYER_STAY_SECS (the user, 2026-11-24). Replaces gems.check_town for the shovel runs (meditation, waits too)."""
+    now = time.time()
+    near = {m['serial']: m for m in strangers_near(v, me, PLAYER_STAY)}
+    for serial in list(close_by):
+        if serial not in near:
+            del close_by[serial]  # he left: forgotten
+    for serial, m in near.items():
+        if m.get('distance', 99) <= PLAYER_CLOSE and serial not in close_by:
+            close_by[serial] = now
+            say(f'{m.get("name") or "someone"} ({serial}) came within {PLAYER_CLOSE} tile; leaving if he stays within '
+                f'{PLAYER_STAY} tiles for {PLAYER_STAY_SECS} s')
+    stayed = [near[s] for s, t in close_by.items() if now - t >= PLAYER_STAY_SECS]
+    if stayed:
+        close_by.clear()
+        who = ', '.join(f'{m.get("name") or "?"} ({m["serial"]}, {m.get("distance")} tiles)' for m in stayed)
+        raise gems.PlayerInTown(f'a player came close and stayed: {who}')
+
+
 def find_tinkers(v, me):
     near = [m for m in call('GET', '/nearby', range=trips.SIGHT)['mobiles']
             if m.get('human') and not m.get('dead') and m['serial'] != me]
@@ -885,7 +928,7 @@ def trip(v, state, entries, todo):
         say(f'leaving town: {e}')
         slot = (gems.here.get('entry') or {}).get('loc')
         if slot is not None:
-            # the town rule (map and gem trips): home, and 15 minutes before going back there
+            # home, and that town again in 10 minutes (the user, 2026-11-24)
             skip(state, slot, PLAYER_WAIT, str(e))
             say(f'{entries[slot]["name"]}: not before {PLAYER_WAIT // 60} minutes from now')
     except (gems.LeaveTown, trips.GoHome) as e:
@@ -1178,6 +1221,7 @@ def main():
     trips.LOG = carto.LOG = gems.LOG = castle.LOG = restock.LOG = LOG
     tools_room.say = say
     tools_room.castle_move.say = say
+    gems.check_town = check_town    # players: only one who comes close and stays (the user, 2026-11-24)
     trips.approach = gems.approach  # up to a vendor by his shop's way (gems.SHOP_ROOMS), another floor: on to the next
     trips.VENDOR = gems.VENDORS = VENDORS
     st = uo.call(info, 'GET', '/status')

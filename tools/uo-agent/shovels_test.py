@@ -258,6 +258,50 @@ def test_two_runes():
         S.recall_once, S.recall_reagents, S.say, S.BLOCKED_LOG, S.check_stop_file, S.time.sleep = saved
 
 
+def test_players():
+    """Only a stranger who comes within 1 tile and stays within 5 for 10 s sends him home (the user, 2026-11-24)."""
+    seen = []
+    saved = (S.strangers_near, S.say, S.time.time)
+    clock = [1000.0]
+    S.time.time = lambda: clock[0]
+    S.say = lambda text: None
+    S.close_by.clear()
+    try:
+        S.strangers_near = lambda v, me, within: [m for m in seen if m['distance'] <= within]
+        seen[:] = [{'serial': '0xA', 'distance': 15}]
+        S.check_town({}, '0xme')
+        check('someone 15 tiles off: ignored', True)
+        seen[:] = [{'serial': '0xA', 'distance': 3}]
+        S.check_town({}, '0xme')
+        check('3 tiles off, never closer: ignored', not S.close_by)
+        seen[:] = [{'serial': '0xA', 'distance': 1}]
+        S.check_town({}, '0xme')
+        clock[0] += 5
+        seen[:] = [{'serial': '0xA', 'distance': 4}]
+        S.check_town({}, '0xme')
+        check('came within 1, 5 s later still within 5: not yet', '0xA' in S.close_by)
+        clock[0] += 6
+        try:
+            S.check_town({}, '0xme')
+            check('came within 1 and stayed within 5 for 10 s: home', False, 'no exception')
+        except S.gems.PlayerInTown:
+            check('came within 1 and stayed within 5 for 10 s: home', True)
+        seen[:] = [{'serial': '0xB', 'distance': 1}]
+        S.check_town({}, '0xme')
+        clock[0] += 4
+        seen[:] = []
+        S.check_town({}, '0xme')
+        clock[0] += 20
+        seen[:] = [{'serial': '0xB', 'distance': 4}]
+        S.check_town({}, '0xme')
+        check('came close but walked off: forgotten, no leaving', '0xB' not in S.close_by or
+              S.close_by['0xB'] == clock[0])
+        check('the town again in 10 minutes', S.PLAYER_WAIT == 600)
+    finally:
+        S.strangers_near, S.say, S.time.time = saved
+        S.close_by.clear()
+
+
 def test_reagent_reserve():
     check('3 of each kept for the way home (3 tries)', S.HOME_RESERVE == 3)
     check('on to a tinker needs 2 casts more', S.ONWARD_NEED == S.HOME_RESERVE + 2)
@@ -366,7 +410,7 @@ def test_pause_flag():
 
 def main():
     for t in (test_names, test_full_bag_check, test_clocks, test_migrate, test_visit_cycle, test_blocked_backoff,
-              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag, test_two_runes):
+              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag, test_two_runes, test_players):
         try:
             t()
         except Exception as e:

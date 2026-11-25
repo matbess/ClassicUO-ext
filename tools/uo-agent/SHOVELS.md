@@ -91,7 +91,10 @@ tinker visit) and `vendors.json` (the NPCs and players seen). Newer notes win wh
   We don't want to wait too long or the vendors won't be refreshed after 1 hour"), then on to the next due tinker;
   that one is tried again every 10 minutes (the user: "re-schedule the ones that were blocked to try them again each
   10 minutes").
-- **A player in town**: home, and that tinker not for 15 minutes (the map and gem trips' rule). A tinker who can't be
+- **A player in town** (the user, 2026-11-24, after Clem left Jhelom for someone 15 tiles off: "I don't want you to do
+  this. We're in town and not carrying much. You should only do this if the player gets within 1 tile of you and
+  doesn't leave (they stay within 5 tiles). Then leave and come back 10 min later"): only a stranger who comes within 1
+  tile and is still within 5 tiles 10 s later sends him home; that town again in 10 minutes. Anyone else is ignored. A tinker who can't be
   reached (no answer three times, no path, another floor): not for 5 minutes, noted in his `skipped`.
 - **Blockers stop the loop, with him home**: no gold left in the bank, a rune or the book missing, a Recall that lands
   somewhere unexpected (at the castle front he comes in by the front door with the fight logic first), reagents short,
