@@ -204,8 +204,14 @@ def through(door, key, shut_at, outside, indoors, what, guard=None):
     say(f'through the {what}: locked and closed behind him')
 
 
-def find_rune(name):
-    """His rune whose name says `name` ("Castle", "Outpost"), in his pack or his reagent bag."""
+# the user's recall-home rune to the castle front: named "Castle" until 2026-11-24, then "a recall rune for Skara"
+# (claude-23's shovel job, SHOVELS.md), so it's also found by its serial
+HOME_RUNE = '0x408E20F9'
+
+
+def find_rune(name, serial=None):
+    """His rune whose name says `name` ("Castle", "Outpost"), in his pack or his reagent bag; else `serial`, if that
+    rune is there (a rune renamed since)."""
     try:
         call('POST', '/open', serial=restock.BAG)  # after a login the client knows nothing inside bags
         call('POST', '/close', serial=restock.BAG)
@@ -222,6 +228,8 @@ def find_rune(name):
     for a in call('POST', '/name', serial=','.join(runes)) if runes else []:
         if name.lower() in ' '.join(a.get('lines', [])).lower():
             return a['serial']
+    if serial and serial in runes:
+        return serial
     raise Stop(f'no "{name}" rune in his pack')
 
 
@@ -287,7 +295,7 @@ def go_in():
     if not (930 <= here[0] <= 941 and 2341 <= here[1] <= 2362):
         reagents_ok()  # leaving wherever he is for the castle's front
     if not (930 <= here[0] <= 941 and 2341 <= here[1] <= 2362):  # not at the castle yet: the Castle rune
-        st = recall(find_rune('Castle'), 'the Castle')
+        st = recall(find_rune('Castle', HOME_RUNE), 'the Castle')
         if max(abs(st['x'] - LANDING[0]), abs(st['y'] - LANDING[1])) > 3:
             raise Stop(f'the Castle rune put him at {st["x"]},{st["y"]}, not in front of the castle ({LANDING})')
         here = (st['x'], st['y'])

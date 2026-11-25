@@ -12,7 +12,8 @@ Clem does the sorting and the move. Never act as Icepick or Burgers.
 
 Every door ends **locked and closed**, as at the tower.
 
-1. **Recall** with Clem's "Castle" rune (`0x408E20F9`, in his red reagent bag). He lands outside the front at
+1. **Recall** with Clem's "Castle" rune (`0x408E20F9`, in his red reagent bag; named "a recall rune for Skara" since
+   2026-11-24, so `castle.find_rune` falls back to its serial, `castle.HOME_RUNE`). He lands outside the front at
    **935,2356,0**. It's wild country with creatures around: a troll, gorillas, a great hart, mountain goats and
    tropical birds were all about on 2026-11-18. The tower's outside rules apply (COMBAT.md: never leave him
    standing among creatures).
