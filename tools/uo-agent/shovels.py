@@ -646,7 +646,8 @@ def find_tinkers(v, me):
                 v['npcs'][serial] = title
         trips.save_vendor(v)
     found = [m for m in near if ' the tinker' in v['npcs'].get(m['serial'], '').lower()
-             and m.get('distance', 99) <= TINKER_RANGE]
+             and m.get('distance', 99) <= TINKER_RANGE and m['serial'] not in v.get('no_shovels', {})
+             and 'guildm' not in v['npcs'].get(m['serial'], '').lower()]  # guildmasters/-mistresses sell nothing
     return sorted(found, key=lambda m: m.get('distance', 99))
 
 
@@ -663,6 +664,11 @@ def buy_from(v, state, entry, tinker):
     if not rows:
         if r.get('open'):
             call('POST', '/shop', close=1)
+        elif r.get('answered'):
+            # answered but no buy window at all: a guildmaster (Prentice, Nadia, Raven, Galen, Jedidiah, Dirk), who
+            # sells nothing; never walked to again (18:45: Serpent's 2 was set aside for "no path" to Dirk)
+            v.setdefault('no_shovels', {})[serial] = label
+            trips.save_vendor(v)
         say(f'{label} ({entry["name"]}): no shovels in his list' + (f' ({texts(r)})' if texts(r) else ''))
         return 0, 0, None, 0
     room, gold = shovel_room(), gold_carried()
@@ -700,6 +706,7 @@ def visit(v, state, entry, me):
     if t.get('bought_out') is not False or not t.get('due'):  # the first open since he was bought out (or ever):
         # a new cycle, his clock starts
         t['opened'], t['due'], t['bought_out'] = time.time(), time.time() + RESTOCK, False
+        t.pop('left', None)  # last cycle's remainder means nothing now
     if not tinkers:
         say(f'no tinker near where {entry["name"]} lands')
         t['note'] = 'no tinker found'
@@ -956,7 +963,8 @@ def trip(v, state, entries, todo):
     away, why = False, None
     me = status()['serial']
     try:
-        if gold_carried() < min(round_need(state, todo), price * shovel_room()):
+        if gold_carried() < price * shovel_room():  # not enough for a full load: the bank first (18:45, Serpent's:
+            # an estimate from a stale count left him 14 gold at the second town)
             away = True  # (a failed Recall to the bank leaves him inside; home() then just comes back in)
             bank(state, todo)
         for slot in list(todo):

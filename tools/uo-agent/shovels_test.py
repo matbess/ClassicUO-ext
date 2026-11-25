@@ -385,6 +385,19 @@ def test_door_on_no_answer():
         S.trips.shop, S.call, S.say, S.time.sleep = saved
 
 
+def test_guildmasters_skipped():
+    v = {'npcs': {'0x1': 'Andre the tinker', '0x2': 'Dirk the tinker guildmaster', '0x3': 'Raven the tinker guildmistress',
+                  '0x4': 'Bob the tinker'}, 'no_shovels': {'0x4': 'Bob the tinker'}}
+    saved = (S.call, S.trips.save_vendor)
+    S.call = lambda m, e, **p: {'mobiles': [{'serial': k, 'human': True, 'distance': 3} for k in ('0x1', '0x2', '0x3', '0x4')]}
+    S.trips.save_vendor = lambda v: None
+    try:
+        found = [m['serial'] for m in S.find_tinkers(v, '0xme')]
+        check('guildmasters and known no-shovel tinkers are not walked to', found == ['0x1'], found)
+    finally:
+        S.call, S.trips.save_vendor = saved
+
+
 def test_reagent_reserve():
     check('3 of each kept for the way home (3 tries)', S.HOME_RESERVE == 3)
     check('on to a tinker needs 2 casts more', S.ONWARD_NEED == S.HOME_RESERVE + 2)
@@ -496,7 +509,7 @@ def test_pause_flag():
 
 def main():
     for t in (test_names, test_full_bag_check, test_clocks, test_migrate, test_visit_cycle, test_blocked_backoff,
-              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag, test_two_runes, test_players, test_bad_rune, test_batching, test_door_on_no_path, test_door_on_no_answer):
+              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag, test_two_runes, test_players, test_bad_rune, test_batching, test_door_on_no_path, test_door_on_no_answer, test_guildmasters_skipped):
         try:
             t()
         except Exception as e:
