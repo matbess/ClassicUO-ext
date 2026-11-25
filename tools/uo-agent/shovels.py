@@ -778,6 +778,25 @@ def usable_runes(state, loc):
     return good or loc['runes']
 
 
+# batching (the user, 2026-11-24: "yes, add the batching"): when another town comes due within BATCH_WINDOW of the first
+# one due, he waits for it and does both in one trip (a town reached a few minutes late loses nothing: his restock clock
+# starts a few minutes later), saving a trip home and back
+BATCH_WINDOW = 5 * 60
+
+
+def plan_trip(due_times, now):
+    """(towns to go to now, earliest due first; or [] and when to look again). Towns coming due within BATCH_WINDOW
+    of the earliest one due are waited for and taken along."""
+    ready = [k for k, t in due_times.items() if t <= now]
+    if not ready:
+        return [], min(due_times.values())
+    first = min(due_times[k] for k in ready)
+    soon = [t for k, t in due_times.items() if now < t <= first + BATCH_WINDOW]
+    if soon:
+        return [], max(soon)
+    return sorted(ready, key=lambda k: due_times[k]), now
+
+
 def location_key(name):
     """ "Britain 1", "Britain 2" -> "Britain"; "Serpents Tinker" (the old book) -> "Serpents" """
     import re
@@ -1117,11 +1136,10 @@ def run(once=False, now=False, keep_count=False):
     say('the tinkers are due: ' + schedule_line(state, entries))
     idle, last_wait_line = 0, None
     while not check_stop_file():
-        due = sorted((s for s in by_slot if due_at(state, s) <= time.time()), key=lambda s: due_at(state, s))
+        due, nxt = plan_trip({s: due_at(state, s) for s in by_slot}, time.time())
         if not due:
             if once and state.get('totals', {}).get('trips'):
                 break
-            nxt = min(due_at(state, s) for s in by_slot)
             state['next_due'] = time.strftime('%H:%M', time.localtime(nxt))
             save_state(state)
             st = status()

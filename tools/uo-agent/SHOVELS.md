@@ -86,6 +86,8 @@ tinker visit) and `vendors.json` (the NPCs and players seen). Newer notes win wh
   shovels.py checks it stands shut. Then the tools room (`tools_room.put(['shovels'], leave=False)`: every bag
   recounted, new backpacks from the spare backpacks chest as bags fill), the user's table locked again from behind
   it, and he waits at the stand (945,2346). First done 16:22:35-16:22:42.
+- **Batching** (the user, 2026-11-24: "yes, add the batching"): when another town comes due within 5 minutes of
+  the first one due, he waits for it and does both in one trip (`plan_trip`); a few minutes late costs a town nothing.
 - **Blocked spot** ("That location is blocked.", someone standing on the rune's spot; Magincia, 16:18): again after
   15, 30, 60 and 120 s (the user: "Do an exponential backoff up to 2 minutes. If it doesn't unblock, then move on ...
   We don't want to wait too long or the vendors won't be refreshed after 1 hour"), then on to the next due tinker;

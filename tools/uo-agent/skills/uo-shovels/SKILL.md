@@ -71,6 +71,7 @@ why, and where Clem is (always inside: the north door locked, the user's table l
 - **Tools room counted once per run**, never between trips or hours ("i don't want you to have to inventory 50000
   shovels and slow it down"). A restart mid-run is `--keep-count`.
 - **A clock per tinker**: due 61 minutes after his list was first opened in his last cycle; trips go to whoever is due.
+- **Batching**: towns due within 5 minutes of the first one due go in one trip.
 - **Blocked spot**: again after 15, 30, 60, 120 s, then the next tinker; that one again every 10 minutes, not the next
   hour.
 - **Recall reagents** (black pearl, blood moss, mandrake root): topped up from the user's entrance chest (938 2nd)

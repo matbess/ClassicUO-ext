@@ -311,6 +311,21 @@ def test_bad_rune():
     check('every rune set aside: all of them used still', len(S.usable_runes(state, t)) == 2)
 
 
+def test_batching():
+    """Towns coming due within 5 minutes of the first one due go in one trip (the user, 2026-11-24)."""
+    m = 60
+    go, at = S.plan_trip({'Vesper': 1000, "Serpent's": 1000 + 4 * m, 'Britain': 1000 + 43 * m}, 1000)
+    check('Vesper due, Serpent\'s 4 min later: wait for him', go == [] and at == 1000 + 4 * m, (go, at))
+    go, at = S.plan_trip({'Vesper': 1000, "Serpent's": 1000 + 4 * m, 'Britain': 1000 + 43 * m}, 1000 + 4 * m)
+    check('then both in one trip, earliest first', go == ['Vesper', "Serpent's"], go)
+    go, at = S.plan_trip({'Vesper': 1000, "Serpent's": 1000 + 6 * m}, 1000)
+    check('6 minutes apart: Vesper alone', go == ['Vesper'], go)
+    go, at = S.plan_trip({'A': 1000, 'B': 1000 + 3 * m, 'C': 1000 + 7 * m}, 1000 + 3 * m)
+    check('no chaining past 5 minutes of the first', go == ['A', 'B'], go)
+    go, at = S.plan_trip({'A': 2000, 'B': 2600}, 1000)
+    check('none due: look again at the next one', go == [] and at == 2000, (go, at))
+
+
 def test_reagent_reserve():
     check('3 of each kept for the way home (3 tries)', S.HOME_RESERVE == 3)
     check('on to a tinker needs 2 casts more', S.ONWARD_NEED == S.HOME_RESERVE + 2)
@@ -422,7 +437,7 @@ def test_pause_flag():
 
 def main():
     for t in (test_names, test_full_bag_check, test_clocks, test_migrate, test_visit_cycle, test_blocked_backoff,
-              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag, test_two_runes, test_players, test_bad_rune):
+              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag, test_two_runes, test_players, test_bad_rune, test_batching):
         try:
             t()
         except Exception as e:
