@@ -556,7 +556,7 @@ def bank(state, todo):
 
 # ---- at the tinkers ----
 
-DOOR_REACH = 4
+DOOR_REACH = 10  # his rules' doors this close are walked up to and opened (Vesper 2's spot is 7 tiles from Amie's door)
 
 
 def approach(vendor):
@@ -580,6 +580,12 @@ def open_doors_near(why):
     near = [i for i in call('GET', '/nearby', range=DOOR_REACH)['items']
             if i['serial'] in allowed and 'door' in (i.get('type') or i.get('name') or '').lower()]
     for d in near:
+        if d.get('distance', 0) > 1:
+            try:
+                call('POST', '/walk', to=d['serial'], distance=1)
+            except uo.BridgeError as e:
+                say(f"{why}: couldn't get to the door {d['serial']} at {d.get('x')},{d.get('y')}: {e}")
+                continue
         a = call('POST', '/use', serial=d['serial'])
         say(f"{why}: opened the door {d['serial']} at {d.get('x')},{d.get('y')}" + (f' ({texts(a)})' if texts(a) else ''))
     if near:

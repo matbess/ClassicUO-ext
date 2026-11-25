@@ -342,17 +342,22 @@ def test_door_on_no_path():
         if endpoint == '/rules':
             return {'doors': ['0x4000FCC9']}
         if endpoint == '/nearby':
-            return {'items': [{'serial': '0x4000FCC9', 'type': 'wooden door', 'x': 1849, 'y': 2678},
+            return {'items': [{'serial': '0x4000FCC9', 'type': 'wooden door', 'x': 1849, 'y': 2678, 'distance': 7},
                               {'serial': '0x4000AAAA', 'type': 'wooden door', 'x': 1850, 'y': 2679}]}
         if endpoint == '/use':
             used.append(p['serial'])
             return {}
+        if endpoint == '/walk':
+            walked.append(p.get('to'))
+            return {}
+    walked = []
     saved = (S.gems.approach, S.call, S.say, S.time.sleep)
     S.gems.approach, S.call, S.say, S.time.sleep = fake_approach, fake_call, (lambda t: None), (lambda x: None)
     try:
         S.approach('0xGayle')
         check('no path: the rules\' door opened, the walk tried again', used == ['0x4000FCC9'] and len(tries) == 2,
               (used, tries))
+        check('a door 7 tiles off: walked up to first', walked == ['0x4000FCC9'], walked)
     except Exception as e:
         check('no path: the rules\' door opened, the walk tried again', False, repr(e))
     finally:
