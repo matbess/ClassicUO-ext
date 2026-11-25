@@ -884,7 +884,12 @@ def due_at(state, slot):
     """When this tinker is next worth a visit: now if he isn't bought out in his current cycle (or never seen), else
     his clock; never before a skip ends."""
     t = tinker(state, slot)
-    at = time.time() if t.get('bought_out') is False or not t.get('due') else t['due']
+    if t.get('bought_out') is False:
+        # part bought: due since his cycle began, not "now" (a moving "now" let the batching wait on and on: Trinsic,
+        # 18:37, waited for Vesper's 18:41, then Serpent's 18:45)
+        at = t.get('opened') or time.time()
+    else:
+        at = t['due'] if t.get('due') else time.time()
     return max(at, t.get('skip_until') or 0)
 
 

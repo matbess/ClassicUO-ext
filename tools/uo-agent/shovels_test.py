@@ -322,6 +322,11 @@ def test_batching():
     check('6 minutes apart: Vesper alone', go == ['Vesper'], go)
     go, at = S.plan_trip({'A': 1000, 'B': 1000 + 3 * m, 'C': 1000 + 7 * m}, 1000 + 3 * m)
     check('no chaining past 5 minutes of the first', go == ['A', 'B'], go)
+    now = time.time()
+    state = {'tinkers': {'Trinsic': {'bought_out': False, 'opened': now - 8 * m},
+                         'Vesper': {'bought_out': True, 'due': now + 3 * m}}}
+    go, at = S.plan_trip({k: S.due_at(state, k) for k in state['tinkers']}, now)
+    check('a part-bought town is due since his cycle began: no waiting on later ones', go == ['Trinsic'], (go, at))
     go, at = S.plan_trip({'A': 2000, 'B': 2600}, 1000)
     check('none due: look again at the next one', go == [] and at == 2000, (go, at))
 
