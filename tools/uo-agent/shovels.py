@@ -962,8 +962,11 @@ def run(once=False, now=False, keep_count=False):
         idle = idle + 1 if (tot.get('bought', 0), len(due)) == before and why != 'player' else 0
         if idle >= 3:
             raise Stop(f'three trips in a row bought nothing and finished no tinker (last: {why}); he is home')
-        say(f"trip over: {tot.get('bought', 0)} shovels bought since the start for {tot.get('gold', 0)} gold; the "
-            f"tools room has {state.get('room_total', '?')}; next due: {schedule_line(state, entries)}")
+        bank = state.get('bank_gold') or {}
+        say(f"STATUS: TOOLS ROOM {state.get('room_total', '?')} shovels; this trip bought "
+            f"{tot.get('bought', 0) - before[0]}; this run {tot.get('bought', 0)} shovels for {tot.get('gold', 0)} gold "
+            f"spent; the bank {bank.get('gold', '?')} gold (at {bank.get('time', '?')[-5:]}), he carries "
+            f"{gold_carried()}; next due: {schedule_line(state, entries)}")
         last_wait_line = None
     if stopping['flag'] or once:
         if shovels_carried():
