@@ -36,7 +36,7 @@ symlink to `tools/uo-agent`). This skill lives at `tools/uo-agent/skills/uo/SKIL
    | Healing on a ghost | Burgers | `HEALING.md` | `heal.py` |
    | Cooking fish steaks for Intelligence | Icepick | `COOKING.md` | `cook.py` |
    | The Castle (new home, 2026-11-18): getting in, its chests, the move from the tower | Clem | `CASTLE.md` | `castle.py` |
-   | Buying shovels from the tinkers every hour for the castle tools room | Clem | `SHOVELS.md` | `shovels.py` |
+   | Buying shovels from the tinkers every hour for the castle tools room | Clem | `skills/uo-shovels/SKILL.md`, `SHOVELS.md` | `shovels.py`, `shovels_test.py` |
    | Running the castle: sorting intake loot, the tools room, spare backpacks, the entrance reagent chest | Clem | `skills/uo-castle/SKILL.md`, `CASTLE.md` | `tools_room.py`, `reagents_topup.py`, look/idall/plan/sortbatch/finish |
 
    Each doc ends with how to run it, what the user's words mean, and what to tell them. `HISTORY.md` is old notes.
