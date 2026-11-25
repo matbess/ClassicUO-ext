@@ -76,7 +76,8 @@ SHOVEL_STONES = 5             # a shovel weighs 5 stones (tools_room.WEIGHT; che
 WEIGHT_MARGIN = 10            # stones kept free under his max
 MIN_ROOM = 3                  # fewer shovels than this fit: home with the load
 COINS_PER_STONE = 50          # gold's weight (GEMS.md: 15,517 gold weighed about 310 stones)
-TINKER_RANGE = 12             # tinkers this close to where a rune lands are all bought from
+TINKER_RANGE = trips.SIGHT    # every tinker in sight of where a rune lands (Serpent's Hold: Andre the tinker was in sight
+                              # but past 12 tiles, 16:31:56, and was missed)
 GUESS_STOCK, GUESS_PRICE = 20, 15  # for the gold before a tinker's stock and price are known
 GROWTH = 10                   # each hour a bought-out tinker stocks about 9 more (the user)
 GOLD_LOADS = 2                # gold for at most this many full loads at a time (it weighs: 50 coins a stone)
@@ -578,7 +579,8 @@ def visit(v, state, entry, me):
     t = tinker(state, entry['slot'])
     t['name'] = entry['name']
     t.pop('skip_until', None)
-    if t.get('bought_out') is not False:  # the first open since he was bought out: a new cycle, his clock starts
+    if t.get('bought_out') is not False or not t.get('due'):  # the first open since he was bought out (or ever):
+        # a new cycle, his clock starts
         t['opened'], t['due'], t['bought_out'] = time.time(), time.time() + RESTOCK, False
     if not tinkers:
         say(f'no tinker near where {entry["name"]} lands')
@@ -850,6 +852,9 @@ def migrate(state):
     for slot, fo in (rnd.get('first_open') or {}).items():
         t = tinker(state, slot)
         if t.get('due'):
+            continue
+        if not fo.get('stock'):  # no shovels seen (Serpent's Hold: only the guildmaster was in range): due now
+            t['bought_out'] = False
             continue
         h, m = map(int, fo['time'].split(':'))
         lt = time.localtime()
