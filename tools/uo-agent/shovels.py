@@ -641,6 +641,8 @@ def recall_once(state, entry):
                 break
             time.sleep(0.15)
         say(f'Recall to {entry["name"]} did not take him: {said or "-"}')
+        if min(recall_reagents().values()) < HOME_RESERVE + 1:
+            break  # what's left is for the way home
         time.sleep(1.5)
     raise gems.LeaveTown(f'Recall to {entry["name"]} failed: {said or "-"}')
 
@@ -654,7 +656,7 @@ def recall_to(v, state, entry, me, away):
     location is blocked then try it again in 1 minute")."""
     for attempt in range(len(BLOCKED_WAITS) + 1):
         if away:
-            recall_reagents_ok(3, f'to try {entry["name"]} again')  # one for it, one home, one spare
+            recall_reagents_ok(ONWARD_NEED, f'to try {entry["name"]} again')
         st = recall_once(state, entry)
         if attempt or st is None:
             with open(BLOCKED_LOG, 'a', encoding='utf-8') as fh:
@@ -690,6 +692,12 @@ def recall_to(v, state, entry, me, away):
 # (restock.MINIMUM; to 45/40/45), and a trip needs at most about 12 Recalls (the bank twice, 7 tinkers, home, spares),
 # so he never leaves short. In town he checks before every Recall on that he keeps 2 of each (that one and home).
 RECALL_REAGENTS = {0x0F7A: 'black pearl', 0x0F7B: 'blood moss', 0x0F86: 'mandrake root'}
+# never so few that he can't get home (the user, 2026-11-24): the Recall home is tried up to 3 times (a fizzle uses
+# reagents too), so 3 of each are always kept for it; a Recall on in town may take 2 casts (recall_once casts again
+# after a fizzle). So: on to a tinker only with 2 + 3 of each; to the bank and back with 2 x 2 + 3.
+HOME_RESERVE = 3
+ONWARD_NEED = 2 + HOME_RESERVE
+BANK_NEED = 4 + HOME_RESERVE
 TRIP_RECALLS = 12
 
 
@@ -760,7 +768,7 @@ def trip(v, state, entries, todo):
             while True:
                 gems.here['entry'] = entry
                 if away:
-                    recall_reagents_ok(2, 'in town')
+                    recall_reagents_ok(ONWARD_NEED, 'in town')
                 try:
                     recall_to(v, state, entry, me, away)
                 except Blocked as e:
@@ -779,7 +787,7 @@ def trip(v, state, entries, todo):
                     say(f'{e}: to the bank and back')
                     if status()['mana'] < 11 * 3:
                         gems.meditate_in_town(v, me, 11 * 3 + 5)
-                    recall_reagents_ok(3, 'for the bank and back')
+                    recall_reagents_ok(BANK_NEED, 'for the bank and back')
                     bank(state, todo)
                     continue
     except NeedGold as e:
