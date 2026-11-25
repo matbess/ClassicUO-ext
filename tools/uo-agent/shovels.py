@@ -738,7 +738,8 @@ def recall_reagents_ok(need, where):
 
 
 RESTOCK = 61 * 60   # a tinker is due this long after his list was first opened in his last cycle
-SKIP_BLOCKED = 5 * 60  # a spot still blocked after the backoff: that tinker waits this long (others go on)
+SKIP_BLOCKED = 10 * 60  # a spot still blocked after the backoff: tried again every 10 minutes (the user, 2026-11-24:
+                        # "re-schedule the ones that were blocked to try them again each 10 minutes"); others go on
 
 
 def tinker(state, slot):

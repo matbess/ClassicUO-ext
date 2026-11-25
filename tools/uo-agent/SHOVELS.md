@@ -86,7 +86,8 @@ tinker visit) and `vendors.json` (the NPCs and players seen). Newer notes win wh
 - **Blocked spot** ("That location is blocked.", someone standing on the rune's spot; Magincia, 16:18): again after
   15, 30, 60 and 120 s (the user: "Do an exponential backoff up to 2 minutes. If it doesn't unblock, then move on ...
   We don't want to wait too long or the vendors won't be refreshed after 1 hour"), then on to the next due tinker;
-  that one waits 5 minutes.
+  that one is tried again every 10 minutes (the user: "re-schedule the ones that were blocked to try them again each
+  10 minutes").
 - **A player in town**: home, and that tinker not for 15 minutes (the map and gem trips' rule). A tinker who can't be
   reached (no answer three times, no path, another floor): not for 5 minutes, noted in his `skipped`.
 - **Blockers stop the loop, with him home**: no gold left in the bank, a rune or the book missing, a Recall that lands
