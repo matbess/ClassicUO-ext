@@ -64,9 +64,11 @@ tell the user.
 
 ## The tools room (south-east room)
 
-Backpacks stacked along the north wall (shovels, 50 a bag, stacks x 944-947 at y 2345) and the west wall (plain
-lumberjacking axes and hatchets, x 944 at y 2346-2348), one kind per bag, up to 250 stones a bag, **20 bags a
-stack** at most. Saws stay in the forge's tools chests.
+Backpacks in stacks on the floor, one kind per bag, up to 250 stones a bag, **20 bags a stack** at most. Shovels, 50
+a bag: the first row x 944-947 at y 2345, then (once all four are 20 high) the second row x 944-947 at y 2346 (the
+user, 2026-11-25, via the shovel session: the axes are on hold). Plain lumberjacking axes and hatchets: x 944 at
+y 2347-2348. `tools_room.KINDS` has the spots. Saws stay in the forge's tools chests. The shovel-buying loop
+(`uo-shovels` skill) fills the room hourly: 3,396 shovels in 68 bags on 2026-11-25 01:50.
 
 - **"Put the shovels away"** (or axes): `python3 -I tools_room.py put` (or `shovels` / `axes`). It finds them in
   Clem's pack, loose or in a bag (never a pouch), **recounts every bag in the room** (the user takes shovels out),
