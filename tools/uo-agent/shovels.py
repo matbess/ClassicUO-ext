@@ -377,9 +377,30 @@ def home(state):
     put_away(state)
 
 
+def refill_reagents():
+    """Any reagent below 25: topped up from the user's entrance reagent chest (938 2nd), and straight back to the tools
+    room. Not castle.reagents_ok(): its restock_inside ends with a walk past the user's table to the great hall, by the
+    west stairs (16:33, the user: "why is he going to the great hall?"); the chest's walkway is on the tools room's side
+    of the tables, so the table never moves for this."""
+    if not restock.low(restock.counts()):
+        return
+    mover = castle_site.Mover(uo, info, say)
+    tower_chest, restock.CHEST = restock.CHEST, restock.CASTLE_CHEST
+    try:
+        restock.ensure(walk=lambda: mover.walk_near(info, restock.CASTLE_CHEST))
+    finally:
+        restock.CHEST = tower_chest
+    if mover.table_opened:  # (only if he was in front of the tables to start with)
+        tools_room.MOVER = mover
+        stay_in_tools_room()
+    else:
+        mover.go(tools_room.OUT, 'back to the tools room')
+        tools_room.walk_to(tools_room.STAND, 'into the tools room')
+
+
 def prepare(state, need_mana):
     """Inside, before a trip out: reagents (any below 25: the user's chest), healed, mana for the trip."""
-    castle_call(castle.reagents_ok)
+    castle_call(refill_reagents)
     st = status()
     if st['hits'] < st['hitsMax'] and st['mana'] >= 11:
         a = call('POST', '/cast', spell=trips.HEAL, target=st['serial'])
@@ -877,7 +898,7 @@ def schedule_line(state, entries):
                       time.strftime('%H:%M', time.localtime(due_at(state, e['slot'])))) for e in entries)
 
 
-def run(once=False, now=False):
+def run(once=False, now=False, keep_count=False):
     state = load_state()
     st = status()
     say(f"--- shovels.py run: Clem at {st['x']},{st['y']},{st['z']}, {st['weight']}/{st['weightMax']} stones, "
@@ -895,7 +916,13 @@ def run(once=False, now=False):
     kit = fetch(state)
     if not kit['bank']:
         raise Stop('no "Ocllo Bank" rune in his pack (his reagent bag)')
-    count_room(state)
+    if keep_count:  # a restart in the middle of a run (new code): the count kept so far stands
+        tools_room.TRUST_CACHE = True
+        if shovels_carried():
+            put_away(state)
+        say(f'TOOLS ROOM: {room_shovels()} shovels (the count kept from the run so far)')
+    else:
+        count_room(state)
     migrate(state)
     v = gems.load_vendors()
     V['v'] = v
@@ -998,6 +1025,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('command', choices=['run', 'stop', 'cleanup', 'fetch', 'status', 'blocked'])
     parser.add_argument('--once', action='store_true', help='one round, then the cleanup')
+    parser.add_argument('--keep-count', action='store_true',
+                        help='a restart mid-run: no recount of the tools room, the count kept so far stands')
     parser.add_argument('--now', action='store_true', help='start a round at once, not at the next hour mark')
     args = parser.parse_args()
     os.makedirs(WORK, exist_ok=True)
@@ -1031,7 +1060,7 @@ def main():
             except OSError:
                 pass
             signal.signal(signal.SIGTERM, on_term)
-            run(args.once, args.now)
+            run(args.once, args.now, args.keep_count)
         elif args.command == 'cleanup':
             cleanup(load_state())
         elif args.command == 'fetch':
