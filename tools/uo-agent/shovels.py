@@ -556,6 +556,32 @@ def bank(state, todo):
 
 # ---- at the tinkers ----
 
+DOOR_REACH = 4
+
+
+def approach(vendor):
+    """gems.approach (a shop's way upstairs; on to the next when there's no way), but "no path" first opens any of his
+    rules' doors within DOOR_REACH tiles and tries again: the client's path finder takes a shut door for a wall (Trinsic
+    2's spot, 1850,2677, is outside the shop door 0x4000FCC9; the user, 2026-11-24: "you probably have to go through
+    the door")."""
+    try:
+        return gems.approach(vendor)
+    except trips.GoHome as e:
+        if 'no way to' not in str(e) and 'no path' not in str(e):
+            raise
+        allowed = set(call('GET', '/rules').get('doors', []))
+        near = [i for i in call('GET', '/nearby', range=DOOR_REACH)['items']
+                if i['serial'] in allowed and 'door' in (i.get('type') or i.get('name') or '').lower()]
+        if not near:
+            raise
+        for d in near:
+            a = call('POST', '/use', serial=d['serial'])
+            say(f"no path to the tinker: opened the door {d['serial']} at {d.get('x')},{d.get('y')}"
+                + (f' ({texts(a)})' if texts(a) else ''))
+        time.sleep(1)
+        return gems.approach(vendor)
+
+
 def strangers_near(v, me, within):
     """People within `within` tiles who aren't known NPCs, yellow vendors or the user's characters; anyone new that close
     gets his paperdoll looked at once (a title makes him an NPC)."""
@@ -1268,7 +1294,7 @@ def main():
     tools_room.say = say
     tools_room.castle_move.say = say
     gems.check_town = check_town    # players: only one who comes close and stays (the user, 2026-11-24)
-    trips.approach = gems.approach  # up to a vendor by his shop's way (gems.SHOP_ROOMS), another floor: on to the next
+    trips.approach = approach       # up to a vendor by his shop's way (gems.SHOP_ROOMS), another floor: on to the next
     trips.VENDOR = gems.VENDORS = VENDORS
     st = uo.call(info, 'GET', '/status')
     if args.command == 'resume':

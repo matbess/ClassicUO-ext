@@ -45,13 +45,20 @@
     { "name": "jeweler: Nujel'm Gems", "box": [3750, 1147, 3800, 1197], "z": [-30, 80] },
     // the tinkers in the Tinkers runebook (shovels.py; the user, 2026-11-24: buy all their shovels every hour): 25 tiles
     // round where each rune lands, from the book's sextant coordinates
-    { "name": "tinker: Britain Tinker", "box": [1399, 1636, 1449, 1686], "z": [-30, 80] },
-    { "name": "tinker: Jhelom Tinker", "box": [1370, 3783, 1420, 3833], "z": [-30, 80] },
-    { "name": "tinker: Minoc Tinker", "box": [2439, 428, 2489, 478], "z": [-30, 80] },
-    { "name": "tinker: Trinsic Tinker", "box": [1816, 2650, 1866, 2700], "z": [-30, 80] },
-    { "name": "tinker: Vesper Tinker", "box": [2876, 761, 2926, 811], "z": [-30, 80] },
-    { "name": "tinker: Magincia Tinker", "box": [3689, 2097, 3739, 2147], "z": [-30, 80] },
-    { "name": "tinker: Serpent's Hold Tinker", "box": [2917, 3485, 2967, 3535], "z": [-30, 80] },
+    { "name": "tinker: Britain 1", "box": [1399, 1636, 1449, 1686], "z": [-30, 80] },
+    { "name": "tinker: Britain 2", "box": [1405, 1622, 1455, 1672], "z": [-30, 80] },
+    { "name": "tinker: Jhelom 1", "box": [1370, 3783, 1420, 3833], "z": [-30, 80] },
+    { "name": "tinker: Jhelom 2", "box": [1381, 3789, 1431, 3839], "z": [-30, 80] },
+    { "name": "tinker: Minoc 1", "box": [2439, 428, 2489, 478], "z": [-30, 80] },
+    { "name": "tinker: Minoc 2", "box": [2447, 428, 2497, 478], "z": [-30, 80] },
+    { "name": "tinker: Vesper 1", "box": [2876, 761, 2926, 811], "z": [-30, 80] },
+    { "name": "tinker: Vesper 2", "box": [2863, 762, 2913, 812], "z": [-30, 80] },
+    { "name": "tinker: Serpent's 1", "box": [2917, 3485, 2967, 3535], "z": [-30, 80] },
+    { "name": "tinker: Serpent's 2", "box": [2907, 3482, 2957, 3532], "z": [-30, 80] },
+    { "name": "tinker: Magencia 1", "box": [3689, 2097, 3739, 2147], "z": [-30, 80] },
+    { "name": "tinker: Magencia 2", "box": [3701, 2095, 3751, 2145], "z": [-30, 80] },
+    { "name": "tinker: Trinsic 1", "box": [1816, 2650, 1866, 2700], "z": [-30, 80] },
+    { "name": "tinker: Trinsic 2", "box": [1825, 2652, 1875, 2702], "z": [-30, 80] },
     // the Castle (the user's new house, 2026-11-18; CASTLE.md): where the loot moves to and Clem will live. Not the
     // south-west rooms (x 925-934, y 2347-2350): the user's friend's, never touched (see offLimits)
     { "name": "castle front (outside, where the Castle rune lands)", "box": [929, 2351, 941, 2362], "z": [-20, 30] },
@@ -91,11 +98,13 @@
   // the vault door (metal, 1757,1412, z 26: shut 0x0681, open 0x0682) and its key ring locked down in the bag room at
   // 1756,1410 (z 38), as Icepick uses them (SMITHING.md); for the gem bag only (GEMS.md)
   // and shop doors on the way to a jeweler: Marnie's room upstairs in Trinsic (1896,2806, z 20; GEMS.md)
+  // the Trinsic tinker's shop door 0x4000FCC9 (1849,2678), between the Trinsic 2 rune's spot and Gayle (shovels.py; the user,
+  // 2026-11-24: "you probably have to go through the door")
   // the castle's north doors (0x40913573/0x40913575 at 934-935,2325) and their key ring 0x408CB8EB at 935,2326: the way in
   // from the north yard, where the courtyard ("skara") rune lands him (shovels.py; the user, 2026-11-24)
   // the castle's front door and central door (both halves), and the key rings hanging by them: 0x4093D690 outside
   // the front door, 0x408CB8EE on the courtyard side of the central door (CASTLE.md)
-  "doors": ["0x408AEA57", "0x408AEA54", "0x408AEA55", "0x408AEA59", "0x4000FCF3", "0x40913567", "0x40913568", "0x40913571", "0x40913572", "0x40913573", "0x40913575"],
+  "doors": ["0x408AEA57", "0x408AEA54", "0x408AEA55", "0x408AEA59", "0x4000FCF3", "0x40913567", "0x40913568", "0x40913571", "0x40913572", "0x40913573", "0x40913575", "0x4000FCC9"],
   "keys": ["0x4040A302", "0x404099E0", "0x4093D690", "0x408CB8EE", "0x408CB8EB"],
   // a trapped pouch, used when he's paralysed; and the Gems runebook (0x0EFA, a spellbook's graphic), opened to
   // press a rune's Recall button (GEMS.md); and for sorting (the user, 2026-11-14: "yes you can use Clem's

@@ -331,6 +331,34 @@ def test_batching():
     check('none due: look again at the next one', go == [] and at == 2000, (go, at))
 
 
+def test_door_on_no_path():
+    """No path to the tinker: his rules' doors within reach are opened and the walk tried again (Trinsic 2)."""
+    tries, used = [], []
+    def fake_approach(vendor):
+        tries.append(vendor)
+        if len(tries) == 1:
+            raise S.trips.GoHome('no way to the jeweler at 1845,2675: 409: no path to there')
+    def fake_call(method, endpoint, **p):
+        if endpoint == '/rules':
+            return {'doors': ['0x4000FCC9']}
+        if endpoint == '/nearby':
+            return {'items': [{'serial': '0x4000FCC9', 'type': 'wooden door', 'x': 1849, 'y': 2678},
+                              {'serial': '0x4000AAAA', 'type': 'wooden door', 'x': 1850, 'y': 2679}]}
+        if endpoint == '/use':
+            used.append(p['serial'])
+            return {}
+    saved = (S.gems.approach, S.call, S.say, S.time.sleep)
+    S.gems.approach, S.call, S.say, S.time.sleep = fake_approach, fake_call, (lambda t: None), (lambda x: None)
+    try:
+        S.approach('0xGayle')
+        check('no path: the rules\' door opened, the walk tried again', used == ['0x4000FCC9'] and len(tries) == 2,
+              (used, tries))
+    except Exception as e:
+        check('no path: the rules\' door opened, the walk tried again', False, repr(e))
+    finally:
+        S.gems.approach, S.call, S.say, S.time.sleep = saved
+
+
 def test_reagent_reserve():
     check('3 of each kept for the way home (3 tries)', S.HOME_RESERVE == 3)
     check('on to a tinker needs 2 casts more', S.ONWARD_NEED == S.HOME_RESERVE + 2)
@@ -442,7 +470,7 @@ def test_pause_flag():
 
 def main():
     for t in (test_names, test_full_bag_check, test_clocks, test_migrate, test_visit_cycle, test_blocked_backoff,
-              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag, test_two_runes, test_players, test_bad_rune, test_batching):
+              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag, test_two_runes, test_players, test_bad_rune, test_batching, test_door_on_no_path):
         try:
             t()
         except Exception as e:
