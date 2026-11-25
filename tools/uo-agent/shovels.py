@@ -505,7 +505,9 @@ def gold_to_carry(state, todo):
     st = status()
     load = max(1, (st['weightMax'] - WEIGHT_MARGIN - st['weight']) // SHOVEL_STONES)
     cap = int(GOLD_LOADS * load * est_price(state))
-    return max(est_price(state) * 10, min(round_need(state, todo), cap))
+    # at least a full load's worth: the estimate runs short when a tinker has grown (Trinsic 17:28: 266 gold for the 19
+    # of last hour, he had 28, a second bank trip)
+    return min(cap, max(round_need(state, todo), load * est_price(state)))
 
 
 def bank(state, todo):
@@ -734,7 +736,7 @@ def recall_to(v, state, loc, me, away):
     blocked: the backoff (the user: "If a location is blocked then try it again in 1 minute" -> "exponential backoff up
     to 2 minutes"), both runes again after each wait. Every blocked try is logged by rune (blocked.jsonl)."""
     t = tinker(state, loc['loc'])
-    runes = loc['runes']
+    runes = usable_runes(state, loc)
     first = t.get('next_rune', 0) % len(runes)
     order = runes[first:] + runes[:first]
     for attempt in range(len(BLOCKED_WAITS) + 1):
@@ -749,7 +751,7 @@ def recall_to(v, state, loc, me, away):
                                          'spot': rune.get('spot'), 'try': attempt + 1,
                                          'blocked': st is None}) + '\n')
             if st is not None:
-                t['next_rune'] = (runes.index(rune) + 1) % len(runes)
+                t['next_rune'] = (runes.index(rune) + 1) % len(runes)  # (counted among the usable ones)
                 t['last_rune'] = rune['name']
                 return st
             if len(order) > 1 and rune is not order[-1]:
@@ -766,6 +768,14 @@ def recall_to(v, state, loc, me, away):
                 raise UserHas(f'the user took over ({taken()})')
             time.sleep(10)
     raise Blocked(f'{loc["name"]}: every rune stayed blocked (tried again after {sum(BLOCKED_WAITS)} s)')
+
+
+def usable_runes(state, loc):
+    """The town's runes but those set aside (no way from them to the tinker; the user re-marks them). All of them if
+    every one is set aside."""
+    bad = state.get('bad_runes', {})
+    good = [r for r in loc['runes'] if r['name'] not in bad]
+    return good or loc['runes']
 
 
 def location_key(name):
@@ -912,6 +922,16 @@ def trip(v, state, entries, todo):
                         todo.remove(slot)
                         save_state(state)
                     break
+                except trips.GoHome as e:
+                    # no way from this rune to the tinker (Trinsic 2, 17:28:30: "no path to there" to Gayle from
+                    # 1850,2677): the rune is set aside and the town's other rune tried at once; the user re-marks it
+                    rune = (gems.here.get('entry') or {}).get('name')
+                    if 'no way to' not in str(e) or not rune or len(usable_runes(state, entry)) < 2:
+                        raise
+                    state.setdefault('bad_runes', {})[rune] = f"{time.strftime('%Y-%m-%d %H:%M')}: {e}"
+                    save_state(state)
+                    say(f'{rune}: {e}; set aside (needs re-marking), the other rune now')
+                    continue
                 except NeedGold as e:
                     say(f'{e}: to the bank and back')
                     if status()['mana'] < 11 * 3:
@@ -1089,6 +1109,8 @@ def run(once=False, now=False, keep_count=False):
     if now:
         for key in by_slot:
             tinker(state, key).pop('skip_until', None)
+        if state.pop('bad_runes', None):
+            say('the runes set aside are tried again (re-marked?)')
     entries = list(by_slot.values())  # the schedule lines go by town
     save_state(state)
     say('the runebook: ' + ', '.join(f"{k} ({', '.join(r['name'] for r in loc['runes'])})" for k, loc in by_slot.items()))
@@ -1122,7 +1144,8 @@ def run(once=False, now=False, keep_count=False):
         say(f"STATUS: TOOLS ROOM {state.get('room_total', '?')} shovels; this trip bought "
             f"{tot.get('bought', 0) - before[0]}; this run {tot.get('bought', 0)} shovels for {tot.get('gold', 0)} gold "
             f"spent; the bank {bank.get('gold', '?')} gold (at {bank.get('time', '?')[-5:]}), he carries "
-            f"{gold_carried()}; next due: {schedule_line(state, entries)}")
+            f"{gold_carried()}; next due: {schedule_line(state, entries)}"
+            + (f"; RUNES TO RE-MARK: {', '.join(state['bad_runes'])}" if state.get('bad_runes') else ''))
         last_wait_line = None
     if stopping.get('pause'):
         if shovels_carried():

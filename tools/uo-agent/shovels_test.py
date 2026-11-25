@@ -302,6 +302,15 @@ def test_players():
         S.close_by.clear()
 
 
+def test_bad_rune():
+    locs = S.locations([{'slot': 0, 'name': 'Trinsic 1', 'spot': [0, 0]}, {'slot': 1, 'name': 'Trinsic 2', 'spot': [0, 0]}])
+    t = locs['Trinsic']
+    state = {'bad_runes': {'Trinsic 2': 'no way'}}
+    check('a rune with no way to the tinker is set aside', [r['name'] for r in S.usable_runes(state, t)] == ['Trinsic 1'])
+    state = {'bad_runes': {'Trinsic 1': 'x', 'Trinsic 2': 'y'}}
+    check('every rune set aside: all of them used still', len(S.usable_runes(state, t)) == 2)
+
+
 def test_reagent_reserve():
     check('3 of each kept for the way home (3 tries)', S.HOME_RESERVE == 3)
     check('on to a tinker needs 2 casts more', S.ONWARD_NEED == S.HOME_RESERVE + 2)
@@ -331,6 +340,9 @@ def test_gold():
         carry = S.gold_to_carry(state, list(range(7)))
         load = (390 - S.WEIGHT_MARGIN - 90) // S.SHOVEL_STONES
         check('gold carried capped at 2 full loads (it weighs)', carry == int(S.GOLD_LOADS * load * 14), carry)
+        state = {'tinkers': {'0': {'stock': 19, 'price': 14, 'bought_out': False}}}
+        carry = S.gold_to_carry(state, ['0'])
+        check('at least a full load\'s worth (Trinsic had grown to 28)', carry == load * 14, carry)
     finally:
         S.status, S.est_price = saved
 
@@ -410,7 +422,7 @@ def test_pause_flag():
 
 def main():
     for t in (test_names, test_full_bag_check, test_clocks, test_migrate, test_visit_cycle, test_blocked_backoff,
-              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag, test_two_runes, test_players):
+              test_reagent_reserve, test_gold, test_sync_areas, test_pause_flag, test_two_runes, test_players, test_bad_rune):
         try:
             t()
         except Exception as e:
