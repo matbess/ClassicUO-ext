@@ -122,6 +122,8 @@
   // all accessible to friends for now")
   // "bank" at the Ocllo bank for gold for the shovels (shovels.py, the user, 2026-11-24)
   "say": ["bank", "all follow me", "remove thyself", "i wish to release this", "i wish to lock this down", "i wish to secure this"],
+  // Burgers: shovels and reagents handed to him at the Ocllo bank by trade (burgers.py, the user, 2026-11-26)
+  "partners": ["Burgers", "0x000425CA"],
   "mounts": ["0x00043254"],
   // bags of maps are put down at his feet: backpack, bag, pouch
   // and the castle's south-east table (0x0B34), put down beside him (bridge 15)

@@ -59,6 +59,10 @@ the south-west chests are the friend's and never touched) and the dump chests.
 hourly clock, gold from his Ocllo bank box, home by the "skara" rune to the castle's north yard and the north door, into
 the tools room): read `SHOVELS.md` first; the tool is `shovels.py`.
 
+**Shovels and reagents for Burgers** (Clem and Burgers, from 2026-11-26: when the mining session or the user asks, 3 bags
+of 50 shovels from the tools room and Burgers' four reagents traded to him at the Ocllo bank, 2 bags into his bank and
+the 3rd in his pack, the empty backpacks home): read `BURGERS.md` first; the tool is `burgers.py`.
+
 **The user taking over (every character, every tool; the user, 2026-11-14: "that should be shared across all the
 skills/agents").** Every character's rules have `"handOver": true`: any command the user gives a character themselves
 (a step, a spell, a skill, a double-click, a target, war mode, an attack; not Razor's lifts and drops or single
