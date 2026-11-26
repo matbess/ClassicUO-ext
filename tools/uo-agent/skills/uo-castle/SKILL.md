@@ -17,7 +17,8 @@ the short version: what each job is, the command, and what to tell the user.
    or a 423 "the user took over"), run `uo --char Clem handback` and go on; say so in one line afterwards. Never hand
    him back without a request, and never mid-run.
 2. **Another session may be driving Clem**: from 2026-11-24 an hourly shovel-buying loop (`shovels.py`, its own
-   session) takes him to the tinkers and back. `ps` for it and `ListAgents` (the `uo-team` skill); if it runs,
+   session) takes him to the tinkers and back, and from 2026-11-26 `burgers.py` (same session, BURGERS.md) hands
+   full shovel bags from the tools room to Burgers. `ps` for it and `ListAgents` (the `uo-team` skill); if it runs,
    message its session to park him between rounds before you touch him, and never drive him while it does.
 3. `uo --char Clem status`: where he is. The tools come in by themselves from the entrance room, the courtyard or
    the front (`castle.go_in`: window restock, the courtyard rune, the central door locked behind him).
