@@ -31,7 +31,7 @@ drives Burgers, who is the mining session's, and Clem, whom the shovel loop and 
 - Burgers' pack to 50 and his bank to 250 of each of the four reagents unless the asker gives numbers (`--reagents`).
 - 3 bags: the first 2 into his bank whole, the 3rd stays in his pack for Icepick.
 - He must have 253 stones free before each bag trip; if not it stops: tell the user ("he can't hold a bag").
-- The reagents ride along on the bag trips, split by weight; an extra trip only for what's left.
+- The bags first (bag trips carry only the bag), then the reagents on trips of their own; Clem never over his max less 10.
 - Empty backpacks from his bank and pack (never mine.py's spare-shovel bag) go home to the spare backpacks chest.
 - Clem ends in the tools room with the user's table locked; the skara rune back in the user's chest unless it's the
   shovel loop's kit. Problems: stop, Clem home, tell.

@@ -98,9 +98,33 @@ def test_bank_bags():
           B.BAG_STONES == 253 and "room < BAG_STONES" in src)
 
 
+def test_razor_click():
+    ev = [{'time': '15:21:40.600', 'kind': 'sent pick up', 'serial': 'b'},
+          {'time': '15:21:41.606', 'kind': 'sent drop', 'serial': 'b'},
+          {'time': '15:21:41.697', 'kind': 'sent double-click', 'serial': 'b'}]
+    check("Razor's AutoSearch: a click on the bag 0.09 s after its drop (15:21:41)", B.razor_click(ev, ev[2:]))
+    late = dict(ev[2], time='15:21:43.000')
+    check('a click two seconds later is the user', not B.razor_click(ev + [late], [late]))
+    other = dict(ev[2], serial='c')
+    check('a click on something else is the user', not B.razor_click(ev + [other], [other]))
+
+
+def test_inside_of():
+    got = {'item': {}, 'insideOf': [{'serial': '0x4093E516'}, {'serial': '0x0004344A', 'mobile': 'Clem'}]}
+    check("the bridge's insideOf is the chain: the first is the container it's in (15:24:44)",
+          B.inside_of(got) == '0x4093E516')
+    check('on the ground: none', B.inside_of({'item': {}}) is None)
+
+
+def test_reagents_separate():
+    src = open(os.path.join(HERE, 'burgers.py'), encoding='utf-8').read()
+    check('the reagents only on trips without a bag (Clem overloaded, 2026-11-26 15:29)', 'if not bag:' in src
+          and "st['weight'] > st['weightMax'] - WEIGHT_MARGIN" in src)
+
+
 def main():
     for t in (test_names, test_parse_reagents, test_needed, test_share, test_rules, test_pick_bag, test_loops,
-              test_bank_bags):
+              test_bank_bags, test_razor_click, test_inside_of, test_reagents_separate):
         try:
             t()
         except Exception as e:

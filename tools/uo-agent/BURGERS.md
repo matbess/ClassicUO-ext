@@ -16,8 +16,11 @@ both driven by the one script; the log is `~/claude/uo-agent-work/burgers/burger
   (the "skara" rune 0x406EAA74 in the user's chest 938 top, SHOVELS.md).
 - "get 1 bag of shovels from teh tools room and get the reagents Burgers needs (unless you don't have room, then take
   the reagents on a separate trip) and go to Ocllo bank and hand them to Burgers, then put them in burgers bank (there
-  is a reagents bag in his bank), just put the whole bag of shovels in his bank." Settled: **the reagents split over
-  the shovel trips by weight**; a trip of their own only if they still don't fit.
+  is a reagents bag in his bank), just put the whole bag of shovels in his bank." At first the reagents rode along on
+  the shovel trips, but on 2026-11-26 the entrance chest ran short on trip 2 and its top-up (reagents_topup.py) loaded
+  52 stones of reagents onto Clem on top of the bag: 399/390, stuck. The user: "I thought you were going to do the
+  reagents as a separate trip?" So: **the bags first, then the reagents on trips of their own**, and Clem never leaves
+  carrying more than his max less 10 stones.
 - "give Clem the empty bags from burgers bank and inventory (they were used to hold shovels) so he can bring them back
   to the castle. Go back to the castle, (make sure clem has enough reagents before you start btw) put the empty
   backpacks away, then get another bag of shovels and take it to burgers again. Then do that once more. You'll give

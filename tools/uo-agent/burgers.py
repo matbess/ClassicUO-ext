@@ -31,8 +31,10 @@ How it goes:
   trading. His rules file as it was is put back at the end (mine.py writes its own when it starts again).
 - Clem, from the tools room: his own reagents (any below 25 from the entrance chest), mana; the courtyard ("skara")
   rune from the user's chest if he hasn't got it (the shovel loop's kit may be in his pack); a full bag of 50 shovels
-  off the top of a stack (the tools room's record updated); Burgers' reagents for this trip from the entrance chest
-  (938 2nd), as piles of their own in his pack, never onto his casting reagents; Recall to the bank.
+  off the top of a stack (the tools room's record updated); Recall to the bank. After the bags, Burgers' reagents on
+  trips of their own (the user, 2026-11-26: a top-up of the entrance chest with the bag in his pack overloaded him),
+  from the entrance chest (938 2nd), as piles of their own in his pack, never onto his casting reagents. Never more
+  than his max less 10 stones when he leaves.
 - The trade: Burgers steps out next to Clem, Clem drops the bag and the reagents on him, Burgers drops the empty
   backpacks (from his bank, taken out beforehand, and from his pack: never the bag mine.py keeps his spare shovels in)
   on Clem, both accept. Burgers: "bank", the first two bags of shovels into the bank box whole (the third stays in his
@@ -81,7 +83,7 @@ MINING_STATE = os.path.expanduser('~/claude/uo-agent-work/mining/state.json')
 CLEM, BURGERS = '0x0004344A', '0x000425CA'
 BURGERS_BANK_RUNE = '0x406EDA8E'   # "a recall rune for Ocllo" in Burgers' pack (mining.RUNES['bank'])
 CLEM_LANDS = (3686, 2505)          # where Clem's "Ocllo Bank" rune puts him (59 landings in shovels.log)
-BURGERS_LANDS = (3686, 2506)       # where Burgers' rune puts him (mine.OCLLO_BANK)
+BURGERS_LANDS = (3686, 2511)       # where Burgers' rune put him, 2026-11-26 15:21:31 (mine.OCLLO_BANK says 2506)
 BANK_NEAR = 10
 BANK_AREA = '{ "name": "Ocllo bank (burgers.py)", "box": [3676, 2495, 3696, 2517], "z": [-10, 30] }'
 FULL_SPEED = '"pacing": { "gap": [1100, 1100], "burst": 1000, "break": [1100, 1100], "aim": [0, 0] }'
@@ -185,12 +187,31 @@ class Bur:
             raise Stop(f'Burgers: {e}')
 
     def call(self, method, endpoint, **params):
-        try:
-            return RAW_CALL(self.info, method, endpoint, **params)
-        except uo.TakenOver as e:
-            raise UserHas(f'the user took Burgers over ({e.message})')
-        except uo.BridgeError as e:
-            raise Stop(f'Burgers {method} {endpoint}: {e.message or e}')
+        for _ in range(3):
+            try:
+                return RAW_CALL(self.info, method, endpoint, **params)
+            except uo.TakenOver as e:
+                if not self.razor_opened():
+                    raise UserHas(f'the user took Burgers over ({e.message})')
+            except uo.BridgeError as e:
+                raise Stop(f'Burgers {method} {endpoint}: {e.message or e}')
+        raise Stop(f'Burgers {method} {endpoint}: Razor kept opening things')
+
+    def razor_opened(self):
+        """The takeover is Razor's AutoSearch: a double-click on a bag within half a second of the bridge dropping it
+        into his pack (2026-11-26 15:21:41: an empty backpack from his bank, opened 0.09 s after its drop). Then he's
+        handed back and True; anything else is the user."""
+        events = RAW_CALL(self.info, 'GET', '/events', after=0)['events']
+        st = RAW_CALL(self.info, 'GET', '/status')
+        took = st.get('takenOver') or ''
+        when = took[len('a double-click at '):] if took.startswith('a double-click at ') else None
+        clicks = [e for e in events if e.get('kind') == 'sent double-click' and when and e['time'].startswith(when)]
+        if not razor_click(events, clicks):
+            return False
+        RAW_CALL(self.info, 'POST', '/resume', handback=True)
+        say(f"Burgers: Razor's AutoSearch opened {clicks[-1]['serial']} as it landed in his pack ({took}): not the "
+            f"user; resumed")
+        return True
 
     def status(self):
         return self.call('GET', '/status')
@@ -243,6 +264,16 @@ class Bur:
             raise Stop(f'''Burgers' "bank" opened no bank box: {' | '.join(m['text'] for m in r.get('messages', []))}''')
         time.sleep(1)
         return box
+
+
+def razor_click(events, clicks):
+    """The last of these clicks came within 0.5 s after the bridge's own drop of the same item."""
+    if not clicks:
+        return False
+    secs = lambda t: sum(float(x) * m for x, m in zip(t.split(':'), (3600, 60, 1)))  # noqa: E731
+    c = clicks[-1]
+    return any(e.get('kind') == 'sent drop' and e.get('serial') == c.get('serial')
+               and 0 <= secs(c['time']) - secs(e['time']) <= 0.5 for e in events)
 
 
 def rules_with_bank(text):
@@ -328,12 +359,13 @@ class BankView:
         # his pack's empty backpacks too ("the empty bags from burgers bank and inventory"), but never the bag mine.py
         # keeps his spare shovels in (MINING.md, the user, 2026-11-04)
         keep = mining_shovel_bag()
-        self.pack_empties = []
+        self.pack_empties, self.pack_shovels = [], sum(1 for i in self.pack_items if i.get('graphic') in SHOVELS)
         for i in self.pack_items:
-            if i.get('graphic') == BACKPACK and i.get('container') and i['serial'] != keep:
-                if not b.open(i['serial']):
+            if i.get('graphic') == BACKPACK and i.get('container'):
+                inside = b.open(i['serial'])
+                self.pack_shovels += sum(1 for x in inside if x.get('graphic') in SHOVELS)
+                if not inside and i['serial'] != keep:
                     self.pack_empties.append(i['serial'])
-        self.pack_shovels = sum(1 for i in walk_all(self.pack_items) if i.get('graphic') in SHOVELS)
 
     def line(self):
         p, k = total(self.pack_piles), total(self.bank_piles)
@@ -427,6 +459,27 @@ def rune_back():
     shovels.stay_in_tools_room_safe()
 
 
+def inside_of(got):
+    """The container an item is directly in, from /item (insideOf is the chain, innermost first), or None."""
+    chain = got.get('insideOf') or []
+    if isinstance(chain, str):
+        return chain
+    return chain[0].get('serial') if chain else None
+
+
+def bag_in_pack(pack):
+    """A backpack of PER_BAG shovels and nothing else already in his pack (a run stopped after taking it), or None."""
+    for i in shovels.call('GET', '/contents', serial=pack, depth=2)['items']:
+        if i.get('graphic') == BACKPACK and i.get('container') and i['serial'] not in tools_room.KEEP:
+            inside = i.get('items') or []
+            if len(inside) != PER_BAG:
+                continue
+            items = tools_room.contents(i['serial'])[0]
+            if len(items) == PER_BAG and all(x.get('graphic') in SHOVELS for x in items):
+                return i['serial']
+    return None
+
+
 def pick_bag(by_spot, cache):
     """The bag to take: the top bag of the highest stack that holds PER_BAG shovels and nothing else (by the record),
     or None."""
@@ -442,6 +495,14 @@ def take_bag():
     """A full bag of shovels off the top of a stack into his pack (opened first: 50 shovels, nothing else)."""
     clem_call(tools_room.stand)
     cache = tools_room.load()
+    pack = clem_status()['backpack']['serial']
+    held = bag_in_pack(pack)
+    if held:
+        cache.pop(held, None)
+        tools_room.save(cache)
+        tools_room.to_page(cache)
+        say(f'the bag {held} (50 shovels) is in his pack already: that one')
+        return held, None
     _, by_spot = tools_room.bags('shovels')
     for _ in range(3):
         b = pick_bag(by_spot, cache)
@@ -455,10 +516,10 @@ def take_bag():
     else:
         tools_room.save(cache)
         raise Stop('no full bag of shovels found on the stacks')
-    pack = clem_status()['backpack']['serial']
     shovels.call('POST', '/move', serial=b['serial'], to=pack, x=44, y=65)
+    time.sleep(0.5)  # Razor's AutoSearch opens a bag as it lands: its click shows on the next request, this one
     got = shovels.call('GET', '/item', serial=b['serial'])
-    if got.get('insideOf') != pack:
+    if inside_of(got) != pack:
         raise Stop(f"the bag {b['serial']} didn't come into Clem's pack ({got})")
     cache.pop(b['serial'], None)
     tools_room.save(cache)
@@ -655,7 +716,7 @@ def burgers_put_away(b, view, bag, piles, to_bank=True):
     elif bag:
         r = b.call('POST', '/move', serial=bag, to=box)
         got = b.call('GET', '/item', serial=bag)
-        if got.get('insideOf') != box:
+        if inside_of(got) != box:
             where = 'pack'
             say(f"the bank box would not take the bag of shovels {bag} "
                 f"({' | '.join(m['text'] for m in r.get('messages', []))}): it stays in Burgers' pack")
@@ -706,6 +767,8 @@ def setup_clem():
     tools_room.castle_move.say = say
     tools_room.TRUST_CACHE = True  # the shovel run's count stands; the bags taken here come off the record
     st = uo.call(info, 'GET', '/status')
+    if st.get('takenOver') and tools_room.castle_move.razor_opened(None):  # Razor's AutoSearch (15:24:44), not the user
+        st = uo.call(info, 'GET', '/status')
     if st.get('takenOver'):
         raise UserHas(f"the user has Clem ({st['takenOver']})")
     if st.get('halted'):
@@ -721,7 +784,12 @@ def run(bags, asked, bank_bags=BANK_BAGS):
         raise Stop('the shovel loop is running: `shovels.py pause` first (and resume it after)')
     st = setup_clem()
     if not castle.inside((st['x'], st['y'])) and not tools_room.in_room((st['x'], st['y'])):
-        raise Stop(f"Clem starts from inside the castle; he's at {st['x']},{st['y']}")
+        if shovels.in_north_yard(st):
+            shovels.go_in_north()
+        elif shovels.in_courtyard(st) or (935 <= st['x'] <= 936 and 2348 <= st['y'] <= 2350):
+            shovels.go_in()  # the courtyard or the entrance room: in by the central door, locked behind him
+        else:
+            raise Stop(f"Clem starts from inside the castle; he's at {st['x']},{st['y']}")
     b = Bur()
     bst = b.status()
     if bst.get('takenOver'):
@@ -759,7 +827,9 @@ def run(bags, asked, bank_bags=BANK_BAGS):
                 say('asked to stop: no more trips')
                 break
             trip_no += 1
-            carry_bag = given < bags
+            # the bank's bags, then the reagents, then the bag for his pack (he has room for the reagents' trade
+            # before it: 253 stones in his pack after it)
+            carry_bag = given < bags and not (given >= bank_bags and any(left.values()))
             if carry_bag:
                 bst = b.status()
                 room = bst['weightMax'] - bst['weight']
@@ -770,11 +840,19 @@ def run(bags, asked, bank_bags=BANK_BAGS):
             bag = None
             if carry_bag:
                 bag, _ = clem_call(take_bag)
-            trips_left = max(1, bags - given)
-            bst = b.status()
-            bur_room = bst['weightMax'] - WEIGHT_MARGIN - bst['weight'] - (BAG_STONES if bag else 0)
-            want = share(left, trips_left, min(free_stones(), bur_room))
+            # the reagents on trips of their own, after the bags (the user, 2026-11-26 15:32, after Clem was
+            # overloaded: the entrance chest ran short and its top-up loaded 52 stones of reagents onto him on top of
+            # the bag of shovels: "I thought you were going to do the reagents as a separate trip?")
+            want = {}
+            if not bag:
+                bst = b.status()
+                bur_room = bst['weightMax'] - WEIGHT_MARGIN - bst['weight']
+                want = share(left, 1, min(free_stones(), bur_room))
             got = clem_call(take_reagents, want)
+            st = clem_status()
+            if st['weight'] > st['weightMax'] - WEIGHT_MARGIN:
+                raise Stop(f"Clem is carrying {st['weight']}/{st['weightMax']} stones before the trip: too much; "
+                           f"stopped in the castle")
             if not bag and not got:
                 raise Stop(f'trip {trip_no}: nothing fits in his pack ({free_stones()} stones free)')
             try:
@@ -815,9 +893,9 @@ def run(bags, asked, bank_bags=BANK_BAGS):
                            "bag of shovels is in his pack. Clem is home")
         view = BankView(b)
         b.hide()
-        say(f'FINAL: {given * PER_BAG} shovels given in {given} bags. ' + view.line())
-        if fetched:
-            rune_back()
+        say(f'FINAL: {given * PER_BAG} shovels given in {given} bags this run. ' + view.line())
+        if not shovels.find_kit({})['book']:  # (not the shovel loop's kit: it came out for this, maybe on an earlier
+            rune_back()                         # run that stopped, 2026-11-26)
     except Stop as e:
         if out['clem'] and not uo.call(info, 'GET', '/status').get('takenOver'):
             say(f'stopping ({e}): Clem home first')
