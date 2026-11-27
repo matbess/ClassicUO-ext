@@ -13,6 +13,9 @@ drives Burgers, who is the mining session's, and Clem, whom the shovel loop and 
 
 1. **Who asked.** Usually the mining session messages "Burgers needs shovels" (maybe with reagent numbers). The user
    asking is the handback for Clem (and Burgers): `uo --char NAME handback` if one shows `takenOver`.
+   **The user plays Clem too** (2026-11-26: "When the mining agent needs more shovels then I'll hand over clem to you
+   when you ask me"). So when the mining session asks, first ask the user for Clem, with the **Question:** at the
+   top of the message. Start only once they say yes; their yes is the handback.
 2. **Burgers must be free.** The mining session stops its loop and parks him first (its message says so). Check
    `ps -axo command | grep -E '[m]ine\.py|[l]umber\.py|[h]eal\.py'`: anything running, message the mining session
    and wait (`notify_when_idle`). Never drive Burgers while its loop runs.

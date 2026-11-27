@@ -5,6 +5,10 @@ description: Run the user's hourly shovel-buying loop in Ultima Online with Clem
 
 # Buying shovels with Clem
 
+**On hold since 2026-11-26** (the user: "dont' restart the shovel loop, we're not buying shovels anymore for a
+while. I'm playing clem as well."). Don't restart it or offer to until the user says buying is back on. It last
+stopped 2026-11-25 01:54, when the spare backpacks chest ran empty; the tools room then held about 3,300 shovels.
+
 Everything is in `~/claude/ClassicUO/tools/uo-agent`. **`SHOVELS.md` has the user's rules in their words, what's
 where (runes, serials, the tinkers) and everything learned; read it first.** This skill is the short version: how to
 run, watch, restart and stop it, and what to tell the user. Read the `uo` skill's rules (takeover, stop and tell, the

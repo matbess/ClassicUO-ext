@@ -34,6 +34,9 @@ both driven by the one script; the log is `~/claude/uo-agent-work/burgers/burger
 - "When you are done then you'll tell the mining agent that shovels and reagents were topped up if that agent was the
   one who requested for you to do this. If I requested it then you just tell me and not that agent."
 - A shovel loop that's running is paused for it (`shovels.py pause`), and resumed after (`shovels.py resume`).
+- 2026-11-26: "we're not buying shovels anymore for a while. I'm playing clem as well. When the mining agent needs
+  more shovels then I'll hand over clem to you when you ask me". So a request from the mining agent means: ask the
+  user for Clem first, and run only after they say yes.
 
 ## What's where
 

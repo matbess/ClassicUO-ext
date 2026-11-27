@@ -3,6 +3,10 @@
 The short version (commands, watching, what to tell the user) is the skill `skills/uo-shovels/SKILL.md`. Offline
 checks: `python3 -I shovels_test.py` (run after any change, before restarting the loop).
 
+**On hold since 2026-11-26** (the user: "dont' restart the shovel loop, we're not buying shovels anymore for a
+while. I'm playing clem as well."). Don't restart it or offer to until the user says buying is back on. It last
+stopped 2026-11-25 01:54, when the spare backpacks chest ran empty; the tools room then held about 3,300 shovels.
+
 Started 2026-11-24. The tool is `shovels.py`; its log is `~/claude/uo-agent-work/shovels/shovels.log`, its state
 `state.json` there (the round under way, every tinker's last stock and price, the bank's gold), `visits.jsonl` (every
 tinker visit) and `vendors.json` (the NPCs and players seen). Newer notes win where they disagree with older ones.
