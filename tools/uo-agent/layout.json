@@ -105,21 +105,21 @@
   "label": "castle: cloth & leather (forge 2326, 3rd)",
   "loose": [
    {
-    "amount": 417,
-    "name": "417 pieces of leather",
-    "serial": "0x40891EA1",
-    "x": 23,
-    "y": 130
-   },
-   {
-    "amount": 2327,
+    "amount": 2329,
     "name": "cut cloth",
     "serial": "0x404734B8",
     "x": 68,
     "y": 114
+   },
+   {
+    "amount": 517,
+    "name": "417 pieces of leather",
+    "serial": "0x40891EA1",
+    "x": 23,
+    "y": 130
    }
   ],
-  "recorded": "2026-11-21 16:37"
+  "recorded": "2026-11-27 01:11"
  },
  "0x4058D51C": {
   "bags": [],
@@ -391,7 +391,7 @@
    },
    {
     "kind": "circle 4 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Recall",
      "serial": "0x4097351D",
@@ -447,7 +447,7 @@
     "y": 128
    }
   ],
-  "recorded": "2026-11-20 18:52"
+  "recorded": "2026-11-27 01:27"
  },
  "0x406B4455": {
   "bags": [],
@@ -457,11 +457,25 @@
   "recorded": "2026-11-20 18:42"
  },
  "0x406B4D0D": {
-  "bags": [],
-  "items": 0,
-  "label": "castle: best weapons (east 2334, top) [secure]",
+  "bags": [
+   {
+    "kind": "swords",
+    "known": 0,
+    "marker": {
+     "name": "a viking sword of vanquishing",
+     "serial": "0x40959306",
+     "x": 18,
+     "y": 128
+    },
+    "serial": "0x407FE366",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "items": 2,
+  "label": "castle: best weapons (east 2334, top)",
   "loose": [],
-  "recorded": "2026-11-20 18:41"
+  "recorded": "2026-11-27 01:27"
  },
  "0x406B5A69": {
   "bags": [],
@@ -1573,7 +1587,7 @@
   "bags": [
    {
     "kind": "circle 5 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": {
      "name": "Paralyze Scroll",
      "serial": "0x40885A02",
@@ -1599,7 +1613,7 @@
    },
    {
     "kind": "circle 7 scrolls",
-    "known": 0,
+    "known": 8,
     "marker": null,
     "serial": "0x407B195C",
     "x": 104,
@@ -1617,7 +1631,7 @@
   "items": 6,
   "label": "castle: scrolls, circles 5-8 (east 2336, 2nd)",
   "loose": [],
-  "recorded": "2026-11-21 22:18"
+  "recorded": "2026-11-27 01:27"
  },
  "0x406BC073": {
   "bags": [],
@@ -2235,63 +2249,63 @@
   "label": "castle: reagents (east 2336, 3rd)",
   "loose": [
    {
-    "amount": 506,
-    "name": "Sulfurous Ash",
-    "serial": "0x406FF9C6",
-    "x": 95,
-    "y": 133
-   },
-   {
-    "amount": 261,
-    "name": "Garlic",
-    "serial": "0x40959692",
-    "x": 79,
-    "y": 107
-   },
-   {
-    "amount": 309,
-    "name": "Black Pearls",
-    "serial": "0x407A3574",
-    "x": 18,
-    "y": 107
-   },
-   {
-    "amount": 1620,
-    "name": "Nightshade",
-    "serial": "0x4082CE9B",
-    "x": 50,
-    "y": 133
-   },
-   {
-    "amount": 350,
-    "name": "17 Mandrake Root",
-    "serial": "0x40938941",
-    "x": 18,
-    "y": 133
-   },
-   {
-    "amount": 510,
+    "amount": 527,
     "name": "Spider's Silk",
     "serial": "0x406FF9B6",
     "x": 72,
     "y": 133
    },
    {
-    "amount": 319,
+    "amount": 378,
+    "name": "17 Mandrake Root",
+    "serial": "0x40938941",
+    "x": 18,
+    "y": 133
+   },
+   {
+    "amount": 351,
     "name": "Blood Moss",
     "serial": "0x4084DAC4",
     "x": 52,
     "y": 107
    },
    {
-    "amount": 1101,
+    "amount": 1123,
     "name": "Ginseng",
     "serial": "0x408CBF91",
     "x": 97,
     "y": 107
+   },
+   {
+    "amount": 327,
+    "name": "Black Pearls",
+    "serial": "0x407A3574",
+    "x": 18,
+    "y": 107
+   },
+   {
+    "amount": 279,
+    "name": "Garlic",
+    "serial": "0x40959692",
+    "x": 79,
+    "y": 107
+   },
+   {
+    "amount": 524,
+    "name": "Sulfurous Ash",
+    "serial": "0x406FF9C6",
+    "x": 95,
+    "y": 133
+   },
+   {
+    "amount": 1653,
+    "name": "Nightshade",
+    "serial": "0x4082CE9B",
+    "x": 50,
+    "y": 133
    }
   ],
-  "recorded": "2026-11-26 21:50"
+  "recorded": "2026-11-27 01:27"
  },
  "0x406BEF1A": {
   "bags": [],
@@ -2861,7 +2875,7 @@
   "label": "castle: supplies & ID wands (east 2337, 3rd)",
   "loose": [
    {
-    "amount": 24,
+    "amount": 25,
     "name": "empty bottles",
     "serial": "0x408A846F",
     "x": 63,
@@ -2873,13 +2887,6 @@
     "serial": "0x408D19BF",
     "x": 81,
     "y": 106
-   },
-   {
-    "amount": 1250,
-    "name": "arrow",
-    "serial": "0x407004A7",
-    "x": 105,
-    "y": 105
    },
    {
     "amount": 36,
@@ -2950,9 +2957,16 @@
     "serial": "0x4088DBE9",
     "x": 18,
     "y": 139
+   },
+   {
+    "amount": 1251,
+    "name": "arrow",
+    "serial": "0x407004A7",
+    "x": 105,
+    "y": 105
    }
   ],
-  "recorded": "2026-11-20 18:52"
+  "recorded": "2026-11-27 01:22"
  },
  "0x406C71AF": {
   "bags": [
@@ -3493,18 +3507,10 @@
  },
  "0x406E34E8": {
   "bags": [],
-  "items": 1,
+  "items": 0,
   "label": "castle: gold (my vault 941, top)",
-  "loose": [
-   {
-    "amount": 689,
-    "name": "gold coin",
-    "serial": "0x4069E6F1",
-    "x": 18,
-    "y": 105
-   }
-  ],
-  "recorded": "2026-11-26 21:48"
+  "loose": [],
+  "recorded": "2026-11-27 01:27"
  },
  "0x406E3BFC": {
   "bags": [],
@@ -3546,7 +3552,7 @@
   "items": 0,
   "label": "castle: gems (my vault 939, floor)",
   "loose": [],
-  "recorded": "2026-11-21 22:26"
+  "recorded": "2026-11-27 01:27"
  },
  "0x406E85EC": {
   "bags": [],
@@ -3585,30 +3591,6 @@
  },
  "0x406ED0AA": {
   "bags": [
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x407FE335",
-    "x": 115,
-    "y": 105
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x407FE34C",
-    "x": 114,
-    "y": 105
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x407FE366",
-    "x": 116,
-    "y": 105
-   },
    {
     "kind": "?",
     "known": 0,
@@ -4365,30 +4347,6 @@
     "kind": "?",
     "known": 0,
     "marker": null,
-    "serial": "0x40832F90",
-    "x": 32,
-    "y": 146
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098E061",
-    "x": 27,
-    "y": 146
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098E057",
-    "x": 40,
-    "y": 137
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
     "serial": "0x4098E05C",
     "x": 118,
     "y": 119
@@ -4405,39 +4363,79 @@
     "kind": "?",
     "known": 0,
     "marker": null,
-    "serial": "0x4098E063",
-    "x": 31,
-    "y": 114
+    "serial": "0x40832F90",
+    "x": 18,
+    "y": 133
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E061",
+    "x": 73,
+    "y": 134
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E057",
+    "x": 98,
+    "y": 115
    },
    {
     "kind": "?",
     "known": 0,
     "marker": null,
     "serial": "0x4091CFD8",
-    "x": 100,
-    "y": 126
+    "x": 118,
+    "y": 143
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE335",
+    "x": 41,
+    "y": 117
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE34C",
+    "x": 48,
+    "y": 142
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40836C01",
+    "x": 18,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E063",
+    "x": 91,
+    "y": 142
    },
    {
     "kind": "?",
     "known": 0,
     "marker": null,
     "serial": "0x407FE30E",
-    "x": 91,
-    "y": 129
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x407FE330",
-    "x": 123,
-    "y": 147
+    "x": 30,
+    "y": 153
    }
   ],
-  "items": 106,
+  "items": 105,
   "label": "castle: spare backpacks (my vault 938, 3rd) [secure]",
   "loose": [],
-  "recorded": "2026-11-26 21:50"
+  "recorded": "2026-11-27 01:27"
  },
  "0x406EDB9B": {
   "bags": [],
