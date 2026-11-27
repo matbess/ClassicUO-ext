@@ -122,9 +122,16 @@ def test_reagents_separate():
           and "st['weight'] > st['weightMax'] - WEIGHT_MARGIN" in src)
 
 
+def test_login_routine():
+    src = open(os.path.join(HERE, 'burgers.py'), encoding='utf-8').read()
+    check("the nightly reboot's login double-click is no takeover, for Clem and Burgers (2026-11-27 11:25)",
+          src.count('login_resumed(') == 4 and 'uo.login_routine(i, taken)' in src)
+
+
 def main():
     for t in (test_names, test_parse_reagents, test_needed, test_share, test_rules, test_pick_bag, test_loops,
-              test_bank_bags, test_razor_click, test_inside_of, test_reagents_separate):
+              test_bank_bags, test_razor_click, test_inside_of, test_reagents_separate,
+              test_login_routine):
         try:
             t()
         except Exception as e:

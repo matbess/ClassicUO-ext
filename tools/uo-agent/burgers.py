@@ -386,7 +386,7 @@ def count_items(items):
 
 def burgers_to_bank(b):
     """Burgers to the Ocllo bank (his "Ocllo" rune), off Clem's landing spot, guard off, hidden."""
-    st = b.status()
+    st = login_resumed(b.info, b.status(), 'Burgers')
     if st.get('takenOver'):
         raise UserHas(f"the user has Burgers ({st['takenOver']})")
     b.call('POST', '/guard', on=0)
@@ -756,6 +756,17 @@ def loops_running(out=None):
     return bur, clem
 
 
+def login_resumed(i, st, name):
+    """A takeover that is the client's own login routine (the nightly reboot's double-clicks; 2026-11-27 11:25 Clem
+    still showed "a double-click at 04:19:07") is not the user: resumed, as mine.py does. The status after."""
+    taken = st.get('takenOver')
+    if taken and uo.login_routine(i, taken):
+        RAW_CALL(i, 'POST', '/resume')
+        say(f"{name}: the client's login routine counted as a takeover ({taken}); resumed")
+        return RAW_CALL(i, 'GET', '/status')
+    return st
+
+
 def setup_clem():
     global info
     info = uo.find_bridge('Clem')
@@ -766,7 +777,7 @@ def setup_clem():
     tools_room.say = say
     tools_room.castle_move.say = say
     tools_room.TRUST_CACHE = True  # the shovel run's count stands; the bags taken here come off the record
-    st = uo.call(info, 'GET', '/status')
+    st = login_resumed(info, uo.call(info, 'GET', '/status'), 'Clem')
     if st.get('takenOver') and tools_room.castle_move.razor_opened(None):  # Razor's AutoSearch (15:24:44), not the user
         st = uo.call(info, 'GET', '/status')
     if st.get('takenOver'):
@@ -791,7 +802,7 @@ def run(bags, asked, bank_bags=BANK_BAGS):
         else:
             raise Stop(f"Clem starts from inside the castle; he's at {st['x']},{st['y']}")
     b = Bur()
-    bst = b.status()
+    bst = login_resumed(b.info, b.status(), 'Burgers')
     if bst.get('takenOver'):
         raise UserHas(f"the user has Burgers ({bst['takenOver']})")
     say(f"--- burgers.py run: {bags} bags; Clem at {st['x']},{st['y']},{st['z']} {st['weight']}/{st['weightMax']}; "
