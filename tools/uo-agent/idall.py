@@ -26,6 +26,7 @@ TRASH = '0x4068E2BB'   # the trash barrel by the door; empty ID wands and staves
 SPARES = '0x4049D6B8'  # pouch of spare ID wands and staves, in the supplies chest
 WANDS = {'0x0DF2', '0x0DF3', '0x0DF4', '0x0DF5',             # wands
          '0x0DF0', '0x0DF1', '0x13F8', '0x13F9', '0x0E89', '0x0E8A'}  # black, gnarled and quarter staves
+BARREL_AT = (949, 2323)  # beside the castle's trash barrel (949,2322)
 MOVER = None  # set in the castle (castle_site): walks go by the castle's routes, the barrel is the castle's
 FOUND = {}  # ID wands and staves found in this batch: serial -> charges
 UNIDENTIFIED = re.compile(r'^(an? )?magic ', re.I)  # how the server names magic items nobody has identified yet
@@ -95,6 +96,8 @@ def spares(info):
 def swap(info, wand):
     if wand:
         wait_until_clear(info)
+        if MOVER:  # the barrel is in the forge corner, out of his client's sight from the intake chests (a 404,
+            MOVER.go(BARREL_AT, 'to the trash barrel with the empty ID wand')  # 2026-11-27)
         try:
             result = uo.move(info, wand, castle_site.BARREL if MOVER else TRASH)
         except uo.BridgeError as e:

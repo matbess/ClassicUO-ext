@@ -136,7 +136,9 @@ def from_intake(info, side):
     if not taken and not loose:
         return []
     st = uo.call(info, 'GET', '/status')
-    room = st['weightMax'] - st['weight'] - 30  # some left over for what the cutting and the boards make
+    # all he can carry: cutting and boards weigh less than what they're made from (a 30-stone margin left the user's
+    # 277-295 stone loot bags behind, 2026-11-27: "each of those loot bags I had in clems inventory just fine")
+    room = st['weightMax'] - st['weight']
     carried = []
     for bag in taken:
         w = stones_of(info, bag['serial'])
@@ -149,6 +151,13 @@ def from_intake(info, side):
         room -= w
         carried.append(bag['serial'])
         say(f"{bag['serial']} {bag['type']} ({w} stones) from the intake chest into his pack")
+    if not carried and not loose and left:
+        # every bag is heavier than he can carry (2026-11-27: four of 277-295 stones, 274 free): this time the first
+        # one's things go into a carry bag, as many as he can take; the bag stays in the chest for the next batch
+        heavy = left[0]
+        loose = [dict(i, chest=heavy['serial']) for i in open_once(info, heavy['serial'])]
+        say(f"{heavy['serial']} ({stones_of(info, heavy['serial'])} stones) is too heavy to carry whole: "
+            'taking what fits out of it')
     if loose:
         spares = castle_site.targets('new backpacks', side)
         empty = None
@@ -173,7 +182,7 @@ def from_intake(info, side):
                         break
                     raise uo.BridgeError(0, f"{i['serial']} {i['type']} did not go into the carry bag: {result}")
                 st = uo.call(info, 'GET', '/status')
-                if st['weight'] > st['weightMax'] - 30:  # over what he can carry and still sort: back it goes
+                if st['weight'] > st['weightMax']:  # over what he can carry: back it goes
                     # (2026-11-26: the reagents took him to 415/390 and sortbatch couldn't pick anything up)
                     uo.move(info, i['serial'], i['chest'])
                     heavy = loose[n:]
@@ -214,7 +223,7 @@ def from_floor(info):
             + ', '.join(f"{i['serial']} {i['type']} at {i['x']},{i['y']}" for i in loose))
     pack = uo.call(info, 'GET', '/status')['backpack']['serial']
     st = uo.call(info, 'GET', '/status')
-    room = st['weightMax'] - st['weight'] - 30
+    room = st['weightMax'] - st['weight']
     carried, left = [], []
     for bag in bags:
         w = stones_of(info, bag['serial'])

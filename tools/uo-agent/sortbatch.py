@@ -71,6 +71,10 @@ POTIONS = {'yellow': 'heal', 'orange': 'cure', 'red': 'refresh', 'blue': 'agilit
            'green': 'poison', 'purple': 'explosion', 'black': None}
 
 
+# the user's loot bag, kept in Clem's pack (2026-11-24: "that's my loot bag, leave it alone, I always have a loot bag.
+# once I fill it up with loot ill have you sort the loot"); full, it may come in through a dump chest (2026-11-27)
+USER_LOOT_BAG = '0x409167C6'
+
 def say(text):
     print(time.strftime('%H:%M:%S'), text, flush=True)
 
@@ -120,8 +124,11 @@ def holder(serial):
     return chain[0] if chain else None
 
 
+LOOT = []  # the batch's loot bags (sort())
+
+
 def move(serial, to, x=None, y=None):
-    walked = False
+    walked = reopened = False
     while True:
         while uo.people_to_wait_for(info):
             say('paused: someone is in the room; checking again in a minute')
@@ -138,6 +145,17 @@ def move(serial, to, x=None, y=None):
                 uo.walk_near(info, holder(to))
                 for c in holders(to):  # the chest, then the bag in it, so the client knows the pile again
                     uo.call(info, 'POST', '/open', serial=c)
+                continue
+            # an item in one of the batch's loot bags in his pack, and his client has forgotten what the bag holds
+            # (2026-11-27 01:08: the hat to cut, after a round of the east wall): open the loot bags again (only the
+            # batch's own bags, never a pouch of his)
+            if e.code == 404 and not reopened and LOOT:
+                reopened = True
+                for l in LOOT:
+                    try:
+                        uo.call(info, 'POST', '/open', serial=l)
+                    except uo.BridgeError:
+                        pass
                 continue
             if uo.wait_out_world_save(info, e):
                 say('world save finished; carrying on')
@@ -559,7 +577,8 @@ def main():
 
 
 def sort(plan):
-    loot = plan['loot']
+    global LOOT
+    loot = LOOT = plan['loot']
     for part in plan.get('learn_first', []):  # chests whose bags get things put into them
         learn(chest(part))
     inv = {}
@@ -768,6 +787,9 @@ def sort(plan):
         left = uo.call(info, 'GET', '/contents', serial=l)['items']
         if left:
             say(f'{l} still holds: ' + ', '.join(i['type'] for i in left))
+            continue
+        if l == USER_LOOT_BAG:  # emptied, it goes back in his pack, never to the spare backpacks
+            say(f"{l} empty: the user's loot bag, left in his pack")
             continue
         if SIDE:  # the spare backpacks chest by the forge; once that holds 125, the trash (the user, 2026-11-18)
             c = ROOM.pick('new backpacks', SIDE) or room_in('trash')

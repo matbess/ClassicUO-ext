@@ -320,6 +320,20 @@ def table_crossing(pts3):
     return None
 
 
+def densify(pts, step=4):
+    """The route's turn points with a waypoint every `step` tiles between them. The client's path-finder, handed a far
+    turn point, took its own way there: from the gems chest in the user's vault to the east wall (948,2336) it went
+    round by the forge corner and stuck beside the trash barrel at 949,2323, every time (the user, 2026-11-27: "every
+    time he opens the gem bag, then walks to the trash barrel on the other side of the castle"). Short hops keep him
+    on the route."""
+    out = [tuple(pts[0])]
+    for a, b in zip(pts, pts[1:]):
+        n = max(1, -(-cheb(a, b) // step))
+        for k in range(1, n + 1):
+            out.append((a[0] + round((b[0] - a[0]) * k / n), a[1] + round((b[1] - a[1]) * k / n)))
+    return [q for k, q in enumerate(out) if k == 0 or q != out[k - 1]]
+
+
 class Mover:
     """Walks one character around the castle along the user's ROUTE, opening the user's table when the way goes behind it and
     closing it in close_up(). `uo` is the caller's own uo module (each tool loads its own copy)."""
@@ -335,6 +349,7 @@ class Mover:
         """One smooth ride along pts (/travel). Done when he stands on the last point, on its floor (up: True for
         upstairs; 2026-11-19 20:50 he ended a walk at 943,2324 one floor up, above the forge's corridor); else again
         along the stretch."""
+        pts = densify(pts)
         end = tuple(pts[-1])
         start = list(pts)
         for attempt in range(4):
@@ -345,7 +360,8 @@ class Mover:
                 pts = start
             r = self.uo.call(self.info, 'POST', '/travel', path=';'.join(f'{x},{y}' for x, y in pts[:200]))
             if r.get('stopped'):
-                self.say(f"the way {what} stopped at {r.get('x')},{r.get('y')} ({r.get('stopped')}); on from there")
+                self.say(f"the way {what} stopped at {r.get('x')},{r.get('y')} ({r.get('stopped')}); on from there"
+                         f" [path {' '.join(f'{x},{y}' for x, y in pts)}; reached {r.get('reached')}]")
                 # the ride stalls on some stretches where plain walks go through (23:01-23:06, the east walkway
                 # down to the user's vault): the rest of the turn points by plain walks
                 here = (r.get('x'), r.get('y'))
