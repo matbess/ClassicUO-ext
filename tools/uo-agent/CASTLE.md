@@ -25,6 +25,8 @@ Every door ends **locked and closed**, as at the tower.
 3. **Entrance room** (x 935-936, y 2348-2350, between the front door and inner doors `0x4091356F`/`0x40913570` at
    2347, which stay shut). The secure **wooden box `0x405AEFB8`** stands on the table at 935,2349,12. Open it, and
    cast **Recall on the rune inside** (`0x405FCA52`, "recall rune"). He lands in the **courtyard at 935,2344,0**.
+   The user keeps other runes in the box too (a Rune Library rune from 2026-11-26): `castle.COURTYARD_RUNE` picks
+   this one by serial; never take or move the others.
 4. **Central door** `0x40913571` (west half, shut at 935,2341; the east half is `0x40913572`; open, it stands at
    934,2342). The key ring `0x408CB8EE` hangs at 936,2342,23, on the courtyard side.
    1. From 935,2343, unlock the door.

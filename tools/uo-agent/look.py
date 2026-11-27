@@ -165,13 +165,19 @@ def from_intake(info, side):
         else:
             uo.move(info, empty, pack)
             moved, heavy = 0, []
-            for i in loose:
+            for n, i in enumerate(loose):
                 result = uo.move(info, i['serial'], empty)
                 if not result.get('moved'):
                     if any('more weight' in m.get('text', '') for m in result.get('messages', [])):
-                        heavy.append(i)  # he's full (2026-11-26: 1,620 nightshade): it waits for the next batch
-                        continue
+                        heavy = loose[n:]  # he's full (2026-11-26: 1,620 nightshade): the rest waits for the next batch
+                        break
                     raise uo.BridgeError(0, f"{i['serial']} {i['type']} did not go into the carry bag: {result}")
+                st = uo.call(info, 'GET', '/status')
+                if st['weight'] > st['weightMax'] - 30:  # over what he can carry and still sort: back it goes
+                    # (2026-11-26: the reagents took him to 415/390 and sortbatch couldn't pick anything up)
+                    uo.move(info, i['serial'], i['chest'])
+                    heavy = loose[n:]
+                    break
                 moved += 1
             carried.append(empty)
             say(f'{moved} loose things from the intake chests into an empty bag ({empty}) in his pack')

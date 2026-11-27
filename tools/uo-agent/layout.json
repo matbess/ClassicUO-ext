@@ -2231,46 +2231,67 @@
  },
  "0x406BE5CF": {
   "bags": [],
-  "items": 5,
-  "label": "castle: reagents (east 2336, 3rd) [secure]",
+  "items": 8,
+  "label": "castle: reagents (east 2336, 3rd)",
   "loose": [
    {
-    "amount": 288,
-    "name": "Spider's Silk",
-    "serial": "0x406FF9B6",
-    "x": 72,
-    "y": 133
-   },
-   {
-    "amount": 303,
+    "amount": 506,
     "name": "Sulfurous Ash",
     "serial": "0x406FF9C6",
     "x": 95,
     "y": 133
    },
    {
-    "amount": 251,
+    "amount": 261,
     "name": "Garlic",
-    "serial": "0x40840DA7",
+    "serial": "0x40959692",
     "x": 79,
     "y": 107
    },
    {
-    "amount": 868,
+    "amount": 309,
+    "name": "Black Pearls",
+    "serial": "0x407A3574",
+    "x": 18,
+    "y": 107
+   },
+   {
+    "amount": 1620,
+    "name": "Nightshade",
+    "serial": "0x4082CE9B",
+    "x": 50,
+    "y": 133
+   },
+   {
+    "amount": 350,
+    "name": "17 Mandrake Root",
+    "serial": "0x40938941",
+    "x": 18,
+    "y": 133
+   },
+   {
+    "amount": 510,
+    "name": "Spider's Silk",
+    "serial": "0x406FF9B6",
+    "x": 72,
+    "y": 133
+   },
+   {
+    "amount": 319,
+    "name": "Blood Moss",
+    "serial": "0x4084DAC4",
+    "x": 52,
+    "y": 107
+   },
+   {
+    "amount": 1101,
     "name": "Ginseng",
     "serial": "0x408CBF91",
     "x": 97,
     "y": 107
-   },
-   {
-    "amount": 108,
-    "name": "Nightshade",
-    "serial": "0x408F2147",
-    "x": 42,
-    "y": 133
    }
   ],
-  "recorded": "2026-11-20 18:52"
+  "recorded": "2026-11-26 21:50"
  },
  "0x406BEF1A": {
   "bags": [],
@@ -3472,10 +3493,18 @@
  },
  "0x406E34E8": {
   "bags": [],
-  "items": 0,
+  "items": 1,
   "label": "castle: gold (my vault 941, top)",
-  "loose": [],
-  "recorded": "2026-11-21 22:26"
+  "loose": [
+   {
+    "amount": 689,
+    "name": "gold coin",
+    "serial": "0x4069E6F1",
+    "x": 18,
+    "y": 105
+   }
+  ],
+  "recorded": "2026-11-26 21:48"
  },
  "0x406E3BFC": {
   "bags": [],
@@ -3560,15 +3589,791 @@
     "kind": "?",
     "known": 0,
     "marker": null,
-    "serial": "0x4098E060",
-    "x": 40,
-    "y": 115
+    "serial": "0x407FE335",
+    "x": 115,
+    "y": 105
    },
    {
     "kind": "?",
     "known": 0,
     "marker": null,
-    "serial": "0x4098E062",
+    "serial": "0x407FE34C",
+    "x": 114,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE366",
+    "x": 116,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE364",
+    "x": 117,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE348",
+    "x": 117,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE342",
+    "x": 115,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE328",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE353",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE356",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE310",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE346",
+    "x": 109,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE33A",
+    "x": 117,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE341",
+    "x": 115,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE329",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE31D",
+    "x": 115,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE352",
+    "x": 112,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x407FE34D",
+    "x": 116,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40802555",
+    "x": 111,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40802522",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FFB",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FDE",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4080257B",
+    "x": 114,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4080251D",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40802559",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FB7",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4080259C",
+    "x": 116,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4080254A",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4080251B",
+    "x": 116,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FE6",
+    "x": 110,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40802517",
+    "x": 107,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40802557",
+    "x": 107,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FBF",
+    "x": 115,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FA5",
+    "x": 107,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40802544",
+    "x": 110,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4080250A",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40802506",
+    "x": 115,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40802562",
+    "x": 115,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FAB",
+    "x": 110,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4080100D",
+    "x": 103,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FAC",
+    "x": 110,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FB1",
+    "x": 110,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40802547",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40802501",
+    "x": 116,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FFA",
+    "x": 109,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FFD",
+    "x": 116,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FF7",
+    "x": 109,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FC0",
+    "x": 108,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40802521",
+    "x": 113,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FBC",
+    "x": 117,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FAE",
+    "x": 113,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FFC",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FA1",
+    "x": 114,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40802573",
+    "x": 113,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40802516",
+    "x": 107,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40802570",
+    "x": 114,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800FF2",
+    "x": 108,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40800F9C",
+    "x": 109,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408120C8",
+    "x": 114,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408120AA",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408120A9",
+    "x": 112,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408120CF",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4081209A",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408097D5",
+    "x": 109,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408097B9",
+    "x": 109,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408120B6",
+    "x": 116,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4080978A",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408097AB",
+    "x": 116,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408097AC",
+    "x": 111,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408097AA",
+    "x": 114,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408120A0",
+    "x": 115,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408097C9",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408120A6",
+    "x": 117,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4081209F",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4081208C",
+    "x": 117,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408097D6",
+    "x": 116,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40809793",
+    "x": 115,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408120BE",
+    "x": 117,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4081209E",
+    "x": 112,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40809799",
+    "x": 114,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4080979D",
+    "x": 116,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408120C9",
+    "x": 106,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408097CB",
+    "x": 112,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408120A3",
+    "x": 112,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408120B3",
+    "x": 105,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408097CF",
+    "x": 108,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408097CE",
+    "x": 106,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408097C8",
+    "x": 118,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40809788",
+    "x": 109,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408120A2",
+    "x": 117,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408097CD",
+    "x": 106,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408120A7",
+    "x": 111,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408097BC",
+    "x": 112,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408097C6",
+    "x": 109,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408097B7",
+    "x": 115,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408120D4",
+    "x": 103,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x408120A8",
+    "x": 115,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4081208E",
+    "x": 109,
+    "y": 105
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x40832F90",
+    "x": 32,
+    "y": 146
+   },
+   {
+    "kind": "?",
+    "known": 0,
+    "marker": null,
+    "serial": "0x4098E061",
     "x": 27,
     "y": 146
    },
@@ -3576,503 +4381,63 @@
     "kind": "?",
     "known": 0,
     "marker": null,
-    "serial": "0x4098E064",
-    "x": 70,
-    "y": 117
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098E069",
-    "x": 118,
-    "y": 146
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098F2BC",
-    "x": 55,
-    "y": 146
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40832F79",
-    "x": 67,
-    "y": 108
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40832F87",
-    "x": 118,
-    "y": 141
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40832F76",
-    "x": 118,
-    "y": 146
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40832F7A",
-    "x": 32,
-    "y": 128
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40832F7D",
-    "x": 72,
+    "serial": "0x4098E057",
+    "x": 40,
     "y": 137
    },
    {
     "kind": "?",
     "known": 0,
     "marker": null,
-    "serial": "0x4045C02F",
-    "x": 34,
-    "y": 139
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x409397BB",
+    "serial": "0x4098E05C",
     "x": 118,
-    "y": 146
+    "y": 119
    },
    {
     "kind": "?",
     "known": 0,
     "marker": null,
-    "serial": "0x407D0B9F",
-    "x": 27,
-    "y": 146
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098F2DB",
-    "x": 18,
-    "y": 136
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098F2E1",
-    "x": 72,
-    "y": 133
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098E049",
-    "x": 33,
-    "y": 136
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098E04D",
-    "x": 112,
-    "y": 146
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098E04F",
-    "x": 104,
-    "y": 128
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098E055",
-    "x": 91,
-    "y": 128
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098E05F",
-    "x": 45,
-    "y": 132
+    "serial": "0x4098E054",
+    "x": 118,
+    "y": 116
    },
    {
     "kind": "?",
     "known": 0,
     "marker": null,
     "serial": "0x4098E063",
-    "x": 25,
-    "y": 108
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098E066",
-    "x": 60,
-    "y": 136
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098F2BB",
-    "x": 18,
-    "y": 105
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40832F67",
-    "x": 23,
-    "y": 138
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40832F60",
-    "x": 89,
-    "y": 115
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40832F86",
-    "x": 80,
-    "y": 128
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40832F6D",
-    "x": 50,
-    "y": 116
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098CD08",
-    "x": 76,
-    "y": 139
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098F2D9",
-    "x": 59,
+    "x": 31,
     "y": 114
    },
    {
     "kind": "?",
     "known": 0,
     "marker": null,
-    "serial": "0x4098F2CA",
-    "x": 88,
-    "y": 146
+    "serial": "0x4091CFD8",
+    "x": 100,
+    "y": 126
    },
    {
     "kind": "?",
     "known": 0,
     "marker": null,
-    "serial": "0x40832F7E",
-    "x": 26,
-    "y": 146
+    "serial": "0x407FE30E",
+    "x": 91,
+    "y": 129
    },
    {
     "kind": "?",
     "known": 0,
     "marker": null,
-    "serial": "0x4098F2C6",
-    "x": 75,
-    "y": 135
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40836C02",
-    "x": 18,
-    "y": 131
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40836C0B",
-    "x": 39,
-    "y": 144
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x409167C1",
-    "x": 49,
-    "y": 111
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40836C0F",
-    "x": 103,
-    "y": 134
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x400F878C",
-    "x": 96,
-    "y": 130
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40875680",
-    "x": 23,
-    "y": 116
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098F2C1",
-    "x": 37,
-    "y": 146
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x409167C0",
-    "x": 63,
-    "y": 112
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40836C0D",
-    "x": 45,
-    "y": 146
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098F2E4",
-    "x": 18,
-    "y": 135
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x409397C6",
-    "x": 39,
-    "y": 122
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098F2CC",
-    "x": 59,
-    "y": 130
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4045BFF9",
-    "x": 18,
-    "y": 146
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098F2C7",
-    "x": 56,
-    "y": 131
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098E052",
-    "x": 19,
-    "y": 146
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098F2BE",
-    "x": 27,
-    "y": 135
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098F2D3",
-    "x": 79,
-    "y": 107
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40836C22",
-    "x": 24,
-    "y": 133
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40836C0A",
-    "x": 49,
-    "y": 143
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098F2C3",
-    "x": 66,
-    "y": 106
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098F2DC",
-    "x": 62,
-    "y": 143
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x400F8748",
-    "x": 20,
-    "y": 146
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x409167A3",
-    "x": 95,
-    "y": 145
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098CD25",
-    "x": 42,
-    "y": 138
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x407B195A",
-    "x": 70,
-    "y": 146
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4098E04C",
-    "x": 78,
-    "y": 125
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x409167BC",
-    "x": 64,
-    "y": 116
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x409167B1",
-    "x": 112,
-    "y": 105
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x40836C01",
-    "x": 101,
-    "y": 105
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4091CFCF",
-    "x": 118,
-    "y": 123
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4091CFCE",
-    "x": 39,
-    "y": 105
-   },
-   {
-    "kind": "?",
-    "known": 0,
-    "marker": null,
-    "serial": "0x4091CFC8",
-    "x": 18,
-    "y": 105
+    "serial": "0x407FE330",
+    "x": 123,
+    "y": 147
    }
   ],
-  "items": 64,
+  "items": 106,
   "label": "castle: spare backpacks (my vault 938, 3rd) [secure]",
   "loose": [],
-  "recorded": "2026-11-23 11:18"
+  "recorded": "2026-11-26 21:50"
  },
  "0x406EDB9B": {
   "bags": [],
