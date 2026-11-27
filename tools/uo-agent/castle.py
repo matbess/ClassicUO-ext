@@ -46,6 +46,7 @@ LANDING = (935, 2356)            # where the Castle rune puts him
 FRONT_DOOR, FRONT_KEY = '0x40913567', '0x4093D690'
 FRONT_SHUT, FRONT_OUT, FRONT_IN = (935, 2351), (935, 2353), (935, 2350)
 RUNE_BOX = '0x405AEFB8'          # the secure box in the entrance room, with the courtyard rune
+COURTYARD_RUNE = '0x405FCA52'  # "recall rune" in RUNE_BOX, lands in the courtyard (CASTLE.md)
 COURTYARD = (935, 2344)
 CENTRAL_DOOR, CENTRAL_KEY = '0x40913571', '0x408CB8EE'
 CENTRAL_SHUT, CENTRAL_OUT, CENTRAL_IN = (935, 2341), (935, 2343), (935, 2340)
@@ -320,9 +321,10 @@ def go_in():
         items = call('GET', '/contents', serial=RUNE_BOX)['items']
         runes = [i['serial'] for i in items if int(i['graphic'], 16) in RUNES]
         call('POST', '/close', serial=RUNE_BOX)
-        if len(runes) != 1:
-            raise Stop(f'the secure box {RUNE_BOX} holds {len(runes)} runes, not the one courtyard rune')
-        st = recall(runes[0], 'the courtyard')
+        # the courtyard rune by its serial: the user keeps other runes in the box too (a Rune Library rune, 2026-11-26)
+        if COURTYARD_RUNE not in runes:
+            raise Stop(f'the courtyard rune {COURTYARD_RUNE} is not in the secure box {RUNE_BOX} ({len(runes)} runes)')
+        st = recall(COURTYARD_RUNE, 'the courtyard')
         if max(abs(st['x'] - COURTYARD[0]), abs(st['y'] - COURTYARD[1])) > 3:
             raise Stop(f'the courtyard rune put him at {st["x"]},{st["y"]}, not in the courtyard ({COURTYARD})')
         here = (st['x'], st['y'])

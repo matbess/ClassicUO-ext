@@ -5,6 +5,7 @@ write down what's there.
   look.py BATCHDIR                 the tower: the loot on the chest room's floor
   look.py BATCHDIR --side east --floor   the castle: the loot bags on the forge room floor (from 2026-11-20)
   look.py BATCHDIR --side east     the castle (CASTLE.md, "Sorting"): the loot in the east (or west) intake chests
+  ... --carried S,S                 also the bags already in his pack from a run that stopped part way
 
 In the castle the loot bags are taken out of the intake chests into the sorter's backpack, as many as he can carry
 (the rest wait for the next batch), and anything lying loose in an intake chest goes into an empty bag from that
@@ -163,12 +164,20 @@ def from_intake(info, side):
                 + ', '.join(i['type'] for i in loose))
         else:
             uo.move(info, empty, pack)
+            moved, heavy = 0, []
             for i in loose:
                 result = uo.move(info, i['serial'], empty)
                 if not result.get('moved'):
+                    if any('more weight' in m.get('text', '') for m in result.get('messages', [])):
+                        heavy.append(i)  # he's full (2026-11-26: 1,620 nightshade): it waits for the next batch
+                        continue
                     raise uo.BridgeError(0, f"{i['serial']} {i['type']} did not go into the carry bag: {result}")
+                moved += 1
             carried.append(empty)
-            say(f'{len(loose)} loose things from the intake chests into an empty bag ({empty}) in his pack')
+            say(f'{moved} loose things from the intake chests into an empty bag ({empty}) in his pack')
+            if heavy:
+                say(f'LEFT IN THE INTAKE CHESTS for the next batch ({len(heavy)} loose things, too heavy to carry '
+                    'now): ' + ', '.join(f"{i['type']} x{i.get('amount', 1)}" for i in heavy))
     if left:
         say(f'LEFT IN THE INTAKE CHESTS for the next batch ({len(left)} bags, too heavy to carry all at once): '
             + ', '.join(i['serial'] for i in left))
@@ -234,6 +243,8 @@ def main():
                      'and southeast and forge"); its intake chests stay as they are')
         try:
             carried = from_floor(info) if '--floor' in sys.argv else from_intake(info, side)
+            if '--carried' in sys.argv:  # bags already in his pack from a run that stopped part way
+                carried += sys.argv[sys.argv.index('--carried') + 1].split(',')
         finally:
             mover.close_up(final=False)
         castle_site.write_site(out, side)
