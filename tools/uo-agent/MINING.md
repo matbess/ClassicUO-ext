@@ -213,6 +213,16 @@ staff title in the name) made both characters stand still and the loop stop unti
 taken out of the bridge (version 4, build cuo-agent17) and the loop, so a staff member near or talking is one more
 stranger: get away, hide, wait until they've gone, carry on, and the incident goes on the review list.
 
+**Known thieves** (the user, 2026-11-26: Halbu tried to snoop Clem; "If you see him again make sure you stay hidden.
+If he reveals you then recall to another location or run away and keep running and trying to hide"; 2026-11-27:
+Swearengen, who once tried to kill the user, goes on the same list: "stay away from him (stay hidden)"). They're listed
+by serial in `thieves.json` (shared: other tools can read it too). A thief in sight of Icepick (every check) or of
+Burgers (every 30 s) starts `thief_alarm`, ahead of every other alarm: both stay hidden, hiding again where they
+are if need be, until he's been out of sight of both for 60 s. Revealed with him in sight, Burgers recalls to the
+Mining Start rune (and to the bank rune if it happens again there) and Icepick rides FLEE tiles away and hides, as
+often as it takes. Still about after 30 minutes: stop and tell. Each one goes on the review list. Guild tags with
+" (Order)" or " (Chaos)" after them ("[Magier, Hzu] (Order)", Halbu at 03:09) are no longer taken for speech.
+
 Test 2026-11-01 19:38: Clem said "hi" next to Burgers; Burgers' guard tripped at once and Icepick's followed within
 the second through Agent/alarm.json; neither client reconnected by itself.
 

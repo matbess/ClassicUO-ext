@@ -84,6 +84,20 @@ CURE_POTION = '0x0F07'      # an orange potion
 CURES_WANTED = 3            # Icepick carries this many; Burgers keeps the rest and tops him up at every handoff (the
                             # user, 2026-11-10: "yes, he should. I will put some on burgers")
 WATCH_AFTER = 600           # seconds after an incident to keep watching for the same person
+# Known thieves (the user, 2026-11-26: Halbu "is a thief ... trying to snoop me on Clem. If you see him again make sure
+# you stay hidden. If he reveals you then recall to another location or run away and keep running and trying to
+# hide"). Listed by serial in thieves.json next to this file (shared, so other tools can use it too).
+THIEVES_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'thieves.json')
+THIEF_GONE_AFTER = 60       # seconds a thief must have been out of sight of both before work goes on
+BURGERS_THIEF_CHECK = 30    # seconds between looks round Burgers for a thief (Icepick's look is at every check)
+
+
+def thieves():
+    try:
+        with open(THIEVES_FILE, encoding='utf-8') as fh:
+            return json.load(fh)
+    except (OSError, ValueError):
+        return {}
 GATE = (1141, 1666)         # where Burgers' gate to the "Mining gate location" rune comes out
 START = (1130, 1544)        # where the "Mining Start" rune leads (the top of the route)
 GATE_ENDS = {'gate': GATE, 'start': START}
@@ -93,7 +107,7 @@ BURGERS_WAIT = (1140, 1849)  # where Burgers waits hidden: grass at the foot of 
                              # which other players use too (the user, 2026-11-02); trades and gates happen here
 ICE_MEET = (1141, 1850)      # where Icepick comes up next to him
 NEXT_TO = ((1, 1), (0, 1), (1, 0), (-1, 1), (1, -1), (0, -1), (-1, 0), (-1, -1))
-GUILD_TAG = re.compile(r'said "\[[^"\]]*\]"$')  # a player's guild tag ("[title, ABBR]"): the server sends it like speech
+GUILD_TAG = re.compile(r'said "\[[^"\]]*\]( \((Order|Chaos)\))?"$')  # a player's guild tag ("[title, ABBR]", with " (Order)" or " (Chaos)" for an Order/Chaos guild, 2026-11-26 Halbu): the server sends it like speech
 # a town guard's paperdoll title ("Olinda the guard"; a single click shows only the name here). The user, 2026-11-09:
 # Icepick ran twice from Olinda, the guard who had just killed a snake that bit him
 GUARD_TITLE = re.compile(r'\bguard$', re.I)
@@ -383,6 +397,7 @@ class Miner:
         self.repeats = {}        # serial -> how many incidents in a row with them (each doubles the wait)
         self.not_guards = set()  # people whose paperdoll said they're not a town guard
         self.burgers_away = False  # Burgers recalled away during an alarm (only when he was seen)
+        self.bur_thief_check = 0   # when Burgers last looked round for a known thief
         self.burgers_sent = None   # where this run's last Recall sent Burgers ('bank', 'start', or home)
         self.mcgee_far = None      # (tiles, since when) while McGee is more than 2 tiles off (keep_mcgee)
         self.stats = {'ore': 0, 'misses': 0, 'blocks': 0, 'empty': 0, 'forge visits': 0, 'ingots': 0,
@@ -434,6 +449,10 @@ class Miner:
         guards = self.state.get('town_guards') or {}
         self.watch = {s: t for s, t in self.watch.items() if t > now and not learned_npc(s) and s not in guards}
         near = self.ice.call('GET', '/nearby', range=18)['mobiles']
+        found = self.thief_in(near, self.ice) or self.thief_in_sight(icepick=False)
+        if found:
+            m, c = found
+            raise Alarm(f"{c.name}: the thief {m.get('name') or m['serial']} is in sight ({m['distance']} tiles)")
         # a creature near him that has turned grey has gone after someone: only noted, for the user (2026-11-08: he
         # reacts to hits only; the guards only come once it has hit someone, and his bridge says "Guards!" at once)
         for m in near:
@@ -555,7 +574,93 @@ class Miner:
             return 'talk', threat
         return None, None
 
+    def thief_in(self, mobiles, c):
+        known = thieves()
+        names = {(v.get('name') or '').lower() for v in known.values()} - {''}
+        for m in mobiles:
+            if m.get('dead'):
+                continue
+            if m['serial'] in known or (m.get('human') and (m.get('name') or '').lower() in names):
+                return m, c
+        return None
+
+    def thief_in_sight(self, icepick=True, burgers=None):
+        """(mobile, the character who sees him) for a known thief (thieves.json) near Icepick or Burgers, else None.
+        Burgers looks only every BURGERS_THIEF_CHECK seconds unless `burgers` says otherwise."""
+        if not thieves():
+            return None
+        if burgers is None:
+            burgers = time.time() - self.bur_thief_check >= BURGERS_THIEF_CHECK
+        chars = ([self.ice] if icepick else []) + ([self.bur] if burgers else [])
+        for c in chars:
+            if c is self.bur:
+                self.bur_thief_check = time.time()
+            found = self.thief_in(c.call('GET', '/nearby', range=18)['mobiles'], c)
+            if found:
+                return found
+        return None
+
+    def thief_alarm(self, found, why):
+        """A known thief in sight (THIEVES_FILE). Both stay hidden (hiding again on the spot if need be) until he has
+        been out of sight of both for THIEF_GONE_AFTER seconds. Revealed with him in sight: Burgers recalls away (the
+        Mining Start rune, and from there to the bank rune if he's revealed again), Icepick rides FLEE tiles away
+        from him and hides, again and again for as long as it takes. A run and hide to review."""
+        m, seer = found
+        name = m.get('name') or m['serial']
+        threat = {'serial': m['serial'], 'name': name, 'x': m['x'], 'y': m['y']}
+        log(f'ALARM {why}: {name} is a known thief: both stay hidden until he has been out of sight for '
+            f'{THIEF_GONE_AFTER} seconds (revealed: Burgers recalls away, Icepick rides off and hides again)')
+        self.incident({'what': f'{why} (a known thief)', 'icepick': {'reason': why, 'threat': threat},
+                       'burgers': None})
+        self.clear_alarms(both=True)
+        start = last_seen = time.time()
+        first = True
+        while True:
+            seen = False
+            for c in (self.ice, self.bur):
+                s = c.status()
+                check_taken_over(c, s)
+                here = next((x for x in c.call('GET', '/nearby', range=18)['mobiles']
+                             if x['serial'] == m['serial']), None)
+                if here:
+                    seen = True
+                    threat.update(x=here['x'], y=here['y'])
+                if s['hidden']:
+                    continue
+                if c is self.ice:
+                    if here and (not first or here['distance'] <= 10):
+                        log(f"Icepick is in plain sight with {name} {here['distance']} tiles off: he rides away and hides")
+                        self.icepick_get_away(threat)
+                    else:
+                        self.hide(self.ice, tries=1)
+                elif not self.burgers_away:
+                    log(f'Burgers is in plain sight with {name} about: he recalls away')
+                    self.burgers_away = self.burgers_get_away()
+                elif here and self.bur.status()['mana'] >= 11:
+                    log(f'Burgers is in plain sight with {name} about again: he recalls to the bank')
+                    self.recall('bank')
+                    self.hide(self.bur)
+                else:
+                    self.hide(self.bur, tries=1)
+            first = False
+            if seen:
+                last_seen = time.time()
+            if time.time() - last_seen >= THIEF_GONE_AFTER:
+                break
+            if time.time() - start > GIVE_UP_WAITING:
+                raise Stop(f"the thief {name} still hasn't gone after {GIVE_UP_WAITING // 60} minutes; the loop has "
+                           'stopped (each of them hidden where he is)')
+            time.sleep(3)
+        if self.burgers_away:
+            self.burgers_back()
+            self.burgers_away = False
+        self.clear_alarms(both=True)
+        log(f'the thief {name} has gone; carrying on')
+
     def handle_alarm(self, why):
+        found = self.thief_in_sight(burgers=True)
+        if found:
+            return self.thief_alarm(found, why)
         if 'Icepick: new in sight: ' in why or ' came within ' in why:
             return self.watch_people(why)
         kind, threat = self.person_alarm()
@@ -590,6 +695,9 @@ class Miner:
         start = time.time()
         known = set()
         while True:
+            found = self.thief_in_sight()
+            if found:
+                return self.thief_alarm(found, why)
             st = self.ice.status()
             check_taken_over(self.ice, st)
             alarm = (st.get('guard') or {}).get('alarm') or {}
@@ -682,6 +790,9 @@ class Miner:
         self.hide(self.bur)
         end = time.time() + TALK_HIDE
         while time.time() < end:
+            found = self.thief_in_sight()
+            if found:
+                return self.thief_alarm(found, why)
             st = self.ice.status()
             check_taken_over(self.ice, st)
             if not st['hidden']:
@@ -1078,6 +1189,9 @@ class Miner:
         serial = (threat or {}).get('serial')
         last_seen = time.time()
         while True:
+            found = self.thief_in_sight()
+            if found:
+                return self.thief_alarm(found, f"the thief {found[0].get('name') or found[0]['serial']} turned up")
             if serial and learned_npc(serial):
                 # it did an NPC's idle fidget and the guard learned it (Sheridan and Chandra, 2026-11-03): no stranger
                 log(f"{(threat or {}).get('name') or serial} turned out to be a town NPC (the guard learned it); carrying on")
